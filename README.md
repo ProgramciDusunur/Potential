@@ -14,6 +14,7 @@
 - Static Null Move Pruning
 - Killer/History Moves
 - Late Move Reduction
+- Static Exchange Evaluation
 ## Credits
 
 I would like to extend my gratitude to some fantastic individuals who have contributed to the creation and development of this project:

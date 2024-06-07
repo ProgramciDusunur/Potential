@@ -1,0 +1,64 @@
+//
+// Created by erena on 29.05.2024.
+//
+#pragma once
+
+#include "board.h"
+
+#ifndef CHESSENGINE_MOVE_H
+#define CHESSENGINE_MOVE_H
+
+#endif //CHESSENGINE_MOVE_H
+
+#ifndef U64
+#define U64 unsigned long long
+#endif
+
+// move list structure
+typedef struct {
+    // moves
+    int moves[256];
+
+    // move count
+    int count;
+} moves;
+
+struct copyposition {
+    U64 bitboardsCopy[12];
+    U64 occupanciesCopy[3];
+    U64 hashKeyCopy;
+    int sideCopy;
+    int enpassantCopy;
+    int castleCopy;
+};
+
+// encode move
+#define encodeMove(source, target, piece, promoted, capture, double, enpassant, castling) \
+    (source) |          \
+    (target << 6) |     \
+    (piece << 12) |     \
+    (promoted << 16) |  \
+    (capture << 20) |   \
+    (double << 21) |    \
+    (enpassant << 22) | \
+    (castling << 23)    \
+
+// extract source square
+#define getMoveSource(move) (move & 0x3f)
+// extract target square
+#define getMoveTarget(move) ((move & 0xfc0) >> 6)
+// extract piece
+#define getMovePiece(move) ((move & 0xf000) >> 12)
+// extract promoted piece
+#define getMovePromoted(move) ((move & 0xf0000) >> 16)
+// extract double pawn push
+#define getMoveCapture(move) (move & 0x100000)
+// extract double pawn push flag
+#define getMoveDouble(move) (move & 0x200000)
+// extract enpassant flag
+#define getMoveEnpassant(move) (move & 0x400000)
+// extract castling flag
+#define getMoveCastling(move) (move & 0x800000)
+
+void copyBoard(board *p, struct copyposition *cp);
+void takeBack(board *p, struct copyposition *cp);
