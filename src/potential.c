@@ -121,7 +121,7 @@ static inline int evaluate(board* position);
 
 static inline int negamax(int alpha, int beta, int depth, board* position);
 
-static inline int quiescence(int alpha, int beta, board* position);
+static inline int quiescence(int alpha, int beta, board* positio, int score);
 
 static inline int scoreMove(int move, board* position);
 
@@ -136,14 +136,15 @@ int main() {
     initAll();
     int debug = 0;
     if (debug) {
+        // SEE material score (Opening) 82 = pawn, 337 = knight, 365 = bishop, 477, 1025 = Queen, 12000 = King
         see_test_case tests[30];
-        tests[0].fen   = "4R3/2r3p1/5bk1/1p1r3p/p2PR1P1/P1BK1P2/1P6/8 b - -";
-        tests[0].move  = encodeMove(h5, g4, p, 0, 1, 0, 0, 0);
-        tests[0].score = 0;
+        tests[0].fen   = "1k1r4/1pp4p/p7/4p3/8/P5P1/1PP4P/2K1R3 w - - ";
+        tests[0].move  = encodeMove(e1, e5, R, 0, 1, 0, 0, 0);
+        tests[0].score = 82;
 
-        tests[1].fen   = "4R3/2r3p1/5bk1/1p1r1p1p/p2PR1P1/P1BK1P2/1P6/8 b - -";
-        tests[1].move  = encodeMove(h5, g4, p, 0, 1, 0, 0, 0);
-        tests[1].score = 0;
+        tests[1].fen   = "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - - ";
+        tests[1].move  = encodeMove(d3, e5, N, 0, 1, 0, 0, 0);
+        tests[1].score = -255;
 
         tests[2].fen   = "4r1k1/5pp1/nbp4p/1p2p2q/1P2P1b1/1BP2N1P/1B2QPPK/3R4 b - -";
         tests[2].move  = encodeMove(g4, f3, b, 0, 1, 0, 0, 0);
@@ -302,67 +303,7 @@ static inline int get_game_phase_score(board* position) {
 }
 
 
-void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position) {
-    // create a TT instance pointer to particular hash entry storing
-    // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[position->hashKey % hashSize];
 
-    // store score independent from the actual path
-    // from root node (position) to current node (position)
-    if (score < -mateScore) score -= position->ply;
-    if (score > mateScore) score += position->ply;
-
-
-    hashEntry->hashKey = position->hashKey;
-    hashEntry->score = score;
-    hashEntry->flag = hashFlag;
-    hashEntry->depth = depth;
-    hashEntry->bestMove = bestMove;
-}
-
-// read hash entry data
-static inline int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position) {
-    // create a TT instance pointer to particular hash entry storing
-    // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[position->hashKey % hashSize];
-
-    // make sure we're dealing with the exact position we need
-    if (hashEntry->hashKey == position->hashKey) {
-
-        // make sure that we watch the exact depth our search is now at
-        if (hashEntry->depth >= depth) {
-
-            // extract stored score from TT entry
-            int score = hashEntry->score;
-
-            // retrieve score independent from the actual path
-            // from root node (position) to current node (position)
-            if (score < -mateScore) score -= position->ply;
-            if (score > mateScore) score += position->ply;
-
-
-            // match the exact (PV node) score
-            if (hashEntry->flag == hashFlagExact) {
-                // return exact (PV node) score
-                return score;
-            }
-            // match alpha (fail-low node) score
-            if ((hashEntry->flag == hashFlagAlpha) && (score <= alpha)) {
-                // return alpha (fail-low node) score
-                return alpha;
-            }
-            if ((hashEntry->flag == hashFlagBeta) && (score >= beta)) {
-                // return beta (fail-high node) score
-                return beta;
-            }
-        }
-        // store best move
-        *bestMove = hashEntry->bestMove;
-
-    }
-    // if hash entry doesn't exist
-    return noHashEntry;
-}
 
 
 
@@ -529,47 +470,75 @@ void uciProtocol() {
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
 
-    int shouldWork = 1;
-    char command[2000];
+    // define user / GUI input buffer
+    char input[2000];
 
-    while (shouldWork) {
-        memset(command, 0, sizeof(command));
+    // print engine info
+    printf("id name Potential\n");
+    printf("id name ProgramciDusunur\n");
+    printf("uciok\n");
+
+    // main loop
+    while (1)
+    {
+        // reset user /GUI input
+        memset(input, 0, sizeof(input));
+
+        // make sure output reaches the GUI
         fflush(stdout);
-        fgets(command, sizeof(command), stdin);
-        size_t length = strlen(command);
 
-        if (length > 0 && command[length - 1] == '\n') {
-            command[length - 1] = '\0';
+        // get user / GUI input
+        if (!fgets(input, 2000, stdin))
+            // continue the loop
+            continue;
+
+        // make sure input is available
+        if (input[0] == '\n')
+            // continue the loop
+            continue;
+
+        // parse UCI "isready" command
+        if (strncmp(input, "isready", 7) == 0)
+        {
+            printf("readyok\n");
+            continue;
         }
-        // position startpos
-        if (strlen(command) <= 17 && areSubStringsEqual(command, "position startpos", strlen("position startpos"))) {
-            parseFEN(startPosition, &position);
-            pBoard(&position);
-        } else if (areSubStringsEqual(command, "position startpos moves", strlen("position startpos moves"))) {
-            parse_position(command, &position);
-        } else if (areSubStringsEqual(command, "go depth", strlen("go depth"))) {
-            int depth = -1;
-            // parse search depth
-            depth = atoi(command + 9);
-            searchPosition(depth, &position);
-        } else if (strncmp(command, "go", 2) == 0) {
-            goCommand(command, &position);
-        } else if (!strcmp("position", command)) {
-            parse_position(command, &position);
-            clearHashTable();
-        } else if (!strcmp("ucinewgame", command)) {
+
+            // parse UCI "position" command
+        else if (strncmp(input, "position", 8) == 0)
+        {
             // call parse position function
-            parse_position("position startpos", &position);
+            parse_position(input, &position);
+
             // clear hash table
             clearHashTable();
-        } else if (!strcmp("quit", command)) {
-            shouldWork = 0;
-        } else if (!strcmp("uci", command)) {
+        }
+            // parse UCI "ucinewgame" command
+        else if (strncmp(input, "ucinewgame", 10) == 0)
+        {
+            // call parse position function
+            parse_position("position startpos", &position);
+
+            // clear hash table
+            clearHashTable();
+        }
+            // parse UCI "go" command
+        else if (strncmp(input, "go", 2) == 0)
+            // call parse go function
+            goCommand(input, &position);
+
+            // parse UCI "quit" command
+        else if (strncmp(input, "quit", 4) == 0)
+            // quit from the chess engine program execution
+            break;
+
+            // parse UCI "uci" command
+        else if (strncmp(input, "uci", 3) == 0)
+        {
+            // print engine info
             printf("id name Potential\n");
-            printf("id author ProgramciDusunur\n");
+            printf("id name ProgramciDusunur\n");
             printf("uciok\n");
-        } else if (!strcmp("isready", command)) {
-            printf("readyok\n");
         }
     }
 }
@@ -826,7 +795,7 @@ static inline void perft(int depth, board* position) {
 // search position for the best move
 void searchPosition(int depth, board* position) {
     // define best score variable
-    int score;
+    int score = 0;
 
     // reset "time is up" flag
     stopped = 0;
@@ -835,8 +804,6 @@ void searchPosition(int depth, board* position) {
     nodes = 0;
 
     // reset follow PV flags
-    //followPV = 0;
-    //scorePV = 0;
     position->followPv = 0;
     position->scorePv = 0;
 
@@ -849,14 +816,15 @@ void searchPosition(int depth, board* position) {
     int alpha = -infinity;
     int beta = infinity;
 
+    int totalTime = 0;
+
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
         if (stopped == 1) {
             break;
         }
 
-
-        int firstTime = getTimeMiliSecond();
+        int startTime = getTimeMiliSecond();
         position->followPv = 1;
         // find best move within a given position
         score = negamax(alpha, beta, current_depth, position);
@@ -870,32 +838,39 @@ void searchPosition(int depth, board* position) {
         alpha = score - 50;
         beta = score + 50;
 
-        int secondTime = getTimeMiliSecond() - firstTime;
+        int endTime = getTimeMiliSecond();
+        totalTime += endTime - startTime;
 
-        if (score > -mateValue && score < -mateScore)
-            printf("info score mate %d depth %d nodes %llu time %d pv ", -(score + mateValue) / 2 - 1, current_depth,
-                   nodes, secondTime);
+        if (position->pvLength[0]) {
+            unsigned long long nps = (totalTime > 0) ? (nodes * 1000) / totalTime : 0;
 
-        else if (score > mateScore && score < mateValue)
-            printf("info score mate %d depth %d nodes %llu time %d pv ", (mateValue - score) / 2 + 1, current_depth,
-                   nodes, secondTime);
+            if (score > -mateValue && score < -mateScore)
+                printf("info score mate %d depth %d nodes %llu nps %llu time %d pv ",
+                       -(score + mateValue) / 2 - 1, current_depth,
+                       nodes, nps, totalTime);
+            else if (score > mateScore && score < mateValue)
+                printf("info score mate %d depth %d nodes %llu nps %llu time %d pv ",
+                       (mateValue - score) / 2 + 1, current_depth,
+                       nodes, nps, totalTime);
+            else
+                printf("info score cp %d depth %d nodes %llu nps %llu time %d pv ",
+                       score, current_depth, nodes, nps, totalTime);
 
-        else
-            printf("info score cp %d depth %d nodes %llu time %d pv ", score, current_depth, nodes, secondTime);
-
-        //loop over the moves within a PV line
-        for (int count = 0; count < position->pvLength[0]; count++) {
-            printMove(position->pvTable[0][count]);
-            printf(" ");
+            // loop over the moves within a PV line
+            for (int count = 0; count < position->pvLength[0]; count++) {
+                printMove(position->pvTable[0][count]);
+                printf(" ");
+            }
+            // print new line
+            printf("\n");
         }
-        // print new line
-        printf("\n");
     }
     // best move placeholder
     printf("bestmove ");
     printMove(position->pvTable[0][0]);
     printf("\n");
 }
+
 
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize) {
     if (stringSize > strlen(command)) {
@@ -1395,6 +1370,7 @@ static inline int scoreMove(int move, board* position) {
     // score capture move
     if (getMoveCapture(move)) {
         // init target piece
+
         int target_piece = P;
 
         // pick up bitboard piece index ranges depending on side
@@ -1422,6 +1398,15 @@ static inline int scoreMove(int move, board* position) {
 
         // score move by MVV LVA lookup [source piece][target piece]
         return mvvLva[getMovePiece(move)][target_piece] + 10000;
+        /*int seeScore = see(position, move);
+        if (seeScore > 0) {
+            return 15000;
+        } else if (seeScore == 0) {
+            return 14000;
+        } else {
+            return -10000;
+        }*/
+
     }
 
         // score quiet move
@@ -1495,7 +1480,7 @@ static inline int isRepetition(board* position) {
 
 
 // quiescence search
-static inline int quiescence(int alpha, int beta, board* position) {
+static inline int quiescence(int alpha, int beta, board* position, int score) {
     if ((nodes & 2047) == 0) {
         communicate();
     }
@@ -1504,6 +1489,21 @@ static inline int quiescence(int alpha, int beta, board* position) {
 
     int pvNode = beta - alpha > 1;
 
+
+
+    // best move (to store in TT)
+    int bestMove = 0;
+
+    // define hash flag
+    int hashFlag = hashFlagAlpha;
+
+
+    // read hash entry
+    /*if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, 0, position)) != noHashEntry && pvNode == 0) {
+        // if the move has already been searched (hence has a value)
+        // we just return the score for this move
+        return score;
+    }*/
 
     // evaluate position
     int evaluation = evaluate(position);
@@ -1531,7 +1531,7 @@ static inline int quiescence(int alpha, int beta, board* position) {
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
-        if (see(position, moveList->moves[count]) < 0) continue;
+        //if (see(position, moveList->moves[count]) < 0) continue;
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
@@ -1557,7 +1557,7 @@ static inline int quiescence(int alpha, int beta, board* position) {
 
 
         // score current move
-        int score = -quiescence(-beta, -alpha, position);
+        int score = -quiescence(-beta, -alpha, position, score);
 
         // decrement ply
         position->ply--;
@@ -1575,15 +1575,20 @@ static inline int quiescence(int alpha, int beta, board* position) {
         if (score > alpha) {
             // PV node (move)
             alpha = score;
+
+            //bestMove = moveList->moves[count];
+
+            //hashFlag = hashFlagExact;
             // fail-hard beta cutoff
             if (score >= beta) {
+                //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
                 // node (move) fails high
                 return beta;
             }
         }
 
     }
-
+    //writeHashEntry(alpha, bestMove, 0, hashFlag, position);
     // node (move) fails low
     return alpha;
 }
@@ -1615,7 +1620,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
         // if the move has already been searched (hence has a value)
-        // we just retrn the score for this move
+        // we just return the score for this move
         return score;
     }
     // init PV length
@@ -1624,7 +1629,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     // recursion escapre condition
     if (depth == 0)
         // run quiescence search
-        return quiescence(alpha, beta, position);
+        return quiescence(alpha, beta, position, score);
 
 
 
@@ -1705,7 +1710,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     }
 
     // razoring
-    if (!pvNode && !in_check && depth <= 4) {
+    if (!pvNode && !in_check && depth <= 3) {
         // get static eval and add first bonus
         score = static_eval + 125;
 
@@ -1717,7 +1722,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             // on depth 1
             if (depth == 1) {
                 // get quiscence score
-                new_score = quiescence(alpha, beta, position);
+                new_score = quiescence(alpha, beta, position, score);
 
                 // return quiescence score if it's greater then static evaluation score
                 return (new_score > score) ? new_score : score;
@@ -1729,22 +1734,11 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             // static evaluation indicates a fail-low node
             if (score < beta && depth <= 2) {
                 // get quiscence score
-                new_score = quiescence(alpha, beta, position);
+                new_score = quiescence(alpha, beta, position, score);
 
                 // quiescence score indicates fail-low node
                 if (new_score < beta)
                     // return quiescence score if it's greater than static evaluation score
-                    return (new_score > score) ? new_score : score;
-            }
-            // add third bonus to static evaluation
-            score += 200;
-            // static evaluation indicates a fail-low node
-            if (score < beta && depth <= 3) {
-                // get negamax score
-                new_score = -negamax(-alpha, -beta, depth - 2, position);
-                // quiescence score indicates fail-low node
-                if (new_score < beta)
-                    // return quiescence score if it's greater then static evaluation score
                     return (new_score > score) ? new_score : score;
             }
         }
@@ -1769,39 +1763,10 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
-        /*go depth 12 // futility pruning on
-        info score cp 36 depth 1 nodes 24 time 0 pv g1f3
-        info score cp 0 depth 2 nodes 93 time 0 pv g1f3 g8f6
-        info score cp 35 depth 3 nodes 232 time 0 pv g1f3 g8f6 d2d4
-        info score cp 0 depth 4 nodes 1506 time 0 pv g1f3 g8f6 d2d4 d7d5
-        info score cp 33 depth 5 nodes 2811 time 0 pv g1f3 g8f6 d2d4 d7d5 b1c3
-        info score cp 0 depth 6 nodes 12260 time 16 pv g1f3 g8f6 d2d4 d7d5 b1c3 b8c6
-        info score cp 28 depth 7 nodes 19525 time 15 pv g1f3 g8f6 d2d4 d7d5 b1c3 b8c6 c1e3
-        info score cp 8 depth 8 nodes 94276 time 78 pv e2e4 e7e5 g1f3 b8c6 f1d3 g8f6 e1g1 d7d5
-        info score cp 33 depth 9 nodes 210776 time 156 pv e2e4 b8c6 g1f3 d7d5 e4d5 d8d5 d2d4 d5e4 c1e3 g8f6
-        info score cp 24 depth 10 nodes 477986 time 360 pv e2e4 b8c6 d2d4 e7e6 d4d5 e6d5 e4d5 c6e7 g1f3 g8f6
-        info score cp 22 depth 11 nodes 1395935 time 1297 pv d2d4 d7d5 b1c3 g8f6 c1f4 c8e6 g1f3 c7c6 f3e5 b8d7 a1c1
-        info score cp 6 depth 12 nodes 4583091 time 5141 pv g1f3 g8f6 d2d4 e7e6 c2c4 d7d5 b1c3 b8c6 e2e3 f8b4 c4d5 e6d5
-
-        bestmove e2e4*/
-
-        /*go depth 12 // futility pruning off
-        info score cp 36 depth 1 nodes 24 time 0 pv g1f3
-        info score cp 0 depth 2 nodes 99 time 0 pv g1f3 g8f6
-        info score cp 35 depth 3 nodes 247 time 0 pv g1f3 g8f6 d2d4
-        info score cp 0 depth 4 nodes 1711 time 0 pv g1f3 g8f6 d2d4 d7d5
-        info score cp 33 depth 5 nodes 3358 time 0 pv g1f3 g8f6 d2d4 d7d5 b1c3
-        info score cp 0 depth 6 nodes 16160 time 16 pv g1f3 g8f6 d2d4 d7d5 b1c3 b8c6
-        info score cp 28 depth 7 nodes 25820 time 15 pv g1f3 g8f6 d2d4 d7d5 b1c3 b8c6 c1e3
-        info score cp 8 depth 8 nodes 105030 time 94 pv b1c3 g8f6 d2d4 d7d5 c1f4 e7e6 g1f3 b8c6
-        info score cp 20 depth 9 nodes 169283 time 78 pv b1c3 g8f6 d2d4 d7d5 g1f3 b8c6 c1e3 c8e6 a1c1
-        info score cp 9 depth 10 nodes 587228 time 563 pv e2e4 e7e5 g1f3 b8c6 b1c3 g8f6 d2d4 e5d4 f3d4 f8d6
-        info score cp 27 depth 11 nodes 1339012 time 1031 pv g1f3 g8f6 d2d4 c7c5 d4c5 b8a6 c1e3 e7e6 c5c6 a6b4 c6b7
-        info score cp 14 depth 12 nodes 5552429 time 6687 pv e2e4 e7e5 g1f3 b8c6 b1c3 f8d6 f1c4 g8f6 e1g1 e8g8 d2d4 e5d4
-        bestmove e2e4
-        */
-
-        if (see(position, moveList->moves[count]) < -17 * depth * depth) continue;
+        /*int seeScore = see(position, moveList->moves[count]);
+        if (in_check == 0 && seeScore < -17 * depth * depth) {
+            continue;
+        }*/
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
@@ -1843,6 +1808,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                     in_check == 0 &&
                     getMoveCapture(moveList->moves[count]) == 0 &&
                     getMovePromoted(moveList->moves[count]) == 0
+
+
                     )
                 // search current move with reduced depth:
                 score = -negamax(-alpha - 1, -alpha, depth - 2, position);
@@ -2275,7 +2242,5 @@ void initLeaperAttacks() {
 
         // init king attacks
         kingAttacks[square] = maskKingAttacks(square);
-        //printf("Target Square %d \n", square);
-        //pBitboard(kingAttacks[square]);
     }
 }
