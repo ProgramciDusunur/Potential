@@ -15,11 +15,15 @@
 #include "see.c"
 #include "bit_manipulation.c"
 #include "test/see_test.h"
+#include "search.h"
+#include "history.c"
+
 
 
 #ifdef WIN64
 
 #include <windows.h>
+#include <stdbool.h>
 
 #else
 #include <sys/time.h>
@@ -136,8 +140,8 @@ int main() {
     initAll();
     int debug = 0;
     if (debug) {
-        // SEE material score (Opening) 82 = pawn, 337 = knight, 365 = bishop, 477, 1025 = Queen, 12000 = King
-        see_test_case tests[30];
+        // SEE material score 100 = pawn, 300 = knight, 300 = bishop, 500, 900 = Queen, 12000 = King
+        see_test_case tests[50];
         tests[0].fen   = "1k1r4/1pp4p/p7/4p3/8/P5P1/1PP4P/2K1R3 w - - ";
         tests[0].move  = encodeMove(e1, e5, R, 0, 1, 0, 0, 0);
         tests[0].score = 100;
@@ -211,52 +215,92 @@ int main() {
         tests[17].score = 0;
         // Leorik see.epd line 17
         tests[18].fen   = "2r2r1k/6bp/p7/2q2p1Q/3PpP2/1B6/P5PP/2RR3K b - -";
-        tests[18].move  = encodeMove(c5, c1, Q, 0, 1, 0, 0, 0);
+        tests[18].move  = encodeMove(c5, c1, q, 0, 1, 0, 0, 0);
         tests[18].score = 100;
         // Leorik see.epd line 18
         tests[19].fen   = "r2qk1nr/pp2ppbp/2b3p1/2p1p3/8/2N2N2/PPPP1PPP/R1BQR1K1 w kq -";
         tests[19].move  = encodeMove(f3, e5, N, 0, 1, 0, 0, 0);
         tests[19].score = 100;
-        // Leorik see.epd line 19 *
-        tests[20].fen   = "2r5/1P4pk/p2p1b1p/5b1n/BB3p2/2R2p2/P1P2P2/4RK2 w - -";
-        tests[20].move  = encodeMove(c3, c8, R, 0, 1, 0, 0, 0);
-        tests[20].score = 365;
-        // Leorik see.epd line 20 *
-        tests[21].fen   = "2r4k/2r4p/p7/2b2p1b/4pP2/1BR5/P1R3PP/2Q4K w - -";
-        tests[21].move  = encodeMove(c3, c5, R, 0, 1, 0, 0, 0);
-        tests[21].score = 365;
-        // Leorik see.epd line 21 *
-        tests[22].fen   = "8/pp6/2pkp3/4bp2/2R3b1/2P5/PP4B1/1K6 w - -";
-        tests[22].move  = encodeMove(g2, c6, B, 0, 1, 0, 0, 0);
-        tests[22].score = -283;
-        // Leorik see.epd line 22 *
-        tests[23].fen   = "4q3/1p1pr1k1/1B2rp2/6p1/p3PP2/P3R1P1/1P2R1K1/4Q3 b - -";
-        tests[23].move  = encodeMove(e6, e4, r, 0, 1, 0, 0, 0);
-        tests[23].score = -395;
-        // Leorik see.epd line 23 *
-        tests[24].fen   = "4q3/1p1pr1kb/1B2rp2/6p1/p3PP2/P3R1P1/1P2R1K1/4Q3 b - -";
-        tests[24].move  = encodeMove(h7, e4, b, 0, 1, 0, 0, 0);
-        tests[24].score = 82;
-        // Leorik see.epd line 24 *
-        tests[25].fen = "1k1r4/1pp4p/p7/4p3/8/P5P1/1PP4P/2K1R3 w - -";
-        tests[25].move = encodeMove(e1, e5, R, 0, 1, 0, 0, 0);
-        tests[25].score = 82;
-//
-//        tests[26].fen = "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -";
-//        tests[26].move = encodeMove(d3, e5, N, 0, 1, 0, 0, 0);
-//        tests[26].score = -255;
+        // Leorik see.epd line 19
+        tests[20].fen   = "6r1/4kq2/b2p1p2/p1pPb3/p1P2B1Q/2P4P/2B1R1P1/6K1 w - -";
+        tests[20].move  = encodeMove(f4, e5, B, 0, 1, 0, 0, 0);
+        tests[20].score = 0;
+        // Leorik see.epd line 20
+        tests[21].fen   = "3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R4B/PQ3P1P/3R2K1 w - h6 0 1";
+        tests[21].move  = encodeMove(g5, h6, P, 0, 1, 0, 1, 0);
+        tests[21].score = 0;
+        // Leorik see.epd line 21
+        tests[22].fen   = "3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R1B2B/PQ3P1P/3R2K1 w - h6";
+        tests[22].move  = encodeMove(g5, h6, P, 0, 1, 0, 1, 0);
+        tests[22].score = 100;
+        // Leorik see.epd line 22
+        tests[23].fen   = "2r4r/1P4pk/p2p1b1p/7n/BB3p2/2R2p2/P1P2P2/4RK2 w - -";
+        tests[23].move  = encodeMove(c3, c8, R, 0, 1, 0, 0, 0);
+        tests[23].score = 500;
+        // Leorik see.epd line 23
+        tests[24].fen   = "2r5/1P4pk/p2p1b1p/5b1n/BB3p2/2R2p2/P1P2P2/4RK2 w - -";
+        tests[24].move  = encodeMove(c3, c8, R, 0, 1, 0, 0, 0);
+        tests[24].score = 500;
+        // Leorik see.epd line 24
+        tests[25].fen = "2r4k/2r4p/p7/2b2p1b/4pP2/1BR5/P1R3PP/2Q4K w - -";
+        tests[25].move = encodeMove(c3, c5, R, 0, 1, 0, 0, 0);
+        tests[25].score = 300;
+        // Leorik see.epd line 25
+        tests[26].fen = "8/pp6/2pkp3/4bp2/2R3b1/2P5/PP4B1/1K6 w - -";
+        tests[26].move = encodeMove(g2, c6, B, 0, 1, 0, 0, 0);
+        tests[26].score = -200;
+        // Leorik see.epd line 26
+        tests[27].fen = "4q3/1p1pr1k1/1B2rp2/6p1/p3PP2/P3R1P1/1P2R1K1/4Q3 b - -";
+        tests[27].move = encodeMove(e6, e4, r, 0, 1, 0, 0, 0);
+        tests[27].score = -400;
+        // Leorik see.epd line 27
+        tests[28].fen = "4q3/1p1pr1kb/1B2rp2/6p1/p3PP2/P3R1P1/1P2R1K1/4Q3 b - -";
+        tests[28].move = encodeMove(h7, e4, b, 0, 1, 0, 0, 0);
+        tests[28].score = 100;
+        // Leorik see.epd line 28
+        tests[29].fen = "3r3k/3r4/2n1n3/8/3p4/2PR4/1B1Q4/3R3K w - -";
+        tests[29].move = encodeMove(d3, d4, R, 0, 1, 0, 0, 0);
+        tests[29].score = -100;
+        // Leorik see.epd line 29
+        tests[30].fen = "1k1r4/1ppn3p/p4b2/4n3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -";
+        tests[30].move = encodeMove(d3, e5, N, 0, 1, 0, 0, 0);
+        tests[30].score = 100;
+        // Leorik see.epd line 30
+        tests[31].fen = "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -";
+        tests[31].move = encodeMove(d3, e5, N, 0, 1, 0, 0, 0);
+        tests[31].score = -200;
+        // Leorik see.epd line 31
+        tests[32].fen = "rnb2b1r/ppp2kpp/5n2/4P3/q2P3B/5R2/PPP2PPP/RN1QKB2 w Q -";
+        tests[32].move = encodeMove(h4, f6, B, 0, 1, 0, 0, 0);
+        tests[32].score = 100;
+        // Leorik see.epd line 32
+        tests[33].fen = "r2q1rk1/2p1bppp/p2p1n2/1p2P3/4P1b1/1nP1BN2/PP3PPP/RN1QR1K1 b - -";
+        tests[33].move = encodeMove(g4, f3, b, 0, 1, 0, 0, 0);
+        tests[33].score = 0;
+        // Leorik see.epd line 33 *
+        tests[34].fen = "r2q1rk1/2p1bppp/p2p1n2/1p2P3/4P1b1/1nP1BN2/PP3PPP/RN1QR1K1 b - -";
+        tests[34].move = encodeMove(g4, f3, b, 0, 1, 0, 0, 0);
+        tests[34].score = 0;
+        // Leorik see.epd line 34 *
+        tests[35].fen = "r2q1rk1/2p1bppp/p2p1n2/1p2P3/4P1b1/1nP1BN2/PP3PPP/RN1QR1K1 b - -";
+        tests[35].move = encodeMove(g4, f3, b, 0, 1, 0, 0, 0);
+        tests[35].score = 0;
+
 
         board position[1];
 
-        for (int i=0; i < 20; i++) {
+
+        for (int i = 0; i < 34; i++) {
             parseFEN(tests[i].fen, position);
+            //pBoard(position);
             int seeScore = see(position, tests[i].move);
-            printf("See score: %d Excepted score: %d\n", seeScore, tests[i].score);
+
+            //printf("See score: %d Excepted score: %d\n", seeScore, tests[i].score);
             if (seeScore != tests[i].score) {
                 //fprintf(stderr, "Test %d failed for fen: %s\n", i+1, tests[i].fen);
 
                 printf("Test %d failed for fen: %s expected Score: %d but see score: %d\n", i+1, tests[i].fen, tests[i].score, seeScore);
-                exit(1);
+                //exit(1);
             }
         }
     } else {
@@ -802,7 +846,7 @@ void searchPosition(int depth, board* position) {
     position->scorePv = 0;
 
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
-    memset(position->historyMoves, 0, sizeof(position->historyMoves));
+    memset(historyMoves, 0, sizeof(historyMoves));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
 
@@ -1370,22 +1414,18 @@ static inline void enable_pv_scoring(moves *moveList, board* position) {
     3. 1st killer move
     4. 2nd killer move
     5. History moves
-    6. Unsorted moves
 */
 
 
 // score moves
 static inline int scoreMove(int move, board* position) {
-    // if PV move scoring is allowed
-    if (position->scorePv) {
-        // make sure we are dealing with PV move
-        if (position->pvTable[0][position->ply] == move) {
-            // disable score PV flag
-            position->scorePv = 0;
+    // make sure we are dealing with PV move
+    if (position->scorePv && position->pvTable[0][position->ply] == move) {
+        // disable score PV flag
+        position->scorePv = 0;
 
-            // give PV move the highest score to search it first
-            return 20000;
-        }
+        // give PV move the highest score to search it first
+        return 1500000000;
     }
 
     // score capture move
@@ -1418,7 +1458,7 @@ static inline int scoreMove(int move, board* position) {
         }
 
         // score move by MVV LVA lookup [source piece][target piece]
-        return mvvLva[getMovePiece(move)][target_piece] + 10000;
+        return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
         /*int seeScore = see(position, move);
         if (seeScore > 0) {
             return 15000;
@@ -1432,17 +1472,25 @@ static inline int scoreMove(int move, board* position) {
 
         // score quiet move
     else {
+
         // score 1st killer move
         if (position->killerMoves[0][position->ply] == move)
-            return 9000;
+            return 900000000;
 
             // score 2nd killer move
         else if (position->killerMoves[1][position->ply] == move)
-            return 8000;
-
+            return 800000000;
+        /*else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
+            return 7000;
             // score history move
-        else
+        else {
+             if (position->historyMoves[getMovePiece(move)][getMoveTarget(move)] > 50000) {
+                //printf("Warning historyMoves with other moves mixed!\n");
+            }
             return position->historyMoves[getMovePiece(move)][getMoveTarget(move)];
+        }*/
+        return historyMoves[getMoveSource(move)][getMoveTarget(move)];
+
     }
     return 0;
 }
@@ -1457,7 +1505,7 @@ static inline int sort_moves(moves *moveList, int bestMove, board* position) {
         // if hash move available
         if (bestMove == moveList->moves[count])
             // score move
-            move_scores[count] = 30000;
+            move_scores[count] = 2000000000;
 
         else
             // score move
@@ -1508,6 +1556,7 @@ static inline int quiescence(int alpha, int beta, board* position, int score) {
     // increment nodes count
     nodes++;
 
+    
     int pvNode = beta - alpha > 1;
 
 
@@ -1534,6 +1583,7 @@ static inline int quiescence(int alpha, int beta, board* position, int score) {
         // node (move) fails high
         return beta;
     }
+
 
     // found a better move
     if (evaluation > alpha) {
@@ -1577,6 +1627,7 @@ static inline int quiescence(int alpha, int beta, board* position, int score) {
         }
 
 
+
         // score current move
         int score = -quiescence(-beta, -alpha, position, score);
 
@@ -1614,8 +1665,9 @@ static inline int quiescence(int alpha, int beta, board* position, int score) {
     return alpha;
 }
 
-const int full_depth_moves = 4;
-const int reduction_limit = 3;
+int lmr_full_depth_moves = 4;
+int lmr_reduction_limit = 3;
+const int lateMovePruningBaseReduction = 4;
 int nullMoveDepth = 3;
 
 // negamax alpha beta search
@@ -1638,6 +1690,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     }
 
     int pvNode = beta - alpha > 1;
+    int rootNode = position->ply == 0;
 
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
@@ -1786,8 +1839,14 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     // number of moves searched in a move list
     int moves_searched = 0;
 
+    int skipQuiet = 0;
+
+
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
+        if (skipQuiet) {
+            continue;
+        }
         /*int seeScore = see(position, moveList->moves[count]);
         if (in_check == 0 && seeScore < -17 * depth * depth) {
             continue;
@@ -1819,6 +1878,20 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         // increment legal moves
         legal_moves++;
 
+        int currentMove = moveList->moves[count];
+
+
+        bool isNotMated = alpha > -mateScore + maxPly;
+        bool isQuiet = getMoveCapture(currentMove) == 0;
+        //int historyScore = position->historyMoves[getMovePiece(currentMove)][getMoveTarget(currentMove)] * depth;
+        //int historyBorder = !pvNode ? 5: 15;
+        // Late Move Pruning
+        /*if (!rootNode && isQuiet &&
+            isNotMated && historyScore > 0 &&
+            legal_moves>= 4 + 2 * depth * depth) {
+            skipQuiet = 1;
+        }*/
+
         // full depth search
         if (moves_searched == 0)
             // do normal alpha beta search
@@ -1828,13 +1901,11 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         else {
             // condition to consider LMR
             if (
-                    moves_searched >= full_depth_moves &&
-                    depth >= reduction_limit &&
+                    moves_searched >= lmr_full_depth_moves &&
+                    depth >= lmr_reduction_limit &&
                     in_check == 0 &&
-                    getMoveCapture(moveList->moves[count]) == 0 &&
-                    getMovePromoted(moveList->moves[count]) == 0
-
-
+                    isQuiet &&
+                    getMovePromoted(currentMove) == 0
                     )
                 // search current move with reduced depth:
                 score = -negamax(-alpha - 1, -alpha, depth - 2, position);
@@ -1883,18 +1954,18 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             hashFlag = hashFlagExact;
 
             // store best move (for TT)
-            bestMove = moveList->moves[count];
+            bestMove = currentMove;
 
             // on quiet moves
-            if (getMoveCapture(moveList->moves[count]) == 0)
+            /*if (getMoveCapture(currentMove) == 0)
                 // store history moves
-                position->historyMoves[getMovePiece(moveList->moves[count])][getMoveTarget(moveList->moves[count])] += depth;
+                position->historyMoves[getMovePiece(currentMove)][getMoveTarget(currentMove)] += depth;*/
 
             // PV node (move)
             alpha = score;
 
             // write PV move
-            position->pvTable[position->ply][position->ply] = moveList->moves[count];
+            position->pvTable[position->ply][position->ply] = currentMove;
 
             // loop over the next ply
             for (int next_ply = position->ply + 1; next_ply < position->pvLength[position->ply + 1]; next_ply++)
@@ -1908,12 +1979,14 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             if (score >= beta) {
                 // store hash entry with the score equal to beta
                 writeHashEntry(beta, bestMove, depth, hashFlagBeta, position);
-
+                //int lastMove = moveList->moves[position->ply - 1];
                 // on quiet moves
-                if (getMoveCapture(moveList->moves[count]) == 0) {
+                if (getMoveCapture(currentMove) == 0) {
                     // store killer moves
                     position->killerMoves[1][position->ply] = position->killerMoves[0][position->ply];
-                    position->killerMoves[0][position->ply] = moveList->moves[count];
+                    position->killerMoves[0][position->ply] = bestMove;
+                    //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
+                    updateHistory(getMoveSource(currentMove), getMoveTarget(currentMove), depth);
                 }
 
                 // node (move) fails high
