@@ -11,25 +11,6 @@ U64 rookMask[64];
 // BishopMask[square]
 U64 bishopMask[64];
 
-U64 maskPawnAttacksSEE(int square, int side) {
-    U64 attacks = 0ULL;
-    U64 bitboard = 0ULL;
-    setBit(bitboard,square);
-
-    if (!side) {
-        if ((bitboard >> 7) & not_a_file) attacks |= (bitboard >> 7);
-        if ((bitboard >> 9) & not_h_file) attacks |= (bitboard >> 9);
-    }
-
-    else {
-        if ((bitboard << 7) & not_h_file) attacks |= (bitboard << 7);
-        if ((bitboard << 9) & not_a_file) attacks |= (bitboard << 9);
-    }
-
-    return attacks;
-}
-
-
 U64 maskPawnAttacks(int isWhite, int square) {
     U64 attacks = 0ULL;
 
@@ -194,14 +175,144 @@ U64 rookAttack(int square, U64 block) {
     return attacks;
 }
 
-U64 get_attackers(const board *pos, int square) {
+U64 get_attackers(const board *pos, int square, int side) {
     U64 attacks = 0ULL;
 
-    attacks |= (maskPawnAttacksSEE(square, black) & pos->bitboards[P]) | (maskPawnAttacksSEE(square, white) & pos->bitboards[p]);
+    attacks |= (maskPawnAttacks(side, square) & pos->bitboards[P]) | (maskPawnAttacks(!side, square) & pos->bitboards[p]);
     attacks |= (maskKnightAttacks(square) & (pos->bitboards[N] | pos->bitboards[n]));
     attacks |= (maskKingAttacks(square) & (pos->bitboards[K] | pos->bitboards[k]));
     attacks |= (bishopAttack(square,pos->occupancies[both]) & (pos->bitboards[B] | pos->bitboards[b] | pos->bitboards[Q] | pos->bitboards[q]));
     attacks |= (rookAttack(square, pos->occupancies[both]) & (pos->bitboards[R] | pos->bitboards[r] | pos->bitboards[Q] | pos->bitboards[q]));
-
     return attacks;
+}
+
+U64 setFileRankMask(int file_number, int rank_number) {
+    // file or rank mask
+    U64 mask = 0ULL;
+
+    // loop over ranks
+    for (int rank = 0; rank < 8; rank++)
+    {
+        // loop over files
+        for (int file = 0; file < 8; file++)
+        {
+            // init square
+            int square = rank * 8 + file;
+
+            if (file_number != -1)
+            {
+                // on file match
+                if (file == file_number)
+                    // set bit on mask
+                    mask |= setBit(mask, square);
+            }
+
+            else if (rank_number != -1)
+            {
+                // on rank match
+                if (rank == rank_number)
+                    // set bit on mask
+                    mask |= setBit(mask, square);
+            }
+        }
+    }
+
+    // return mask
+    return mask;
+}
+
+void initEvaluationMasks() {
+
+    // loop over ranks
+    for (int rank = 0; rank < 8; rank++)
+    {
+        // loop over files
+        for (int file = 0; file < 8; file++)
+        {
+            // init square
+            int square = rank * 8 + file;
+
+            // init file mask for a current square
+            fileMasks[square] |= setFileRankMask(file, -1);
+        }
+    }
+
+    /******** Init rank masks ********/
+
+    // loop over ranks
+    for (int rank = 0; rank < 8; rank++)
+    {
+        // loop over files
+        for (int file = 0; file < 8; file++)
+        {
+            // init square
+            int square = rank * 8 + file;
+
+            // init rank mask for a current square
+            rankMasks[square] |= setFileRankMask(-1, rank);
+        }
+    }
+
+    /******** Init isolated masks ********/
+
+    // loop over ranks
+    for (int rank = 0; rank < 8; rank++)
+    {
+        // loop over files
+        for (int file = 0; file < 8; file++)
+        {
+            // init square
+            int square = rank * 8 + file;
+
+            // init isolated pawns masks for a current square
+            isolatedMasks[square] |= setFileRankMask(file - 1, -1);
+            isolatedMasks[square] |= setFileRankMask(file + 1, -1);
+        }
+    }
+
+    /******** White passed masks ********/
+
+    // loop over ranks
+    for (int rank = 0; rank < 8; rank++)
+    {
+        // loop over files
+        for (int file = 0; file < 8; file++)
+        {
+            // init square
+            int square = rank * 8 + file;
+
+            // init white passed pawns mask for a current square
+            whitePassedMasks[square] |= setFileRankMask(file - 1, -1);
+            whitePassedMasks[square] |= setFileRankMask(file, -1);
+            whitePassedMasks[square] |= setFileRankMask(file + 1, -1);
+
+            // loop over redudant ranks
+            for (int i = 0; i < (8 - rank); i++)
+                // reset redudant bits
+                whitePassedMasks[square] &= ~rankMasks[(7 - i) * 8 + file];
+        }
+    }
+
+    /******** Black passed masks ********/
+
+    // loop over ranks
+    for (int rank = 0; rank < 8; rank++)
+    {
+        // loop over files
+        for (int file = 0; file < 8; file++)
+        {
+            // init square
+            int square = rank * 8 + file;
+
+            // init black passed pawns mask for a current square
+            blackPassedMasks[square] |= setFileRankMask(file - 1, -1);
+            blackPassedMasks[square] |= setFileRankMask(file, -1);
+            blackPassedMasks[square] |= setFileRankMask(file + 1, -1);
+
+            // loop over redudant ranks
+            for (int i = 0; i < rank + 1; i++)
+                // reset redudant bits
+                blackPassedMasks[square] &= ~rankMasks[i * 8 + file];
+        }
+    }
 }

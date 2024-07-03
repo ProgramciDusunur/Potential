@@ -4,6 +4,15 @@
 #include <stdio.h>
 #include "bit_manipulation.h"
 
+int countBits(U64 bitboard) {
+    return __builtin_popcountll(bitboard);
+}
+
+// get least significant 1st bit index
+int getLS1BIndex(U64 bitboard) {
+    return __builtin_ctzll(bitboard);
+}
+
 void pBitboard(U64 bitboard) {
     printf("\n");
     for (int y = 0, coordinate = 8; y < 8; y++, coordinate--) {

@@ -49,43 +49,7 @@ tt hashTable[hashSize];
 // random side key
 U64 sideKey;
 
-// generate "almost" unique position ID aka hash key from scratch
-U64 generateHashKey(board* position) {
-    // final hash key
-    U64 finalKey = 0ULL;
-
-    // temp piece bitboard copy
-    U64 bitboard;
+U64 generateHashKey(board* position);
 
 
-    // loop over piece bitboards
-    for (int piece = P; piece <= k; piece++) {
-        // init piece bitboard copy
-        bitboard = position->bitboards[piece];
-
-        // loop over the pieces within a bitboard
-        while (bitboard) {
-            // init square occupied by the piece
-            int square = getLS1BIndex(bitboard);
-
-            // hash piece
-            finalKey ^= pieceKeys[piece][square];
-
-            // pop LS1B
-            popBit(bitboard, square);
-        }
-    }
-
-    if (position->enpassant != no_sq) {
-        // hash enpassant
-        finalKey ^= enpassantKeys[position->enpassant];
-    }
-    // hash castling rights
-    finalKey ^= castleKeys[position->castle];
-
-    // hash the side only if black is to move
-    if (position->side == black) { finalKey ^= sideKey; }
-
-    // return generated hash key
-    return finalKey;
-}
+void clearHashTable();

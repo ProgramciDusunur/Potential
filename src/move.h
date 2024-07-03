@@ -62,3 +62,7 @@ struct copyposition {
 
 void copyBoard(board *p, struct copyposition *cp);
 void takeBack(board *p, struct copyposition *cp);
+void addMoveToHistoryList(moves* list, int move);
+void initSlidersAttacks(int bishop);
+void initLeaperAttacks();
+static inline int isSquareAttacked(int square, int whichSide, board* position);

@@ -6,6 +6,8 @@
 
 #include "board.h"
 #include "bit_manipulation.h"
+#include "move.h"
+#include <stdio.h>
 
 
 enum {
@@ -16,6 +18,7 @@ int historyMoves[64][64];
 
 
 
-void updateHistory(int moveFrom, int moveTo, int depth);
-int historyBonus(int score, int bonus);
+void updateHistory(int bestMove, int depth, moves* badQuiets);
+int scaledBonus(int score, int bonus);
+void clearHistory();
 
