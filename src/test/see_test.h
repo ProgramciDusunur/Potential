@@ -10,4 +10,3 @@ typedef struct {
 } see_test_case;
 
 int test_see();
-void lanTest();

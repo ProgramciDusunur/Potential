@@ -2,10 +2,7 @@
 // Created by erena on 29.05.2024.
 //
 #pragma once
-#ifndef CHESSENGINE_BOARD_CONSTANTS_H
-#define CHESSENGINE_BOARD_CONSTANTS_H
 
-#endif //CHESSENGINE_BOARD_CONSTANTS_H
 
 #ifndef U64
 #define U64 unsigned long long
