@@ -7,6 +7,7 @@
 
 #endif //CHESSENGINE_EVALUATION_H
 #include "board_constants.h"
+#include "board.h"
 
 /**********************************\
  ==================================
@@ -16,7 +17,7 @@
  ==================================
 \**********************************/
 
-// material scrore
+// material score
 
 /*
     ♙ =   100   = ♙
@@ -37,6 +38,13 @@ const int material_score[2][12] =
                 // endgame material score
                 94, 281, 297, 512, 936, 12000, -94, -281, -297, -512, -936, -12000
         };
+const int seeMaterial[12] = {
+        100, 300, 300, 500, 900, 12000, -100, -300, -300, -500, -900, -12000,
+};
+const char *seePieceDesc[] = {
+        "♙", "white knight", "white bishop", "white rook", "white queen", "white king",
+        "b", "black knight", "black bishop", "black rook", "black queen", "black king"
+};
 
 // game phase scores
 const int opening_phase_score = 6192;
@@ -194,3 +202,6 @@ const int mirrorScore[128] =
                 a7, b7, c7, d7, e7, f7, g7, h7,
                 a8, b8, c8, d8, e8, f8, g8, h8
         };
+
+static inline int evaluate(board* position);
+static inline int get_game_phase_score(board* position);

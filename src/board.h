@@ -42,12 +42,15 @@ typedef struct {
     int pvLength[maxPly];
     int pvTable[maxPly][maxPly];
 
-    int killerMoves[2][maxPly];
-    int historyMoves[12][maxPly];
+    int killerMoves[maxPly][2];
 
     int followPv;
     int scorePv;
 
     //int depth;
     U64 hashKey;
+
+    int gamePhase;
 } board;
+
+void printAttackedSquares(int side, board* position);

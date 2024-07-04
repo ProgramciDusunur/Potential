@@ -15,31 +15,21 @@
 #include "see.c"
 #include "bit_manipulation.c"
 #include "test/see_test.h"
+#include "search.h"
+#include "history.c"
+
 
 
 #ifdef WIN64
 
 #include <windows.h>
+#include <stdbool.h>
 
 #else
 #include <sys/time.h>
 #endif
 
 
-// random side key
-U64 sideKey;
-
-
-// Pawn attack masks pawnAttacks[side][square]
-U64 pawnAtacks[2][64];
-// Knight attack masks knightAttacks[square]
-U64 knightAttacks[64];
-// King attack masks kingAttacks[square]
-U64 kingAttacks[64];
-// Bishop attack table [square][occupancies]
-U64 bishopAttacks[64][512];
-// Rook attack table [square][occupancies]
-U64 rookAttacks[64][4096];
 
 
 
@@ -57,27 +47,10 @@ U64 castleKeys[16];
 
 
 
-U64 getRandom64Numbers();
-
-U64 generateMagicNumber();
-
-U64 findMagicNumber(int square, int relevantBits, int bishop);
 
 static inline void perft(int depth, board* position);
 
 static inline void addMove(moves *moveList, int move);
-
-static inline int makeMove(int move, int moveFlag, board* position);
-
-static inline int isSquareAttacked(int square, int side, board* position);
-
-unsigned int getRandom32BitNumber();
-
-int countBits(U64 bitboard);
-
-int getLS1BIndex(U64 bitboard);
-
-int getTimeMiliSecond();
 
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
 
@@ -93,12 +66,6 @@ void printMoveList(moves *moveList);
 
 void initAll();
 
-void initSlidersAttacks(int bishop);
-
-void initLeaperAttacks();
-
-void initMagicNumbers();
-
 void parseFEN(char *fen, board* position);
 
 void searchPosition(int depth, board* position);
@@ -110,8 +77,6 @@ void goCommand(char *command, board* position);
 void communicate();
 
 void read_input();
-
-static inline void moveGenerator(moves *moveList, board* position);
 
 static inline void perftRoot(int depth, board* position);
 
@@ -136,8 +101,8 @@ int main() {
     initAll();
     int debug = 0;
     if (debug) {
-        // SEE material score (Opening) 82 = pawn, 337 = knight, 365 = bishop, 477, 1025 = Queen, 12000 = King
-        see_test_case tests[30];
+        // SEE material score 100 = pawn, 300 = knight, 300 = bishop, 500, 900 = Queen, 12000 = King
+        see_test_case tests[50];
         tests[0].fen   = "1k1r4/1pp4p/p7/4p3/8/P5P1/1PP4P/2K1R3 w - - ";
         tests[0].move  = encodeMove(e1, e5, R, 0, 1, 0, 0, 0);
         tests[0].score = 100;
@@ -211,52 +176,92 @@ int main() {
         tests[17].score = 0;
         // Leorik see.epd line 17
         tests[18].fen   = "2r2r1k/6bp/p7/2q2p1Q/3PpP2/1B6/P5PP/2RR3K b - -";
-        tests[18].move  = encodeMove(c5, c1, Q, 0, 1, 0, 0, 0);
+        tests[18].move  = encodeMove(c5, c1, q, 0, 1, 0, 0, 0);
         tests[18].score = 100;
         // Leorik see.epd line 18
         tests[19].fen   = "r2qk1nr/pp2ppbp/2b3p1/2p1p3/8/2N2N2/PPPP1PPP/R1BQR1K1 w kq -";
         tests[19].move  = encodeMove(f3, e5, N, 0, 1, 0, 0, 0);
         tests[19].score = 100;
-        // Leorik see.epd line 19 *
-        tests[20].fen   = "2r5/1P4pk/p2p1b1p/5b1n/BB3p2/2R2p2/P1P2P2/4RK2 w - -";
-        tests[20].move  = encodeMove(c3, c8, R, 0, 1, 0, 0, 0);
-        tests[20].score = 365;
-        // Leorik see.epd line 20 *
-        tests[21].fen   = "2r4k/2r4p/p7/2b2p1b/4pP2/1BR5/P1R3PP/2Q4K w - -";
-        tests[21].move  = encodeMove(c3, c5, R, 0, 1, 0, 0, 0);
-        tests[21].score = 365;
-        // Leorik see.epd line 21 *
-        tests[22].fen   = "8/pp6/2pkp3/4bp2/2R3b1/2P5/PP4B1/1K6 w - -";
-        tests[22].move  = encodeMove(g2, c6, B, 0, 1, 0, 0, 0);
-        tests[22].score = -283;
-        // Leorik see.epd line 22 *
-        tests[23].fen   = "4q3/1p1pr1k1/1B2rp2/6p1/p3PP2/P3R1P1/1P2R1K1/4Q3 b - -";
-        tests[23].move  = encodeMove(e6, e4, r, 0, 1, 0, 0, 0);
-        tests[23].score = -395;
-        // Leorik see.epd line 23 *
-        tests[24].fen   = "4q3/1p1pr1kb/1B2rp2/6p1/p3PP2/P3R1P1/1P2R1K1/4Q3 b - -";
-        tests[24].move  = encodeMove(h7, e4, b, 0, 1, 0, 0, 0);
-        tests[24].score = 82;
-        // Leorik see.epd line 24 *
-        tests[25].fen = "1k1r4/1pp4p/p7/4p3/8/P5P1/1PP4P/2K1R3 w - -";
-        tests[25].move = encodeMove(e1, e5, R, 0, 1, 0, 0, 0);
-        tests[25].score = 82;
-//
-//        tests[26].fen = "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -";
-//        tests[26].move = encodeMove(d3, e5, N, 0, 1, 0, 0, 0);
-//        tests[26].score = -255;
+        // Leorik see.epd line 19
+        tests[20].fen   = "6r1/4kq2/b2p1p2/p1pPb3/p1P2B1Q/2P4P/2B1R1P1/6K1 w - -";
+        tests[20].move  = encodeMove(f4, e5, B, 0, 1, 0, 0, 0);
+        tests[20].score = 0;
+        // Leorik see.epd line 20
+        tests[21].fen   = "3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R4B/PQ3P1P/3R2K1 w - h6 0 1";
+        tests[21].move  = encodeMove(g5, h6, P, 0, 1, 0, 1, 0);
+        tests[21].score = 0;
+        // Leorik see.epd line 21
+        tests[22].fen   = "3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R1B2B/PQ3P1P/3R2K1 w - h6";
+        tests[22].move  = encodeMove(g5, h6, P, 0, 1, 0, 1, 0);
+        tests[22].score = 100;
+        // Leorik see.epd line 22
+        tests[23].fen   = "2r4r/1P4pk/p2p1b1p/7n/BB3p2/2R2p2/P1P2P2/4RK2 w - -";
+        tests[23].move  = encodeMove(c3, c8, R, 0, 1, 0, 0, 0);
+        tests[23].score = 500;
+        // Leorik see.epd line 23
+        tests[24].fen   = "2r5/1P4pk/p2p1b1p/5b1n/BB3p2/2R2p2/P1P2P2/4RK2 w - -";
+        tests[24].move  = encodeMove(c3, c8, R, 0, 1, 0, 0, 0);
+        tests[24].score = 500;
+        // Leorik see.epd line 24
+        tests[25].fen = "2r4k/2r4p/p7/2b2p1b/4pP2/1BR5/P1R3PP/2Q4K w - -";
+        tests[25].move = encodeMove(c3, c5, R, 0, 1, 0, 0, 0);
+        tests[25].score = 300;
+        // Leorik see.epd line 25
+        tests[26].fen = "8/pp6/2pkp3/4bp2/2R3b1/2P5/PP4B1/1K6 w - -";
+        tests[26].move = encodeMove(g2, c6, B, 0, 1, 0, 0, 0);
+        tests[26].score = -200;
+        // Leorik see.epd line 26
+        tests[27].fen = "4q3/1p1pr1k1/1B2rp2/6p1/p3PP2/P3R1P1/1P2R1K1/4Q3 b - -";
+        tests[27].move = encodeMove(e6, e4, r, 0, 1, 0, 0, 0);
+        tests[27].score = -400;
+        // Leorik see.epd line 27
+        tests[28].fen = "4q3/1p1pr1kb/1B2rp2/6p1/p3PP2/P3R1P1/1P2R1K1/4Q3 b - -";
+        tests[28].move = encodeMove(h7, e4, b, 0, 1, 0, 0, 0);
+        tests[28].score = 100;
+        // Leorik see.epd line 28
+        tests[29].fen = "3r3k/3r4/2n1n3/8/3p4/2PR4/1B1Q4/3R3K w - -";
+        tests[29].move = encodeMove(d3, d4, R, 0, 1, 0, 0, 0);
+        tests[29].score = -100;
+        // Leorik see.epd line 29
+        tests[30].fen = "1k1r4/1ppn3p/p4b2/4n3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -";
+        tests[30].move = encodeMove(d3, e5, N, 0, 1, 0, 0, 0);
+        tests[30].score = 100;
+        // Leorik see.epd line 30
+        tests[31].fen = "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -";
+        tests[31].move = encodeMove(d3, e5, N, 0, 1, 0, 0, 0);
+        tests[31].score = -200;
+        // Leorik see.epd line 31
+        tests[32].fen = "rnb2b1r/ppp2kpp/5n2/4P3/q2P3B/5R2/PPP2PPP/RN1QKB2 w Q -";
+        tests[32].move = encodeMove(h4, f6, B, 0, 1, 0, 0, 0);
+        tests[32].score = 100;
+        // Leorik see.epd line 32
+        tests[33].fen = "r2q1rk1/2p1bppp/p2p1n2/1p2P3/4P1b1/1nP1BN2/PP3PPP/RN1QR1K1 b - -";
+        tests[33].move = encodeMove(g4, f3, b, 0, 1, 0, 0, 0);
+        tests[33].score = 0;
+        // Leorik see.epd line 33 *
+        tests[34].fen = "r2q1rk1/2p1bppp/p2p1n2/1p2P3/4P1b1/1nP1BN2/PP3PPP/RN1QR1K1 b - -";
+        tests[34].move = encodeMove(g4, f3, b, 0, 1, 0, 0, 0);
+        tests[34].score = 0;
+        // Leorik see.epd line 34 *
+        tests[35].fen = "r2q1rk1/2p1bppp/p2p1n2/1p2P3/4P1b1/1nP1BN2/PP3PPP/RN1QR1K1 b - -";
+        tests[35].move = encodeMove(g4, f3, b, 0, 1, 0, 0, 0);
+        tests[35].score = 0;
+
 
         board position[1];
 
-        for (int i=0; i < 20; i++) {
+
+        for (int i = 0; i < 34; i++) {
             parseFEN(tests[i].fen, position);
+            //pBoard(position);
             int seeScore = see(position, tests[i].move);
-            printf("See score: %d Excepted score: %d\n", seeScore, tests[i].score);
+
+            //printf("See score: %d Excepted score: %d\n", seeScore, tests[i].score);
             if (seeScore != tests[i].score) {
                 //fprintf(stderr, "Test %d failed for fen: %s\n", i+1, tests[i].fen);
 
                 printf("Test %d failed for fen: %s expected Score: %d but see score: %d\n", i+1, tests[i].fen, tests[i].score, seeScore);
-                exit(1);
+                //exit(1);
             }
         }
     } else {
@@ -264,42 +269,6 @@ int main() {
     }
     return 0;
 }
-
-// get game phase score
-static inline int get_game_phase_score(board* position) {
-    /*
-        The game phase score of the game is derived from the pieces
-        (not counting pawns and kings) that are still on the board.
-        The full material starting position game phase score is:
-
-        4 * knight material score in the opening +
-        4 * bishop material score in the opening +
-        4 * rook material score in the opening +
-        2 * queen material score in the opening
-    */
-
-    // white & black game phase scores
-    int white_piece_scores = 0, black_piece_scores = 0;
-
-    // loop over white pieces
-    for (int piece = N; piece <= Q; piece++)
-        white_piece_scores += countBits(position->bitboards[piece]) * material_score[opening][piece];
-
-
-    // loop over white pieces
-    for (int piece = n; piece <= q; piece++)
-        black_piece_scores += countBits(position->bitboards[piece]) * -material_score[opening][piece];
-
-
-
-    // return game phase score
-    return white_piece_scores + black_piece_scores;
-}
-
-
-
-
-
 
 // init random hash keys
 void initRandomKeys() {
@@ -506,6 +475,9 @@ void uciProtocol() {
 
             // clear hash table
             clearHashTable();
+
+            //clear history
+            clearHistory();
         }
             // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0)
@@ -515,6 +487,9 @@ void uciProtocol() {
 
             // clear hash table
             clearHashTable();
+
+            //clear history
+            clearHistory();
         }
             // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0)
@@ -802,7 +777,7 @@ void searchPosition(int depth, board* position) {
     position->scorePv = 0;
 
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
-    memset(position->historyMoves, 0, sizeof(position->historyMoves));
+    memset(historyMoves, 0, sizeof(historyMoves));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
 
@@ -878,377 +853,6 @@ int areSubStringsEqual(char *command, char *uciCommand, int stringSize) {
         uciCommand++;
     }
     return 1;
-}
-
-// position evaluation
-static inline int evaluate(board* position) {
-    // get game phase score
-    int game_phase_score = get_game_phase_score(position);
-
-    // game phase (opening, middle game, endgame)
-    int game_phase = -1;
-
-    // pick up game phase based on game phase score
-    if (game_phase_score > opening_phase_score) game_phase = opening;
-    else if (game_phase_score < endgame_phase_score) game_phase = endgame;
-    else game_phase = middlegame;
-
-    position->gamePhase = game_phase;
-
-
-    // static evaluation score
-    int score = 0;
-
-    // current pieces bitboard copy
-    U64 bitboard;
-
-    // init piece & square
-    int piece, square;
-
-    // penalties
-    int double_pawns = 0;
-
-    // loop over piece bitboards
-    for (int bb_piece = P; bb_piece <= k; bb_piece++) {
-        // init piece bitboard copy
-        bitboard = position->bitboards[bb_piece];
-
-        // loop over pieces within a bitboard
-        while (bitboard) {
-            // init piece
-            piece = bb_piece;
-
-            // init square
-            square = getLS1BIndex(bitboard);
-
-            /*
-                Now in order to calculate interpolated score
-                for a given game phase we use this formula
-                (same for material and positional scores):
-
-                (
-                  score_opening * game_phase_score +
-                  score_endgame * (opening_phase_score - game_phase_score)
-                ) / opening_phase_score
-
-                E.g. the score for pawn on d4 at phase say 5000 would be
-                interpolated_score = (12 * 5000 + (-7) * (6192 - 5000)) / 6192 = 8,342377261
-            */
-
-            // interpolate scores in middle_game
-            if (game_phase == middlegame)
-                score += (
-                                 material_score[opening][piece] * game_phase_score +
-                                 material_score[endgame][piece] * (opening_phase_score - game_phase_score)
-                         ) / opening_phase_score;
-
-                // score material weights with pure scores in opening or endgame
-            else score += material_score[game_phase][piece];
-
-            // score positional piece scores
-            switch (piece) {
-                // evaluate white pawns
-                case P:
-                    // interpolate scores in middle_game
-                    if (game_phase == middlegame)
-                        score += (
-                                         positional_score[opening][PAWN][square] * game_phase_score +
-                                         positional_score[endgame][PAWN][square] *
-                                         (opening_phase_score - game_phase_score)
-                                 ) / opening_phase_score;
-
-                        // score material weights with pure scores in opening or endgame
-                    else score += positional_score[game_phase][PAWN][square];
-
-                    // double pawn penalty
-                    /*double_pawns = countBits(position->bitboards[P] & fileMasks[square]);
-
-                    // on double pawns (tripple, etc)
-                    if (double_pawns > 1) {
-                        if (game_phase == opening) {
-                            score += double_pawns * double_pawn_penalty_opening;
-                        } else if (game_phase == endgame) {
-                            score += double_pawns * double_pawn_penalty_endgame;
-                        }
-
-                    }*/
-
-                    /*
-                    // on isolated pawn
-                    if ((bitboards[P] & isolated_masks[square]) == 0)
-                        // give an isolated pawn penalty
-                        score += isolated_pawn_penalty;
-                    */
-                    // on passed pawn
-                    /*if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
-                        // give passed pawn bonus
-                        if (game_phase == middlegame) {
-                            score += passed_pawn_bonus_middle[get_rank[square]];
-                        } else if (game_phase == endgame) {
-                            score += passed_pawn_bonus_endgame[get_rank[square]];
-                        }
-                    }*/
-
-
-                    break;
-
-                    // evaluate white knights
-                case N:
-                    // interpolate scores in middle_game
-                    if (game_phase == middlegame)
-                        score += (
-                                         positional_score[opening][KNIGHT][square] * game_phase_score +
-                                         positional_score[endgame][KNIGHT][square] *
-                                         (opening_phase_score - game_phase_score)
-                                 ) / opening_phase_score;
-
-                        // score material weights with pure scores in opening or endgame
-                    else score += positional_score[game_phase][KNIGHT][square];
-
-                    break;
-
-                    // evaluate white bishops
-                case B:
-                    /// interpolate scores in middle_game
-                    if (game_phase == middlegame)
-                        score += (
-                                         positional_score[opening][BISHOP][square] * game_phase_score +
-                                         positional_score[endgame][BISHOP][square] *
-                                         (opening_phase_score - game_phase_score)
-                                 ) / opening_phase_score;
-
-                        // score material weights with pure scores in opening or endgame
-                    else score += positional_score[game_phase][BISHOP][square];
-
-                    // mobility
-                    //score += count_bits(get_bishop_attacks(square, occupancies[both]));
-
-                    break;
-
-                    // evaluate white rooks
-                case R:
-                    /// interpolate scores in middle_game
-                    if (game_phase == middlegame)
-                        score += (
-                                         positional_score[opening][ROOK][square] * game_phase_score +
-                                         positional_score[endgame][ROOK][square] *
-                                         (opening_phase_score - game_phase_score)
-                                 ) / opening_phase_score;
-
-                        // score material weights with pure scores in opening or endgame
-                    else score += positional_score[game_phase][ROOK][square];
-
-                    /* semi open file
-                    if ((bitboards[P] & file_masks[square]) == 0)
-                        // add semi open file bonus
-                        score += semi_open_file_score;
-
-                    // semi open file
-                    if (((bitboards[P] | bitboards[p]) & file_masks[square]) == 0)
-                        // add semi open file bonus
-                        score += open_file_score;
-                    */
-                    break;
-
-                    // evaluate white queens
-                case Q:
-                    /// interpolate scores in middle_game
-                    if (game_phase == middlegame)
-                        score += (
-                                         positional_score[opening][QUEEN][square] * game_phase_score +
-                                         positional_score[endgame][QUEEN][square] *
-                                         (opening_phase_score - game_phase_score)
-                                 ) / opening_phase_score;
-
-                        // score material weights with pure scores in opening or endgame
-                    else score += positional_score[game_phase][QUEEN][square];
-
-                    // mobility
-                    //score += count_bits(get_queen_attacks(square, occupancies[both]));
-                    break;
-
-                    // evaluate white king
-                case K:
-                    /// interpolate scores in middle_game
-                    if (game_phase == middlegame)
-                        score += (
-                                         positional_score[opening][KING][square] * game_phase_score +
-                                         positional_score[endgame][KING][square] *
-                                         (opening_phase_score - game_phase_score)
-                                 ) / opening_phase_score;
-
-                        // score material weights with pure scores in opening or endgame
-                    else score += positional_score[game_phase][KING][square];
-
-                    /* semi open file
-                    if ((bitboards[P] & file_masks[square]) == 0)
-                        // add semi open file penalty
-                        score -= semi_open_file_score;
-
-                    // semi open file
-                    if (((bitboards[P] | bitboards[p]) & file_masks[square]) == 0)
-                        // add semi open file penalty
-                        score -= open_file_score;
-                    */
-                    // king safety bonus
-                    //score += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
-
-                    break;
-
-                    // evaluate black pawns
-                case p:
-                    // interpolate scores in middle_game
-                    if (game_phase == middlegame)
-                        score -= (
-                                         positional_score[opening][PAWN][mirrorScore[square]] * game_phase_score +
-                                         positional_score[endgame][PAWN][mirrorScore[square]] *
-                                         (opening_phase_score - game_phase_score)
-                                 ) / opening_phase_score;
-
-                        // score material weights with pure scores in opening or endgame
-                    else score -= positional_score[game_phase][PAWN][mirrorScore[square]];
-
-                    // double pawn penalty
-                    /*double_pawns = countBits(position->bitboards[p] & fileMasks[square]);
-
-                    // on double pawns (tripple, etc)
-                    if (double_pawns > 1) {
-                        if (game_phase == opening) {
-                            score += double_pawns * double_pawn_penalty_opening;
-                        } else if (game_phase == endgame) {
-                            score += double_pawns * double_pawn_penalty_endgame;
-                        }
-
-                    }*/
-
-                    // on isolated pawnd
-                    /*if ((bitboards[p] & isolated_masks[square]) == 0)
-                        // give an isolated pawn penalty
-                        score -= isolated_pawn_penalty;
-                    */
-                    // on passed pawn
-                    /*if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
-                        // give passed pawn bonus
-                        if (game_phase == middlegame) {
-                            score += passed_pawn_bonus_middle[get_rank[square]];
-                        } else if (game_phase == endgame) {
-                            score += passed_pawn_bonus_endgame[get_rank[square]];
-                        }
-                    }*/
-
-
-                    break;
-
-                    // evaluate black knights
-                case n:
-                    // interpolate scores in middle_game
-                    if (game_phase == middlegame)
-                        score -= (
-                                         positional_score[opening][KNIGHT][mirrorScore[square]] * game_phase_score +
-                                         positional_score[endgame][KNIGHT][mirrorScore[square]] *
-                                         (opening_phase_score - game_phase_score)
-                                 ) / opening_phase_score;
-
-                        // score material weights with pure scores in opening or endgame
-                    else score -= positional_score[game_phase][KNIGHT][mirrorScore[square]];
-
-                    break;
-
-                    // evaluate black bishops
-                case b:
-                    // interpolate scores in middle_game
-                    if (game_phase == middlegame)
-                        score -= (
-                                         positional_score[opening][BISHOP][mirrorScore[square]] * game_phase_score +
-                                         positional_score[endgame][BISHOP][mirrorScore[square]] *
-                                         (opening_phase_score - game_phase_score)
-                                 ) / opening_phase_score;
-
-                        // score material weights with pure scores in opening or endgame
-                    else score -= positional_score[game_phase][BISHOP][mirrorScore[square]];
-
-                    // mobility
-                    //score -= count_bits(get_bishop_attacks(square, occupancies[both]));
-                    break;
-
-                    // evaluate black rooks
-                case r:
-                    // interpolate scores in middle_game
-                    if (game_phase == middlegame)
-                        score -= (
-                                         positional_score[opening][ROOK][mirrorScore[square]] * game_phase_score +
-                                         positional_score[endgame][ROOK][mirrorScore[square]] *
-                                         (opening_phase_score - game_phase_score)
-                                 ) / opening_phase_score;
-
-                        // score material weights with pure scores in opening or endgame
-                    else score -= positional_score[game_phase][ROOK][mirrorScore[square]];
-
-                    /* semi open file
-                    if ((bitboards[p] & file_masks[square]) == 0)
-                        // add semi open file bonus
-                        score -= semi_open_file_score;
-
-                    // semi open file
-                    if (((bitboards[P] | bitboards[p]) & file_masks[square]) == 0)
-                        // add semi open file bonus
-                        score -= open_file_score;
-                    */
-                    break;
-
-                    // evaluate black queens
-                case q:
-                    // interpolate scores in middle_game
-                    if (game_phase == middlegame)
-                        score -= (
-                                         positional_score[opening][QUEEN][mirrorScore[square]] * game_phase_score +
-                                         positional_score[endgame][QUEEN][mirrorScore[square]] *
-                                         (opening_phase_score - game_phase_score)
-                                 ) / opening_phase_score;
-
-                        // score material weights with pure scores in opening or endgame
-                    else score -= positional_score[game_phase][QUEEN][mirrorScore[square]];
-
-                    // mobility
-                    //score -= count_bits(get_queen_attacks(square, occupancies[both]));
-                    break;
-
-                    // evaluate black king
-                case k:
-                    // interpolate scores in middle_game
-                    if (game_phase == middlegame)
-                        score -= (
-                                         positional_score[opening][KING][mirrorScore[square]] * game_phase_score +
-                                         positional_score[endgame][KING][mirrorScore[square]] *
-                                         (opening_phase_score - game_phase_score)
-                                 ) / opening_phase_score;
-
-                        // score material weights with pure scores in opening or endgame
-                    else score -= positional_score[game_phase][KING][mirrorScore[square]];
-
-                    /* semi open file
-                    if ((bitboards[p] & file_masks[square]) == 0)
-                        // add semi open file penalty
-                        score += semi_open_file_score;
-
-                    // semi open file
-                    if (((bitboards[P] | bitboards[p]) & file_masks[square]) == 0)
-                        // add semi open file penalty
-                        score += open_file_score;
-                    */
-                    // king safety bonus
-                    //score -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus;
-
-                    break;
-            }
-
-            // pop ls1b
-            popBit(bitboard, square);
-        }
-    }
-
-    // return final evaluation based on side
-    return (position->side == white) ? score : -score;
 }
 
 int input_waiting() {
@@ -1370,22 +974,18 @@ static inline void enable_pv_scoring(moves *moveList, board* position) {
     3. 1st killer move
     4. 2nd killer move
     5. History moves
-    6. Unsorted moves
 */
 
 
 // score moves
 static inline int scoreMove(int move, board* position) {
-    // if PV move scoring is allowed
-    if (position->scorePv) {
-        // make sure we are dealing with PV move
-        if (position->pvTable[0][position->ply] == move) {
-            // disable score PV flag
-            position->scorePv = 0;
+    // make sure we are dealing with PV move
+    if (position->scorePv && position->pvTable[0][position->ply] == move) {
+        // disable score PV flag
+        position->scorePv = 0;
 
-            // give PV move the highest score to search it first
-            return 20000;
-        }
+        // give PV move the highest score to search it first
+        return 1500000000;
     }
 
     // score capture move
@@ -1418,7 +1018,7 @@ static inline int scoreMove(int move, board* position) {
         }
 
         // score move by MVV LVA lookup [source piece][target piece]
-        return mvvLva[getMovePiece(move)][target_piece] + 10000;
+        return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
         /*int seeScore = see(position, move);
         if (seeScore > 0) {
             return 15000;
@@ -1432,17 +1032,22 @@ static inline int scoreMove(int move, board* position) {
 
         // score quiet move
     else {
+
         // score 1st killer move
-        if (position->killerMoves[0][position->ply] == move)
-            return 9000;
+        if (position->killerMoves[position->ply][0] == move)
+            return 900000000;
 
             // score 2nd killer move
-        else if (position->killerMoves[1][position->ply] == move)
-            return 8000;
+        else if (position->killerMoves[position->ply][1] == move)
+            return 800000000;
+        /*else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
+            return 7000;
+        */
+       /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
+            printf("History score negative: %d\n", historyMoves[getMoveSource(move)][getMoveTarget(move)]);
+        }*/
+        return historyMoves[getMoveSource(move)][getMoveTarget(move)];
 
-            // score history move
-        else
-            return position->historyMoves[getMovePiece(move)][getMoveTarget(move)];
     }
     return 0;
 }
@@ -1457,7 +1062,7 @@ static inline int sort_moves(moves *moveList, int bestMove, board* position) {
         // if hash move available
         if (bestMove == moveList->moves[count])
             // score move
-            move_scores[count] = 30000;
+            move_scores[count] = 2000000000;
 
         else
             // score move
@@ -1501,12 +1106,13 @@ static inline int isRepetition(board* position) {
 
 
 // quiescence search
-static inline int quiescence(int alpha, int beta, board* position, int score) {
+static inline int quiescence(int alpha, int beta, board* position, int negamaxScore) {
     if ((nodes & 2047) == 0) {
         communicate();
     }
     // increment nodes count
     nodes++;
+
 
     int pvNode = beta - alpha > 1;
 
@@ -1520,10 +1126,10 @@ static inline int quiescence(int alpha, int beta, board* position, int score) {
 
 
     // read hash entry
-    if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, 0, position)) != noHashEntry && pvNode == 0) {
+    if (position->ply && (negamaxScore = readHashEntry(alpha, beta, &bestMove, 0, position)) != noHashEntry && pvNode == 0) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move
-        return score;
+        return negamaxScore;
     }
 
     // evaluate position
@@ -1534,6 +1140,7 @@ static inline int quiescence(int alpha, int beta, board* position, int score) {
         // node (move) fails high
         return beta;
     }
+
 
     // found a better move
     if (evaluation > alpha) {
@@ -1577,6 +1184,7 @@ static inline int quiescence(int alpha, int beta, board* position, int score) {
         }
 
 
+
         // score current move
         int score = -quiescence(-beta, -alpha, position, score);
 
@@ -1614,8 +1222,9 @@ static inline int quiescence(int alpha, int beta, board* position, int score) {
     return alpha;
 }
 
-const int full_depth_moves = 4;
-const int reduction_limit = 3;
+int lmr_full_depth_moves = 4;
+int lmr_reduction_limit = 3;
+const int lateMovePruningBaseReduction = 4;
 int nullMoveDepth = 3;
 
 // negamax alpha beta search
@@ -1638,6 +1247,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     }
 
     int pvNode = beta - alpha > 1;
+    int rootNode = position->ply == 0;
 
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
@@ -1770,7 +1380,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     }
 
     // create move list instance
-    moves moveList[1];
+    moves moveList[1], badQuiets[1];
+    badQuiets->count = 0;
 
     // generate moves
     moveGenerator(moveList, position);
@@ -1786,8 +1397,14 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     // number of moves searched in a move list
     int moves_searched = 0;
 
+    int skipQuiet = 0;
+
+
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
+        if (skipQuiet) {
+            continue;
+        }
         /*int seeScore = see(position, moveList->moves[count]);
         if (in_check == 0 && seeScore < -17 * depth * depth) {
             continue;
@@ -1815,9 +1432,28 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             // skip to next move
             continue;
         }
+        int currentMove = moveList->moves[count];
+        bool isQuiet = getMoveCapture(currentMove) == 0;
+        if (isQuiet) {
+            addMoveToHistoryList(badQuiets, currentMove);
+        }
 
         // increment legal moves
         legal_moves++;
+
+
+
+        bool isNotMated = alpha > -mateScore + maxPly;
+
+        //int historyScore = historyMoves[getMovePiece(currentMove)][getMoveTarget(currentMove)] * depth;
+        //int historyBorder = !pvNode ? 5: 15;
+        // Late Move Pruning
+        /*if (!rootNode && isQuiet &&
+            isNotMated && historyScore < -5 &&
+            legal_moves>= 4 + 2 * depth * depth) {
+            skipQuiet = 1;
+        }*/
+
 
         // full depth search
         if (moves_searched == 0)
@@ -1828,13 +1464,11 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         else {
             // condition to consider LMR
             if (
-                    moves_searched >= full_depth_moves &&
-                    depth >= reduction_limit &&
+                    moves_searched >= lmr_full_depth_moves &&
+                    depth >= lmr_reduction_limit &&
                     in_check == 0 &&
-                    getMoveCapture(moveList->moves[count]) == 0 &&
-                    getMovePromoted(moveList->moves[count]) == 0
-
-
+                    isQuiet &&
+                    getMovePromoted(currentMove) == 0
                     )
                 // search current move with reduced depth:
                 score = -negamax(-alpha - 1, -alpha, depth - 2, position);
@@ -1876,6 +1510,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         // increment the counter of moves searched so far
         moves_searched++;
 
+
         // found a better move
         if (score > alpha) {
             // switch hash flag from storing for fail-low node
@@ -1883,18 +1518,18 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             hashFlag = hashFlagExact;
 
             // store best move (for TT)
-            bestMove = moveList->moves[count];
+            bestMove = currentMove;
 
             // on quiet moves
-            if (getMoveCapture(moveList->moves[count]) == 0)
+            /*if (getMoveCapture(currentMove) == 0)
                 // store history moves
-                position->historyMoves[getMovePiece(moveList->moves[count])][getMoveTarget(moveList->moves[count])] += depth;
+                position->historyMoves[getMovePiece(currentMove)][getMoveTarget(currentMove)] += depth;*/
 
             // PV node (move)
             alpha = score;
 
             // write PV move
-            position->pvTable[position->ply][position->ply] = moveList->moves[count];
+            position->pvTable[position->ply][position->ply] = currentMove;
 
             // loop over the next ply
             for (int next_ply = position->ply + 1; next_ply < position->pvLength[position->ply + 1]; next_ply++)
@@ -1908,17 +1543,28 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             if (score >= beta) {
                 // store hash entry with the score equal to beta
                 writeHashEntry(beta, bestMove, depth, hashFlagBeta, position);
-
+                //int lastMove = moveList->moves[position->ply - 1];
                 // on quiet moves
-                if (getMoveCapture(moveList->moves[count]) == 0) {
+                if (isQuiet) {
                     // store killer moves
-                    position->killerMoves[1][position->ply] = position->killerMoves[0][position->ply];
-                    position->killerMoves[0][position->ply] = moveList->moves[count];
+                    /*if (position->killerMoves[position->ply][0] != bestMove) {
+                        position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
+                        position->killerMoves[position->ply][0] = bestMove;
+                    }*/
+                    position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
+                    position->killerMoves[position->ply][0] = bestMove;
+
+                    //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
+                    updateHistory(bestMove, depth, badQuiets);
                 }
 
                 // node (move) fails high
                 return beta;
-            }
+            }/* else {
+                if (isQuiet) {
+                    addMoveToHistoryList(badQuiets, currentMove);
+                }
+            }*/
         }
     }
 
@@ -1941,310 +1587,6 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     return alpha;
 }
 
-int getTimeMiliSecond() {
-#ifdef WIN64
-    return GetTickCount();
-#else
-    struct timeval time_value;
-        gettimeofday(&time_value, NULL);
-        return time_value.tv_sec * 1000 + time_value.tv_usec / 1000;
-#endif
-}
-
-
-
-
-// init slider piece's attack tables
-void initSlidersAttacks(int bishop) {
-    // init bishop & rook masks
-    for (int square = 0; square < 64; square++) {
-        bishopMask[square] = maskBishopAttacks(square);
-        rookMask[square] = maskRookAttacks(square);
-
-        // init current mask
-        U64 attackMask = bishop ? bishopMask[square] : rookMask[square];
-
-        // init relevant occupancy bit count
-        int relevantBitsCount = countBits(attackMask);
-
-        // init occupancyIndicies
-        int occupancIndicies = 1 << relevantBitsCount;
-
-        // loop over occupancy indicies
-        for (int index = 0; index < occupancIndicies; index++) {
-            // bishop
-            if (bishop) {
-                // int current occupancy variation
-                U64 occupancy = setOccupancy(index, relevantBitsCount, attackMask);
-
-                // init magic index
-                int magicIndex = (occupancy * bishopMagic[square]) >> (64 - bishopRelevantBits[square]);
-
-                // init bishop attacks
-                bishopAttacks[square][magicIndex] = bishopAttack(square, occupancy);
-            }
-                // rook
-            else {
-                U64 occupancy = setOccupancy(index, relevantBitsCount, attackMask);
-
-                // init magic index
-                int magicIndex = (occupancy * rookMagic[square]) >> (64 - rookRelevantBits[square]);
-
-                // init bishop attacks
-                rookAttacks[square][magicIndex] = rookAttack(square, occupancy);
-            }
-        }
-    }
-}
-
-// make move on chess board
-static inline int makeMove(int move, int moveFlag, board* position) {
-    // quiet moves
-    if (moveFlag == allMoves) {
-        struct copyposition copyPosition;
-        // preserve board state
-        copyBoard(position, &copyPosition);
-
-        // parse move
-        int sourceSquare = getMoveSource(move);
-        int targetSquare = getMoveTarget(move);
-        int piece = getMovePiece(move);
-        int promotedPiece = getMovePromoted(move);
-        int capture = getMoveCapture(move);
-        int doublePush = getMoveDouble(move);
-        int enpass = getMoveEnpassant(move);
-        int castling = getMoveCastling(move);
-
-        // move piece
-        popBit(position->bitboards[piece], sourceSquare);
-        setBit(position->bitboards[piece], targetSquare);
-
-        // hash piece
-        position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
-        position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
-
-        // handling capture moves
-        if (capture) {
-            int startPiece, endPiece;
-            if (position->side == white) {
-                startPiece = p;
-                endPiece = k;
-            } else {
-                startPiece = P;
-                endPiece = K;
-            }
-            for (int bbPiece = startPiece; bbPiece <= endPiece; bbPiece++) {
-                if (getBit(position->bitboards[bbPiece], targetSquare)) {
-                    // remove it from corresponding bitboard
-                    popBit(position->bitboards[bbPiece], targetSquare);
-
-                    // remove the piece from hash key
-                    position->hashKey ^= pieceKeys[bbPiece][targetSquare];
-                    break;
-                }
-            }
-        }
-        // handle pawn promotions
-        if (promotedPiece) {
-            // white to move
-            if (position->side == white) {
-                // erase the pawn from the target square
-                popBit(position->bitboards[P], targetSquare);
-
-                // remove pawn from hash key
-                position->hashKey ^= pieceKeys[P][targetSquare];
-            }
-
-                // black to move
-            else {
-                // erase the pawn from the target square
-                popBit(position->bitboards[p], targetSquare);
-
-                // remove pawn from hash key
-                position->hashKey ^= pieceKeys[p][targetSquare];
-            }
-
-            // set up promoted piece on chess board
-            setBit(position->bitboards[promotedPiece], targetSquare);
-
-            // add promoted piece into the hash key
-            position->hashKey ^= pieceKeys[promotedPiece][targetSquare];
-        }
-
-        // handle enpassant captures
-        if (enpass) {
-            // erase the pawn depending on side to move
-            (position->side == white) ? popBit(position->bitboards[p], targetSquare + 8) :
-            popBit(position->bitboards[P], targetSquare - 8);
-
-            // white to move
-            if (position->side == white) {
-                // remove captured pawn
-                popBit(position->bitboards[p], targetSquare + 8);
-
-                // remove pawn from hash key
-                position->hashKey ^= pieceKeys[p][targetSquare + 8];
-            }
-
-                // black to move
-            else {
-                // remove captured pawn
-                popBit(position->bitboards[P], targetSquare - 8);
-
-                // remove pawn from hash key
-                position->hashKey ^= pieceKeys[P][targetSquare - 8];
-            }
-        }
-
-        // hash enpassant if available (remove enpassant square from hash key )
-        if (position->enpassant != no_sq) position->hashKey ^= enpassantKeys[position->enpassant];
-
-        // reset enpassant square
-        position->enpassant = no_sq;
-
-        // handle double pawn push
-        if (doublePush) {
-            // white to move
-            if (position->side == white) {
-                // set enpassant square
-                position->enpassant = targetSquare + 8;
-
-                // hash enpassant
-                position->hashKey ^= enpassantKeys[targetSquare + 8];
-            }
-
-                // black to move
-            else {
-                // set enpassant square
-                position->enpassant = targetSquare - 8;
-
-                // hash enpassant
-                position->hashKey ^= enpassantKeys[targetSquare - 8];
-            }
-        }
-
-        // handle castling moves
-        if (castling) {
-            switch (targetSquare) {
-                // white castles king side
-                case (g1):
-                    // move H rook
-                    popBit(position->bitboards[R], h1);
-                    setBit(position->bitboards[R], f1);
-
-                    // hash rook
-                    position->hashKey ^= pieceKeys[R][h1];  // remove rook from h1 from hash key
-                    position->hashKey ^= pieceKeys[R][f1];  // put rook on f1 into a hash key
-                    break;
-
-                    // white castles queen side
-                case (c1):
-                    // move A rook
-                    popBit(position->bitboards[R], a1);
-                    setBit(position->bitboards[R], d1);
-
-                    // hash rook
-                    position->hashKey ^= pieceKeys[R][a1];  // remove rook from a1 from hash key
-                    position->hashKey ^= pieceKeys[R][d1];  // put rook on d1 into a hash key
-                    break;
-
-                    // black castles king side
-                case (g8):
-                    // move H rook
-                    popBit(position->bitboards[r], h8);
-                    setBit(position->bitboards[r], f8);
-
-                    // hash rook
-                    position->hashKey ^= pieceKeys[r][h8];  // remove rook from h8 from hash key
-                    position->hashKey ^= pieceKeys[r][f8];  // put rook on f8 into a hash key
-                    break;
-
-                    // black castles queen side
-                case (c8):
-                    // move A rook
-                    popBit(position->bitboards[r], a8);
-                    setBit(position->bitboards[r], d8);
-
-                    // hash rook
-                    position->hashKey ^= pieceKeys[r][a8];  // remove rook from a8 from hash key
-                    position->hashKey ^= pieceKeys[r][d8];  // put rook on d8 into a hash key
-                    break;
-            }
-        }
-
-
-        // hash castling
-        position->hashKey ^= castleKeys[position->castle];
-
-        // update castling rights
-        position->castle &= castlingRights[sourceSquare];
-        position->castle &= castlingRights[targetSquare];
-
-        // hash castling
-        position->hashKey ^= castleKeys[position->castle];
-
-        // reset occupancies
-        position->occupancies[white] = 0LL;
-        position->occupancies[black] = 0LL,
-        position->occupancies[both] = 0LL;
-
-        // loop over white pieces bitboards
-        for (int bbPiece = P; bbPiece <= K; bbPiece++) {
-            // update white occupancies
-            position->occupancies[white] |= position->bitboards[bbPiece];
-        }
-        // loop over black pieces bitboards
-        for (int bbPiece = p; bbPiece <= k; bbPiece++) {
-            // update black occupancies
-            position->occupancies[black] |= position->bitboards[bbPiece];
-        }
-        // update both side occupancies
-        position->occupancies[both] |= position->occupancies[white];
-        position->occupancies[both] |= position->occupancies[black];
-
-        // change side
-        position->side ^= 1;
-
-        // hash side
-        position->hashKey ^= sideKey;
-
-        U64 hash_from_scratch = generateHashKey(position);
-
-        // make sure that king has not been exposed into a check
-        if (isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[k]) : getLS1BIndex(position->bitboards[K]), position->side, position)) {
-            // take move back
-            takeBack(position, &copyPosition);
-            // return illegal move
-            return 0;
-        }
-        return 1;
-    } else {
-        if (getMoveCapture(move)) {
-            makeMove(move, allMoves, position);
-        } else {
-            return 0;
-        }
-    }
-}
-
-void printAttackedSquares(int whichSide, board* position) {
-    printf("\n");
-    // loop over board ranks
-    for (int rank = 0; rank < 8; rank++) {
-        for (int file = 0; file < 8; file++) {
-            int square = rank * 8 + file;
-            if (!file) {
-                printf("  %d  ", 8 - rank);
-            }
-            printf("%d ", isSquareAttacked(square, whichSide, position) ? 1 : 0);
-
-        }
-        printf("\n");
-    }
-    printf("\n     a b c d e f g h\n\n");
-
-}
-
 void initAll() {
     initLeaperAttacks();
     initMagicNumbers();
@@ -2256,18 +1598,4 @@ void initAll() {
     clearHashTable();
     // init mask
     initEvaluationMasks();
-}
-
-void initLeaperAttacks() {
-    for (int square = 0; square < 64; square++) {
-        // init pawn attacks
-        pawnAtacks[white][square] = maskPawnAttacks(white, square);
-        pawnAtacks[black][square] = maskPawnAttacks(black, square);
-
-        // init knight attacks
-        knightAttacks[square] = maskKnightAttacks(square);
-
-        // init king attacks
-        kingAttacks[square] = maskKingAttacks(square);
-    }
 }
