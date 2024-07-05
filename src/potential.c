@@ -1043,9 +1043,9 @@ static inline int scoreMove(int move, board* position) {
         /*else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 7000;
         */
-       /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
-            printf("History score negative: %d\n", historyMoves[getMoveSource(move)][getMoveTarget(move)]);
-        }*/
+        /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
+             printf("History score negative: %d\n", historyMoves[getMoveSource(move)][getMoveTarget(move)]);
+         }*/
         return historyMoves[getMoveSource(move)][getMoveTarget(move)];
 
     }
@@ -1278,6 +1278,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     // legal moves counter
     int legal_moves = 0;
+    // quiet move counter
+    int quietMoves = 0;
 
     // get static evaluation score
     int static_eval = evaluate(position);
@@ -1403,6 +1405,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
         if (skipQuiet) {
+            skipQuiet = 0;
             continue;
         }
         /*int seeScore = see(position, moveList->moves[count]);
@@ -1434,12 +1437,16 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         }
         int currentMove = moveList->moves[count];
         bool isQuiet = getMoveCapture(currentMove) == 0;
-        if (isQuiet) {
+        /*if (isQuiet) {
             addMoveToHistoryList(badQuiets, currentMove);
-        }
+        }*/
 
         // increment legal moves
         legal_moves++;
+
+        if (isQuiet) {
+            quietMoves++;
+        }
 
 
 
@@ -1447,12 +1454,15 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
         //int historyScore = historyMoves[getMovePiece(currentMove)][getMoveTarget(currentMove)] * depth;
         //int historyBorder = !pvNode ? 5: 15;
+        bool lmpReduction = moves_searched >= 9 && !pvNode;
+        int lmpBase = 4;
+        int lmpMultiplier = 2;
         // Late Move Pruning
-        /*if (!rootNode && isQuiet &&
-            isNotMated && historyScore < -5 &&
-            legal_moves>= 4 + 2 * depth * depth) {
+        if (!rootNode && isQuiet &&
+            isNotMated &&
+            legal_moves>= lmpBase + (lmpMultiplier) * depth * depth) {
             skipQuiet = 1;
-        }*/
+        }
 
 
         // full depth search
