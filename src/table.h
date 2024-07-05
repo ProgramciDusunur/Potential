@@ -30,6 +30,7 @@
 // no hash entry found constant
 #define noHashEntry 100000
 
+#define hashFlagNone (-1)
 #define hashFlagExact 0
 #define hashFlagAlpha 1
 #define hashFlagBeta  2
@@ -50,6 +51,7 @@ tt hashTable[hashSize];
 U64 sideKey;
 
 U64 generateHashKey(board* position);
-
-
+static inline int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position);
+void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position);
+int readHashFlag(board* position);
 void clearHashTable();
