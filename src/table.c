@@ -71,6 +71,17 @@ static inline int readHashEntry(int alpha, int beta, int *bestMove, int depth, b
     return noHashEntry;
 }
 
+int readHashFlag(board* position) {
+    int noHashFlag = hashFlagNone;
+
+    tt *hashEntry = &hashTable[position->hashKey % hashSize];
+    if (hashEntry->hashKey == position->hashKey && (hashEntry->flag == hashFlagBeta || hashEntry->flag == hashFlagAlpha || hashEntry->flag == hashFlagExact)) {
+        return hashEntry->flag;
+    }
+
+    return noHashFlag;
+}
+
 // generate "almost" unique position ID aka hash key from scratch
 U64 generateHashKey(board* position) {
     // final hash key

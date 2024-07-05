@@ -1248,6 +1248,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     int pvNode = beta - alpha > 1;
     int rootNode = position->ply == 0;
+    int ttBound = readHashFlag(position);
 
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
@@ -1263,7 +1264,9 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         // run quiescence search
         return quiescence(alpha, beta, position, score);
 
-
+    // IIR by Ed Schroder (~15 Elo)
+    if (depth >= 4 && ttBound == hashFlagNone)
+        depth--;
 
     // increment nodes count
     nodes++;
@@ -1454,10 +1457,10 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
         //int historyScore = historyMoves[getMovePiece(currentMove)][getMoveTarget(currentMove)] * depth;
         //int historyBorder = !pvNode ? 5: 15;
-        bool lmpReduction = moves_searched >= 9 && !pvNode;
+        //bool lmpReduction = moves_searched >= 9 && !pvNode;
         int lmpBase = 4;
         int lmpMultiplier = 2;
-        // Late Move Pruning
+        // Late Move Pruning (~13 Elo)
         if (!rootNode && isQuiet &&
             isNotMated &&
             legal_moves>= lmpBase + (lmpMultiplier) * depth * depth) {
