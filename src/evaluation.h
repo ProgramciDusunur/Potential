@@ -2,12 +2,10 @@
 // Created by erena on 29.05.2024.
 //
 #pragma once
-#ifndef CHESSENGINE_EVALUATION_H
-#define CHESSENGINE_EVALUATION_H
 
-#endif //CHESSENGINE_EVALUATION_H
 #include "board_constants.h"
 #include "board.h"
+#include "values.h"
 
 /**********************************\
  ==================================

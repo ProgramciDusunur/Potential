@@ -407,3 +407,9 @@ static inline int evaluate(board* position) {
     return (position->side == white) ? score : -score;
 }
 
+void clearStaticEvaluationHistory(board* position) {
+    for (int i = 0;i < 64;i++) {
+        position->staticEval[i] = noEval;
+    }
+}
+

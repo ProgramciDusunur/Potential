@@ -15,7 +15,7 @@
 #include "see.c"
 #include "bit_manipulation.c"
 #include "test/see_test.h"
-#include "search.h"
+#include "search.c"
 #include "history.c"
 
 
@@ -429,6 +429,7 @@ void parse_position(char *command, board* position) {
 
 void uciProtocol() {
     board position;
+
     // reset STDIN & STDOUT buffers
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
@@ -478,6 +479,9 @@ void uciProtocol() {
 
             //clear history
             clearHistory();
+
+            //clear static eval history
+            clearStaticEvaluationHistory(&position);
         }
             // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0)
@@ -490,6 +494,9 @@ void uciProtocol() {
 
             //clear history
             clearHistory();
+
+            //clear static eval history
+            clearStaticEvaluationHistory(&position);
         }
             // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0)
@@ -780,6 +787,7 @@ void searchPosition(int depth, board* position) {
     memset(historyMoves, 0, sizeof(historyMoves));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
+    memset(position->staticEval, 0, sizeof(position->staticEval));
 
     // define initial alpha beta bounds
     int alpha = -infinity;
@@ -1089,22 +1097,6 @@ static inline int sort_moves(moves *moveList, int bestMove, board* position) {
     }
 }
 
-// position repetition detection
-static inline int isRepetition(board* position) {
-    // loop over repetition indicies range
-    for (int index = 0; index < position->repetitionIndex; index++) {
-        // if we found the hash kkey same with a current
-        if (position->repetitionTable[index] == position->hashKey) {
-            // we found a repetition
-            return 1;
-        }
-    }
-
-    // if no repetition found
-    return 0;
-}
-
-
 // quiescence search
 static inline int quiescence(int alpha, int beta, board* position, int negamaxScore) {
     if ((nodes & 2047) == 0) {
@@ -1247,8 +1239,12 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     }
 
     int pvNode = beta - alpha > 1;
+
     int rootNode = position->ply == 0;
+
     int ttBound = readHashFlag(position);
+
+    bool improving;
 
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
@@ -1286,6 +1282,21 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     // get static evaluation score
     int static_eval = evaluate(position);
+
+    position->staticEval[position->ply] = static_eval;
+
+    if(in_check)
+        improving = false;
+    else if (position->staticEval[position->ply-2] != noEval) {
+        improving = position->staticEval[position->ply] > position->staticEval[position->ply-2];
+    }
+    else if (position->staticEval[position->ply-4] != noEval) {
+        improving = position->staticEval[position->ply] > position->staticEval[position->ply-4];
+    }
+    else
+        improving = true;
+
+    //printf("static eval calculated %d\n", position->staticEval[position->ply]);
 
     int canPrune = in_check == 0 && pvNode == 0;
 
@@ -1456,14 +1467,13 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         bool isNotMated = alpha > -mateScore + maxPly;
 
         //int historyScore = historyMoves[getMovePiece(currentMove)][getMoveTarget(currentMove)] * depth;
-        //int historyBorder = !pvNode ? 5: 15;
-        //bool lmpReduction = moves_searched >= 9 && !pvNode;
         int lmpBase = 4;
         int lmpMultiplier = 2;
+        int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth);
         // Late Move Pruning (~13 Elo)
         if (!rootNode && isQuiet &&
             isNotMated &&
-            legal_moves>= lmpBase + (lmpMultiplier) * depth * depth) {
+            legal_moves>= lmpThreshold) {
             skipQuiet = 1;
         }
 
@@ -1475,16 +1485,35 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
             // late move reduction (LMR)
         else {
+            int lmrReduction = getLmrReduction(depth, position->ply, pvNode);
+            if (isQuiet) {
+                // Reduce More
+                /*if (!improving) {
+                    lmrReduction += 1;
+                }*/
+                /*if (!pvNode) {
+                    lmrReduction += 1;
+                }*/
+
+
+                // Reduce Less
+                /*if (position->killerMoves[position->ply][0] == bestMove || position->killerMoves[position->ply][1] == bestMove) {
+                    lmrReduction -= 1;
+                }*/
+                /*if (in_check) {
+                    lmrReduction -= 1;
+                }*/
+
+            }
             // condition to consider LMR
             if (
                     moves_searched >= lmr_full_depth_moves &&
-                    depth >= lmr_reduction_limit &&
-                    in_check == 0 &&
+                    depth >= lmr_reduction_limit && in_check == 0 &&
                     isQuiet &&
                     getMovePromoted(currentMove) == 0
                     )
                 // search current move with reduced depth:
-                score = -negamax(-alpha - 1, -alpha, depth - 2, position);
+                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position);
 
                 // hack to ensure that full-depth search is done
             else score = alpha + 1;
@@ -1566,7 +1595,6 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                     }*/
                     position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                     position->killerMoves[position->ply][0] = bestMove;
-
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
                     updateHistory(bestMove, depth, badQuiets);
                 }
@@ -1611,4 +1639,7 @@ void initAll() {
     clearHashTable();
     // init mask
     initEvaluationMasks();
+    // init Late Move Reduction Table
+    initializeLMRTable();
+
 }
