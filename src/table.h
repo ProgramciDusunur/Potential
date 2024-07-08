@@ -30,6 +30,7 @@
 // no hash entry found constant
 #define noHashEntry 100000
 
+#define hashFlagNone (-1)
 #define hashFlagExact 0
 #define hashFlagAlpha 1
 #define hashFlagBeta  2
@@ -49,43 +50,8 @@ tt hashTable[hashSize];
 // random side key
 U64 sideKey;
 
-// generate "almost" unique position ID aka hash key from scratch
-U64 generateHashKey(board* position) {
-    // final hash key
-    U64 finalKey = 0ULL;
-
-    // temp piece bitboard copy
-    U64 bitboard;
-
-
-    // loop over piece bitboards
-    for (int piece = P; piece <= k; piece++) {
-        // init piece bitboard copy
-        bitboard = position->bitboards[piece];
-
-        // loop over the pieces within a bitboard
-        while (bitboard) {
-            // init square occupied by the piece
-            int square = getLS1BIndex(bitboard);
-
-            // hash piece
-            finalKey ^= pieceKeys[piece][square];
-
-            // pop LS1B
-            popBit(bitboard, square);
-        }
-    }
-
-    if (position->enpassant != no_sq) {
-        // hash enpassant
-        finalKey ^= enpassantKeys[position->enpassant];
-    }
-    // hash castling rights
-    finalKey ^= castleKeys[position->castle];
-
-    // hash the side only if black is to move
-    if (position->side == black) { finalKey ^= sideKey; }
-
-    // return generated hash key
-    return finalKey;
-}
+U64 generateHashKey(board* position);
+static inline int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position);
+void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position);
+int readHashFlag(board* position);
+void clearHashTable();

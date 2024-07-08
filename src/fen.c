@@ -17,18 +17,13 @@ void parseFEN(char *fen, board* position) {
     memset(position->occupancies, 0ULL, sizeof(position->occupancies));
 
     // reset game state variables
-    /*side = 0;
-    enpassant = no_sq;
-    castle = 0;*/
-
     position->side = 0;
     position->enpassant = no_sq;
     position->castle = 0;
 
     // reset repetition index
-    //repetitionIndex = 0;
-
     position->repetitionIndex = 0;
+
     // reset repetition table
     memset(position->repetitionTable, 0ULL, sizeof(position->repetitionTable));
 
