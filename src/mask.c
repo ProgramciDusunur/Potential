@@ -2,6 +2,7 @@
 // Created by erena on 29.05.2024.
 //
 #pragma once
+
 #include "mask.h"
 #include "board_constants.h"
 #include "bit_manipulation.h"

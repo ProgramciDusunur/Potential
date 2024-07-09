@@ -4,6 +4,7 @@
 
 #include "evaluation.h"
 #include "bit_manipulation.h"
+#include "move.h"
 
 // get game phase score
 static inline int get_game_phase_score(board* position) {
@@ -236,18 +237,18 @@ static inline int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][KING][square];
 
-                    /* semi open file
-                    if ((bitboards[P] & file_masks[square]) == 0)
+                    // semi open file
+                    if ((position->bitboards[P] & fileMasks[square]) == 0)
                         // add semi open file penalty
                         score -= semi_open_file_score;
 
                     // semi open file
-                    if (((bitboards[P] | bitboards[p]) & file_masks[square]) == 0)
+                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
                         // add semi open file penalty
                         score -= open_file_score;
-                    */
+
                     // king safety bonus
-                    //score += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
+                    score += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
 
                     break;
 
@@ -382,18 +383,18 @@ static inline int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][KING][mirrorScore[square]];
 
-                    /* semi open file
-                    if ((bitboards[p] & file_masks[square]) == 0)
+                    // semi open file
+                    if ((position->bitboards[p] & fileMasks[square]) == 0)
                         // add semi open file penalty
                         score += semi_open_file_score;
 
                     // semi open file
-                    if (((bitboards[P] | bitboards[p]) & file_masks[square]) == 0)
+                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
                         // add semi open file penalty
                         score += open_file_score;
-                    */
+
                     // king safety bonus
-                    //score -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus;
+                    score -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus;
 
                     break;
             }
