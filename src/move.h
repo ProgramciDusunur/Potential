@@ -60,6 +60,23 @@ struct copyposition {
 // extract castling flag
 #define getMoveCastling(move) (move & 0x800000)
 
+
+// Pawn attack masks pawnAttacks[side][square]
+extern U64 pawnAttacks[2][64];
+
+// Knight attack masks knightAttacks[square]
+extern U64 knightAttacks[64];
+
+// King attack masks kingAttacks[square]
+extern U64 kingAttacks[64];
+
+// Bishop attack table [square][occupancies]
+extern U64 bishopAttacks[64][512];
+
+// Rook attack table [square][occupancies]
+extern U64 rookAttacks[64][4096];
+
+
 void copyBoard(board *p, struct copyposition *cp);
 void takeBack(board *p, struct copyposition *cp);
 void addMoveToHistoryList(moves* list, int move);
