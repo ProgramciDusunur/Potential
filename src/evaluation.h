@@ -6,6 +6,7 @@
 #include "board_constants.h"
 #include "board.h"
 #include "values.h"
+#include "mask.h"
 
 /**********************************\
  ==================================
@@ -200,6 +201,37 @@ const int mirrorScore[128] =
                 a7, b7, c7, d7, e7, f7, g7, h7,
                 a8, b8, c8, d8, e8, f8, g8, h8
         };
+
+// double pawns penalty
+const int double_pawn_penalty_opening = -5;
+const int double_pawn_penalty_endgame = -10;
+
+// isolated pawn penalty
+const int isolated_pawn_penalty_opening = -5;
+const int isolated_pawn_penalty_endgame = -10;
+
+// passed pawn bonus
+const int passed_pawn_bonus_middle[8] = { 0, 0, 0, 5, 10, 15, 20, 25};
+const int passed_pawn_bonus_endgame[8] = { -5, 0, 0, 10, 15, 20, 35, 70};
+
+// semi open file score
+const int semi_open_file_score = 10;
+
+// open file score
+const int open_file_score = 15;
+
+// mobility units (values from engine Fruit reloaded)
+static const int bishop_unit = 4;
+static const int queen_unit = 9;
+
+// mobility bonuses (values from engine Fruit reloaded)
+static const int bishop_mobility_opening = 5;
+static const int bishop_mobility_endgame = 5;
+static const int queen_mobility_opening = 1;
+static const int queen_mobility_endgame = 2;
+
+// king's shield bonus
+const int king_shield_bonus = 5;
 
 static inline int evaluate(board* position);
 static inline int get_game_phase_score(board* position);
