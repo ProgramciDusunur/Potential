@@ -3,11 +3,6 @@
 //
 #pragma once
 
-#ifndef CHESSENGINE_TABLE_H
-#define CHESSENGINE_TABLE_H
-
-#endif //CHESSENGINE_TABLE_H
-
 #ifndef U64
 #define U64 unsigned long long
 #endif

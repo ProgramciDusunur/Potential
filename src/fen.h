@@ -3,10 +3,6 @@
 //
 #pragma once
 
-#ifndef CHESSENGINE_FEN_H
-#define CHESSENGINE_FEN_H
-
-#endif //CHESSENGINE_FEN_H
 
 #include "board.h"
 

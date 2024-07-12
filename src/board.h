@@ -2,12 +2,9 @@
 // Created by erena on 29.05.2024.
 //
 #pragma once
-#ifndef CHESSENGINE_BOARD_H
-#define CHESSENGINE_BOARD_H
-
-#endif //CHESSENGINE_BOARD_H
 
 
+#include "board_constants.h"
 
 #ifndef U64
 #define U64 unsigned long long
@@ -57,3 +54,4 @@ typedef struct {
 } board;
 
 void printAttackedSquares(int side, board* position);
+void printMove(int move);

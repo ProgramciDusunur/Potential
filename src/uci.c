@@ -4,87 +4,60 @@
 
 #include "uci.h"
 
-/*void uciProtocol() {
-    board position;
-    // reset STDIN & STDOUT buffers
-    setbuf(stdin, NULL);
-    setbuf(stdout, NULL);
 
-    // define user / GUI input buffer
-    char input[2000];
 
-    // print engine info
-    printf("id name Potential\n");
-    printf("id name ProgramciDusunur\n");
-    printf("uciok\n");
 
-    // main loop
-    while (1)
-    {
-        // reset user /GUI input
-        memset(input, 0, sizeof(input));
 
-        // make sure output reaches the GUI
-        fflush(stdout);
+// read GUI/user input
+void read_input() {
+    // bytes to read holder
+    int bytes;
 
-        // get user / GUI input
-        if (!fgets(input, 2000, stdin))
-            // continue the loop
-            continue;
+    // GUI/user input
+    char input[256] = "", *endc;
 
-        // make sure input is available
-        if (input[0] == '\n')
-            // continue the loop
-            continue;
+    // "listen" to STDIN
+    if (input_waiting()) {
+        // tell engine to stop calculating
+        stopped = 1;
 
-        // parse UCI "isready" command
-        if (strncmp(input, "isready", 7) == 0)
-        {
-            printf("readyok\n");
-            continue;
+        // loop to read bytes from STDIN
+        do {
+            // read bytes from STDIN
+            bytes = read(fileno(stdin), input, 256);
         }
 
-            // parse UCI "position" command
-        else if (strncmp(input, "position", 8) == 0)
-        {
-            // call parse position function
-            parse_position(input, &position);
+            // until bytes available
+        while (bytes < 0);
 
-            // clear hash table
-            clearHashTable();
+        // searches for the first occurrence of '\n'
+        endc = strchr(input, '\n');
 
-            //clear history
-            clearHistory();
-        }
-            // parse UCI "ucinewgame" command
-        else if (strncmp(input, "ucinewgame", 10) == 0)
-        {
-            // call parse position function
-            parse_position("position startpos", &position);
+        // if found new line set value at pointer to 0
+        if (endc) *endc = 0;
 
-            // clear hash table
-            clearHashTable();
+        // if input is available
+        if (strlen(input) > 0) {
+            // match UCI "quit" command
+            if (!strncmp(input, "quit", 4)) {
+                // tell engine to terminate exacution
+                quit = 1;
+            }
 
-            //clear history
-            clearHistory();
-        }
-            // parse UCI "go" command
-        else if (strncmp(input, "go", 2) == 0)
-            // call parse go function
-            goCommand(input, &position);
-
-            // parse UCI "quit" command
-        else if (strncmp(input, "quit", 4) == 0)
-            // quit from the chess engine program execution
-            break;
-
-            // parse UCI "uci" command
-        else if (strncmp(input, "uci", 3) == 0)
-        {
-            // print engine info
-            printf("id name Potential\n");
-            printf("id name ProgramciDusunur\n");
-            printf("uciok\n");
+                // // match UCI "stop" command
+            else if (!strncmp(input, "stop", 4)) {
+                // tell engine to terminate exacution
+                quit = 1;
+            }
         }
     }
-}*/
+}
+
+void communicate() {
+    // if time is up break here
+    if (timeset == 1 && getTimeMiliSecond() > stoptime) {
+        // tell engine to stop calculating
+        stopped = 1;
+    }
+    read_input();
+}

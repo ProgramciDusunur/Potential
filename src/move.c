@@ -106,7 +106,7 @@ static inline U64 getQueenAttacks(int square, U64 occupancy) {
     return queenAttacks;
 }
 
-static inline int isSquareAttacked(int square, int whichSide, board* position) {
+int isSquareAttacked(int square, int whichSide, board* position) {
     if ((whichSide == white) && (pawnAtacks[black][square] & position->bitboards[P])) {
         return 1;
     }

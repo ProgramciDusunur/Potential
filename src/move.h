@@ -82,4 +82,6 @@ void takeBack(board *p, struct copyposition *cp);
 void addMoveToHistoryList(moves* list, int move);
 void initSlidersAttacks(int bishop);
 void initLeaperAttacks();
-static inline int isSquareAttacked(int square, int whichSide, board* position);
+int isSquareAttacked(int square, int whichSide, board* position);
+static inline int makeMove(int move, int moveFlag, board* position);
+static inline void moveGenerator(moves *moveList, board* position);

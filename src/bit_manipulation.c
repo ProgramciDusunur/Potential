@@ -13,7 +13,7 @@ int getLS1BIndex(U64 bitboard) {
     return __builtin_ctzll(bitboard);
 }
 
-void pBitboard(U64 bitboard) {
+void printBitboard(U64 bitboard) {
     printf("\n");
     for (int y = 0, coordinate = 8; y < 8; y++, coordinate--) {
         printf("%d  ", coordinate);
