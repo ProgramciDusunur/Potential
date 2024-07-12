@@ -61,17 +61,11 @@ static inline void perftChild(int depth, board* position);
 void initRandomKeys();
 
 
-int main(int argc, char* argv[]) {
+int main() {
     initAll();
-    if (argc > 1 && strcmp(argv[1], "bench") == 0) {
-
-        // Örnek çıktı formatı:
-        printf("4712710 nodes 1323423 nps\n");
-        return 0;
-    }
-    int debug = 1;
+    int debug = 0;
     if (debug) {
-        benchmark(12);
+
     } else {
         uciProtocol();
     }
@@ -274,6 +268,9 @@ void uciProtocol() {
         {
             printf("readyok\n");
             continue;
+        }
+        else if (strncmp(input, "bench", 5) == 0) {
+            benchmark(12);
         }
 
             // parse UCI "position" command
