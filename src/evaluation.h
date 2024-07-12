@@ -214,6 +214,7 @@ const int isolated_pawn_penalty_endgame = -10;
 const int passed_pawn_bonus_middle[8] = { 0, 0, 0, 5, 10, 15, 20, 25};
 const int passed_pawn_bonus_endgame[8] = { -5, 0, 0, 10, 15, 20, 35, 70};
 
+
 // semi open file score
 const int semi_open_file_score = 10;
 
@@ -235,3 +236,4 @@ const int king_shield_bonus = 5;
 
 static inline int evaluate(board* position);
 static inline int get_game_phase_score(board* position);
+void clearStaticEvaluationHistory(board* position);

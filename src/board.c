@@ -21,7 +21,17 @@ void printAttackedSquares(int whichSide, board* position) {
         printf("\n");
     }
     printf("\n     a b c d e f g h\n\n");
-
+}
+// print move
+void printMove(int move) {
+    if (getMovePromoted(move)) {
+        printf("%s%s%c", squareToCoordinates[getMoveSource(move)],
+               squareToCoordinates[getMoveTarget(move)],
+               promotedPieces[getMovePromoted(move)]);
+    } else {
+        printf("%s%s", squareToCoordinates[getMoveSource(move)],
+               squareToCoordinates[getMoveTarget(move)]);
+    }
 }
 
 

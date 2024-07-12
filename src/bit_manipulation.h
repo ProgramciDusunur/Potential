@@ -6,7 +6,7 @@
 
 #define max(x, y) ((x) > (y) ? (x) : (y))
 #define min(x, y) ((x) < (y) ? (x) : (y))
-#define abs(x) ((x) < 0 ? -(x) : (x))
+//#define abs(x) ((x) < 0 ? -(x) : (x))
 
 
 #define U64 unsigned long long
@@ -19,3 +19,4 @@
 int countBits(U64 bitboard);
 int getLS1BIndex(U64 bitboard);
 U64 setOccupancy(int index, int bitsInMask, U64 attackMask);
+void printBitboard(U64 bitboard);

@@ -5,8 +5,16 @@
 #pragma once
 #include "table.h"
 #include <string.h>
-#include "history.h"
+#include <stdio.h>
+#include "time.h"
+#include "io.h"
 
 
-void uciProtocol();
 
+
+
+
+//void uciProtocol();
+void read_input();
+int input_waiting();
+void communicate();
