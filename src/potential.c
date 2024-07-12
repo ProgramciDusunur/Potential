@@ -17,7 +17,7 @@
 #include "test/see_test.h"
 #include "search.c"
 #include "history.c"
-#include "test/bench.c"
+#include "bench.c"
 #include "board.h"
 #include "uci.h"
 
