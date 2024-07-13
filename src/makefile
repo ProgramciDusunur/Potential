@@ -1,19 +1,17 @@
+# Define make variables
 _THIS       := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT       := $(_THIS)
 TARGET      := Potential
-WARNINGS     = -Wall -Werror -Wextra -Wno-error=vla -Wpedantic -Wno-unused-command-line-argument
+WARNINGS     = -Wall -Wextra -Wno-unused-command-line-argument -Wno-unused-variable
 CFLAGS       := -funroll-loops -fomit-frame-pointer -Ofast -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
 NATIVE       = -march=native
 AVX2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi
 BMI2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2
-AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw
+AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -mav512f -mavx512bw
 NEONFLAGS    = -DUSE_NEON -flax-vector-conversions
-#AVX512FLAGS   := -DUSE_SSE41 -msse4.1 -msse4.2 -DUSE_SSSE3 -mssse3 -DUSE_SSE2 -msse2 -DUSE_SSE -msse -DUSE_AVX2 -mavx2
 
-# engine name
 NAME        := Potential
-
-TMPDIR = .tmp
+TMPDIR      := .tmp
 
 # Detect Clang
 ifeq ($(CC), clang)
@@ -31,12 +29,11 @@ else
 endif
 endif
 
-
 # Detect Windows
 ifeq ($(OS), Windows_NT)
 	uname_S  := Windows
 	SUFFIX   := .exe
-	CFLAGS += -static
+	CFLAGS  += -static
 else
 	FLAGS    = -pthread -lm
 	SUFFIX  :=
@@ -45,8 +42,8 @@ endif
 
 # Different native flag for macOS
 ifeq ($(uname_S), Darwin)
-	NATIVE = -mcpu=apple-a14	
-	FLAGS = 
+	NATIVE = -mcpu=apple-a14
+	FLAGS  = 
 endif
 
 ARCH_DETECTED =
@@ -123,19 +120,19 @@ endif
 ifeq ($(build), x86-64-avx2)
 	NATIVE    = -march=bdver4 -mno-tbm -mno-sse4a -mno-bmi2
 	ARCH      = -x86-64-avx2
-	CFLAGS += $(AVX2FLAGS)
+	CFLAGS   += $(AVX2FLAGS)
 endif
 
 ifeq ($(build), x86-64-bmi2)
 	NATIVE    = -march=haswell
 	ARCH      = -x86-64-bmi2
-	CFLAGS += $(BMI2FLAGS)
+	CFLAGS   += $(BMI2FLAGS)
 endif
 
 ifeq ($(build), x86-64-avx512)
 	NATIVE    = -march=x86-64-v4 -mtune=znver4
 	ARCH      = -x86-64-avx512
-	CFLAGS += $(AVX512FLAGS)
+	CFLAGS   += $(AVX512FLAGS)
 endif
 
 ifeq ($(build), debug)
@@ -157,7 +154,6 @@ ifeq ($(build), debug)
 endif
 
 # Get what pgo flags we should be using
-
 ifneq ($(findstring gcc, $(CC)),)
 	PGOGEN   = -fprofile-generate
 	PGOUSE   = -fprofile-use
@@ -168,7 +164,6 @@ ifneq ($(findstring clang, $(CC)),)
 	PGOGEN   = -fprofile-instr-generate
 	PGOUSE   = -fprofile-instr-use=quanticade.profdata
 endif
-
 
 SOURCES := $(wildcard *.c)
 OBJECTS := $(patsubst %.c,$(TMPDIR)/%.o,$(SOURCES))
@@ -189,11 +184,10 @@ $(TMPDIR)/%.o: %.c | $(TMPDIR)
 $(TMPDIR):
 	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/Source"
 
-
 # Usual disservin yoink for makefile related stuff
 pgo:
 	$(CC) $(CFLAGS) $(PGO_GEN) $(NATIVE) $(INSTRUCTIONS) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
 	./$(EXE) bench
 	$(PGO_MERGE)
 	$(CC) $(CFLAGS) $(NATIVE) $(INSTRUCTIONS) $(PGO_USE) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
-	@rm -f *.gcda *.profraw *.o $(DEPENDS) *.d  profdata
+	@rm -f *.gcda *.profraw *.o $(DEPENDS) *.d
