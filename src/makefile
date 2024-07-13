@@ -3,24 +3,24 @@ CC = gcc
 CFLAGS = -Ofast -march=native -fwhole-program -ffast-math -fomit-frame-pointer
 
 # Source files
-SRC = src/bit_manipulation.c \
-      src/board.c \
-      src/board_constants.c \
-      src/evaluation.c \
-      src/fen.c \
-      src/magic.c \
-      src/mask.c \
-      src/move.c \
-      src/potential.c \
-      src/search.c \
-      src/see.c \
-      src/table.c \
-      src/time.c \
-      src/values.c \
-      src/test/see_test.c \
-      src/history.c \
-      src/uci.c \
-      src/bench.c
+SRC = bit_manipulation.c \
+      board.c \
+      board_constants.c \
+      evaluation.c \
+      fen.c \
+      magic.c \
+      mask.c \
+      move.c \
+      potential.c \
+      search.c \
+      see.c \
+      table.c \
+      time.c \
+      values.c \
+      test/see_test.c \
+      history.c \
+      uci.c \
+      bench.c
 
 # Object files
 OBJ = $(SRC:.c=.o)
