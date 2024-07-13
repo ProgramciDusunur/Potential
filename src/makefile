@@ -1,18 +1,17 @@
+# Define make variables
 _THIS       := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT       := $(_THIS)
 TARGET      := Potential
-WARNINGS     = -Wall -Werror -Wextra -Wno-error=vla -Wpedantic -Wno-unused-command-line-argument
+WARNINGS     = -Wall -Wextra -Wno-unused-command-line-argument -Wno-unused-variable
 CFLAGS       := -funroll-loops -fomit-frame-pointer -Ofast -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
 NATIVE       = -march=native
 AVX2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi
 BMI2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2
-AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw
+AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -mav512f -mavx512bw
 NEONFLAGS    = -DUSE_NEON -flax-vector-conversions
 
-# engine name
 NAME        := Potential
-
-TMPDIR = .tmp
+TMPDIR      := .tmp
 
 # Detect Clang
 ifeq ($(CC), clang)
@@ -34,7 +33,7 @@ endif
 ifeq ($(OS), Windows_NT)
 	uname_S  := Windows
 	SUFFIX   := .exe
-	CFLAGS += -static
+	CFLAGS  += -static
 else
 	FLAGS    = -pthread -lm
 	SUFFIX  :=
@@ -44,7 +43,7 @@ endif
 # Different native flag for macOS
 ifeq ($(uname_S), Darwin)
 	NATIVE = -mcpu=apple-a14
-	FLAGS =
+	FLAGS  = 
 endif
 
 ARCH_DETECTED =
@@ -121,19 +120,19 @@ endif
 ifeq ($(build), x86-64-avx2)
 	NATIVE    = -march=bdver4 -mno-tbm -mno-sse4a -mno-bmi2
 	ARCH      = -x86-64-avx2
-	CFLAGS += $(AVX2FLAGS)
+	CFLAGS   += $(AVX2FLAGS)
 endif
 
 ifeq ($(build), x86-64-bmi2)
 	NATIVE    = -march=haswell
 	ARCH      = -x86-64-bmi2
-	CFLAGS += $(BMI2FLAGS)
+	CFLAGS   += $(BMI2FLAGS)
 endif
 
 ifeq ($(build), x86-64-avx512)
 	NATIVE    = -march=x86-64-v4 -mtune=znver4
 	ARCH      = -x86-64-avx512
-	CFLAGS += $(AVX512FLAGS)
+	CFLAGS   += $(AVX512FLAGS)
 endif
 
 ifeq ($(build), debug)
@@ -166,32 +165,29 @@ ifneq ($(findstring clang, $(CC)),)
 	PGOUSE   = -fprofile-instr-use=quanticade.profdata
 endif
 
-# Source and object files
-SRC = bit_manipulation.c board.c board_constants.c evaluation.c fen.c magic.c mask.c move.c potential.c search.c \
-      see.c table.c time.c values.c test/see_test.c history.c uci.c bench.c
+SOURCES := $(wildcard *.c)
+OBJECTS := $(patsubst %.c,$(TMPDIR)/%.o,$(SOURCES))
+DEPENDS := $(patsubst %.c,$(TMPDIR)/%.d,$(SOURCES))
 
-OBJ = $(SRC:.c=.o)
-
-# Compile object files
-%.o: %.c
-	$(CC) $(CFLAGS) $(NATIVE) -c $< -o $@
-
-# Link the executable
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) $(NATIVE) $(OBJ) -o $(TARGET) $(FLAGS)
-
-# Phony targets
-.PHONY: clean all
+EXE	    := $(NAME)$(SUFFIX)
 
 all: $(TARGET)
-
 clean:
-	rm -f $(OBJ) $(TARGET)
+	@rm -rf $(TMPDIR) *.o *.d $(TARGET)
 
-# PGO build target
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(FLAGS) $(LDFLAGS)
+
+$(TMPDIR)/%.o: %.c | $(TMPDIR)
+	$(CC) $(CFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
+
+$(TMPDIR):
+	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/Source"
+
+# Usual disservin yoink for makefile related stuff
 pgo:
-	$(CC) $(CFLAGS) $(PGOGEN) $(NATIVE) $(SRC) -o $(TARGET)
-	./$(TARGET) bench
-	$(PGOMERGE)
-	$(CC) $(CFLAGS) $(NATIVE) $(PGOUSE) $(SRC) -o $(TARGET)
-	@rm -f *.gcda *.profraw *.o
+	$(CC) $(CFLAGS) $(PGO_GEN) $(NATIVE) $(INSTRUCTIONS) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
+	./$(EXE) bench
+	$(PGO_MERGE)
+	$(CC) $(CFLAGS) $(NATIVE) $(INSTRUCTIONS) $(PGO_USE) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
+	@rm -f *.gcda *.profraw *.o $(DEPENDS) *.d
