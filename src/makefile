@@ -8,7 +8,6 @@ AVX2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi
 BMI2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2
 AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw
 NEONFLAGS    = -DUSE_NEON -flax-vector-conversions
-#AVX512FLAGS   := -DUSE_SSE41 -msse4.1 -msse4.2 -DUSE_SSSE3 -mssse3 -DUSE_SSE2 -msse2 -DUSE_SSE -msse -DUSE_AVX2 -mavx2
 
 # engine name
 NAME        := Potential
@@ -31,7 +30,6 @@ else
 endif
 endif
 
-
 # Detect Windows
 ifeq ($(OS), Windows_NT)
 	uname_S  := Windows
@@ -45,8 +43,8 @@ endif
 
 # Different native flag for macOS
 ifeq ($(uname_S), Darwin)
-	NATIVE = -mcpu=apple-a14	
-	FLAGS = 
+	NATIVE = -mcpu=apple-a14
+	FLAGS =
 endif
 
 ARCH_DETECTED =
@@ -168,12 +166,32 @@ ifneq ($(findstring clang, $(CC)),)
 	PGOUSE   = -fprofile-instr-use=quanticade.profdata
 endif
 
+# Source and object files
+SRC = bit_manipulation.c board.c board_constants.c evaluation.c fen.c magic.c mask.c move.c potential.c search.c \
+      see.c table.c time.c values.c test/see_test.c history.c uci.c bench.c
 
+OBJ = $(SRC:.c=.o)
 
-# Usual disservin yoink for makefile related stuff
+# Compile object files
+%.o: %.c
+	$(CC) $(CFLAGS) $(NATIVE) -c $< -o $@
+
+# Link the executable
+$(TARGET): $(OBJ)
+	$(CC) $(CFLAGS) $(NATIVE) $(OBJ) -o $(TARGET) $(FLAGS)
+
+# Phony targets
+.PHONY: clean all
+
+all: $(TARGET)
+
+clean:
+	rm -f $(OBJ) $(TARGET)
+
+# PGO build target
 pgo:
-	$(CC) $(CFLAGS) $(PGO_GEN) $(NATIVE) $(INSTRUCTIONS) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
-	./$(EXE) bench
-	$(PGO_MERGE)
-	$(CC) $(CFLAGS) $(NATIVE) $(INSTRUCTIONS) $(PGO_USE) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
-	@rm -f *.gcda *.profraw *.o $(DEPENDS) *.d  profdata
+	$(CC) $(CFLAGS) $(PGOGEN) $(NATIVE) $(SRC) -o $(TARGET)
+	./$(TARGET) bench
+	$(PGOMERGE)
+	$(CC) $(CFLAGS) $(NATIVE) $(PGOUSE) $(SRC) -o $(TARGET)
+	@rm -f *.gcda *.profraw *.o
