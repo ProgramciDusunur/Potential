@@ -1,6 +1,5 @@
 # Compiler
 CC = gcc
-TARGET      := Potential
 CFLAGS = -Ofast -march=native -fwhole-program -ffast-math -fomit-frame-pointer
 
 # Source files
@@ -33,7 +32,7 @@ EXE = Potential
 all: $(EXE)
 
 # Compile object files
-%.o: %.c
+src/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Link the executable
