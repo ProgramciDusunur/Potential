@@ -1,5 +1,6 @@
 # Compiler
 CC = gcc
+TARGET      := Potential
 CFLAGS = -Ofast -march=native -fwhole-program -ffast-math -fomit-frame-pointer
 
 # Source files
