@@ -2,9 +2,8 @@
 
 #include "bit_manipulation.h"
 #include <stdio.h>
-#include "board.h"
 #include "search.h"
 #include "time.h"
-#include "evaluation.h"
+#include "fen.h"
 
-void benchmark();
+void benchmark(int depth, board* position);

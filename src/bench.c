@@ -1,6 +1,5 @@
 
 #include "bench.h"
-#include "fen.h"
 
 // Benchmarks from Alexandria
 char* benchmarkfens[52] = {
@@ -58,13 +57,12 @@ char* benchmarkfens[52] = {
         "7k/8/7P/5B2/5K2/8/8/8 b - - 0 175"
 };
 
-void benchmark(int depth) {
-    board position;
+void benchmark(int depth, board* position) {
     U64 totalNodes = 0;
     int benchStartTime = getTimeMiliSecond();
     for (int i = 0;i < 52;i++) {
-        parseFEN(benchmarkfens[i], &position);
-        searchPosition(depth, &position, true);
+        parseFEN(benchmarkfens[i], position);
+        searchPosition(depth, position, true);
         // clear hash table
         clearHashTable();
 
@@ -72,7 +70,7 @@ void benchmark(int depth) {
         clearHistory();
 
         //clear static eval history
-        clearStaticEvaluationHistory(&position);
+        clearStaticEvaluationHistory(position);
 
         //clear counter moves
         clearCounterMoves();
@@ -82,5 +80,3 @@ void benchmark(int depth) {
     int benchFinishTime = getTimeMiliSecond() - benchStartTime;
     printf("%llu nodes %llu nps", totalNodes, totalNodes / (benchFinishTime +1) * 1000);
 }
-
-
