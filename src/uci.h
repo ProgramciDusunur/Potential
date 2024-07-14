@@ -18,4 +18,4 @@ void read_input();
 int input_waiting();
 void communicate();
 
-int read(int FileHandle,void *DstBuf,unsigned int MaxCharCount)   __MINGW_ATTRIB_DEPRECATED_MSVC2005;
+int read(int FileHandle,void *DstBuf,unsigned int MaxCharCount)  ;
