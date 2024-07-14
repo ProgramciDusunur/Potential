@@ -7,7 +7,7 @@ CFLAGS       := -funroll-loops -fomit-frame-pointer -Ofast -flto -fno-exceptions
 NATIVE       = -march=native
 AVX2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi
 BMI2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2
-AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -mav512f -mavx512bw
+AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw
 NEONFLAGS    = -DUSE_NEON -flax-vector-conversions
 
 NAME        := Potential
@@ -43,7 +43,7 @@ endif
 # Different native flag for macOS
 ifeq ($(uname_S), Darwin)
 	NATIVE = -mcpu=apple-a14
-	FLAGS  = 
+	FLAGS  =
 endif
 
 ARCH_DETECTED =

@@ -6,7 +6,7 @@
 #include "history.h"
 
 int scaledBonus(int score, int bonus) {
-    return bonus - score * abs(bonus) / maxHistory;
+    return bonus - score * myAbs(bonus) / maxHistory;
 }
 
 void updateHistory(int bestMove, int depth, moves* badQuiets) {
