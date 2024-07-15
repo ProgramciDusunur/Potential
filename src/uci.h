@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "time.h"
-
+#include <io.h>
 
 
 
@@ -17,5 +17,3 @@
 void read_input();
 int input_waiting();
 void communicate();
-
-int read(int FileHandle,void *DstBuf,unsigned int MaxCharCount)  ;
