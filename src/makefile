@@ -159,30 +159,6 @@ ifneq ($(findstring gcc, $(CC)),)
 	PGOUSE   = -fprofile-use
 endif
 
-ifneq ($(findstring clang, $(CC)),)
-	PGOMERGE = llvm-profdata merge -output=quanticade.profdata *.profraw
-	PGOGEN   = -fprofile-instr-generate
-	PGOUSE   = -fprofile-instr-use=quanticade.profdata
-endif
-
-SOURCES := $(wildcard *.c)
-OBJECTS := $(patsubst %.c,$(TMPDIR)/%.o,$(SOURCES))
-DEPENDS := $(patsubst %.c,$(TMPDIR)/%.d,$(SOURCES))
-
-EXE	    := $(NAME)$(SUFFIX)
-
-all: $(TARGET)
-clean:
-	@rm -rf $(TMPDIR) *.o *.d $(TARGET)
-
-$(TARGET): $(OBJECTS)
-	$(CC) $(CFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $^ $(FLAGS) $(LDFLAGS)
-
-$(TMPDIR)/%.o: %.c | $(TMPDIR)
-	$(CC) $(CFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
-
-$(TMPDIR):
-	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/Source"
 
 # Usual disservin yoink for makefile related stuff
 pgo:
