@@ -159,7 +159,6 @@ ifneq ($(findstring gcc, $(CC)),)
 	PGOUSE   = -fprofile-use
 endif
 
-
 # Usual disservin yoink for makefile related stuff
 pgo:
 	$(CC) $(CFLAGS) $(PGO_GEN) $(NATIVE) $(INSTRUCTIONS) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
