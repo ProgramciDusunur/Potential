@@ -14,7 +14,6 @@
 #include "magic.c"
 #include "see.c"
 #include "bit_manipulation.c"
-#include "test/see_test.h"
 #include "search.c"
 #include "history.c"
 #include "bench.c"
@@ -269,9 +268,6 @@ void uciProtocol() {
             printf("readyok\n");
             continue;
         }
-        else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(12);
-        }
 
             // parse UCI "position" command
         else if (strncmp(input, "position", 8) == 0)
@@ -310,10 +306,22 @@ void uciProtocol() {
             clearCounterMoves();
         }
             // parse UCI "go" command
-        else if (strncmp(input, "go", 2) == 0)
+        else if (strncmp(input, "go", 2) == 0) {
             // call parse go function
             goCommand(input, &position);
 
+            // clear hash table
+            clearHashTable();
+
+            //clear history
+            clearHistory();
+
+            //clear static eval history
+            clearStaticEvaluationHistory(&position);
+
+            //clear counter moves
+            clearCounterMoves();
+        }
             // parse UCI "quit" command
         else if (strncmp(input, "quit", 4) == 0)
             // quit from the chess engine program execution
@@ -326,6 +334,9 @@ void uciProtocol() {
             printf("id name Potential\n");
             printf("id name ProgramciDusunur\n");
             printf("uciok\n");
+        }
+        else if (strncmp(input, "bench", 5) == 0) {
+            benchmark(10, &position);
         }
     }
 }

@@ -40,17 +40,6 @@ void initializeLMRTable() {
     }
 }
 
-/*  =======================
-         Move ordering
-    =======================
-
-    1. PV move
-    2. Captures in MVV/LVA
-    3. 1st killer move
-    4. 2nd killer move
-    5. History moves
-*/
-
 // sort moves in descending order
 int sort_moves(moves *moveList, int bestMove, board* position) {
     // move scores
@@ -87,6 +76,17 @@ int sort_moves(moves *moveList, int bestMove, board* position) {
         }
     }
 }
+
+/*  =======================
+         Move ordering
+    =======================
+
+    1. PV move
+    2. Captures in MVV/LVA
+    3. 1st killer move
+    4. 2nd killer move
+    5. History moves
+*/
 
 // score moves
 int scoreMove(int move, board* position) {
@@ -575,7 +575,7 @@ int negamax(int alpha, int beta, int depth, board* position) {
 
 
         bool isNotMated = alpha > -mateScore + maxPly;
-
+        
         int lmpBase = 4;
         int lmpMultiplier = 2;
         int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth);
