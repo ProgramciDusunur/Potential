@@ -2,13 +2,13 @@
 _THIS       := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT       := $(_THIS)
 TARGET      := Potential
-WARNINGS     = -Wall -Wextra -Wno-unused-command-line-argument -Wno-unused-variable
-CFLAGS       := -funroll-loops -fomit-frame-pointer -Ofast -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
-NATIVE       = -march=native
-AVX2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi
-BMI2FLAGS    = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2
-AVX512FLAGS  = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw
-NEONFLAGS    = -DUSE_NEON -flax-vector-conversions
+WARNINGS    = -Wall -Wextra -Wno-unused-command-line-argument -Wno-unused-variable
+CFLAGS      := -funroll-loops -fomit-frame-pointer -Ofast -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
+NATIVE      = -march=native
+AVX2FLAGS   = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi
+BMI2FLAGS   = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2
+AVX512FLAGS = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw
+NEONFLAGS   = -DUSE_NEON -flax-vector-conversions
 
 NAME        := Potential
 TMPDIR      := .tmp
@@ -159,10 +159,35 @@ ifneq ($(findstring gcc, $(CC)),)
 	PGOUSE   = -fprofile-use
 endif
 
+ifneq ($(findstring clang, $(CC)),)
+	PGOMERGE = llvm-profdata merge -output=quanticade.profdata *.profraw
+	PGOGEN   = -fprofile-instr-generate
+	PGOUSE   = -fprofile-instr-use=quanticade.profdata
+endif
+
+SOURCES := $(wildcard *.c)
+OBJECTS := $(patsubst %.c,$(TMPDIR)/%.o,$(SOURCES))
+DEPENDS := $(patsubst %.c,$(TMPDIR)/%.d,$(SOURCES))
+
+EXE	    := $(NAME)$(SUFFIX)
+
+all: $(TARGET)
+clean:
+	@rm -rf $(TMPDIR) *.o *.d $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS) $(LDFLAGS)
+
+$(TMPDIR)/%.o: %.c | $(TMPDIR)
+	$(CC) $(CFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
+
+$(TMPDIR):
+	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/Source"
+
 # Usual disservin yoink for makefile related stuff
 pgo:
-	$(CC) $(CFLAGS) $(PGO_GEN) $(NATIVE) $(INSTRUCTIONS) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(PGOGEN) $(NATIVE) $(INSTRUCTIONS) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
 	./$(EXE) bench
-	$(PGO_MERGE)
-	$(CC) $(CFLAGS) $(NATIVE) $(INSTRUCTIONS) $(PGO_USE) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
+	$(PGOMERGE)
+	$(CC) $(CFLAGS) $(NATIVE) $(INSTRUCTIONS) $(PGOUSE) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
 	@rm -f *.gcda *.profraw *.o $(DEPENDS) *.d
