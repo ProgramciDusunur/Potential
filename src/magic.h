@@ -8,6 +8,8 @@
 #define U64 unsigned long long
 #endif
 
+extern unsigned int state;
+
 extern const int bishopRelevantBits[64];
 extern const int rookRelevantBits[64];
 
@@ -15,3 +17,5 @@ extern const int rookRelevantBits[64];
 extern U64 rookMagic[64];
 // bishopMagics[square]
 extern U64 bishopMagic[64];
+
+extern U64 getRandom64Numbers();

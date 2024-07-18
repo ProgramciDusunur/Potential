@@ -4,6 +4,8 @@
 #pragma once
 
 #include "board.h"
+#include "board_constants.c"
+#include "bit_manipulation.h"
 
 // file masks [square]
 extern U64 fileMasks[64];

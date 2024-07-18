@@ -3,11 +3,7 @@
 //
 
 #include "move.h"
-#include "board.h"
-#include "bit_manipulation.h"
-#include "magic.h"
-#include "mask.c"
-#include "table.h"
+
 
 
 
@@ -63,7 +59,7 @@ U64 bishopAttacks[64][512];
 U64 rookAttacks[64][4096];
 
 // add move to the move list
-static inline void addMove(moves *moveList, int move) {
+void addMove(moves *moveList, int move) {
     // store move
     moveList->moves[moveList->count] = move;
     // increment move count
@@ -71,7 +67,7 @@ static inline void addMove(moves *moveList, int move) {
 }
 
 // get bishop attacks
-static inline U64 getBishopAttacks(int square, U64 occupancy) {
+U64 getBishopAttacks(int square, U64 occupancy) {
     // get bishop attacks assuming current board occupancy
     occupancy &= bishopMask[square];
     occupancy *= bishopMagic[square];
@@ -80,7 +76,7 @@ static inline U64 getBishopAttacks(int square, U64 occupancy) {
 }
 
 // get rook attacks
-static inline U64 getRookAttacks(int square, U64 occupancy) {
+U64 getRookAttacks(int square, U64 occupancy) {
     // get rook attacks assuming current board occupancy
     occupancy &= rookMask[square];
     occupancy *= rookMagic[square];
@@ -89,7 +85,7 @@ static inline U64 getRookAttacks(int square, U64 occupancy) {
 }
 
 // get queen attacks
-static inline U64 getQueenAttacks(int square, U64 occupancy) {
+U64 getQueenAttacks(int square, U64 occupancy) {
     // get queen attacks assuming current board occupancy
     U64 queenAttacks;
     U64 bishopOccupancy = occupancy;

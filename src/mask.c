@@ -1,11 +1,8 @@
 //
 // Created by erena on 29.05.2024.
 //
-#pragma once
 
 #include "mask.h"
-#include "board_constants.c"
-#include "bit_manipulation.h"
 
 // Rook attack masks rookMask[square]
 U64 rookMask[64];

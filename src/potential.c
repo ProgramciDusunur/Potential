@@ -18,6 +18,7 @@
 #include "bench.c"
 #include "board.h"
 #include "uci.h"
+#include "zobrist.c"
 
 
 
@@ -26,19 +27,11 @@
 
 
 
-/*   Zobrist Hashing   */
-
-// random piece keys [piece][square]
-U64 pieceKeys[12][64];
-// random enpassant keys [square]
-U64 enpassantKeys[64];
-// random castling keys
-U64 castleKeys[16];
 
 
 
 
-static inline void perft(int depth, board* position);
+void perft(int depth, board* position);
 
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
 
@@ -52,9 +45,9 @@ void uciProtocol();
 
 void goCommand(char *command, board* position);
 
-static inline void perftRoot(int depth, board* position);
+void perftRoot(int depth, board* position);
 
-static inline void perftChild(int depth, board* position);
+void perftChild(int depth, board* position);
 
 void initRandomKeys();
 
@@ -513,7 +506,7 @@ void printMoveList(moves *moveList) {
 }
 
 
-static inline void perftRoot(int depth, board* position) {
+void perftRoot(int depth, board* position) {
     moves moveList[1];
     moveGenerator(moveList, position);
     for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
@@ -535,7 +528,7 @@ static inline void perftRoot(int depth, board* position) {
 
 }
 
-static inline void perftChild(int depth, board* position) {
+void perftChild(int depth, board* position) {
     if (depth == 0) {
         nodes++;
         variant++;
@@ -557,7 +550,7 @@ static inline void perftChild(int depth, board* position) {
     }
 }
 
-static inline void perft(int depth, board* position) {
+void perft(int depth, board* position) {
     if (depth == 0) {
         nodes++;
         return;
