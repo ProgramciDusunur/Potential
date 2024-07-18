@@ -8,4 +8,4 @@
 
 extern char* benchmarkfens[52];
 
-void benchmark(int depth, board* position);
+extern void benchmark(int depth, board* position);

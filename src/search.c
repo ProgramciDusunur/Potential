@@ -6,15 +6,15 @@
 
 #include "search.h"
 
-
-//int counterMoves[2][maxPly][maxPly];
-
 int lmr_full_depth_moves = 4;
 int lmr_reduction_limit = 3;
 int lateMovePruningBaseReduction = 4;
 int nullMoveDepth = 3;
 
 U64 nodes = 0, variant = 0;
+
+int lmrTable[maxPly][maxPly];
+int counterMoves[2][maxPly][maxPly];
 
 
 // position repetition detection

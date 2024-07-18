@@ -19,8 +19,8 @@
 
 #define maxPly 64
 
-int lmrTable[maxPly][maxPly];
-int counterMoves[2][maxPly][maxPly];
+extern int lmrTable[maxPly][maxPly];
+extern int counterMoves[2][maxPly][maxPly];
 
 extern int lmr_full_depth_moves;
 extern int lmr_reduction_limit;
@@ -30,13 +30,13 @@ extern int nullMoveDepth;
 // performance test node count, variant count
 extern U64 nodes, variant;
 
-void initializeLMRTable();
-int getLmrReduction(int depth, int moveNumber, bool isPv, bool improving);
-void clearCounterMoves();
-int scoreMove(int move, board* position);
-int sort_moves(moves *moveList, int bestMove, board* position);
-void enable_pv_scoring(moves *moveList, board* position);
-int isRepetition(board* position);
-int quiescence(int alpha, int beta, board* position, int negamaxScore);
-int negamax(int alpha, int beta, int depth, board* position);
-void searchPosition(int depth, board* position, bool benchmark);
+extern void initializeLMRTable();
+extern int getLmrReduction(int depth, int moveNumber, bool isPv, bool improving);
+extern void clearCounterMoves();
+extern int scoreMove(int move, board* position);
+extern int sort_moves(moves *moveList, int bestMove, board* position);
+extern void enable_pv_scoring(moves *moveList, board* position);
+extern int isRepetition(board* position);
+extern int quiescence(int alpha, int beta, board* position, int negamaxScore);
+extern int negamax(int alpha, int beta, int depth, board* position);
+extern void searchPosition(int depth, board* position, bool benchmark);

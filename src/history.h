@@ -8,17 +8,18 @@
 #include "bit_manipulation.h"
 #include "move.h"
 #include <stdio.h>
+#include <stdbool.h>
 
 
 enum {
     maxHistory = 16000
 };
 
-int historyMoves[64][64];
+extern int historyMoves[64][64];
 
 
 
-void updateHistory(int bestMove, int depth, moves* badQuiets);
-int scaledBonus(int score, int bonus);
-void clearHistory();
+extern void updateHistory(int bestMove, int depth, moves* badQuiets);
+extern int scaledBonus(int score, int bonus);
+extern void clearHistory();
 

@@ -28,13 +28,13 @@ extern U64 bishopMask[64];
 
 extern U64 maskPawnAttacks(int square, int side);
 extern U64 maskKnightAttacks(int square);
-U64 maskKingAttacks(int square);
-U64 maskBishopAttacks(int square);
-U64 maskRookAttacks(int square);
+extern U64 maskKingAttacks(int square);
+extern U64 maskBishopAttacks(int square);
+extern U64 maskRookAttacks(int square);
 
-U64 bishopAttack(int square, U64 block);
-U64 rookAttack(int square, U64 block);
+extern U64 bishopAttack(int square, U64 block);
+extern U64 rookAttack(int square, U64 block);
 
-U64 get_attackers(const board *pos, int square, int side);
+extern U64 get_attackers(const board *pos, int square, int side);
 
-void initEvaluationMasks();
+extern void initEvaluationMasks();
