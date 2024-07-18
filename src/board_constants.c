@@ -1,7 +1,6 @@
 //
 // Created by erena on 29.05.2024.
 //
-#pragma once
 
 #include "board_constants.h"
 

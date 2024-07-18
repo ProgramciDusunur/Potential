@@ -575,7 +575,7 @@ int negamax(int alpha, int beta, int depth, board* position) {
 
 
         bool isNotMated = alpha > -mateScore + maxPly;
-        
+
         int lmpBase = 4;
         int lmpMultiplier = 2;
         int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth);

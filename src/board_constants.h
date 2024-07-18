@@ -116,8 +116,6 @@ extern const U64 not8RankAndHFile;
 extern const U64 not1RankAndAFile;
 
 extern const int get_rank[64];
-
-
 /*   Zobrist Hashing   */
 
 // random piece keys [piece][square]

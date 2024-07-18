@@ -3,8 +3,6 @@
 //
 
 #include "evaluation.h"
-#include "bit_manipulation.h"
-#include "move.h"
 
 const int mirrorScore[128] =
         {
@@ -197,36 +195,7 @@ const int king_shield_bonus = 5;
 const int opening_phase_score = 6192;
 const int endgame_phase_score = 518;
 
-// get game phase score
-int get_game_phase_score(board* position) {
-    /*
-        The game phase score of the game is derived from the pieces
-        (not counting pawns and kings) that are still on the board.
-        The full material starting position game phase score is:
 
-        4 * knight material score in the opening +
-        4 * bishop material score in the opening +
-        4 * rook material score in the opening +
-        2 * queen material score in the opening
-    */
-
-    // white & black game phase scores
-    int white_piece_scores = 0, black_piece_scores = 0;
-
-    // loop over white pieces
-    for (int piece = N; piece <= Q; piece++)
-        white_piece_scores += countBits(position->bitboards[piece]) * material_score[opening][piece];
-
-
-    // loop over white pieces
-    for (int piece = n; piece <= q; piece++)
-        black_piece_scores += countBits(position->bitboards[piece]) * -material_score[opening][piece];
-
-
-
-    // return game phase score
-    return white_piece_scores + black_piece_scores;
-}
 
 // position evaluation
 int evaluate(board* position) {
