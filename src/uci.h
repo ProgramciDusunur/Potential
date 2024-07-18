@@ -21,7 +21,7 @@
 
 
 //void uciProtocol();
-void read_input();
-int input_waiting();
-void communicate();
-void goCommand(char *command, board* position);
+extern void read_input();
+extern int input_waiting();
+extern void communicate();
+extern void goCommand(char *command, board* position);

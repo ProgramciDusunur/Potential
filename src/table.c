@@ -28,7 +28,7 @@ void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* pos
 }
 
 // read hash entry data
-static inline int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position) {
+int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
     tt *hashEntry = &hashTable[position->hashKey % hashSize];

@@ -193,6 +193,10 @@ const int queen_mobility_endgame = 2;
 // king's shield bonus
 const int king_shield_bonus = 5;
 
+// game phase scores
+const int opening_phase_score = 6192;
+const int endgame_phase_score = 518;
+
 // get game phase score
 int get_game_phase_score(board* position) {
     /*

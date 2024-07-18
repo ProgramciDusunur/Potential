@@ -34,8 +34,8 @@ extern const int material_score[2][12];
 extern const int seeMaterial[12];
 
 // game phase scores
-const int opening_phase_score = 6192;
-const int endgame_phase_score = 518;
+extern const int opening_phase_score;
+extern const int endgame_phase_score;
 
 // game phases
 enum {

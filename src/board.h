@@ -6,10 +6,6 @@
 
 #include "board_constants.h"
 
-#ifndef U64
-#define U64 unsigned long long
-#endif
-
 #define maxPly 64
 
 

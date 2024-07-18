@@ -132,7 +132,7 @@ int isSquareAttacked(int square, int whichSide, board* position) {
 }
 
 // make move on chess board
-static inline int makeMove(int move, int moveFlag, board* position) {
+int makeMove(int move, int moveFlag, board* position) {
     // quiet moves
     if (moveFlag == allMoves) {
         struct copyposition copyPosition;
@@ -363,7 +363,7 @@ static inline int makeMove(int move, int moveFlag, board* position) {
 
 
 // generate all moves
-static inline void moveGenerator(moves *moveList, board* position) {
+void moveGenerator(moves *moveList, board* position) {
     // init move count
     moveList->count = 0;
 

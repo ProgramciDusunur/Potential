@@ -4,7 +4,7 @@
 #pragma once
 
 #include "mask.h"
-#include "board_constants.h"
+#include "board_constants.c"
 #include "bit_manipulation.h"
 
 // Rook attack masks rookMask[square]

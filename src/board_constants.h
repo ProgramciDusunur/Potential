@@ -48,48 +48,16 @@ enum {
     allMoves, onlyCaptures
 };
 
-char *squareToCoordinates[] = {
-        "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
-        "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
-        "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
-        "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
-        "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
-        "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
-        "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
-        "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1", "no"
-};
+extern char *squareToCoordinates[];
 
 // ASCII pieces
-char asciiPieces[12] = "PNBRQKpnbrqk";
+extern char asciiPieces[12];
 // promoted pieces
-char promotedPieces[] = {
-        [Q] = 'q',
-        [R] = 'r',
-        [B] = 'b',
-        [N] = 'n',
-        [q] = 'q',
-        [r] = 'r',
-        [b] = 'b',
-        [n] = 'n'
-};
+extern char promotedPieces[];
 // unicode ieces
-char *unicodePieces[12] = {"♙", "♘", "♗", "♖", "♕", "♔",
-                           "♟", "♞", "♝", "♜", "♛", "♚"};
+extern char *unicodePieces[12];
 // convert ASCII character pieces to encoded constants
-int charPieces[] = {
-        ['P'] = P,
-        ['N'] = N,
-        ['B'] = B,
-        ['R'] = R,
-        ['Q'] = Q,
-        ['K'] = K,
-        ['p'] = p,
-        ['n'] = n,
-        ['b'] = b,
-        ['r'] = r,
-        ['q'] = q,
-        ['k'] = k
-};
+extern int charPieces[];
 
 
 
@@ -125,52 +93,43 @@ int mvvLva[12][12] = {
 
 
 // mask H file
-const U64 notHFile = 9187201950435737471ULL;
+extern const U64 notHFile;
 // mask A file
-const U64 notAFile = 18374403900871474942ULL;
+extern const U64 notAFile;
 // mask H rank
-const U64 not8Rank = 18446744073709551360ULL;
+extern const U64 not8Rank;
 // mask A rank
-const U64 not1Rank = 72057594037927935ULL;
+extern const U64 not1Rank;
 // mask 8 rank and AB files
-const U64 not8RankAndABFile = 18229723555195321344ULL;
+extern const U64 not8RankAndABFile;
 // mask 1 rank and GH files
-const U64 not1RankAndGHFile = 17802464409370431ULL;
+extern const U64 not1RankAndGHFile;
 // mask 1 and 2 ranks and H file
-const U64 not1And2RankHFile = 140185576636287ULL;
+extern const U64 not1And2RankHFile;
 // mask 8 and 7 ranks and A file
-const U64 not8And7RankAFile = 18374403900871409664ULL;
+extern const U64 not8And7RankAFile;
 // mask 8 and 7 ranks and H file
-const U64 not8And7RankHFile = 9187201950435704832ULL;
+extern const U64 not8And7RankHFile;
 // mask 1 and 2 ranks and A file
-const U64 not1And2RanksAFile = 280371153272574ULL;
+extern const U64 not1And2RanksAFile;
 //mask 1 rank and AB files
-const U64 not1RankAndABFile = 71209857637481724ULL;
+extern const U64 not1RankAndABFile;
 // mask 8 rank and GH files
-const U64 not8RankAndGHFile = 4557430888798830336ULL;
+extern const U64 not8RankAndGHFile;
 // not A file constant
-const U64 not_a_file = 18374403900871474942ULL;
+extern const U64 not_a_file;
 // not H file constant
-const U64 not_h_file = 9187201950435737471ULL;
+extern const U64 not_h_file;
 // not H rank and A file
-const U64 notAFileAndHRank = 35887507618889599ULL;
+extern const U64 notAFileAndHRank;
 // not 8 Rank and A file
-const U64 not8RankAndAFile = 18374403900871474688ULL;
+extern const U64 not8RankAndAFile;
 // not 8 Rank and H file
-const U64 not8RankAndHFile = 9187201950435737344ULL;
+extern const U64 not8RankAndHFile;
 // not 1 Rank and A file
-const U64 not1RankAndAFile = 71775015237779198ULL;
+extern const U64 not1RankAndAFile;
 
-const int get_rank[64] = {
-        7, 7, 7, 7, 7, 7, 7, 7,
-        6, 6, 6, 6, 6, 6, 6, 6,
-        5, 5, 5, 5, 5, 5, 5, 5,
-        4, 4, 4, 4, 4, 4, 4, 4,
-        3, 3, 3, 3, 3, 3, 3, 3,
-        2, 2, 2, 2, 2, 2, 2, 2,
-        1, 1, 1, 1, 1, 1, 1, 1,
-        0, 0, 0, 0, 0, 0, 0, 0
-};
+extern const int get_rank[64];
 /*   Zobrist Hashing   */
 
 // random piece keys [piece][square]

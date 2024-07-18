@@ -75,5 +75,5 @@ void addMoveToHistoryList(moves* list, int move);
 void initSlidersAttacks(int bishop);
 void initLeaperAttacks();
 int isSquareAttacked(int square, int whichSide, board* position);
-static inline int makeMove(int move, int moveFlag, board* position);
-static inline void moveGenerator(moves *moveList, board* position);
+int makeMove(int move, int moveFlag, board* position);
+void moveGenerator(moves *moveList, board* position);

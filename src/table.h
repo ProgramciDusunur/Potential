@@ -46,7 +46,7 @@ tt hashTable[hashSize];
 U64 sideKey;
 
 U64 generateHashKey(board* position);
-static inline int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position);
-void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position);
-int readHashFlag(board* position);
-void clearHashTable();
+extern int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position);
+extern void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position);
+extern int readHashFlag(board* position);
+extern void clearHashTable();
