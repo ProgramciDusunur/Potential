@@ -1,12 +1,8 @@
 //
 // Created by erena on 29.05.2024.
 //
-#include <string.h>
 #include "fen.h"
-#include "board_constants.h"
-#include "board.h"
-#include "bit_manipulation.h"
-#include "table.h"
+
 
 
 // parse FEN string

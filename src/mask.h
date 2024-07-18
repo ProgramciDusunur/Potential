@@ -6,19 +6,25 @@
 #include "board.h"
 
 // file masks [square]
-U64 fileMasks[64];
+extern U64 fileMasks[64];
 
 // rank masks [square]
-U64 rankMasks[64];
+extern U64 rankMasks[64];
 
 // isolated pawn masks [square]
-U64 isolatedMasks[64];
+extern U64 isolatedMasks[64];
 
 // white passed pawn masks [square]
-U64 whitePassedMasks[64];
+extern U64 whitePassedMasks[64];
 
 // black passed pawn masks [square]
-U64 blackPassedMasks[64];
+extern U64 blackPassedMasks[64];
+
+
+// Rook attack masks rookMask[square]
+extern U64 rookMask[64];
+// BishopMask[square]
+extern U64 bishopMask[64];
 
 extern U64 maskPawnAttacks(int square, int side);
 extern U64 maskKnightAttacks(int square);

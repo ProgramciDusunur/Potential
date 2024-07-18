@@ -5,14 +5,6 @@
 
 #include "board.h"
 
-#ifndef CHESSENGINE_MOVE_H
-#define CHESSENGINE_MOVE_H
-
-#endif //CHESSENGINE_MOVE_H
-
-#ifndef U64
-#define U64 unsigned long long
-#endif
 
 // move list structure
 typedef struct {

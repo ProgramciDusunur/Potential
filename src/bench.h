@@ -6,4 +6,6 @@
 #include "time.h"
 #include "fen.h"
 
+extern char* benchmarkfens[52];
+
 void benchmark(int depth, board* position);

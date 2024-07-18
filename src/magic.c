@@ -7,7 +7,6 @@
 #include "bit_manipulation.h"
 #include <string.h>
 #include "stdio.h"
-#include "board_constants.h"
 
 
 // pseudo random number state

@@ -5,6 +5,11 @@
 
 
 #include "board.h"
+#include "board_constants.h"
+#include "board.h"
+#include "bit_manipulation.h"
+#include "table.h"
+#include <string.h>
 
 
 #define startPosition "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"

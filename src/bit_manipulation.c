@@ -1,7 +1,6 @@
 //
 // Created by erena on 29.05.2024.
 //
-#include <stdio.h>
 #include "bit_manipulation.h"
 
 int countBits(U64 bitboard) {

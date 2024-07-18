@@ -9,7 +9,7 @@
 #include "bit_manipulation.h"
 #include "move.h"
 #include "mask.h"
-#include <stdio.h>
+#include <stdlib.h>
 
 int anyPassPawnFree(const board* pos, int side, U64 attackBoard) {
     if (side) {
