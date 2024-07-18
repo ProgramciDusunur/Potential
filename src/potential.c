@@ -12,7 +12,7 @@
 #include "fen.c"
 #include "magic.c"
 #include "see.c"
-#include "bit_manipulation.c"
+#include "bit_manipulation.h"
 #include "search.c"
 #include "history.c"
 #include "bench.c"
