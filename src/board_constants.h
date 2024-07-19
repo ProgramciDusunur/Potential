@@ -1,6 +1,11 @@
 //
 // Created by erena on 29.05.2024.
 //
+
+#ifndef BOARD_CONSTANTS_H
+#define BOARD_CONSTANTS_H
+
+
 #pragma once
 
 
@@ -125,3 +130,5 @@ extern U64 enpassantKeys[64];
 // random castling keys
 extern U64 castleKeys[16];
 
+
+#endif // BOARD_CONSTANTS_H
