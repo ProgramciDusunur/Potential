@@ -22,6 +22,5 @@
 
 //void uciProtocol();
 extern void read_input();
-extern int input_waiting();
 extern void communicate();
 extern void goCommand(char *command, board* position);

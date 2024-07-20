@@ -15,35 +15,35 @@
 #include <sys/time.h>
 #endif
 
+// exit from engine flag
+static int quit = 0;
+
 // UCI "movestogo" command moves counter
-extern int movestogo;
+static int movestogo = 30;
 
 // UCI "movetime" command time counter
-extern int movetime;
+static int movetime = -1;
 
 // UCI "time" command holder (ms)
-extern int time;
+static int time = -1;
 
 // UCI "inc" command's time increment holder
-extern int inc;
+static int inc = 0;
 
 // UCI "starttime" command time holder
-extern int starttime;
+static int starttime = 0;
 
 // UCI "stoptime" command time holder
-extern int stoptime;
+static int stoptime = 0;
 
 // variable to flag time control availability
-extern int timeset;
+static int timeset = 0;
 
 // variable to flag when the time is up
-extern int stopped;
-
-// exit from engine flag
-extern int quit;
+static int stopped = 0;
 
 // reset time control variables
-inline void resetTimeControl() {
+static inline void resetTimeControl() {
     // reset timing
     quit = 0;
     movestogo = 30;
@@ -56,7 +56,7 @@ inline void resetTimeControl() {
     stopped = 0;
 }
 
-inline int getTimeMiliSecond() {
+static inline int getTimeMiliSecond() {
 #ifdef WIN64
     return GetTickCount();
 #else
@@ -66,7 +66,7 @@ inline int getTimeMiliSecond() {
 #endif
 }
 
-inline int input_waiting() {
+static inline int input_waiting() {
 #ifndef WIN32
     fd_set readfds;
         struct timeval tv;
