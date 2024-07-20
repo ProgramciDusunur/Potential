@@ -5,12 +5,12 @@
 
 
 
-#include "move.c"
+#include "move.h"
 #include "time.c"
 #include "evaluation.c"
 #include "table.h"
 #include "fen.h"
-#include "magic.c"
+#include "magic.h"
 #include "bit_manipulation.h"
 #include "search.c"
 #include "history.c"
