@@ -11,7 +11,7 @@
 #include "table.h"
 #include "fen.h"
 #include "magic.c"
-#include "see.c"
+#include "see.h"
 #include "bit_manipulation.h"
 #include "search.c"
 #include "history.c"

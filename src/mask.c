@@ -27,7 +27,7 @@ U64 blackPassedMasks[64];
 
 
 
-U64 maskPawnAttacks(int isWhite, int square) {
+inline U64 maskPawnAttacks(int isWhite, int square) {
     U64 attacks = 0ULL;
 
     // piece bitboard
@@ -51,7 +51,7 @@ U64 maskPawnAttacks(int isWhite, int square) {
     return attacks;
 }
 
-U64 maskKnightAttacks(int square) {
+inline U64 maskKnightAttacks(int square) {
     U64 attacks = 0ULL;
 
     U64 bitboard = 0ULL;
@@ -77,7 +77,7 @@ U64 maskKnightAttacks(int square) {
     return attacks;
 }
 
-U64 maskKingAttacks(int square) {
+inline U64 maskKingAttacks(int square) {
     U64 attacks = 0ULL;
 
     U64 bitboard = 0ULL;
@@ -103,7 +103,7 @@ U64 maskKingAttacks(int square) {
     return attacks;
 }
 
-U64 maskBishopAttacks(int square) {
+inline U64 maskBishopAttacks(int square) {
     U64 attacks = 0ULL;
 
     int rank = square / 8, file = square % 8;
@@ -123,7 +123,7 @@ U64 maskBishopAttacks(int square) {
     return attacks;
 }
 
-U64 bishopAttack(int square, U64 block) {
+inline U64 bishopAttack(int square, U64 block) {
     U64 attacks = 0ULL;
 
     int rank = square / 8, file = square % 8;
@@ -147,7 +147,7 @@ U64 bishopAttack(int square, U64 block) {
     return attacks;
 }
 
-U64 maskRookAttacks(int square) {
+inline U64 maskRookAttacks(int square) {
     U64 attacks = 0ULL;
 
     int rank = square / 8, file = square % 8;
@@ -167,7 +167,7 @@ U64 maskRookAttacks(int square) {
     return attacks;
 }
 
-U64 rookAttack(int square, U64 block) {
+inline U64 rookAttack(int square, U64 block) {
     U64 attacks = 0ULL;
 
     int rank = square / 8, file = square % 8;
@@ -191,7 +191,7 @@ U64 rookAttack(int square, U64 block) {
     return attacks;
 }
 
-U64 get_attackers(const board *pos, int square, int side) {
+inline U64 get_attackers(const board *pos, int square, int side) {
     U64 attacks = 0ULL;
 
     attacks |= (maskPawnAttacks(side, square) & pos->bitboards[P]) | (maskPawnAttacks(!side, square) & pos->bitboards[p]);
@@ -202,7 +202,7 @@ U64 get_attackers(const board *pos, int square, int side) {
     return attacks;
 }
 
-U64 setFileRankMask(int file_number, int rank_number) {
+inline U64 setFileRankMask(int file_number, int rank_number) {
     // file or rank mask
     U64 mask = 0ULL;
 
@@ -238,7 +238,7 @@ U64 setFileRankMask(int file_number, int rank_number) {
 }
 
 
-void initEvaluationMasks() {
+inline void initEvaluationMasks() {
 
     // loop over ranks
     for (int rank = 0; rank < 8; rank++)
