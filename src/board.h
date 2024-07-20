@@ -49,5 +49,5 @@ typedef struct {
     int gamePhase;
 } board;
 
-void printAttackedSquares(int side, board* position);
-void printMove(int move);
+static inline void printAttackedSquares(int side, board* position);
+static inline void printMove(int move);
