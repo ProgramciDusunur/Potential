@@ -3,6 +3,9 @@
 //
 #pragma once
 
+#include <stdio.h>
+#include <stddef.h>
+
 #ifdef WIN64
 
 #include <windows.h>
