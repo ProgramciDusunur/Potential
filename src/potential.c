@@ -11,14 +11,13 @@
 #include "table.h"
 #include "fen.h"
 #include "magic.c"
-#include "see.h"
 #include "bit_manipulation.h"
 #include "search.c"
 #include "history.c"
 #include "bench.c"
 #include "board.h"
 #include "uci.h"
-#include "zobrist.c"
+#include "zobrist.h"
 
 
 
@@ -316,7 +315,7 @@ void uciProtocol() {
         }
             // parse UCI "quit" command
         else if (strncmp(input, "quit", 4) == 0)
-            // quit from the chess engine program execution
+            // quit from the chess engine program executions
             break;
 
             // parse UCI "uci" command

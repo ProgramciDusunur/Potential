@@ -1,6 +1,10 @@
 //
 // Created by erena on 29.05.2024.
 //
+
+#ifndef MOVE_H
+#define MOVE_H
+
 #pragma once
 
 #include "board.h"
@@ -73,15 +77,17 @@ extern U64 bishopAttacks[64][512];
 extern U64 rookAttacks[64][4096];
 
 
-extern void copyBoard(board *p, struct copyposition *cp);
-extern void takeBack(board *p, struct copyposition *cp);
-extern void addMoveToHistoryList(moves* list, int move);
-extern void initSlidersAttacks(int bishop);
-extern void initLeaperAttacks();
-extern int isSquareAttacked(int square, int whichSide, board* position);
-extern int makeMove(int move, int moveFlag, board* position);
-extern void moveGenerator(moves *moveList, board* position);
-extern void addMove(moves *moveList, int move);
-extern U64 getBishopAttacks(int square, U64 occupancy);
-extern U64 getRookAttacks(int square, U64 occupancy);
-extern U64 getQueenAttacks(int square, U64 occupancy);
+void copyBoard(board *p, struct copyposition *cp);
+void takeBack(board *p, struct copyposition *cp);
+void addMoveToHistoryList(moves* list, int move);
+void initSlidersAttacks(int bishop);
+void initLeaperAttacks();
+int isSquareAttacked(int square, int whichSide, board* position);
+int makeMove(int move, int moveFlag, board* position);
+void moveGenerator(moves *moveList, board* position);
+void addMove(moves *moveList, int move);
+U64 getBishopAttacks(int square, U64 occupancy);
+U64 getRookAttacks(int square, U64 occupancy);
+U64 getQueenAttacks(int square, U64 occupancy);
+
+#endif
