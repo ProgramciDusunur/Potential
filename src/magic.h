@@ -13,7 +13,6 @@
 #define U64 unsigned long long
 #endif
 
-extern unsigned int state;
 
 const static int bishopRelevantBits[64] = {
         6, 5, 5, 5, 5, 5, 5, 6,
@@ -42,7 +41,7 @@ U64 rookMagic[64];
 U64 bishopMagic[64];
 
 // pseudo random number state
-unsigned int state = 1804289383;
+static unsigned int state = 1804289383;
 
 inline static unsigned int getRandom32BitNumber() {
     //get current state

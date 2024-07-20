@@ -17,10 +17,3 @@
 #endif
 
 
-
-
-
-//void uciProtocol();
-extern void read_input();
-extern void communicate();
-extern void goCommand(char *command, board* position);
