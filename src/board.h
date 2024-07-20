@@ -9,7 +9,7 @@
 #define maxPly 64
 
 
-const int castlingRights[64] = {
+static const int castlingRights[64] = {
         7, 15, 15, 15, 3, 15, 15, 11,
         15, 15, 15, 15, 15, 15, 15, 15,
         15, 15, 15, 15, 15, 15, 15, 15,
