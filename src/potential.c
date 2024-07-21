@@ -229,11 +229,6 @@ void uciProtocol() {
     // define user / GUI input buffer
     char input[2000];
 
-    // print engine info
-    printf("id name Potential\n");
-    printf("id name ProgramciDusunur\n");
-    printf("uciok\n");
-
     // main loop
     while (1)
     {
