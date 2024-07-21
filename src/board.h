@@ -6,14 +6,10 @@
 
 #include "board_constants.h"
 
-#ifndef U64
-#define U64 unsigned long long
-#endif
-
 #define maxPly 64
 
 
-const int castlingRights[64] = {
+static const int castlingRights[64] = {
         7, 15, 15, 15, 3, 15, 15, 11,
         15, 15, 15, 15, 15, 15, 15, 15,
         15, 15, 15, 15, 15, 15, 15, 15,
@@ -53,5 +49,5 @@ typedef struct {
     int gamePhase;
 } board;
 
-void printAttackedSquares(int side, board* position);
-void printMove(int move);
+static inline void printAttackedSquares(int side, board* position);
+static inline void printMove(int move);

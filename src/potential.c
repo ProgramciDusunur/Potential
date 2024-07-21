@@ -5,21 +5,19 @@
 
 
 
-#include "move.c"
+#include "move.h"
 #include "time.c"
 #include "evaluation.c"
-#include "table.c"
-#include "mask.c"
-#include "fen.c"
-#include "magic.c"
-#include "see.c"
-#include "bit_manipulation.c"
-#include "test/see_test.h"
+#include "table.h"
+#include "fen.h"
+#include "magic.h"
+#include "bit_manipulation.h"
 #include "search.c"
 #include "history.c"
 #include "bench.c"
 #include "board.h"
 #include "uci.h"
+#include "zobrist.h"
 
 
 
@@ -28,19 +26,11 @@
 
 
 
-/*   Zobrist Hashing   */
-
-// random piece keys [piece][square]
-U64 pieceKeys[12][64];
-// random enpassant keys [square]
-U64 enpassantKeys[64];
-// random castling keys
-U64 castleKeys[16];
 
 
 
 
-static inline void perft(int depth, board* position);
+void perft(int depth, board* position);
 
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
 
@@ -54,9 +44,9 @@ void uciProtocol();
 
 void goCommand(char *command, board* position);
 
-static inline void perftRoot(int depth, board* position);
+void perftRoot(int depth, board* position);
 
-static inline void perftChild(int depth, board* position);
+void perftChild(int depth, board* position);
 
 void initRandomKeys();
 
@@ -269,9 +259,6 @@ void uciProtocol() {
             printf("readyok\n");
             continue;
         }
-        else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(12);
-        }
 
             // parse UCI "position" command
         else if (strncmp(input, "position", 8) == 0)
@@ -310,13 +297,25 @@ void uciProtocol() {
             clearCounterMoves();
         }
             // parse UCI "go" command
-        else if (strncmp(input, "go", 2) == 0)
+        else if (strncmp(input, "go", 2) == 0) {
             // call parse go function
             goCommand(input, &position);
 
+            // clear hash table
+            clearHashTable();
+
+            //clear history
+            clearHistory();
+
+            //clear static eval history
+            clearStaticEvaluationHistory(&position);
+
+            //clear counter moves
+            clearCounterMoves();
+        }
             // parse UCI "quit" command
         else if (strncmp(input, "quit", 4) == 0)
-            // quit from the chess engine program execution
+            // quit from the chess engine program executions
             break;
 
             // parse UCI "uci" command
@@ -326,6 +325,9 @@ void uciProtocol() {
             printf("id name Potential\n");
             printf("id name ProgramciDusunur\n");
             printf("uciok\n");
+        }
+        else if (strncmp(input, "bench", 5) == 0) {
+            benchmark(10, &position);
         }
     }
 }
@@ -503,7 +505,7 @@ void printMoveList(moves *moveList) {
 }
 
 
-static inline void perftRoot(int depth, board* position) {
+void perftRoot(int depth, board* position) {
     moves moveList[1];
     moveGenerator(moveList, position);
     for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
@@ -525,7 +527,7 @@ static inline void perftRoot(int depth, board* position) {
 
 }
 
-static inline void perftChild(int depth, board* position) {
+void perftChild(int depth, board* position) {
     if (depth == 0) {
         nodes++;
         variant++;
@@ -547,7 +549,7 @@ static inline void perftChild(int depth, board* position) {
     }
 }
 
-static inline void perft(int depth, board* position) {
+void perft(int depth, board* position) {
     if (depth == 0) {
         nodes++;
         return;
@@ -584,48 +586,48 @@ int areSubStringsEqual(char *command, char *uciCommand, int stringSize) {
 
 
 // read GUI/user input
-void read_input() {
-    // bytes to read holder
-    int bytes;
+    void read_input() {
+        // bytes to read holder
+        int bytes;
 
-    // GUI/user input
-    char input[256] = "", *endc;
+        // GUI/user input
+        char input[256] = "", *endc;
 
-    // "listen" to STDIN
-    if (input_waiting()) {
-        // tell engine to stop calculating
-        stopped = 1;
+        // "listen" to STDIN
+        if (input_waiting()) {
+            // tell engine to stop calculating
+            stopped = 1;
 
-        // loop to read bytes from STDIN
-        do {
-            // read bytes from STDIN
-            bytes = read(fileno(stdin), input, 256);
-        }
-
-            // until bytes available
-        while (bytes < 0);
-
-        // searches for the first occurrence of '\n'
-        endc = strchr(input, '\n');
-
-        // if found new line set value at pointer to 0
-        if (endc) *endc = 0;
-
-        // if input is available
-        if (strlen(input) > 0) {
-            // match UCI "quit" command
-            if (!strncmp(input, "quit", 4)) {
-                // tell engine to terminate exacution
-                quit = 1;
+            // loop to read bytes from STDIN
+            do {
+                // read bytes from STDIN
+                bytes = read(fileno(stdin), input, 256);
             }
 
-                // // match UCI "stop" command
-            else if (!strncmp(input, "stop", 4)) {
-                // tell engine to terminate exacution
-                quit = 1;
+                // until bytes available
+            while (bytes < 0);
+
+            // searches for the first occurrence of '\n'
+            endc = strchr(input, '\n');
+
+            // if found new line set value at pointer to 0
+            if (endc) *endc = 0;
+
+            // if input is available
+            if (strlen(input) > 0) {
+                // match UCI "quit" command
+                if (!strncmp(input, "quit", 4)) {
+                    // tell engine to terminate exacution
+                    quit = 1;
+                }
+
+                    // // match UCI "stop" command
+                else if (!strncmp(input, "stop", 4)) {
+                    // tell engine to terminate exacution
+                    quit = 1;
+                }
             }
         }
-    }
 }
 
 

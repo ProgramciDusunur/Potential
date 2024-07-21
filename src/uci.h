@@ -3,18 +3,24 @@
 //
 
 #pragma once
+
 #include "table.h"
 #include <string.h>
 #include <stdio.h>
 #include "time.h"
-#include "io.h"
+#include "search.h"
 
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 
 
 
 
 //void uciProtocol();
-void read_input();
-int input_waiting();
-void communicate();
+extern void read_input();
+extern void communicate();
+extern void goCommand(char *command, board* position);

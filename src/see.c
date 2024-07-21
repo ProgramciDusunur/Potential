@@ -9,29 +9,7 @@
 #include "bit_manipulation.h"
 #include "move.h"
 #include "mask.h"
-#include <stdio.h>
-
-int anyPassPawnFree(const board* pos, int side, U64 attackBoard) {
-    if (side) {
-        int blackPieceCount = countBits((pos->bitboards[p] |  pos->bitboards[b] | pos->bitboards[n] |
-                                         pos->bitboards[r] | pos->bitboards[q] | pos->bitboards[k])  & attackBoard);
-        int whitePassPawns = countBits(pos->bitboards[P] & attackBoard);
-        //printf("siyahlarin hedef kareye bakan toplam tas sayisi: %d ve beyazlarin hedef kareye bakan toplam gecer piyon sayisi: %d\n", blackPieceCount, whitePassPawns);
-        if (blackPieceCount <= whitePassPawns) {
-            return 1;
-        }
-    } else {
-        int whitePieceCount = countBits((pos->bitboards[P] |  pos->bitboards[B] | pos->bitboards[N] |
-                                         pos->bitboards[R] | pos->bitboards[Q] | pos->bitboards[K])  & attackBoard);
-        int blackPassPawns = countBits(pos->bitboards[p] & attackBoard);
-        //printf("beyazlarin hedef kareye bakan toplam tas sayisi: %d ve siyahlarin hedef kareye bakan toplam gecer piyon sayisi: %d\n", whitePieceCount, blackPassPawns);
-        if (whitePieceCount <= blackPassPawns) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
+#include <stdlib.h>
 
 
 U64 get_least_valuable_piece(U64 attadef, int side, int *targetPiece, const board* pos) {
@@ -44,12 +22,6 @@ U64 get_least_valuable_piece(U64 attadef, int side, int *targetPiece, const boar
         if (bb) {
 
             *targetPiece = p_trav + offset;
-            if (anyPassPawnFree(pos, side,attadef)) {
-                //printf("Hedef tas bir siyah fil! \n");
-                //anyPassPawnFree(pos, side,attadef);
-
-                return 0;
-            }
             return bb & -bb;
         }
     }
