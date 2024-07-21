@@ -20,5 +20,6 @@
 I would like to extend my gratitude to some fantastic individuals who have contributed to the creation and development of this project:
 
 - [Code Monkey King](https://github.com/maksimKorzh/bbc) - For significant contributions to the chess engine tutorial and guide.
+- DarkNeutrino and Zuppa thanks for tips and makefile.
 
 Thank you for helping us make this project better!
