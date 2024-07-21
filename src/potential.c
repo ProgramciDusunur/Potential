@@ -229,6 +229,17 @@ void uciProtocol() {
     // define user / GUI input buffer
     char input[2000];
 
+
+    if (strncmp(input, "bench", 5) == 0) {
+        benchmark(10, &position);
+    }
+
+    // reset user /GUI input
+    memset(input, 0, sizeof(input));
+
+    // make sure output reaches the GUI
+    fflush(stdout);
+
     // main loop
     while (1)
     {
