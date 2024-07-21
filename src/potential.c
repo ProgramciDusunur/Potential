@@ -229,7 +229,7 @@ void uciProtocol(int argc, char *argv[]) {
     // define user / GUI input buffer
     char input[2000];
 
-    if (argc > 3 && strncmp(argv[1], "bench", 5) == 0) {
+    if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..");
         benchmark(10, &position);
     }
