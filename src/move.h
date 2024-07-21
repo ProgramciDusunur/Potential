@@ -61,7 +61,7 @@ struct copyposition {
 #define getMoveCastling(move) (move & 0x800000)
 
 
-inline void copyBoard(board *p, struct copyposition *cp) {
+inline static void copyBoard(board *p, struct copyposition *cp) {
     cp->bitboardsCopy[0] = p->bitboards[0];
     cp->bitboardsCopy[1] = p->bitboards[1];
     cp->bitboardsCopy[2] = p->bitboards[2];
@@ -81,7 +81,7 @@ inline void copyBoard(board *p, struct copyposition *cp) {
     cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
 }
 
-inline void takeBack(board *p, struct copyposition *cp) {
+inline static void takeBack(board *p, struct copyposition *cp) {
     p->bitboards[0] = cp->bitboardsCopy[0];
     p->bitboards[1] = cp->bitboardsCopy[1];
     p->bitboards[2] = cp->bitboardsCopy[2];
@@ -114,7 +114,7 @@ U64 rookAttacks[64][4096];
 
 
 // add move to the move list
-inline void addMove(moves *moveList, int move) {
+inline static void addMove(moves *moveList, int move) {
     // store move
     moveList->moves[moveList->count] = move;
     // increment move count
@@ -122,7 +122,7 @@ inline void addMove(moves *moveList, int move) {
 }
 
 // get bishop attacks
-inline U64 getBishopAttacks(int square, U64 occupancy) {
+inline static U64 getBishopAttacks(int square, U64 occupancy) {
     // get bishop attacks assuming current board occupancy
     occupancy &= bishopMask[square];
     occupancy *= bishopMagic[square];
@@ -131,7 +131,7 @@ inline U64 getBishopAttacks(int square, U64 occupancy) {
 }
 
 // get rook attacks
-inline U64 getRookAttacks(int square, U64 occupancy) {
+inline static U64 getRookAttacks(int square, U64 occupancy) {
     // get rook attacks assuming current board occupancy
     occupancy &= rookMask[square];
     occupancy *= rookMagic[square];
@@ -140,7 +140,7 @@ inline U64 getRookAttacks(int square, U64 occupancy) {
 }
 
 // get queen attacks
-inline U64 getQueenAttacks(int square, U64 occupancy) {
+inline static U64 getQueenAttacks(int square, U64 occupancy) {
     // get queen attacks assuming current board occupancy
     U64 queenAttacks;
     U64 bishopOccupancy = occupancy;
@@ -157,7 +157,7 @@ inline U64 getQueenAttacks(int square, U64 occupancy) {
     return queenAttacks;
 }
 
-inline int isSquareAttacked(int square, int whichSide, board* position) {
+inline static int isSquareAttacked(int square, int whichSide, board* position) {
     if ((whichSide == white) && (pawnAtacks[black][square] & position->bitboards[P])) {
         return 1;
     }
@@ -183,7 +183,7 @@ inline int isSquareAttacked(int square, int whichSide, board* position) {
 }
 
 // make move on chess board
-inline int makeMove(int move, int moveFlag, board* position) {
+inline static int makeMove(int move, int moveFlag, board* position) {
     // quiet moves
     if (moveFlag == allMoves) {
         struct copyposition copyPosition;
@@ -848,7 +848,7 @@ inline static void initLeaperAttacks() {
 }
 
 
-inline void addMoveToHistoryList(moves* list, int move) {
+inline static void addMoveToHistoryList(moves* list, int move) {
     // don't pass move list border
     if (list->count < 256) {
         list->moves[list->count] = move;
