@@ -40,7 +40,7 @@ void printMoveList(moves *moveList);
 
 void initAll();
 
-void uciProtocol();
+void uciProtocol(int argc, char* argv[]);
 
 void goCommand(char *command, board* position);
 
@@ -51,13 +51,13 @@ void perftChild(int depth, board* position);
 void initRandomKeys();
 
 
-int main() {
+int main(int argc, char* argv[]) {
     initAll();
     int debug = 0;
     if (debug) {
 
     } else {
-        uciProtocol();
+        uciProtocol(argc, argv);
     }
     return 0;
 }
@@ -219,7 +219,7 @@ void parse_position(char *command, board* position) {
 }
 
 
-void uciProtocol() {
+void uciProtocol(int argc, char *argv[]) {
     board position;
 
     // reset STDIN & STDOUT buffers
@@ -229,10 +229,10 @@ void uciProtocol() {
     // define user / GUI input buffer
     char input[2000];
 
-    // print engine info
-    printf("id name Potential\n");
-    printf("id name ProgramciDusunur\n");
-    printf("uciok\n");
+    if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
+        printf("bench running..");
+        benchmark(10, &position);
+    }
 
     // main loop
     while (1)
