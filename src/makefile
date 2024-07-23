@@ -165,7 +165,7 @@ ifneq ($(findstring clang, $(CC)),)
 	PGOUSE   = -fprofile-instr-use=quanticade.profdata
 endif
 
-SOURCES := $(wildcard src/*.c)
+SOURCES := $(wildcard *.c)
 OBJECTS := $(patsubst %.c,$(TMPDIR)/%.o,$(SOURCES))
 DEPENDS := $(patsubst %.c,$(TMPDIR)/%.d,$(SOURCES))
 
