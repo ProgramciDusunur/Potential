@@ -230,7 +230,7 @@ void uciProtocol(int argc, char *argv[]) {
     char input[2000];
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {        
-        benchmark(9, &position);
+        benchmark(8, &position);
         return;
     }
 
