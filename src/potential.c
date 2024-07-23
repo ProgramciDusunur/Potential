@@ -232,6 +232,7 @@ void uciProtocol(int argc, char *argv[]) {
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..");
         benchmark(10, &position);
+        return;
     }
 
     // main loop
