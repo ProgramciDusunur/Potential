@@ -363,14 +363,14 @@ static inline int evaluate(board* position) {
                         score += isolated_pawn_penalty;
                     */
                     // on passed pawn
-                    if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
+                    /*if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                         // give passed pawn bonus
                         if (game_phase == middlegame) {
                             score += passed_pawn_bonus_middle[get_rank[square]];
                         } else if (game_phase == endgame) {
                             score += passed_pawn_bonus_endgame[get_rank[square]];
                         }
-                    }
+                    }*/
 
 
                     break;
@@ -510,14 +510,14 @@ static inline int evaluate(board* position) {
                         score -= isolated_pawn_penalty;
                     */
                     // on passed pawn
-                    if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
+                    /*if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         // give passed pawn bonus
                         if (game_phase == middlegame) {
                             score += passed_pawn_bonus_middle[get_rank[square]];
                         } else if (game_phase == endgame) {
                             score += passed_pawn_bonus_endgame[get_rank[square]];
                         }
-                    }
+                    }*/
 
 
                     break;
