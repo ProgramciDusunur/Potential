@@ -222,6 +222,12 @@ void parse_position(char *command, board* position) {
 void uciProtocol(int argc, char *argv[]) {
     board position;
 
+    // max hash MB
+    int max_hash = 32768;
+
+    // default hash MB
+    int default_hash_size = 64;
+
     // reset STDIN & STDOUT buffers
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
@@ -229,7 +235,11 @@ void uciProtocol(int argc, char *argv[]) {
     // define user / GUI input buffer
     char input[2000];
 
-    if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {        
+    // print engine info
+    printf("Potential by ProgramciDusunur\n");
+
+    if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
+        printf("bench running..");
         benchmark(8, &position);
         return;
     }
@@ -313,6 +323,20 @@ void uciProtocol(int argc, char *argv[]) {
             //clear counter moves
             clearCounterMoves();
         }
+        else if (!strncmp(input, "setoption name Hash value ", 26)) {
+            // init MB
+            int mb;
+
+            sscanf(input,"%*s %*s %*s %*s %d", &mb);
+
+            // adjust MB if going beyond the aloowed bounds
+            if(mb < 4) mb = 4;
+            if(mb > max_hash) mb = max_hash;
+
+            // set hash table size in MB
+            printf("Set hash table size to %dMB\n", mb);
+            init_hash_table(mb);
+        }
             // parse UCI "quit" command
         else if (strncmp(input, "quit", 4) == 0)
             // quit from the chess engine program executions
@@ -323,11 +347,15 @@ void uciProtocol(int argc, char *argv[]) {
         {
             // print engine info
             printf("id name Potential\n");
-            printf("id name ProgramciDusunur\n");
+            printf("id author ProgramciDusunur\n");
+            printf("option name Hash type spin default %d min 4 max %d\n",
+                   default_hash_size, max_hash);
+            printf("option name Threads type spin default %d min %d max %d\n", 1, 1,
+                   1);
             printf("uciok\n");
         }
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(9, &position);
+            benchmark(10, &position);
         }
     }
 }
@@ -656,4 +684,6 @@ void initAll() {
     initEvaluationMasks();
     // init Late Move Reduction Table
     initializeLMRTable();
+    // init transposition table with default 64 mb
+    init_hash_table(64);
 }
