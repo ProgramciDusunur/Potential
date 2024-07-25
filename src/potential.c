@@ -473,7 +473,7 @@ void pBoard(board* position) {
 #ifdef WIN64
             printf(" %c", (piece == -1) ? '.' : asciiPieces[piece]);
 #else
-            printf(" %s", (piece == -1) ? '.' : unicodePieces[piece]);
+            printf(" %c", (piece == -1) ? '.' : asciiPieces[piece]);
 #endif
         }
         printf("\n");
