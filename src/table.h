@@ -93,7 +93,7 @@ inline U64 generateHashKey(board* position) {
 inline void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[position->hashKey % hashSize];
+    tt *hashEntry = &hashTable[position->hashKey % hash_entries];
 
     // store score independent from the actual path
     // from root node (position) to current node (position)
@@ -112,7 +112,7 @@ inline void writeHashEntry(int score, int bestMove, int depth, int hashFlag, boa
 inline int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[position->hashKey % hashSize];
+    tt *hashEntry = &hashTable[position->hashKey % hash_entries];
 
     // make sure we're dealing with the exact position we need
     if (hashEntry->hashKey == position->hashKey) {
@@ -154,7 +154,7 @@ inline int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* p
 inline int readHashFlag(board* position) {
     int noHashFlag = hashFlagNone;
 
-    tt *hashEntry = &hashTable[position->hashKey % hashSize];
+    tt *hashEntry = &hashTable[position->hashKey % hash_entries];
     if (hashEntry->hashKey == position->hashKey && (hashEntry->flag == hashFlagBeta || hashEntry->flag == hashFlagAlpha || hashEntry->flag == hashFlagExact)) {
         return hashEntry->flag;
     }
@@ -219,4 +219,3 @@ static inline void init_hash_table(int mb)
 
 
 }
-
