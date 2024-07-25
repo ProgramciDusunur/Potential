@@ -201,7 +201,7 @@ static const int double_pawn_penalty_endgame = -10;
 
 // isolated pawn penalty
 static const int isolated_pawn_penalty_middle = -10;
-static const int isolated_pawn_penalty_endgame = -5;
+static const int isolated_pawn_penalty_endgame = -15;
 
 // passed pawn bonus
 static const int passed_pawn_bonus_middle[8] = { 0, 0, 0, 5, 10, 15, 20, 25};
