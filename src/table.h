@@ -20,8 +20,6 @@
  ==================================
 \**********************************/
 
-// hash table size
-#define hashSize 0x400000
 
 // no hash entry found constant
 #define noHashEntry 100000
@@ -31,8 +29,6 @@
 #define hashFlagAlpha 1
 #define hashFlagBeta  2
 
-// number hash table entries
-int hash_entries = 0;
 
 // transposition table data structure
 typedef struct {
@@ -43,8 +39,11 @@ typedef struct {
     int bestMove;
 } tt;                 // transposition table (TT aka hash table)
 
-// define TT insance
-tt *hashTable = NULL;
+// number hash table entries
+static U64 hash_entries = 0;
+
+// define TT instance
+static tt *hashTable = NULL;
 
 // random side key
 U64 sideKey;
@@ -179,43 +178,44 @@ inline void clearHashTable() {
 }
 
 // dynamically allocate memory for hash table
-static inline void init_hash_table(int mb)
-{
+static inline void init_hash_table(int mb) {
     // init hash size
-    int hash_size = 0x100000 * mb;
+    U64 hash_size;
 
-    // init number of hash entries
-    hash_entries =  hash_size / sizeof(tt);
+    int attempts = 0;
+    int max_attempts = 5;
 
     // free hash table if not empty
-    if (hashTable != NULL)
-    {
+    if (hashTable != NULL) {
         printf("Clearing hash memory...\n");
-
         // free hash table dynamic memory
         free(hashTable);
     }
 
-    // allocate memory
-    hashTable = (tt *) malloc(hash_entries * sizeof(tt));
+    while (attempts < max_attempts) {
+        hash_size = 0x100000 * mb;
+        hash_entries = hash_size / sizeof(tt);
 
-    // if allocation has failed
-    if (hashTable == NULL)
-    {
-        printf("Couldn't allocate memory for hash table, trying %dMB...", mb / 2);
+        // allocate memory
+        hashTable = (tt *) malloc(hash_entries * sizeof(tt));
 
-        // try to allocate with half size
-        init_hash_table(mb / 2);
+        // if allocation has failed
+        if (hashTable == NULL) {
+            printf("Couldn't allocate memory for hash table, trying %dMB...\n", mb / 2);
+            mb /= 2; // allocate with half size
+            attempts++;
+        } else {
+            // clear hash table
+            clearHashTable();
+            printf("Hash table is initialied with %llu entries\n", hash_entries);
+            return;
+        }
     }
 
-        // if allocation succeeded
-    else
-    {
-        // clear hash table
-        clearHashTable();
-
-        printf("Hash table is initialied with %d entries\n", hash_entries);
+    // if all attempts fail
+    if (hashTable == NULL) {
+        printf("Failed to allocate memory for hash table after %d attempts\n", max_attempts);
+        exit(1); // or handle the error as needed
     }
-
-
 }
+
