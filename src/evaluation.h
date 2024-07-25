@@ -40,7 +40,7 @@ enum {
     PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
 };
 
-const static int mirrorScore[128] =
+static const int mirrorScore[128] =
         {
                 a1, b1, c1, d1, e1, f1, g1, h1,
                 a2, b2, c2, d2, e2, f2, g2, h2,
@@ -52,7 +52,7 @@ const static int mirrorScore[128] =
                 a8, b8, c8, d8, e8, f8, g8, h8
         };
 
-const static int material_score[2][12] =
+static const int material_score[2][12] =
         {
                 // opening material score
                 82, 337, 365, 477, 1025, 12000, -82, -337, -365, -477, -1025, -12000,
@@ -61,12 +61,12 @@ const static int material_score[2][12] =
                 94, 281, 297, 512, 936, 12000, -94, -281, -297, -512, -936, -12000
         };
 
-const static int seeMaterial[12] = {
+static const int seeMaterial[12] = {
         100, 300, 300, 500, 900, 12000, -100, -300, -300, -500, -900, -12000,
 };
 
 // positional piece scores [game phase][piece][square]
-const static int positional_score[2][6][64] =
+static const int positional_score[2][6][64] =
 
 // opening positional piece scores //
         {
@@ -196,40 +196,40 @@ const static int positional_score[2][6][64] =
 
 
 // double pawns penalty
-const static int double_pawn_penalty_opening = -5;
-const static int double_pawn_penalty_endgame = -10;
+static const int double_pawn_penalty_opening = -5;
+static const int double_pawn_penalty_endgame = -10;
 
 // isolated pawn penalty
-const static int isolated_pawn_penalty_opening = -5;
-const static int isolated_pawn_penalty_endgame = -10;
+static const int isolated_pawn_penalty_opening = -5;
+static const int isolated_pawn_penalty_endgame = -10;
 
 // passed pawn bonus
-const static int passed_pawn_bonus_middle[8] = { 0, 0, 0, 5, 10, 15, 20, 25};
-const static int passed_pawn_bonus_endgame[8] = { -5, 0, 0, 10, 15, 20, 35, 70};
+static const int passed_pawn_bonus_middle[8] = { 0, 0, 0, 5, 10, 15, 20, 25};
+static const int passed_pawn_bonus_endgame[8] = { -5, 0, 0, 10, 15, 20, 35, 70};
 
 
 // semi open file score
-const static int semi_open_file_score = 10;
+static const int semi_open_file_score = 10;
 
 // open file score
-const static int open_file_score = 15;
+static const int open_file_score = 15;
 
 // mobility units (values from engine Fruit reloaded)
-const static int bishop_unit = 4;
-const static int queen_unit = 9;
+static const int bishop_unit = 4;
+static const int queen_unit = 9;
 
 // mobility bonuses (values from engine Fruit reloaded)
-const static int bishop_mobility_opening = 5;
-const static int bishop_mobility_endgame = 5;
-const static int queen_mobility_opening = 1;
-const static int queen_mobility_endgame = 2;
+static const int bishop_mobility_opening = 5;
+static const int bishop_mobility_endgame = 5;
+static const int queen_mobility_opening = 1;
+static const int queen_mobility_endgame = 2;
 
 // king's shield bonus
-const static int king_shield_bonus = 5;
+static const int king_shield_bonus = 5;
 
 // game phase scores
-const static int opening_phase_score = 6192;
-const static int endgame_phase_score = 518;
+static const int opening_phase_score = 6192;
+static const int endgame_phase_score = 518;
 
 // get game phase score
 inline static int get_game_phase_score(board* position) {

@@ -9,12 +9,7 @@
 #include "stdio.h"
 
 
-#ifndef U64
-#define U64 unsigned long long
-#endif
-
-
-const static int bishopRelevantBits[64] = {
+static const int bishopRelevantBits[64] = {
         6, 5, 5, 5, 5, 5, 5, 6,
         5, 5, 5, 5, 5, 5, 5, 5,
         5, 5, 7, 7, 7, 7, 5, 5,
@@ -24,7 +19,7 @@ const static int bishopRelevantBits[64] = {
         5, 5, 5, 5, 5, 5, 5, 5,
         6, 5, 5, 5, 5, 5, 5, 6
 };
-const static int rookRelevantBits[64] = {
+static const int rookRelevantBits[64] = {
         12, 11, 11, 11, 11, 11, 11, 12,
         11, 10, 10, 10, 10, 10, 10, 11,
         11, 10, 10, 10, 10, 10, 10, 11,
