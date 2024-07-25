@@ -200,8 +200,8 @@ static const int double_pawn_penalty_opening = -5;
 static const int double_pawn_penalty_endgame = -10;
 
 // isolated pawn penalty
-static const int isolated_pawn_penalty_opening = -5;
-static const int isolated_pawn_penalty_endgame = -10;
+static const int isolated_pawn_penalty_middle = -10;
+static const int isolated_pawn_penalty_endgame = -5;
 
 // passed pawn bonus
 static const int passed_pawn_bonus_middle[8] = { 0, 0, 0, 5, 10, 15, 20, 25};
@@ -359,9 +359,9 @@ static inline int evaluate(board* position) {
 
                     // on isolated pawn
                     if ((position->bitboards[P] & isolatedMasks[square]) == 0)  {
-                        if (game_phase == opening) {
+                        if (game_phase == middlegame) {
                             // give an isolated pawn penalty
-                            score += isolated_pawn_penalty_opening;
+                            score += isolated_pawn_penalty_middle;
                         } else if (game_phase == endgame) {
                             score += isolated_pawn_penalty_endgame;
                         }
@@ -513,8 +513,8 @@ static inline int evaluate(board* position) {
                     // on isolated pawnd
                     if ((position->bitboards[p] & isolatedMasks[square]) == 0) {
                         // give an isolated pawn penalty
-                        if (game_phase == opening) {
-                            score -= isolated_pawn_penalty_opening;
+                        if (game_phase == middlegame) {
+                            score -= isolated_pawn_penalty_middle;
                         } else if (game_phase == endgame) {
                             score -= isolated_pawn_penalty_endgame;
                         }
