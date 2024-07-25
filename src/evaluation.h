@@ -204,8 +204,8 @@ static const int isolated_pawn_penalty_opening = -5;
 static const int isolated_pawn_penalty_endgame = -10;
 
 // passed pawn bonus
-static const int passed_pawn_bonus_middle[8] = { 0, 0, 0, 5, 10, 15, 20, 25};
-static const int passed_pawn_bonus_endgame[8] = { -5, 0, 0, 10, 15, 20, 35, 70};
+static const int passed_pawn_bonus_middle[8] = { 0, 0, 0, 5, 10, 15, 25, 50};
+static const int passed_pawn_bonus_endgame[8] = { -5, 0, 0, 10, 15, 25, 50, 100};
 
 
 // semi open file score
