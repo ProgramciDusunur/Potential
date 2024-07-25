@@ -356,12 +356,18 @@ static inline int evaluate(board* position) {
 
                     }*/
 
-                    /*
+
                     // on isolated pawn
-                    if ((bitboards[P] & isolated_masks[square]) == 0)
-                        // give an isolated pawn penalty
-                        score += isolated_pawn_penalty;
-                    */
+                    if ((position->bitboards[P] & isolatedMasks[square]) == 0)  {
+                        if (game_phase == opening) {
+                            // give an isolated pawn penalty
+                            score += isolated_pawn_penalty_opening;
+                        } else if (game_phase == endgame) {
+                            score += isolated_pawn_penalty_endgame;
+                        }
+                    }
+
+
                     // on passed pawn
                     /*if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                         // give passed pawn bonus
@@ -505,10 +511,17 @@ static inline int evaluate(board* position) {
                     }*/
 
                     // on isolated pawnd
-                    /*if ((bitboards[p] & isolated_masks[square]) == 0)
+                    if ((position->bitboards[p] & isolatedMasks[square]) == 0) {
                         // give an isolated pawn penalty
-                        score -= isolated_pawn_penalty;
-                    */
+                        if (game_phase == opening) {
+                            score -= isolated_pawn_penalty_opening;
+                        } else if (game_phase == endgame) {
+                            score -= isolated_pawn_penalty_endgame;
+                        }
+
+                    }
+
+
                     // on passed pawn
                     /*if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         // give passed pawn bonus
