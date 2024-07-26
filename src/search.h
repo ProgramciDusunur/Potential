@@ -711,12 +711,12 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 // on quiet moves
                 if (isQuiet) {
                     // store killer moves
-                    /*if (position->killerMoves[position->ply][0] != bestMove) {
+                    if (position->killerMoves[position->ply][0] != bestMove) {
                         position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                         position->killerMoves[position->ply][0] = bestMove;
-                    }*/
-                    position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
-                    position->killerMoves[position->ply][0] = bestMove;
+                    }
+                    //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
+                    //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
                     updateHistory(bestMove, depth, badQuiets);
                 }
