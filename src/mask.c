@@ -25,6 +25,9 @@ U64 whitePassedMasks[64];
 // black passed pawn masks [square]
 U64 blackPassedMasks[64];
 
+// connected pawn masks [side][square]
+U64 connected_mask[2][64];
+
 
 
 

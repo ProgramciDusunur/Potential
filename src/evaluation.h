@@ -194,6 +194,38 @@ static const int positional_score[2][6][64] =
                 -53, -34, -21, -11, -28, -14, -24, -43
         };
 
+static const int connectedPawnBonus[3][64] = {
+        // opening
+        {0, 0, 0, 0, 0, 0, 0, 0,
+                50, 59, 61, 66, 66, 61, 59, 50,
+                23, 25, 27, 31, 31, 27, 25, 23,
+                8, 10, 13, 18, 18, 13, 10, 8,
+                0, 1, 2, 6, 6, 2, 1, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+        },
+        // endgame
+        {0, 0, 0, 0, 0, 0, 0, 0,
+                72, 83, 83, 83, 83, 83, 83, 72,
+                28, 34, 34, 34, 34, 34, 34, 28,
+                9, 13, 13, 13, 13, 13, 13, 9,
+                2, 6, 6, 6, 6, 6, 6, 0,
+                0, 2, 2, 2, 2, 2, 2, 0,
+                0, 0, 0, 3, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+        },
+        // middlegame
+        {0, 0, 0, 0, 0, 0, 0, 0,
+                36, 42, 42, 42, 42, 42, 42, 36,
+                14, 17, 17, 17, 17, 17, 17, 14,
+                5, 7, 7, 7, 7, 7, 7, 5,
+                1, 3, 3, 3, 3, 3, 3, 0,
+                0, 1, 1, 1, 1, 1, 1, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,},
+};
+
 
 // double pawns penalty
 static const int double_pawn_penalty_opening = -5;
@@ -371,6 +403,14 @@ static inline int evaluate(board* position) {
                             score += passed_pawn_bonus_endgame[get_rank[square]];
                         }
                     }*/
+                    // connected pawn bonus
+                    if (position->bitboards[P] & connected_mask[white][square]) {
+                        if (game_phase == middlegame) {
+                            score += connectedPawnBonus[middlegame][square];
+                        } else if (game_phase == endgame) {
+                            score += connectedPawnBonus[endgame][square];
+                        }
+                    }
 
 
                     break;
@@ -518,6 +558,14 @@ static inline int evaluate(board* position) {
                             score += passed_pawn_bonus_endgame[get_rank[square]];
                         }
                     }*/
+                    // connected pawn bonus
+                    if (position->bitboards[p] & connected_mask[black][square]) {
+                        if (game_phase == middlegame) {
+                            score -= connectedPawnBonus[middlegame][mirrorScore[square]];
+                        } else if (game_phase == endgame) {
+                            score -= connectedPawnBonus[endgame][mirrorScore[square]];
+                        }
+                    }
 
 
                     break;
