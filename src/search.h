@@ -397,7 +397,11 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                                     position->side ^ 1, position);
 
     // increase search depth if the king has been exposed into a check
-    if (in_check) depth++;
+    if (in_check && !pvNode) {
+        depth++;
+    }
+    //if (in_check) depth++;
+    // 16789468 nodes 1276000 nps
 
     // legal moves counter
     int legal_moves = 0;
