@@ -409,7 +409,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     position->staticEval[position->ply] = static_eval;
 
-    /*if(in_check)
+    if(in_check)
         improving = false;
     else if (position->staticEval[position->ply-2] != noEval) {
         improving = position->staticEval[position->ply] > position->staticEval[position->ply-2];
@@ -418,7 +418,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         improving = position->staticEval[position->ply] > position->staticEval[position->ply-4];
     }
     else
-        improving = true;*/
+        improving = true;
 
     //printf("static eval calculated %d\n", position->staticEval[position->ply]);
 
@@ -610,9 +610,9 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             int lmrReduction = getLmrReduction(depth, position->ply, pvNode, improving);
             if (isQuiet) {
                 // Reduce More
-                /*if (!improving) {
+                if (!improving && quietMoves >= 16) {
                     lmrReduction += 1;
-                }*/
+                }
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1;
                 }
