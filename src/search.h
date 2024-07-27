@@ -613,9 +613,9 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 /*if (!improving) {
                     lmrReduction += 1;
                 }*/
-                /*if (!pvNode) {
+                if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1;
-                }*/
+                }
 
 
                 // Reduce Less
