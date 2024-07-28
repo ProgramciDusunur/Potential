@@ -215,7 +215,7 @@ static const int semi_open_file_score = 10;
 static const int open_file_score = 15;
 
 // mobility units (values from engine Fruit reloaded)
-static const int bishop_unit = 5;
+static const int bishop_unit = 3;
 static const int queen_unit = 9;
 
 // mobility bonuses
