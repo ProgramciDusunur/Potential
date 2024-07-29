@@ -220,7 +220,7 @@ static const int queen_unit = 9;
 
 // mobility bonuses
 static const int bishop_mobility_middlegame = 5;
-static const int bishop_mobility_endgame = 20;
+static const int bishop_mobility_endgame = 10;
 static const int queen_mobility_middlegame = 1;
 static const int queen_mobility_endgame = 2;
 
@@ -404,10 +404,11 @@ static inline int evaluate(board* position) {
                     else score += positional_score[game_phase][BISHOP][square];
 
                     // mobility
-                    if (game_phase == middlegame) {
-                        score += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
-                    } else if (game_phase == endgame) {
+                    if (game_phase == endgame) {
                         score += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
+                    } else {
+                        score += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
+
                     }
                     //score += count_bits(get_bishop_attacks(square, occupancies[both]));
 
@@ -556,10 +557,10 @@ static inline int evaluate(board* position) {
                     else score -= positional_score[game_phase][BISHOP][mirrorScore[square]];
 
                     // mobility
-                    if (game_phase == middlegame) {
-                        score -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
-                    } else if (game_phase == endgame) {
+                    if (game_phase == endgame) {
                         score -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
+                    } else {
+                        score -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
                     }
                     //score -= count_bits(get_bishop_attacks(square, occupancies[both]));
                     break;
