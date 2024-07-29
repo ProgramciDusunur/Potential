@@ -624,7 +624,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 /*if (in_check) {
                     lmrReduction -= 1;
                 }*/
-                if (pvNode && moves_searched >= 10) {
+                if (pvNode && moves_searched <= 10) {
                     lmrReduction -= 1;
                 }
 
