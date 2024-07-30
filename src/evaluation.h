@@ -221,7 +221,7 @@ static const int queen_unit = 9;
 // mobility bonuses
 static const int bishop_mobility_middlegame = 5;
 static const int bishop_mobility_endgame = 10;
-static const int queen_mobility_middlegame = 2;
+static const int queen_mobility_middlegame = 3;
 static const int queen_mobility_endgame = 6;
 
 // king's shield bonus
