@@ -2,21 +2,14 @@
 // Created by erena on 29.05.2024.
 //
 #pragma once
-#ifndef CHESSENGINE_BOARD_H
-#define CHESSENGINE_BOARD_H
-
-#endif //CHESSENGINE_BOARD_H
 
 
-
-#ifndef U64
-#define U64 unsigned long long
-#endif
+#include "board_constants.h"
 
 #define maxPly 64
 
 
-const int castlingRights[64] = {
+static const int castlingRights[64] = {
         7, 15, 15, 15, 3, 15, 15, 11,
         15, 15, 15, 15, 15, 15, 15, 15,
         15, 15, 15, 15, 15, 15, 15, 15,
@@ -41,8 +34,11 @@ typedef struct {
 
     int pvLength[maxPly];
     int pvTable[maxPly][maxPly];
-
     int killerMoves[maxPly][2];
+
+    int staticEval[maxPly];
+
+
 
     int followPv;
     int scorePv;
@@ -53,4 +49,5 @@ typedef struct {
     int gamePhase;
 } board;
 
-void printAttackedSquares(int side, board* position);
+static inline void printAttackedSquares(int side, board* position);
+static inline void printMove(int move);
