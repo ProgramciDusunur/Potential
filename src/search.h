@@ -370,6 +370,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     bool improving;
 
+    int pastStack;
+
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
         // if the move has already been searched (hence has a value)
@@ -408,17 +410,30 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     int static_eval = evaluate(position);
 
     position->staticEval[position->ply] = static_eval;
+    position->improvingRate[position->ply] = 0.0;
 
-    if(in_check)
+
+    if (position->staticEval[position->ply-2] != noEval) {
+        pastStack = position->ply - 2;
+    } else if (position->staticEval[position->ply-4] != noEval) {
+        pastStack = position->ply - 4;
+    }
+
+    if (pastStack) {
+        const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply]+ diff / 50, -1.0), 1.0);
+    }
+
+    /*if(in_check)
         improving = false;
+    else if (position->staticEval[position->ply-2] != noEval) {
+        improving = position->staticEval[position->ply] > position->staticEval[position->ply-2];
+    }
     else if (position->staticEval[position->ply-4] != noEval) {
         improving = position->staticEval[position->ply] > position->staticEval[position->ply-4];
     }
-    else if (position->staticEval[position->ply-8] != noEval) {
-        improving = position->staticEval[position->ply] > position->staticEval[position->ply-8];
-    }
     else
-        improving = true;
+        improving = true;*/
 
     //printf("static eval calculated %d\n", position->staticEval[position->ply]);
 
@@ -549,11 +564,11 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         }
 
         bool isNotMated = alpha > -mateScore + maxPly;
-        int lmpBase = 4;
+        double lmpBase = 4;
 
-        lmpBase = improving ? lmpBase + improving : lmpBase - improving;
+        lmpBase = position->improvingRate[position->ply] ? lmpBase + position->improvingRate[position->ply] : lmpBase - position->improvingRate[position->ply];
         int lmpMultiplier = 2;
-        int lmpThreshold = ((lmpBase) + lmpMultiplier * depth * depth);
+        double lmpThreshold = ((lmpBase) + lmpMultiplier * depth * depth);
         // Late Move Pruning (~18 Elo)
         if (!rootNode && isQuiet &&
             isNotMated &&
