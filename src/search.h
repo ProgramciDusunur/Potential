@@ -549,11 +549,12 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         }
 
         bool isNotMated = alpha > -mateScore + maxPly;
-        // 10512906 nodes 1316000 nps
-        int lmpBase = 4 - improving;
+        int lmpBase = 4;
+
+        lmpBase = improving ? lmpBase + improving : lmpBase - improving;
         int lmpMultiplier = 2;
         int lmpThreshold = ((lmpBase) + lmpMultiplier * depth * depth);
-        // Late Move Pruning (~13 Elo)
+        // Late Move Pruning (~18 Elo)
         if (!rootNode && isQuiet &&
             isNotMated &&
             legal_moves>= lmpThreshold) {
