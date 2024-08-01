@@ -414,8 +414,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     else if (position->staticEval[position->ply-3] != noEval) {
         improving = position->staticEval[position->ply] > position->staticEval[position->ply-3];
     }
-    else if (position->staticEval[position->ply-6] != noEval) {
-        improving = position->staticEval[position->ply] > position->staticEval[position->ply-6];
+    else if (position->staticEval[position->ply-5] != noEval) {
+        improving = position->staticEval[position->ply] > position->staticEval[position->ply-5];
     }
     else
         improving = true;
