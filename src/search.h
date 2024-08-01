@@ -421,7 +421,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     if (pastStack) {
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
-        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply]+ diff / 75, -1.0), 1.0);
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply]+ diff / 50, -1.0), 1.0);
     }
 
     /*if(in_check)
@@ -564,6 +564,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         }
 
         bool isNotMated = alpha > -mateScore + maxPly;
+
         double lmpBase = 4 + position->improvingRate[position->ply];
 
         int lmpMultiplier = 2;
