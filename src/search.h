@@ -421,8 +421,10 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     if (pastStack) {
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
-        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply]+ diff / 50, -1.0), 1.0);
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply]+ diff / 50, -2.0), 2.0);
     }
+
+    //printf("improving rate calculated %f\n", position->improvingRate[position->ply]);
 
     /*if(in_check)
         improving = false;
