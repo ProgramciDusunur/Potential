@@ -635,9 +635,9 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1;
                 }
-                if (position->improvingRate[position->ply] == -2.0) {
+                if (position->improvingRate[position->ply] < 0) {
                     //printf("improving rate calculated %f\n", position->improvingRate[position->ply]);
-                    lmrReduction += 1;
+                    lmrReduction += (int)position->improvingRate[position->ply];
                 }
 
                 // Reduce Less
@@ -650,10 +650,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 /*if (pvNode && moves_searched <= 10) {
                     lmrReduction -= 1;
                 }*/
-                if (position->improvingRate[position->ply] == 2.0) {
-                    //printf("improving rate calculated %f\n", position->improvingRate[position->ply]);
-                    lmrReduction -= 1;
-                }
+
 
             }
             // condition to consider LMR
