@@ -541,9 +541,23 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
-        if (skipQuiet) {
-            skipQuiet = 0;
+        int currentMove = moveList->moves[count];
+
+        bool isQuiet = getMoveCapture(currentMove) == 0;
+        if (skipQuiet && isQuiet) {
             continue;
+        }
+
+        bool isNotMated = alpha > -mateScore + maxPly;
+
+        int lmpBase = 4;
+        int lmpMultiplier = 2;
+        int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth);
+        // Late Move Pruning (~18 Elo)
+        if (!rootNode && isQuiet &&
+            isNotMated &&
+            legal_moves>= lmpThreshold) {
+            skipQuiet = 1;
         }
         /*int seeScore = see(position, moveList->moves[count]);
         if (in_check == 0 && seeScore < -17 * depth * depth) {
@@ -572,8 +586,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             // skip to next move
             continue;
         }
-        int currentMove = moveList->moves[count];
-        bool isQuiet = getMoveCapture(currentMove) == 0;
+
         /*if (isQuiet) {
             addMoveToHistoryList(badQuiets, currentMove);
         }*/
@@ -587,17 +600,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
 
 
-        bool isNotMated = alpha > -mateScore + maxPly;
 
-        int lmpBase = 4;
-        int lmpMultiplier = 2;
-        int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth);
-        // Late Move Pruning (~13 Elo)
-        if (!rootNode && isQuiet &&
-            isNotMated &&
-            legal_moves>= lmpThreshold) {
-            skipQuiet = 1;
-        }
 
 
         // full depth search
