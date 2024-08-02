@@ -422,7 +422,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     if (pastStack) {
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
-        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply]+ diff / 50, -2.0), 2.0);
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply]+ diff / 50, -3.0), 2.0);
     }
 
     /*if(in_check)
@@ -635,7 +635,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1;
                 }
-                if (position->improvingRate[position->ply] <= -1.0) {
+                if (position->improvingRate[position->ply] < -2.0) {
                     //printf("improving rate calculated %f\n", position->improvingRate[position->ply]);
                     lmrReduction += 1;
                 }
