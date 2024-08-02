@@ -635,10 +635,10 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1;
                 }
-                if (position->improvingRate[position->ply] < -2.0) {
+                /*if (position->improvingRate[position->ply] < -2.0) {
                     //printf("improving rate calculated %f\n", position->improvingRate[position->ply]);
                     lmrReduction += 1;
-                }
+                }*/
 
                 // Reduce Less
                 /*if (position->killerMoves[position->ply][0] == bestMove || position->killerMoves[position->ply][1] == bestMove) {
@@ -657,7 +657,6 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             if (
                     moves_searched >= lmr_full_depth_moves &&
                     depth >= lmr_reduction_limit && in_check == 0 &&
-                    isQuiet &&
                     getMovePromoted(currentMove) == 0
                     )
                 // search current move with reduced depth:
