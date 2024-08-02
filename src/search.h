@@ -635,9 +635,9 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1;
                 }
-                if (position->improvingRate[position->ply] < 0) {
+                if (position->improvingRate[position->ply] <= -1.0) {
                     //printf("improving rate calculated %f\n", position->improvingRate[position->ply]);
-                    lmrReduction += (int)position->improvingRate[position->ply];
+                    lmrReduction += 1;
                 }
 
                 // Reduce Less
