@@ -38,6 +38,8 @@ typedef struct {
 
     int staticEval[maxPly];
 
+    double improvingRate[maxPly];
+
 
 
     int followPv;

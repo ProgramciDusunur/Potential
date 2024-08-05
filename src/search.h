@@ -370,6 +370,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     bool improving;
 
+    int pastStack;
+
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
         // if the move has already been searched (hence has a value)
@@ -409,18 +411,19 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     position->staticEval[position->ply] = static_eval;
 
-    /*if(in_check)
-        improving = false;
-    else if (position->staticEval[position->ply-2] != noEval) {
-        improving = position->staticEval[position->ply] > position->staticEval[position->ply-2];
-    }
-    else if (position->staticEval[position->ply-4] != noEval) {
-        improving = position->staticEval[position->ply] > position->staticEval[position->ply-4];
-    }
-    else
-        improving = true;*/
+    position->improvingRate[position->ply] = 0.0;
 
-    //printf("static eval calculated %d\n", position->staticEval[position->ply]);
+
+    if (position->staticEval[position->ply-2] != noEval) {
+        pastStack = position->ply - 2;
+    } else if (position->staticEval[position->ply-4] != noEval) {
+        pastStack = position->ply - 4;
+    }
+
+    if (pastStack) {
+        const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply]+ diff / 50, -3.0), 2.0);
+    }
 
     int canPrune = in_check == 0 && pvNode == 0;
 
@@ -460,7 +463,11 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         // hash the side
         position->hashKey ^= sideKey;
 
-        int R = 3 + (int)(0.1875 * depth);
+        // if we are improving our position prune a little bit more otherwise prune less
+        double currentImprovingRate = position->improvingRate[position->ply];
+
+        // Calculate reduction value
+        int R = 3 + (int)((0.1875 + currentImprovingRate * 0.05) * depth);
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
