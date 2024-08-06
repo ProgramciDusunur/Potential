@@ -467,7 +467,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         double currentImprovingRate = position->improvingRate[position->ply];
 
         // Calculate reduction value
-        int R = 3 + (int)((0.1875 + currentImprovingRate * 0.1) * depth);
+        int R = 3 + (int)((0.1875 + currentImprovingRate * 0.075) * depth);
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
