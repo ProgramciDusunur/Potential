@@ -655,7 +655,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
 
             } else {
-                if (pvNode && moves_searched >= 12) {
+                if (pvNode && moves_searched >= 8 && position->improvingRate[position->ply] > 1.5) {
                     lmrReduction -= 1;
                 }
             }
