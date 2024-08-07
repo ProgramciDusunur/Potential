@@ -476,9 +476,11 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         // hash the side
         position->hashKey ^= sideKey;
 
+        int R = 3 + (int)(0.1875 * depth);
+
         /* search moves with reduced depth to find beta cutoffs
-           depth - 1 - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, depth - 1 - 2, position);
+           depth - R where R is a reduction limit */
+        score = -negamax(-beta, -beta + 1, depth - R, position);
 
         // decrement ply
         position->ply--;
