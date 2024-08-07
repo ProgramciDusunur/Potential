@@ -403,8 +403,12 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     // legal moves counter
     int legal_moves = 0;
+
     // quiet move counter
     int quietMoves = 0;
+
+    // capture move counter
+    int captureMoves = 0;
 
     // get static evaluation score
     int static_eval = evaluate(position);
@@ -614,6 +618,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
         if (isQuiet) {
             quietMoves++;
+        } else {
+            captureMoves++;
         }
 
 
@@ -655,8 +661,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
 
             } else {
-                if (pvNode && moves_searched >= 8 && position->improvingRate[position->ply] > 1.5) {
-                    lmrReduction -= 1;
+                if (!pvNode && captureMoves >= 8) {
+                    lmrReduction += 1;
                 }
             }
             // condition to consider LMR
