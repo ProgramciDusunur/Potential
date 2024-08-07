@@ -466,8 +466,12 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         // if we are improving our position prune a little bit more otherwise prune less
         double currentImprovingRate = position->improvingRate[position->ply];
 
+        int pvTrust = pvNode * 2;
+
+        //printf("pv node icindeyiz ve guveniyoruz: %d\n", (pvNode * 2));
+
         // Calculate reduction value
-        int R = 3 + (int)((0.1875 + currentImprovingRate * 0.075) * depth);
+        int R = 3 + (int)((0.1875 + currentImprovingRate * (0.05 * pvTrust)) * depth);
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
