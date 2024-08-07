@@ -426,7 +426,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     if (pastStack) {
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
-        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply]+ diff / 50, -3.0), 2.0);
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, -3.0), 2.0);
     }
 
     /*if(in_check)
@@ -649,9 +649,9 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 }*/
 
                 // Reduce Less
-                /*if (position->killerMoves[position->ply][0] == bestMove || position->killerMoves[position->ply][1] == bestMove) {
+                if (position->killerMoves[position->ply][0] == bestMove || position->killerMoves[position->ply][1] == bestMove) {
                     lmrReduction -= 1;
-                }*/
+                }
                 /*if (in_check) {
                     lmrReduction -= 1;
                 }*/
@@ -661,9 +661,9 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
 
             } else {
-                if (pvNode && captureMoves >= 8 && moves_searched >= 4) {
+                /*if (pvNode && captureMoves >= 8 && moves_searched >= 4) {
                     lmrReduction -= 1;
-                }
+                }*/
             }
             // condition to consider LMR
             if (
