@@ -649,7 +649,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 }*/
 
                 // Reduce Less
-                if (position->killerMoves[position->ply][0] == currentMove || position->killerMoves[position->ply][1] == currentMove) {
+                if (position->killerMoves[position->ply][0] == bestMove || position->killerMoves[position->ply][1] == bestMove) {
                     lmrReduction -= 1;
                 }
                 /*if (in_check) {
@@ -668,7 +668,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             // condition to consider LMR
             if (
                     moves_searched >= lmr_full_depth_moves &&
-                    depth >= lmr_reduction_limit && in_check == 0 &&
+                    depth >= lmr_reduction_limit &&
                     getMovePromoted(currentMove) == 0
                     )
                 // search current move with reduced depth:
