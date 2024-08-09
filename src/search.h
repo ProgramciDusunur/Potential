@@ -370,6 +370,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     bool improving;
 
+    int pastStack;
+
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
         // if the move has already been searched (hence has a value)
@@ -401,13 +403,31 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
     // legal moves counter
     int legal_moves = 0;
+
     // quiet move counter
     int quietMoves = 0;
+
+    // capture move counter
+    int captureMoves = 0;
 
     // get static evaluation score
     int static_eval = evaluate(position);
 
     position->staticEval[position->ply] = static_eval;
+
+    position->improvingRate[position->ply] = 0.0;
+
+
+    if (position->staticEval[position->ply-2] != noEval) {
+        pastStack = position->ply - 2;
+    } else if (position->staticEval[position->ply-4] != noEval) {
+        pastStack = position->ply - 4;
+    }
+
+    if (pastStack) {
+        const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, -3.0), 2.0);
+    }
 
     /*if(in_check)
         improving = false;
@@ -598,6 +618,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
         if (isQuiet) {
             quietMoves++;
+        } else {
+            captureMoves++;
         }
 
 
@@ -615,28 +637,38 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             int lmrReduction = getLmrReduction(depth, position->ply, pvNode, improving);
             if (isQuiet) {
                 // Reduce More
-                /*if (!improving) {
+                /*if (!improving && quietMoves >= 8 * depth && !pvNode) {
                     lmrReduction += 1;
                 }*/
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1;
                 }
-
+                /*if (position->improvingRate[position->ply] < -2.0) {
+                    //printf("improving rate calculated %f\n", position->improvingRate[position->ply]);
+                    lmrReduction += 1;
+                }*/
 
                 // Reduce Less
-                /*if (position->killerMoves[position->ply][0] == bestMove || position->killerMoves[position->ply][1] == bestMove) {
+                if (position->killerMoves[position->ply][0] == bestMove || position->killerMoves[position->ply][1] == bestMove) {
                     lmrReduction -= 1;
-                }*/
+                }
                 /*if (in_check) {
                     lmrReduction -= 1;
                 }*/
+                /*if (pvNode && moves_searched <= 10) {
+                    lmrReduction -= 1;
+                }*/
 
+
+            } else {
+                /*if (pvNode && captureMoves >= 8 && moves_searched >= 4) {
+                    lmrReduction -= 1;
+                }*/
             }
             // condition to consider LMR
             if (
                     moves_searched >= lmr_full_depth_moves &&
-                    depth >= lmr_reduction_limit && in_check == 0 &&
-                    isQuiet &&
+                    depth >= lmr_reduction_limit &&
                     getMovePromoted(currentMove) == 0
                     )
                 // search current move with reduced depth:
@@ -716,12 +748,12 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 // on quiet moves
                 if (isQuiet) {
                     // store killer moves
-                    /*if (position->killerMoves[position->ply][0] != bestMove) {
+                    if (position->killerMoves[position->ply][0] != bestMove) {
                         position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                         position->killerMoves[position->ply][0] = bestMove;
-                    }*/
-                    position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
-                    position->killerMoves[position->ply][0] = bestMove;
+                    }
+                    //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
+                    //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
                     updateHistory(bestMove, depth, badQuiets);
                 }
