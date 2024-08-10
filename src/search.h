@@ -209,9 +209,9 @@ static inline void printMove(int move) {
 
 static inline int getLmrReduction(int depth, int moveNumber, bool isPv, bool improving) {
     int reduction = lmrTable[depth][moveNumber];
-    if (isPv) {
+    /*if (isPv) {
         reduction -= 1;
-    }
+    }*/
     return reduction;
 }
 
