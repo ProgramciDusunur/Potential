@@ -209,9 +209,9 @@ static inline void printMove(int move) {
 
 static inline int getLmrReduction(int depth, int moveNumber, bool isPv, bool improving) {
     int reduction = lmrTable[depth][moveNumber];
-    if (isPv) {
+    /*if (isPv) {
         reduction -= 1;
-    }
+    }*/
     return reduction;
 }
 
@@ -661,9 +661,9 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
 
             } else {
-                /*if (pvNode && captureMoves >= 8 && moves_searched >= 4) {
+                if (pvNode) {
                     lmrReduction -= 1;
-                }*/
+                }
             }
             // condition to consider LMR
             if (
