@@ -19,7 +19,7 @@
 static int quit = 0;
 
 // UCI "movestogo" command moves counter
-static int movestogo = 15;
+static int movestogo = 25;
 
 // UCI "movetime" command time counter
 static int movetime = -1;
