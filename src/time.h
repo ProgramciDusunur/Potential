@@ -46,7 +46,7 @@ static int stopped = 0;
 static inline void resetTimeControl() {
     // reset timing
     quit = 0;
-    movestogo = 30;
+    movestogo = 15;
     movetime = -1;
     time = -1;
     inc = 0;
