@@ -47,7 +47,7 @@ typedef struct {
 static inline void initTimeControl(time* time) {
     // init timing
     time->quit = 0;
-    time->movestogo = 15;
+    time->movestogo = 20;
     time->movetime = -1;
     time->time = -1;
     time->inc = 0;
@@ -62,7 +62,7 @@ static inline void initTimeControl(time* time) {
 static inline void resetTimeControl(time* time) {
     // reset timing
     time->quit = 0;
-    time->movestogo = 30;
+    time->movestogo = 20;
     time->movetime = -1;
     time->time = -1;
     time->inc = 0;

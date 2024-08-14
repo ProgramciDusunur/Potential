@@ -441,7 +441,7 @@ void goCommand(char *command, board* position, time* time) {
         if (time->time > 1500) time -= 50;
 
         // init stoptime
-        time->stoptime = time->starttime + time->time + time->inc;
+        time->stoptime = time->starttime + time->time + (time->inc/2);
     }
 
     // if depth is not available
