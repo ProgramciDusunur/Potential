@@ -15,45 +15,61 @@
 #include <sys/time.h>
 #endif
 
-// exit from engine flag
-static int quit = 0;
 
-// UCI "movestogo" command moves counter
-static int movestogo = 15;
+typedef struct {
+    // exit from engine flag
+    int quit;
+    // UCI "movestogo" command moves counter
+    int movestogo;
 
-// UCI "movetime" command time counter
-static int movetime = -1;
+    // UCI "movetime" command time counter
+    int movetime;
 
-// UCI "time" command holder (ms)
-static int time = -1;
+    // UCI "time" command holder (ms)
+    int time;
 
-// UCI "inc" command's time increment holder
-static int inc = 0;
+    // UCI "inc" command's time increment holder
+    int inc;
 
-// UCI "starttime" command time holder
-static int starttime = 0;
+    // UCI "starttime" command time holder
+    int starttime;
 
-// UCI "stoptime" command time holder
-static int stoptime = 0;
+    // UCI "stoptime" command time holder
+    int stoptime;
 
-// variable to flag time control availability
-static int timeset = 0;
+    // variable to flag time control availability
+    int timeset;
 
-// variable to flag when the time is up
-static int stopped = 0;
+    // variable to flag when the time is up
+    int stopped;
+} time;
+
+static inline void initTimeControl(time* time) {
+    // init timing
+    time->quit = 0;
+    time->movestogo = 15;
+    time->movetime = -1;
+    time->time = -1;
+    time->inc = 0;
+    time->starttime = 0;
+    time->stoptime = 0;
+    time->timeset = 0;
+    time->stopped = 0;
+}
+
 
 // reset time control variables
-static inline void resetTimeControl() {
+static inline void resetTimeControl(time* time) {
     // reset timing
-    quit = 0;
-    movestogo = 40;
-    movetime = -1;
-    time = -1;
-    inc = 0;
-    starttime = 0;
-    stoptime = 0;
-    timeset = 0;
-    stopped = 0;
+    time->quit = 0;
+    time->movestogo = 30;
+    time->movetime = -1;
+    time->time = -1;
+    time->inc = 0;
+    time->starttime = 0;
+    time->stoptime = 0;
+    time->timeset = 0;
+    time->stopped = 0;
 }
 
 static inline int getTimeMiliSecond() {
