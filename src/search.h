@@ -809,7 +809,7 @@ static inline void searchPosition(int depth, board* position, bool benchmark, ti
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
-    memset(time, 0, sizeof(*time));
+    //memset(time, 0, sizeof(*time));
     //memset(counterMoves, 0, sizeof(counterMoves));
 
     // define initial alpha beta bounds
