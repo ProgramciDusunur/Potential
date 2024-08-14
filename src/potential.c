@@ -437,9 +437,6 @@ void goCommand(char *command, board* position, time* time) {
         // set up timing
         time->time /= time->movestogo;
 
-        // "illegal" (empty) move bug fix
-        if (time->time > 1500) time -= 50;
-
         // init stoptime
         time->stoptime = time->starttime + time->time + (time->inc/2);
     }
