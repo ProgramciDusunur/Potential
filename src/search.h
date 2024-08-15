@@ -447,8 +447,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
     int canPrune = in_check == 0 && pvNode == 0;
 
 
-    // evaluation pruning / static null move pruning
-    if (depth < 4 && canPrune && abs(beta - 1) > -infinity + 100) {
+    // Reverse futility pruning
+    if (depth < 6 && canPrune && abs(beta - 1) > -infinity + 100) {
         // define evaluation margin
         int eval_margin = 100 * depth;
 
