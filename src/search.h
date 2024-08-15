@@ -450,7 +450,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
     // Reverse futility pruning
     if (depth < 6 && canPrune && abs(beta - 1) > -infinity + 100) {
         // define evaluation margin
-        int eval_margin = 100 * depth;
+        int eval_margin = 125 * depth;
 
         // evaluation margin substracted from static evaluation score fails high
         if (static_eval - eval_margin >= beta)
