@@ -672,16 +672,23 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
                 }*/
             }
             // condition to consider LMR
-            if (
-                    moves_searched >= lmr_full_depth_moves &&
-                    depth >= lmr_reduction_limit &&
-                    getMovePromoted(currentMove) == 0
-                    )
+            if (moves_searched >= lmr_full_depth_moves &&
+                depth >= lmr_reduction_limit &&
+                getMovePromoted(currentMove) == 0) {
                 // search current move with reduced depth:
-                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, !cutNode);
+                if (pvNode) {
+                    score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, false);
+                } else {
+                    score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, !cutNode);
+                }
+
+            }
+
 
                 // hack to ensure that full-depth search is done
-            else score = alpha + 1;
+            else {
+                score = alpha + 1;
+            }
 
             // principle variation search PVS
             if (score > alpha) {
@@ -689,7 +696,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time, cutNode);
+                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time, false);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
@@ -699,7 +706,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
                 if ((score > alpha) && (score < beta))
                     /* re-search the move that has failed to be proved to be bad
                        with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, depth - 1, position, time, cutNode);
+                    score = -negamax(-beta, -alpha, depth - 1, position, time, false);
             }
         }
 
