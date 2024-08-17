@@ -428,7 +428,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
 
     if (pastStack) {
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
-        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, -3.0), 3.0);
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 25, -3.0), 2.0);
     }
 
     /*if(in_check)
@@ -448,7 +448,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
 
 
     // Reverse futility pruning
-    if (depth < 4 && !in_check && abs(beta - 1) > -infinity + 100) {
+    if (depth < 4 && canPrune && abs(beta - 1) > -infinity + 100) {
         // improving factor
         int improvingMargin = (int)((position->improvingRate[position->ply] / 2 ) * 20);
 
