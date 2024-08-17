@@ -422,7 +422,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
 
     if (position->staticEval[position->ply-2] != noEval) {
         pastStack = position->ply - 2;
-    } else if (position->staticEval[position->ply-4] != noEval) {
+    }
+    if (position->staticEval[position->ply-4] != noEval) {
         pastStack = position->ply - 4;
     }
 
