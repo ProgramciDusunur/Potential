@@ -611,9 +611,9 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
             continue;
         }
 
-        /*if (isQuiet) {
+        if (isQuiet) {
             addMoveToHistoryList(badQuiets, currentMove);
-        }*/
+        }
 
         // increment legal moves
         legal_moves++;

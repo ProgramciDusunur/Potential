@@ -32,7 +32,7 @@ inline void updateHistory(int bestMove, int depth, moves* badQuiets) {
 
     historyMoves[from][to] += scaledBonus(score, bonus);
 
-    /* for (int index = 0; index < badQuiets->count; index++) {
+    for (int index = 0; index < badQuiets->count; index++) {
          int badQuietFrom = getMoveSource(badQuiets->moves[index]);
          int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
@@ -41,7 +41,7 @@ inline void updateHistory(int bestMove, int depth, moves* badQuiets) {
          if (badQuiets->moves[index] == bestMove) continue;
 
          historyMoves[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus);
-     }*/
+     }
 }
 
 inline void clearHistory() {
