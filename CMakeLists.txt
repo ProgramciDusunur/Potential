@@ -34,4 +34,4 @@ add_executable(Potential
         src/time.c
         src/time.h
         src/values.c
-        src/values.h src/test/see_test.c src/history.c src/history.h src/uci.c src/uci.h)
+        src/values.h src/test/see_test.c src/history.c src/history.h src/uci.c src/uci.h src/bench.c src/bench.h src/zobrist.c src/zobrist.h)
