@@ -207,11 +207,13 @@ static inline void printMove(int move) {
 }
 
 
-static inline int getLmrReduction(int depth, int moveNumber, bool isPv, bool improving) {
+static inline int getLmrReduction(int depth, int moveNumber, bool isPv) {
     int reduction = lmrTable[depth][moveNumber];
+    // Reduce Less
     /*if (isPv) {
         reduction -= 1;
     }*/
+    // Reduce More
     return reduction;
 }
 
@@ -226,9 +228,9 @@ static inline void clearCounterMoves() {
 }
 
 // quiescence search
-static inline int quiescence(int alpha, int beta, board* position, int negamaxScore) {
+static inline int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time) {
     if ((nodes & 2047) == 0) {
-        communicate();
+        communicate(time);
     }
     // increment nodes count
     nodes++;
@@ -306,7 +308,7 @@ static inline int quiescence(int alpha, int beta, board* position, int negamaxSc
 
 
         // score current move
-        int score = -quiescence(-beta, -alpha, position, score);
+        int score = -quiescence(-beta, -alpha, position, score, time);
 
         // decrement ply
         position->ply--;
@@ -317,7 +319,7 @@ static inline int quiescence(int alpha, int beta, board* position, int negamaxSc
         // take move back
         takeBack(position, &copyPosition);
 
-        if (stopped == 1) return 0;
+        if (time->stopped == 1) return 0;
 
 
         // found a better move
@@ -344,7 +346,7 @@ static inline int quiescence(int alpha, int beta, board* position, int negamaxSc
 
 
 // negamax alpha beta search
-static inline int negamax(int alpha, int beta, int depth, board* position) {
+static inline int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode) {
     // variable to store current move's score (from the static evaluation perspective)
     int score;
 
@@ -355,7 +357,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     int hashFlag = hashFlagAlpha;
 
     if ((nodes & 2047) == 0) {
-        communicate();
+        communicate(time);
     }
 
     if (position->ply && isRepetition(position)) {
@@ -384,10 +386,10 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
     // recursion escapre condition
     if (depth == 0)
         // run quiescence search
-        return quiescence(alpha, beta, position, score);
+        return quiescence(alpha, beta, position, score, time);
 
     // IIR by Ed Schroder (~15 Elo)
-    if (depth >= 4 && ttBound == hashFlagNone)
+    if (depth >= 4 && ttBound == hashFlagNone || cutNode)
         depth--;
 
     // increment nodes count
@@ -484,7 +486,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, depth - R, position);
+        score = -negamax(-beta, -beta + 1, depth - R, position, time, !cutNode);
 
         // decrement ply
         position->ply--;
@@ -496,7 +498,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         takeBack(position, &copyPosition);
 
 
-        if (stopped == 1) return 0;
+        if (time->stopped == 1) return 0;
 
         // fail-hard beta cutoff
         if (score >= beta)
@@ -518,7 +520,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             // on depth 1
             if (depth == 1) {
                 // get quiscence score
-                new_score = quiescence(alpha, beta, position, score);
+                new_score = quiescence(alpha, beta, position, score, time);
 
                 // return quiescence score if it's greater then static evaluation score
                 return (new_score > score) ? new_score : score;
@@ -530,7 +532,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
             // static evaluation indicates a fail-low node
             if (score < beta && depth <= 2) {
                 // get quiscence score
-                new_score = quiescence(alpha, beta, position, score);
+                new_score = quiescence(alpha, beta, position, score, time);
 
                 // quiescence score indicates fail-low node
                 if (new_score < beta)
@@ -630,11 +632,11 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         // full depth search
         if (moves_searched == 0)
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, depth - 1, position);
+            score = -negamax(-beta, -alpha, depth - 1, position, time, false);
 
             // late move reduction (LMR)
         else {
-            int lmrReduction = getLmrReduction(depth, position->ply, pvNode, improving);
+            int lmrReduction = getLmrReduction(depth, position->ply, pvNode);
             if (isQuiet) {
                 // Reduce More
                 /*if (!improving && quietMoves >= 8 * depth && !pvNode) {
@@ -643,6 +645,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1;
                 }
+
                 /*if (position->improvingRate[position->ply] < -2.0) {
                     //printf("improving rate calculated %f\n", position->improvingRate[position->ply]);
                     lmrReduction += 1;
@@ -661,21 +664,32 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
 
             } else {
-                if (!pvNode && captureMoves >= 2) {
+                // Reduce More
+                if (cutNode) {
                     lmrReduction += 1;
                 }
+                /*if (pvNode && captureMoves >= 8 && moves_searched >= 4) {
+                    lmrReduction -= 1;
+                }*/
             }
             // condition to consider LMR
-            if (
-                    moves_searched >= lmr_full_depth_moves &&
-                    depth >= lmr_reduction_limit &&
-                    getMovePromoted(currentMove) == 0
-                    )
+            if (moves_searched >= lmr_full_depth_moves &&
+                depth >= lmr_reduction_limit &&
+                getMovePromoted(currentMove) == 0) {
                 // search current move with reduced depth:
-                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position);
+                if (pvNode) {
+                    score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, false);
+                } else {
+                    score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, !cutNode);
+                }
+
+            }
+
 
                 // hack to ensure that full-depth search is done
-            else score = alpha + 1;
+            else {
+                score = alpha + 1;
+            }
 
             // principle variation search PVS
             if (score > alpha) {
@@ -683,7 +697,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, depth - 1, position);
+                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time, false);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
@@ -693,7 +707,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
                 if ((score > alpha) && (score < beta))
                     /* re-search the move that has failed to be proved to be bad
                        with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, depth - 1, position);
+                    score = -negamax(-beta, -alpha, depth - 1, position, time, false);
             }
         }
 
@@ -706,7 +720,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
         // take move back
         takeBack(position, &copyPosition);
 
-        if (stopped == 1) return 0;
+        if (time->stopped == 1) return 0;
 
         // increment the counter of moves searched so far
         moves_searched++;
@@ -790,12 +804,12 @@ static inline int negamax(int alpha, int beta, int depth, board* position) {
 
 
 // search position for the best move
-static inline void searchPosition(int depth, board* position, bool benchmark) {
+static inline void searchPosition(int depth, board* position, bool benchmark, time* time) {
     // define best score variable
     int score = 0;
 
     // reset "time is up" flag
-    stopped = 0;
+    time->stopped = 0;
 
     // reset nodes counter
     nodes = 0;
@@ -809,6 +823,7 @@ static inline void searchPosition(int depth, board* position, bool benchmark) {
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
+    //memset(time, 0, sizeof(*time));
     //memset(counterMoves, 0, sizeof(counterMoves));
 
     // define initial alpha beta bounds
@@ -819,14 +834,14 @@ static inline void searchPosition(int depth, board* position, bool benchmark) {
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
-        if (stopped == 1) {
+        if (time->stopped == 1) {
             break;
         }
 
         int startTime = getTimeMiliSecond();
         position->followPv = 1;
         // find best move within a given position
-        score = negamax(alpha, beta, current_depth, position);
+        score = negamax(alpha, beta, current_depth, position, time, false);
 
         if (score <= alpha || score >= beta) {
             alpha = -infinity;
