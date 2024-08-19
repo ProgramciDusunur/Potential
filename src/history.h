@@ -40,7 +40,7 @@ inline void updateHistory(int bestMove, int depth, moves* badQuiets) {
 
          if (badQuiets->moves[index] == bestMove) continue;
 
-         historyMoves[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus);
+         historyMoves[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -depth);
      }
 }
 
