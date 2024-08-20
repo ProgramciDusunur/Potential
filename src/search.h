@@ -384,8 +384,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
         return quiescence(alpha, beta, position, score, time);
 
     // IIR by Ed Schroder (~15 Elo)
-    if ((depth >= 4 && ttBound == hashFlagNone) || cutNode)
-        depth -= 1 + pvNode;
+    if ((depth >= (4 + pvNode) && ttBound == hashFlagNone) || cutNode)
+        depth -= 1;
 
     // increment nodes count
     nodes++;
