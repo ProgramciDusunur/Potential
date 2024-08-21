@@ -650,9 +650,11 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
                 if (position->killerMoves[position->ply][0] == bestMove || position->killerMoves[position->ply][1] == bestMove) {
                     lmrReduction -= 1;
                 }
-                /*if (in_check) {
+
+                if (in_check && depth > 15) {
                     lmrReduction -= 1;
-                }*/
+                }
+
                 /*if (pvNode && moves_searched <= 10) {
                     lmrReduction -= 1;
                 }*/
