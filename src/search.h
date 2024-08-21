@@ -651,7 +651,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
                     lmrReduction -= 1;
                 }
 
-                if (in_check) {
+                if (in_check && depth > 10) {
                     lmrReduction -= 1;
                 }
 
