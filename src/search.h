@@ -139,7 +139,36 @@ static inline int scoreMove(int move, board* position) {
     return 0;
 }
 
-// sort moves in descending order
+static inline void swap(int *a, int *b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+static inline int partition(int *move_scores, int *moves, int low, int high) {
+    int pivot = move_scores[high];
+    int i = (low - 1);
+
+    for (int j = low; j <= high - 1; j++) {
+        if (move_scores[j] >= pivot) {
+            i++;
+            swap(&move_scores[i], &move_scores[j]);
+            swap(&moves[i], &moves[j]);
+        }
+    }
+    swap(&move_scores[i + 1], &move_scores[high]);
+    swap(&moves[i + 1], &moves[high]);
+    return (i + 1);
+}
+
+static inline void quickSort(int *move_scores, int *moves, int low, int high) {
+    if (low < high) {
+        int pi = partition(move_scores, moves, low, high);
+        quickSort(move_scores, moves, low, pi - 1);
+        quickSort(move_scores, moves, pi + 1, high);
+    }
+}
+
 static inline int sort_moves(moves *moveList, int bestMove, board* position) {
     // move scores
     int move_scores[moveList->count];
@@ -150,30 +179,16 @@ static inline int sort_moves(moves *moveList, int bestMove, board* position) {
         if (bestMove == moveList->moves[count])
             // score move
             move_scores[count] = 2000000000;
-
         else
             // score move
             move_scores[count] = scoreMove(moveList->moves[count], position);
     }
 
-    // loop over current move within a move list
-    for (int current_move = 0; current_move < moveList->count; current_move++) {
-        // loop over next move within a move list
-        for (int next_move = current_move + 1; next_move < moveList->count; next_move++) {
-            // compare current and next move scores
-            if (move_scores[current_move] < move_scores[next_move]) {
-                // swap scores
-                int temp_score = move_scores[current_move];
-                move_scores[current_move] = move_scores[next_move];
-                move_scores[next_move] = temp_score;
+    // sort moves using QuickSort
+    quickSort(move_scores, moveList->moves, 0, moveList->count - 1);
 
-                // swap moves
-                int temp_move = moveList->moves[current_move];
-                moveList->moves[current_move] = moveList->moves[next_move];
-                moveList->moves[next_move] = temp_move;
-            }
-        }
-    }
+    // return best move
+    return moveList->moves[0];
 }
 
 // enable PV move scoring
