@@ -139,56 +139,38 @@ static inline int scoreMove(int move, board* position) {
     return 0;
 }
 
-static inline void swap(int *a, int *b) {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
-}
 
-static inline int partition(int *move_scores, int *moves, int low, int high) {
-    int pivot = move_scores[high];
-    int i = (low - 1);
-
-    for (int j = low; j <= high - 1; j++) {
-        if (move_scores[j] >= pivot) {
-            i++;
-            swap(&move_scores[i], &move_scores[j]);
-            swap(&moves[i], &moves[j]);
-        }
-    }
-    swap(&move_scores[i + 1], &move_scores[high]);
-    swap(&moves[i + 1], &moves[high]);
-    return (i + 1);
-}
-
-static inline void quickSort(int *move_scores, int *moves, int low, int high) {
-    if (low < high) {
-        int pi = partition(move_scores, moves, low, high);
-        quickSort(move_scores, moves, low, pi - 1);
-        quickSort(move_scores, moves, pi + 1, high);
-    }
-}
 
 static inline int sort_moves(moves *moveList, int bestMove, board* position) {
     // move scores
     int move_scores[moveList->count];
+    int sorted_count = 0;
 
-    // score all the moves within a move list
+    // score and insert moves one by one
     for (int count = 0; count < moveList->count; count++) {
+        int current_move = moveList->moves[count];
+        int current_score;
+
         // if hash move available
-        if (bestMove == moveList->moves[count])
-            // score move
-            move_scores[count] = 2000000000;
+        if (bestMove == current_move)
+            current_score = 2000000000;
         else
-            // score move
-            move_scores[count] = scoreMove(moveList->moves[count], position);
+            current_score = scoreMove(current_move, position);
+
+        // Find the correct position to insert the current move
+        int insert_pos = sorted_count;
+        while (insert_pos > 0 && move_scores[insert_pos - 1] < current_score) {
+            move_scores[insert_pos] = move_scores[insert_pos - 1];
+            moveList->moves[insert_pos] = moveList->moves[insert_pos - 1];
+            insert_pos--;
+        }
+
+        // Insert the current move and score
+        move_scores[insert_pos] = current_score;
+        moveList->moves[insert_pos] = current_move;
+
+        sorted_count++;
     }
-
-    // sort moves using QuickSort
-    quickSort(move_scores, moveList->moves, 0, moveList->count - 1);
-
-    // return best move
-    return moveList->moves[0];
 }
 
 // enable PV move scoring
