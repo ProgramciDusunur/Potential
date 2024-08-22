@@ -139,40 +139,37 @@ static inline int scoreMove(int move, board* position) {
     return 0;
 }
 
-// sort moves in descending order
+
+
 static inline int sort_moves(moves *moveList, int bestMove, board* position) {
     // move scores
     int move_scores[moveList->count];
+    int sorted_count = 0;
 
-    // score all the moves within a move list
+    // score and insert moves one by one
     for (int count = 0; count < moveList->count; count++) {
+        int current_move = moveList->moves[count];
+        int current_score;
+
         // if hash move available
-        if (bestMove == moveList->moves[count])
-            // score move
-            move_scores[count] = 2000000000;
-
+        if (bestMove == current_move)
+            current_score = 2000000000;
         else
-            // score move
-            move_scores[count] = scoreMove(moveList->moves[count], position);
-    }
+            current_score = scoreMove(current_move, position);
 
-    // loop over current move within a move list
-    for (int current_move = 0; current_move < moveList->count; current_move++) {
-        // loop over next move within a move list
-        for (int next_move = current_move + 1; next_move < moveList->count; next_move++) {
-            // compare current and next move scores
-            if (move_scores[current_move] < move_scores[next_move]) {
-                // swap scores
-                int temp_score = move_scores[current_move];
-                move_scores[current_move] = move_scores[next_move];
-                move_scores[next_move] = temp_score;
-
-                // swap moves
-                int temp_move = moveList->moves[current_move];
-                moveList->moves[current_move] = moveList->moves[next_move];
-                moveList->moves[next_move] = temp_move;
-            }
+        // Find the correct position to insert the current move
+        int insert_pos = sorted_count;
+        while (insert_pos > 0 && move_scores[insert_pos - 1] < current_score) {
+            move_scores[insert_pos] = move_scores[insert_pos - 1];
+            moveList->moves[insert_pos] = moveList->moves[insert_pos - 1];
+            insert_pos--;
         }
+
+        // Insert the current move and score
+        move_scores[insert_pos] = current_score;
+        moveList->moves[insert_pos] = current_move;
+
+        sorted_count++;
     }
 }
 
