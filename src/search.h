@@ -269,7 +269,7 @@ static inline int quiescence(int alpha, int beta, board* position, int negamaxSc
     moveGenerator(moveList, position);
 
     // sort moves
-    sort_moves(moveList, 0, position);
+    //sort_moves(moveList, 0, position);
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
