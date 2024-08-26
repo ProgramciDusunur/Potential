@@ -11,6 +11,7 @@
 #include "board_constants.h"
 #include "bit_manipulation.h"
 #include <stdlib.h>
+#include <stdbool.h>
 
 /**********************************\
  ==================================
@@ -150,15 +151,14 @@ inline int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* p
     // if hash entry doesn't exist
     return noHashEntry;
 }
-inline int readHashFlag(board* position) {
-    int noHashFlag = hashFlagNone;
+inline bool readHashFlag(board* position) {
 
     tt *hashEntry = &hashTable[position->hashKey % hash_entries];
-    if (hashEntry->hashKey == position->hashKey && (hashEntry->flag == hashFlagBeta || hashEntry->flag == hashFlagAlpha || hashEntry->flag == hashFlagExact)) {
-        return hashEntry->flag;
+    if (hashEntry->hashKey == position->hashKey && hashEntry->flag > -1) {
+        return true;
     }
 
-    return noHashFlag;
+    return false;
 }
 
 inline void clearHashTable() {
