@@ -151,13 +151,14 @@ inline int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* p
     return noHashEntry;
 }
 inline int readHashFlag(board* position) {
+    int noHashFlag = hashFlagNone;
 
     tt *hashEntry = &hashTable[position->hashKey % hash_entries];
-    if (hashEntry->hashKey == position->hashKey && hashEntry->flag > -1) {
-        return 1;
+    if (hashEntry->hashKey == position->hashKey && (hashEntry->flag == hashFlagBeta || hashEntry->flag == hashFlagAlpha || hashEntry->flag == hashFlagExact)) {
+        return hashEntry->flag;
     }
 
-    return -1;
+    return noHashFlag;
 }
 
 inline void clearHashTable() {
