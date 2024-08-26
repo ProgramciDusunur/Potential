@@ -360,7 +360,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
 
     int rootNode = position->ply == 0;
 
-    bool ttBound = readHashFlag(position);
+    int ttBound = readHashFlag(position);
 
     bool improving;
 
@@ -381,7 +381,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
         return quiescence(alpha, beta, position, score, time);
 
     // IIR by Ed Schroder (~15 Elo)
-    if ((depth >= 4 && !ttBound) || cutNode)
+    if ((depth >= 4 && ttBound == hashFlagNone) || cutNode)
         depth -= 1 + (cutNode);
 
     // increment nodes count
