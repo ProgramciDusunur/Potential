@@ -271,9 +271,17 @@ static inline int quiescence(int alpha, int beta, board* position, int negamaxSc
     // sort moves
     //sort_moves(moveList, 0, position);
 
+    int futilityMargin = evaluation + 100;
+
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
         //if (see(position, moveList->moves[count]) < 0) continue;
+        if (!pvNode && futilityMargin <= alpha) {
+            if (negamaxScore < futilityMargin) {
+                negamaxScore = futilityMargin;
+            }
+            continue;
+        }
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
