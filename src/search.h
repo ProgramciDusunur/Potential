@@ -577,11 +577,15 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
         int lmpBase = 4;
         int lmpMultiplier = 2;
         int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth);
-        // Late Move Pruning (~18 Elo)
-        if (!rootNode && isQuiet &&
-            isNotMated &&
-            legal_moves>= lmpThreshold) {
-            skipQuiet = 1;
+        if (!rootNode && isQuiet && isNotMated) {
+            // Late Move Pruning (~18 Elo)
+            if (legal_moves>= lmpThreshold) {
+                skipQuiet = 1;
+            }
+
+            if (canPrune && depth < 4 && static_eval + 100 <= alpha) {
+                skipQuiet = 1;
+            }
         }
         /*int seeScore = see(position, moveList->moves[count]);
         if (in_check == 0 && seeScore < -17 * depth * depth) {
