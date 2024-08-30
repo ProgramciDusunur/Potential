@@ -852,6 +852,7 @@ static inline void searchPosition(int depth, board* position, bool benchmark, ti
         if (score <= alpha || score >= beta) {
             alpha = -infinity;
             beta = infinity;
+            current_depth -= 1;
             continue;
         }
 
