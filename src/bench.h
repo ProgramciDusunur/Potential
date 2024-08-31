@@ -8,4 +8,4 @@
 
 static char* benchmarkfens[52];
 
-static inline void benchmark(int depth, board* position);
+static inline void benchmark(int depth, board* position, time* time);
