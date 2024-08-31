@@ -204,8 +204,16 @@ static const int isolated_pawn_penalty_opening = -5;
 static const int isolated_pawn_penalty_endgame = -10;
 
 // passed pawn bonus
-static const int passed_pawn_bonus_middle[8] = { 0, 0, 0, 5, 10, 25, 50, 0};
-static const int passed_pawn_bonus_endgame[8] = { 0, 0, 0, 10, 15, 50, 100, 0};
+static const int passed_pawn_bonus_middle[8] = { 0, 0, 0, 5, 10, 15, 30, 0};
+static const int passed_pawn_bonus_endgame[64] = {0, 0, 0, 0, 0, 0, 0, 0,
+                                                 72, 83, 83, 83, 83, 83, 83, 72,
+                                                 28, 34, 34, 34, 34, 34, 34, 28,
+                                                 9, 13, 13, 13, 13, 13, 13, 9,
+                                                 2, 6, 6, 6, 6, 6, 6, 0,
+                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                 0, 0, 0, 0, 0, 0, 0, 0};
+
 
 
 // semi open file score
@@ -368,7 +376,7 @@ static inline int evaluate(board* position) {
                         if (game_phase == middlegame) {
                             score += passed_pawn_bonus_middle[get_rank[square]];
                         } else if (game_phase == endgame) {
-                            score += passed_pawn_bonus_endgame[get_rank[square]];
+                            score += passed_pawn_bonus_endgame[square];
                         }
                     }
 
@@ -521,7 +529,7 @@ static inline int evaluate(board* position) {
                         if (game_phase == middlegame) {
                             score += passed_pawn_bonus_middle[get_rank[square]];
                         } else if (game_phase == endgame) {
-                            score += passed_pawn_bonus_endgame[get_rank[square]];
+                            score += passed_pawn_bonus_endgame[mirrorScore[square]];
                         }
                     }
 
