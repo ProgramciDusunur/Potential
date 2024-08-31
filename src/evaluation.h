@@ -208,7 +208,7 @@ static const int passed_pawn_bonus_middle[64] = { 0, 0, 0, 0, 0, 0, 0, 0,
                                                  36, 42, 42, 42, 42, 42, 42, 36,
                                                  14, 17, 17, 17, 17, 17, 17, 14,
                                                  5, 7, 7, 7, 7, 7, 7, 5,
-                                                 0, 3, 3, 3, 3, 3, 3, 0,
+                                                 0, 0, 0, 0, 0, 0, 0, 0,
                                                  0, 0, 0, 0, 0, 0, 0, 0,
                                                  0, 0, 0, 0, 0, 0, 0, 0,
                                                  0, 0, 0, 0, 0, 0, 0, 0,};
@@ -380,9 +380,7 @@ static inline int evaluate(board* position) {
                     // on passed pawn
                     if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                         // give passed pawn bonus
-                        if (game_phase == middlegame) {
-                            score += passed_pawn_bonus_middle[square];
-                        } else if (game_phase == endgame) {
+                       if (game_phase == endgame) {
                             score += passed_pawn_bonus_endgame[square];
                         }
                     }
@@ -533,9 +531,7 @@ static inline int evaluate(board* position) {
                     // on passed pawn
                     if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         // give passed pawn bonus
-                        if (game_phase == middlegame) {
-                            score += passed_pawn_bonus_middle[mirrorScore[square]];
-                        } else if (game_phase == endgame) {
+                       if (game_phase == endgame) {
                             score += passed_pawn_bonus_endgame[mirrorScore[square]];
                         }
                     }
