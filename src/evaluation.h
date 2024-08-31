@@ -204,12 +204,19 @@ static const int isolated_pawn_penalty_opening = -5;
 static const int isolated_pawn_penalty_endgame = -10;
 
 // passed pawn bonus
-static const int passed_pawn_bonus_middle[8] = { 0, 0, 0, 5, 10, 15, 30, 0};
+static const int passed_pawn_bonus_middle[64] = { 0, 0, 0, 0, 0, 0, 0, 0,
+                                                 36, 42, 42, 42, 42, 42, 42, 36,
+                                                 14, 17, 17, 17, 17, 17, 17, 14,
+                                                 5, 7, 7, 7, 7, 7, 7, 5,
+                                                 0, 3, 3, 3, 3, 3, 3, 0,
+                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                 0, 0, 0, 0, 0, 0, 0, 0,};
 static const int passed_pawn_bonus_endgame[64] = {0, 0, 0, 0, 0, 0, 0, 0,
                                                  72, 83, 83, 83, 83, 83, 83, 72,
-                                                 28, 34, 34, 34, 34, 34, 34, 28,
+                                                 14, 34, 34, 34, 34, 34, 34, 14,
                                                  9, 13, 13, 13, 13, 13, 13, 9,
-                                                 2, 6, 6, 6, 6, 6, 6, 0,
+                                                 0, 6, 6, 6, 6, 6, 6, 0,
                                                  0, 0, 0, 0, 0, 0, 0, 0,
                                                  0, 0, 0, 0, 0, 0, 0, 0,
                                                  0, 0, 0, 0, 0, 0, 0, 0};
@@ -374,7 +381,7 @@ static inline int evaluate(board* position) {
                     if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                         // give passed pawn bonus
                         if (game_phase == middlegame) {
-                            score += passed_pawn_bonus_middle[get_rank[square]];
+                            score += passed_pawn_bonus_middle[square];
                         } else if (game_phase == endgame) {
                             score += passed_pawn_bonus_endgame[square];
                         }
@@ -527,7 +534,7 @@ static inline int evaluate(board* position) {
                     if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         // give passed pawn bonus
                         if (game_phase == middlegame) {
-                            score += passed_pawn_bonus_middle[get_rank[square]];
+                            score += passed_pawn_bonus_middle[mirrorScore[square]];
                         } else if (game_phase == endgame) {
                             score += passed_pawn_bonus_endgame[mirrorScore[square]];
                         }
