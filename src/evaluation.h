@@ -214,7 +214,7 @@ static const int passed_pawn_bonus_middle[64] = { 0, 0, 0, 0, 0, 0, 0, 0,
                                                  0, 0, 0, 0, 0, 0, 0, 0,};
 
 static const int passed_pawn_bonus_endgame[64] = {0, 0, 0, 0, 0, 0, 0, 0,
-                                                  72, 83, 83, 83, 83, 83, 83, 72,
+                                                  80, 85, 90, 103, 103, 90, 85, 80,
                                                   20, 27, 30, 34, 34, 30, 27, 20,
                                                   10, 12, 15, 17, 17, 15, 12, 10,
                                                   0, 10, 10, 10, 10, 10, 10, 0,
@@ -386,10 +386,10 @@ static inline int evaluate(board* position) {
                         // give passed pawn bonus
                        if (game_phase == endgame) {
 
-                           /*int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
+                           int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                            int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                            int kingDistance = blackKingDistance - whiteKingDistance;
-                           score += kingDistance * king_distance_bonus;*/
+                           score += kingDistance * king_distance_bonus;
                            score += passed_pawn_bonus_endgame[square];
                         }
                     }
@@ -541,10 +541,10 @@ static inline int evaluate(board* position) {
                     if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         // give passed pawn bonus
                        if (game_phase == endgame) {
-                           /*int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
+                           int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                            int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                            int kingDistance = whiteKingDistance - blackKingDistance;
-                           score -= kingDistance * king_distance_bonus;*/
+                           score -= kingDistance * king_distance_bonus;
                            score -= passed_pawn_bonus_endgame[mirrorScore[square]];
                         }
                     }
