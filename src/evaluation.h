@@ -244,7 +244,7 @@ static const int queen_mobility_endgame = 2;
 static const int king_shield_bonus = 5;
 
 // king distance bonus
-static const int king_distance_bonus = 5;
+static const int king_distance_bonus = 10;
 
 // game phase scores
 static const int opening_phase_score = 6192;
