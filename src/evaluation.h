@@ -543,7 +543,7 @@ static inline int evaluate(board* position) {
                            int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                            int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                            int kingDistance = whiteKingDistance - blackKingDistance;
-                           score += kingDistance * king_distance_bonus;
+                           score -= kingDistance * king_distance_bonus;
                         }
                     }
 
