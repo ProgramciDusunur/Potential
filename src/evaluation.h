@@ -388,7 +388,7 @@ static inline int evaluate(board* position) {
 
                            int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                            int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
-                           int kingDistance = (blackKingDistance - whiteKingDistance) - 1;
+                           int kingDistance = blackKingDistance - whiteKingDistance;
                            score += kingDistance * king_distance_bonus;
                         }
                     }
@@ -542,7 +542,7 @@ static inline int evaluate(board* position) {
                        if (game_phase == endgame) {
                            int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                            int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
-                           int kingDistance = (whiteKingDistance - blackKingDistance) - 1;
+                           int kingDistance = whiteKingDistance - blackKingDistance;
                            score -= kingDistance * king_distance_bonus;
                         }
                     }
