@@ -243,6 +243,9 @@ static const int queen_mobility_endgame = 2;
 // king's shield bonus
 static const int king_shield_bonus = 5;
 
+// king distance bonus
+static const int king_distance_bonus = 5;
+
 // game phase scores
 static const int opening_phase_score = 6192;
 static const int endgame_phase_score = 518;
@@ -382,7 +385,11 @@ static inline int evaluate(board* position) {
                     if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                         // give passed pawn bonus
                        if (game_phase == endgame) {
-                            score += passed_pawn_bonus_endgame[square];
+
+                           int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
+                           int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
+                           int kingDistance = blackKingDistance - whiteKingDistance;
+                           score += kingDistance * king_distance_bonus;
                         }
                     }
 
@@ -533,7 +540,10 @@ static inline int evaluate(board* position) {
                     if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         // give passed pawn bonus
                        if (game_phase == endgame) {
-                            score += passed_pawn_bonus_endgame[mirrorScore[square]];
+                           int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
+                           int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
+                           int kingDistance = whiteKingDistance - blackKingDistance;
+                           score += kingDistance * king_distance_bonus;
                         }
                     }
 
