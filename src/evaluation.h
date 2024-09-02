@@ -667,9 +667,9 @@ static inline int evaluate(board* position) {
             popBit(bitboard, square);
         }
     }
-
+    int tempo = 10;
     // return final evaluation based on side
-    return (position->side == white) ? score : -score;
+    return (position->side == white) ? score + tempo : -(score - tempo);
 }
 
 static inline void clearStaticEvaluationHistory(board* position) {
