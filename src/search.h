@@ -139,40 +139,37 @@ static inline int scoreMove(int move, board* position) {
     return 0;
 }
 
-// sort moves in descending order
+
+
 static inline int sort_moves(moves *moveList, int bestMove, board* position) {
     // move scores
     int move_scores[moveList->count];
+    int sorted_count = 0;
 
-    // score all the moves within a move list
+    // score and insert moves one by one
     for (int count = 0; count < moveList->count; count++) {
+        int current_move = moveList->moves[count];
+        int current_score;
+
         // if hash move available
-        if (bestMove == moveList->moves[count])
-            // score move
-            move_scores[count] = 2000000000;
-
+        if (bestMove == current_move)
+            current_score = 2000000000;
         else
-            // score move
-            move_scores[count] = scoreMove(moveList->moves[count], position);
-    }
+            current_score = scoreMove(current_move, position);
 
-    // loop over current move within a move list
-    for (int current_move = 0; current_move < moveList->count; current_move++) {
-        // loop over next move within a move list
-        for (int next_move = current_move + 1; next_move < moveList->count; next_move++) {
-            // compare current and next move scores
-            if (move_scores[current_move] < move_scores[next_move]) {
-                // swap scores
-                int temp_score = move_scores[current_move];
-                move_scores[current_move] = move_scores[next_move];
-                move_scores[next_move] = temp_score;
-
-                // swap moves
-                int temp_move = moveList->moves[current_move];
-                moveList->moves[current_move] = moveList->moves[next_move];
-                moveList->moves[next_move] = temp_move;
-            }
+        // Find the correct position to insert the current move
+        int insert_pos = sorted_count;
+        while (insert_pos > 0 && move_scores[insert_pos - 1] < current_score) {
+            move_scores[insert_pos] = move_scores[insert_pos - 1];
+            moveList->moves[insert_pos] = moveList->moves[insert_pos - 1];
+            insert_pos--;
         }
+
+        // Insert the current move and score
+        move_scores[insert_pos] = current_score;
+        moveList->moves[insert_pos] = current_move;
+
+        sorted_count++;
     }
 }
 
@@ -207,13 +204,8 @@ static inline void printMove(int move) {
 }
 
 
-static inline int getLmrReduction(int depth, int moveNumber, bool isPv) {
+static inline int getLmrReduction(int depth, int moveNumber) {
     int reduction = lmrTable[depth][moveNumber];
-    // Reduce Less
-    /*if (isPv) {
-        reduction -= 1;
-    }*/
-    // Reduce More
     return reduction;
 }
 
@@ -277,11 +269,19 @@ static inline int quiescence(int alpha, int beta, board* position, int negamaxSc
     moveGenerator(moveList, position);
 
     // sort moves
-    sort_moves(moveList, 0, position);
+    //sort_moves(moveList, 0, position);
+
+    int futilityMargin = evaluation + 100;
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
         //if (see(position, moveList->moves[count]) < 0) continue;
+        if (!pvNode && futilityMargin <= alpha) {
+            if (negamaxScore < futilityMargin) {
+                negamaxScore = futilityMargin;
+            }
+            continue;
+        }
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
@@ -389,8 +389,8 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
         return quiescence(alpha, beta, position, score, time);
 
     // IIR by Ed Schroder (~15 Elo)
-    if (depth >= 4 && ttBound == hashFlagNone || cutNode)
-        depth--;
+    if ((depth >= 4 && ttBound == hashFlagNone) || cutNode)
+        depth -= 1 + (cutNode);
 
     // increment nodes count
     nodes++;
@@ -577,11 +577,15 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
         int lmpBase = 4;
         int lmpMultiplier = 2;
         int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth);
-        // Late Move Pruning (~18 Elo)
-        if (!rootNode && isQuiet &&
-            isNotMated &&
-            legal_moves>= lmpThreshold) {
-            skipQuiet = 1;
+        if (!rootNode && isQuiet && isNotMated) {
+            // Late Move Pruning (~18 Elo)
+            if (legal_moves>= lmpThreshold) {
+                skipQuiet = 1;
+            }
+
+            if (canPrune && depth < 4 && static_eval + 100 <= alpha) {
+                skipQuiet = 1;
+            }
         }
         /*int seeScore = see(position, moveList->moves[count]);
         if (in_check == 0 && seeScore < -17 * depth * depth) {
@@ -636,14 +640,14 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
 
             // late move reduction (LMR)
         else {
-            int lmrReduction = getLmrReduction(depth, position->ply, pvNode);
+            int lmrReduction = getLmrReduction(depth, position->ply);
             if (isQuiet) {
                 // Reduce More
                 /*if (!improving && quietMoves >= 8 * depth && !pvNode) {
                     lmrReduction += 1;
                 }*/
                 if (!pvNode && quietMoves >= 4) {
-                    lmrReduction += 1;
+                    lmrReduction += 1 + (depth / 10);
                 }
 
                 /*if (position->improvingRate[position->ply] < -2.0) {
@@ -655,9 +659,11 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
                 if (position->killerMoves[position->ply][0] == bestMove || position->killerMoves[position->ply][1] == bestMove) {
                     lmrReduction -= 1;
                 }
-                /*if (in_check) {
+
+                if (in_check && depth > 15) {
                     lmrReduction -= 1;
-                }*/
+                }
+
                 /*if (pvNode && moves_searched <= 10) {
                     lmrReduction -= 1;
                 }*/
@@ -846,6 +852,7 @@ static inline void searchPosition(int depth, board* position, bool benchmark, ti
         if (score <= alpha || score >= beta) {
             alpha = -infinity;
             beta = infinity;
+            current_depth -= 1;
             continue;
         }
 
