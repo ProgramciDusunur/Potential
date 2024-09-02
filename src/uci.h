@@ -21,6 +21,6 @@
 
 
 //void uciProtocol();
-extern void read_input();
-extern void communicate();
-extern void goCommand(char *command, board* position);
+extern void read_input(time* time);
+extern void communicate(time* time);
+extern void goCommand(char *command, board* position, time* time);
