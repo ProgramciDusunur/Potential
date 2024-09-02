@@ -669,7 +669,7 @@ static inline int evaluate(board* position) {
     }
     int tempo = 10;
     // return final evaluation based on side
-    return (position->side == white) ? score + tempo : -score - tempo;
+    return (position->side == white) ? score + tempo : -(score - tempo);
 }
 
 static inline void clearStaticEvaluationHistory(board* position) {
