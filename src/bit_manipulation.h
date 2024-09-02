@@ -9,7 +9,7 @@
 #define max(x, y) ((x) > (y) ? (x) : (y))
 #define min(x, y) ((x) < (y) ? (x) : (y))
 #define myAbs(x) ((x) < 0 ? -(x) : (x))
-
+#define distance(a, b) (max(file_distance(a, b), rank_distance(a, b)))
 
 #define U64 unsigned long long
 
