@@ -12,7 +12,7 @@
 
 
 enum {
-    maxHistory = 16000
+    maxHistory = 16384
 };
 
 extern int historyMoves[64][64];
@@ -40,7 +40,7 @@ inline void updateHistory(int bestMove, int depth, moves* badQuiets) {
 
          if (badQuiets->moves[index] == bestMove) continue;
 
-         historyMoves[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -depth);
+         historyMoves[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus);
      }
 }
 
