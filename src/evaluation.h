@@ -203,11 +203,11 @@ static const int double_pawn_penalty_endgame = -10;
 
 
 
-static const  int isolated_pawn_rank[64] = {
+static const int isolated_pawn_rank[64] = {
         0, 0, 0, 0, 0, 0, 0, 0,
         4, 4, 4, 4, 4, 4, 4, 4,
         3, 3, 3, 3, 3, 3, 3, 3,
-        4, 4, 4, 4, 4, 4, 4, 4,
+        2, 2, 2, 2, 2, 2, 2, 2,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
