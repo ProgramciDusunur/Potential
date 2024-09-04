@@ -206,9 +206,19 @@ static const int double_pawn_penalty_endgame = -10;
 // isolated pawn penalty
 static const int isolated_pawn_penalty_middle = -5;
 static const int isolated_pawn_penalty_endgame = -15;
-static const int isolated_pawn_rank[64] = {
+static const int isolated_pawn_rank_middle[64] = {
         0, 0, 0, 0, 0, 0, 0, 0,
-        10, 10, 10, 10, 10, 10, 10, 10,
+        5, 5, 5, 5, 5, 5, 5, 5,
+        2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0
+};
+static const int isolated_pawn_rank_endgame[64] = {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        4, 4, 4, 4, 4, 4, 4, 4,
         3, 3, 3, 3, 3, 3, 3, 3,
         2, 2, 2, 2, 2, 2, 2, 2,
         0, 0, 0, 0, 0, 0, 0, 0,
@@ -394,9 +404,10 @@ static inline int evaluate(board* position) {
                     if ((position->bitboards[P] & isolatedMasks[square]) == 0)  {
                         if (game_phase == middlegame) {
                             // give an isolated pawn penalty
-                            score += isolated_pawn_penalty_middle;
+                            int isolatedPenalty = isolated_pawn_penalty_middle - isolated_pawn_rank_middle[square];
+                            score += isolatedPenalty;
                         } else if (game_phase == endgame) {
-                            int isolatedPenalty = isolated_pawn_penalty_endgame - isolated_pawn_rank[square];
+                            int isolatedPenalty = isolated_pawn_penalty_endgame - isolated_pawn_rank_endgame[square];
                             score += isolatedPenalty;
                         }
                     }
@@ -559,9 +570,10 @@ static inline int evaluate(board* position) {
                     if ((position->bitboards[p] & isolatedMasks[square]) == 0) {
                         // give an isolated pawn penalty
                         if (game_phase == middlegame) {
-                            score -= isolated_pawn_penalty_middle;
+                            int isolatedPenalty = isolated_pawn_penalty_middle - isolated_pawn_rank_middle[mirrorScore[square]];
+                            score -= isolatedPenalty;
                         } else if (game_phase == endgame) {
-                            int isolatedPenalty = isolated_pawn_penalty_endgame - isolated_pawn_rank[mirrorScore[square]];
+                            int isolatedPenalty = isolated_pawn_penalty_endgame - isolated_pawn_rank_endgame[mirrorScore[square]];
                             score -= isolated_pawn_penalty_endgame;
                         }
 
