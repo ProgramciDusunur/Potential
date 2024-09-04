@@ -207,7 +207,7 @@ static const int isolated_pawn_rank[64] = {
         0, 0, 0, 0, 0, 0, 0, 0,
         4, 4, 4, 4, 4, 4, 4, 4,
         3, 3, 3, 3, 3, 3, 3, 3,
-        -1, 2, 2, 2, 2, 2, 2, -1,
+        2, 2, 2, 2, 2, 2, 2, 2,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
@@ -215,7 +215,7 @@ static const int isolated_pawn_rank[64] = {
 };
 // isolated pawn penalty
 static const int isolated_pawn_penalty_middle = -5;
-static const int isolated_pawn_penalty_endgame = -8;
+static const int isolated_pawn_penalty_endgame = -15;
 
 // passed pawn bonus
 static const int passed_pawn_bonus_middle[64] = { 0, 0, 0, 0, 0, 0, 0, 0,
