@@ -208,12 +208,12 @@ static const int isolated_pawn_penalty_middle = -5;
 static const int isolated_pawn_penalty_endgame = -15;
 static const int isolated_pawn_rank[64] = {
         0, 0, 0, 0, 0, 0, 0, 0,
-        4, 4, 4, 4, 4, 4, 4, 4,
+        5, 5, 5, 5, 5, 5, 5, 5,
         3, 3, 3, 3, 3, 3, 3, 3,
         2, 2, 2, 2, 2, 2, 2, 2,
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
-        -4, -2, -1, 0, 0, -1, -2, -4,
+        -1, -1, -1, 0, 0, -1, -1, -1,
         0, 0, 0, 0, 0, 0, 0, 0
 };
 
