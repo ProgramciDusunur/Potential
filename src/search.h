@@ -230,7 +230,7 @@ static inline int quiescence(int alpha, int beta, board* position, int negamaxSc
 
     int pvNode = beta - alpha > 1;
 
-
+    int rootNode = position->ply == 0;
 
     // best move (to store in TT)
     int bestMove = 0;
@@ -271,6 +271,9 @@ static inline int quiescence(int alpha, int beta, board* position, int negamaxSc
     // sort moves
     //sort_moves(moveList, 0, position);
 
+    // legal moves counter
+    int legal_moves = 0;
+
     int futilityMargin = evaluation + 100;
 
     // loop over moves within a movelist
@@ -281,6 +284,15 @@ static inline int quiescence(int alpha, int beta, board* position, int negamaxSc
                 negamaxScore = futilityMargin;
             }
             continue;
+        }
+        bool isNotMated = alpha > -mateScore + maxPly;
+        int lmpBase = 4;
+        int lmpMultiplier = 8;
+        int lmpThreshold = (lmpBase + lmpMultiplier);
+        if (!rootNode && isNotMated) {
+            if (legal_moves >= lmpThreshold) {
+                continue;
+            }
         }
         struct copyposition copyPosition;
         // preserve board state
@@ -305,7 +317,7 @@ static inline int quiescence(int alpha, int beta, board* position, int negamaxSc
             continue;
         }
 
-
+        legal_moves++;
 
         // score current move
         int score = -quiescence(-beta, -alpha, position, score, time);
