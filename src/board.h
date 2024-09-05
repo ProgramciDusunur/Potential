@@ -40,6 +40,7 @@ typedef struct {
 
     double improvingRate[maxPly];
 
+
     int followPv;
     int scorePv;
 
