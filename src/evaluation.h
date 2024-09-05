@@ -204,8 +204,24 @@ static const int isolated_pawn_penalty_opening = -5;
 static const int isolated_pawn_penalty_endgame = -10;
 
 // passed pawn bonus
-static const int passed_pawn_bonus_middle[8] = { 0, 0, 0, 5, 10, 15, 20, 25};
-static const int passed_pawn_bonus_endgame[8] = { -5, 0, 0, 10, 15, 20, 35, 70};
+static const int passed_pawn_bonus_middle[64] = { 0, 0, 0, 0, 0, 0, 0, 0,
+                                                 36, 42, 42, 42, 42, 42, 42, 36,
+                                                 14, 17, 17, 17, 17, 17, 17, 14,
+                                                 5, 7, 7, 7, 7, 7, 7, 5,
+                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                                 0, 0, 0, 0, 0, 0, 0, 0,};
+
+static const int passed_pawn_bonus_endgame[64] = {0, 0, 0, 0, 0, 0, 0, 0,
+                                                  80, 85, 90, 103, 103, 90, 85, 80,
+                                                  20, 27, 30, 34, 34, 30, 27, 20,
+                                                  10, 12, 15, 20, 20, 15, 12, 10,
+                                                  0, 10, 10, 10, 10, 10, 10, 0,
+                                                  -3, 0, 0, 0, 0, 0, 0, 0,
+                                                  -2, 0, 0, 0, 0, 0, -1, -2,
+                                                  0, 0, 0, 0, 0, 0, 0, 0};
+
 
 
 // semi open file score
@@ -226,6 +242,9 @@ static const int queen_mobility_endgame = 2;
 
 // king's shield bonus
 static const int king_shield_bonus = 5;
+
+// king distance bonus
+static const int king_distance_bonus = 2;
 
 // game phase scores
 static const int opening_phase_score = 6192;
@@ -363,14 +382,19 @@ static inline int evaluate(board* position) {
                         score += isolated_pawn_penalty;
                     */
                     // on passed pawn
-                    /*if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
+                    if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                         // give passed pawn bonus
-                        if (game_phase == middlegame) {
-                            score += passed_pawn_bonus_middle[get_rank[square]];
-                        } else if (game_phase == endgame) {
-                            score += passed_pawn_bonus_endgame[get_rank[square]];
+                       if (game_phase == endgame) {
+
+                           int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
+                           int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
+                           int kingDistance = blackKingDistance - whiteKingDistance;
+                           score += kingDistance * king_distance_bonus;
+                           score += passed_pawn_bonus_endgame[square];
                         }
-                    }*/
+                        score += passed_pawn_bonus_middle[square];
+
+                    }
 
 
                     break;
@@ -516,14 +540,17 @@ static inline int evaluate(board* position) {
                         score -= isolated_pawn_penalty;
                     */
                     // on passed pawn
-                    /*if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
+                    if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         // give passed pawn bonus
-                        if (game_phase == middlegame) {
-                            score += passed_pawn_bonus_middle[get_rank[square]];
-                        } else if (game_phase == endgame) {
-                            score += passed_pawn_bonus_endgame[get_rank[square]];
+                       if (game_phase == endgame) {
+                           int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
+                           int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
+                           int kingDistance = whiteKingDistance - blackKingDistance;
+                           score -= kingDistance * king_distance_bonus;
+                           score -= passed_pawn_bonus_endgame[mirrorScore[square]];
                         }
-                    }*/
+                        score -= passed_pawn_bonus_middle[mirrorScore[square]];
+                    }
 
 
                     break;
@@ -640,9 +667,9 @@ static inline int evaluate(board* position) {
             popBit(bitboard, square);
         }
     }
-
+    int tempo = 10;
     // return final evaluation based on side
-    return (position->side == white) ? score : -score;
+    return (position->side == white) ? score + tempo : -(score - tempo);
 }
 
 static inline void clearStaticEvaluationHistory(board* position) {
