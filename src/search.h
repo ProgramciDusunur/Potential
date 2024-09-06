@@ -494,7 +494,10 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
         // hash the side
         position->hashKey ^= sideKey;
 
-        int R = 3 + (int)(0.1875 * depth);
+
+        int moreReduction = cutNode;
+
+        int R = 3 + (int)(0.1875 * depth) + moreReduction;
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
