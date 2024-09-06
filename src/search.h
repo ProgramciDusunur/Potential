@@ -495,7 +495,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
         position->hashKey ^= sideKey;
 
 
-        int moreReduction = cutNode;
+        int moreReduction = (cutNode) + (int)(depth * 0.1);
 
         int R = 3 + (int)(0.1875 * depth) + moreReduction;
 
