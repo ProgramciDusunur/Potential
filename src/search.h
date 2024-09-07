@@ -48,7 +48,7 @@ static inline int isRepetition(board* position) {
 static inline void initializeLMRTable() {
     for (int i = 1; i < maxPly; ++i) {
         for (int j = 1; j < maxPly; ++j) {
-            lmrTable[i][j] = round(1.2 + log(i) * log(j) * 0.6);
+            lmrTable[i][j] = round(1.0 + log(i) * log(j) * 0.5);
         }
     }
 }
