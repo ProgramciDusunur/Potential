@@ -38,7 +38,7 @@ void pBoard(board* position);
 
 void printMoveList(moves *moveList);
 
-void initAll();
+void initAll(void);
 
 void uciProtocol(int argc, char* argv[]);
 
@@ -48,7 +48,7 @@ void perftRoot(int depth, board* position);
 
 void perftChild(int depth, board* position);
 
-void initRandomKeys();
+void initRandomKeys(void);
 
 
 int main(int argc, char* argv[]) {
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
 }
 
 // init random hash keys
-void initRandomKeys() {
+void initRandomKeys(void) {
     // update pseudo random number state
     state = 1804289383;
     // loop over piece codes
@@ -221,6 +221,10 @@ void parse_position(char *command, board* position) {
 
 void uciProtocol(int argc, char *argv[]) {
     board position;
+
+    for (int i = 0;i < maxPly;i++) {
+        position.staticEval[i] = noEval;
+    }
 
     time time;
 
@@ -427,7 +431,7 @@ void goCommand(char *command, board* position, time* time) {
     time->starttime = getTimeMiliSecond();
 
     // init search depth
-    depth = depth;
+    //depth = depth;
 
     // if time control is available
     if (time->time != -1) {
@@ -601,7 +605,7 @@ void perft(int depth, board* position) {
 
 
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize) {
-    if (stringSize > strlen(command)) {
+    if (stringSize > (int)strlen(command)) {
         return 0;
     }
     for (int index = 0; index < stringSize; index++) {
@@ -673,7 +677,7 @@ void communicate(time* time) {
 
 
 
-void initAll() {
+void initAll(void) {
     initLeaperAttacks();
     initMagicNumbers();
     initSlidersAttacks(bishop);

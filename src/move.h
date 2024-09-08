@@ -184,8 +184,11 @@ inline static int isSquareAttacked(int square, int whichSide, board* position) {
 
 // make move on chess board
 inline static int makeMove(int move, int moveFlag, board* position) {
+    int isLegalCapture = getMoveCapture(move);
+    if (moveFlag == onlyCaptures && !isLegalCapture) {
+        return 0;
+    }
     // quiet moves
-    if (moveFlag == allMoves) {
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
@@ -371,7 +374,7 @@ inline static int makeMove(int move, int moveFlag, board* position) {
         // reset occupancies
         position->occupancies[white] = 0LL;
         position->occupancies[black] = 0LL,
-                position->occupancies[both] = 0LL;
+        position->occupancies[both] = 0LL;
 
         // loop over white pieces bitboards
         for (int bbPiece = P; bbPiece <= K; bbPiece++) {
@@ -393,7 +396,7 @@ inline static int makeMove(int move, int moveFlag, board* position) {
         // hash side
         position->hashKey ^= sideKey;
 
-        U64 hash_from_scratch = generateHashKey(position);
+        generateHashKey(position);
 
         // make sure that king has not been exposed into a check
         if (isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[k]) : getLS1BIndex(position->bitboards[K]), position->side, position)) {
@@ -403,13 +406,9 @@ inline static int makeMove(int move, int moveFlag, board* position) {
             return 0;
         }
         return 1;
-    } else {
-        if (getMoveCapture(move)) {
-            makeMove(move, allMoves, position);
-        } else {
-            return 0;
-        }
-    }
+
+
+
 }
 
 
@@ -833,7 +832,7 @@ inline static void initSlidersAttacks(int bishop) {
     }
 }
 
-inline static void initLeaperAttacks() {
+inline static void initLeaperAttacks(void) {
     for (int square = 0; square < 64; square++) {
         // init pawn attacks
         pawnAtacks[white][square] = maskPawnAttacks(white, square);

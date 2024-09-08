@@ -50,5 +50,3 @@ typedef struct {
     int gamePhase;
 } board;
 
-static inline void printAttackedSquares(int side, board* position);
-static inline void printMove(int move);

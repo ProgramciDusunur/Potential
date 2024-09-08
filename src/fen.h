@@ -40,7 +40,7 @@ inline void parseFEN(char *fen, board* position) {
         for (int file = 0; file < 8; file++) {
             int square = rank * 8 + file;
             if ((*fen >= 'a' && *fen <= 'z') || (*fen >= 'A' && *fen <= 'Z')) {
-                int piece = charPieces[*fen];
+                int piece = charPieces[(unsigned char) *fen];
                 setBit(position->bitboards[piece], square);
                 fen++;
             }

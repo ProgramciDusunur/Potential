@@ -40,10 +40,10 @@ typedef struct {
 } tt;                 // transposition table (TT aka hash table)
 
 // number hash table entries
-static U64 hash_entries = 0;
+U64 hash_entries = 0;
 
 // define TT instance
-static tt *hashTable = NULL;
+tt *hashTable = NULL;
 
 // random side key
 U64 sideKey;
@@ -159,7 +159,7 @@ inline int readHashFlag(board* position) {
     return hashFlagNone;
 }
 
-inline void clearHashTable() {
+inline void clearHashTable(void) {
     // init hash table entry pointer
     tt *hash_entry;
 

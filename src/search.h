@@ -21,13 +21,14 @@
 
 static int lmr_full_depth_moves = 4;
 static int lmr_reduction_limit = 3;
-static int lateMovePruningBaseReduction = 4;
 static int nullMoveDepth = 3;
 
-static U64 nodes = 0, variant = 0;
+U64 nodes = 0, variant = 0;
 
 static int lmrTable[maxPly][maxPly];
 static int counterMoves[2][maxPly][maxPly];
+
+void communicate(time* time);
 
 
 // position repetition detection
@@ -45,7 +46,7 @@ static inline int isRepetition(board* position) {
     return 0;
 }
 
-static inline void initializeLMRTable() {
+static inline void initializeLMRTable(void) {
     for (int i = 1; i < maxPly; ++i) {
         for (int j = 1; j < maxPly; ++j) {
             lmrTable[i][j] = round(1.0 + log(i) * log(j) * 0.5);
@@ -141,7 +142,7 @@ static inline int scoreMove(int move, board* position) {
 
 
 
-static inline int sort_moves(moves *moveList, int bestMove, board* position) {
+static inline void sort_moves(moves *moveList, int bestMove, board* position) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -192,7 +193,7 @@ static inline void enable_pv_scoring(moves *moveList, board* position) {
 }
 
 // print move
-static inline void printMove(int move) {
+void printMove(int move) {
     if (getMovePromoted(move)) {
         printf("%s%s%c", squareToCoordinates[getMoveSource(move)],
                squareToCoordinates[getMoveTarget(move)],
@@ -209,7 +210,7 @@ static inline int getLmrReduction(int depth, int moveNumber) {
     return reduction;
 }
 
-static inline void clearCounterMoves() {
+static inline void clearCounterMoves(void) {
     for (int m = 0;m < 2;m++) {
         for (int i = 0;i < 64;i++) {
             for (int j = 0;j < 64;j++) {
@@ -382,9 +383,9 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
 
     int ttBound = readHashFlag(position);
 
-    bool improving;
+    //bool improving;
 
-    int pastStack;
+    int pastStack = 0;
 
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
@@ -422,7 +423,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
     int quietMoves = 0;
 
     // capture move counter
-    int captureMoves = 0;
+    //int captureMoves = 0;
 
     // get static evaluation score
     int static_eval = evaluate(position);
@@ -637,7 +638,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
         if (isQuiet) {
             quietMoves++;
         } else {
-            captureMoves++;
+            //captureMoves++;
         }
 
 
@@ -787,7 +788,7 @@ static inline int negamax(int alpha, int beta, int depth, board* position, time*
                     //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
-                    updateHistory(bestMove, depth, badQuiets);
+                    updateHistory(bestMove, depth);
                 }
 
                 // node (move) fails high

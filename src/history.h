@@ -23,7 +23,7 @@ inline int scaledBonus(int score, int bonus) {
     return bonus - score * myAbs(bonus) / maxHistory;
 }
 
-inline void updateHistory(int bestMove, int depth, moves* badQuiets) {
+inline void updateHistory(int bestMove, int depth) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
@@ -44,7 +44,7 @@ inline void updateHistory(int bestMove, int depth, moves* badQuiets) {
      }*/
 }
 
-inline void clearHistory() {
+inline void clearHistory(void) {
     for (int i = 0; i < 64; i++) {
         for (int j = 0; j < 64; j++) {
             historyMoves[i][j] = 0;
