@@ -4,11 +4,8 @@
 
 #pragma once
 
-#include "table.h"
-#include <string.h>
-#include <stdio.h>
 #include "time.h"
-#include "search.h"
+
 
 #ifdef _WIN32
 #include <io.h>
@@ -21,6 +18,4 @@
 
 
 //void uciProtocol();
-extern void read_input(time* time);
 extern void communicate(time* time);
-extern void goCommand(char *command, board* position, time* time);
