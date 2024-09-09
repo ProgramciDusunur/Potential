@@ -12,4 +12,4 @@ U64 enpassantKeys[64];
 // random castling keys
 U64 castleKeys[16];
 
-extern void initRandomKeys();
+extern void initRandomKeys(void);
