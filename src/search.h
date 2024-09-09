@@ -23,7 +23,8 @@ static int lmr_full_depth_moves = 4;
 static int lmr_reduction_limit = 3;
 static int nullMoveDepth = 3;
 
-U64 nodes = 0, variant = 0;
+extern U64 nodes;
+extern U64 variant;
 
 static int lmrTable[maxPly][maxPly];
 static int counterMoves[2][maxPly][maxPly];

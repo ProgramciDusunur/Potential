@@ -7,4 +7,5 @@
 #include "search.h"
 
 
-
+U64 nodes = 0;
+U64 variant = 0;
