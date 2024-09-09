@@ -8,7 +8,6 @@
 #endif
 
 #include "board.h"
-#include "board_constants.h"
 #include "bit_manipulation.h"
 #include <stdlib.h>
 

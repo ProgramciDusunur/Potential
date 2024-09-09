@@ -8,16 +8,16 @@
 #include "move.c"
 #include "time.c"
 #include "evaluation.c"
-#include "table.c"
+#include "table.h"
 #include "fen.h"
 #include "magic.c"
-#include "bit_manipulation.c"
+#include "bit_manipulation.h"
 #include "search.c"
 #include "history.c"
 #include "bench.c"
 #include "board.c"
-#include "uci.c"
-#include "zobrist.c"
+#include "uci.h"
+#include "zobrist.h"
 
 
 

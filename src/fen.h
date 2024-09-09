@@ -5,9 +5,6 @@
 
 
 #include "board.h"
-#include "board_constants.h"
-#include "board.h"
-#include "bit_manipulation.h"
 #include "table.h"
 #include <string.h>
 
