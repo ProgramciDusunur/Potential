@@ -5,17 +5,17 @@
 
 
 
-#include "move.h"
+#include "move.c"
 #include "time.c"
-#include "evaluation.c"
+#include "evaluation.h"
 #include "table.h"
 #include "fen.h"
-#include "magic.h"
+#include "magic.c"
 #include "bit_manipulation.h"
 #include "search.c"
 #include "history.c"
 #include "bench.c"
-#include "board.h"
+#include "board.c"
 #include "uci.h"
 #include "zobrist.h"
 

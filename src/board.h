@@ -9,16 +9,7 @@
 #define maxPly 64
 
 
-static const int castlingRights[64] = {
-        7, 15, 15, 15, 3, 15, 15, 11,
-        15, 15, 15, 15, 15, 15, 15, 15,
-        15, 15, 15, 15, 15, 15, 15, 15,
-        15, 15, 15, 15, 15, 15, 15, 15,
-        15, 15, 15, 15, 15, 15, 15, 15,
-        15, 15, 15, 15, 15, 15, 15, 15,
-        15, 15, 15, 15, 15, 15, 15, 15,
-        13, 15, 15, 15, 12, 15, 15, 14
-};
+extern const int castlingRights[64];
 
 typedef struct {
     U64 bitboards[12];
@@ -49,4 +40,6 @@ typedef struct {
 
     int gamePhase;
 } board;
+
+extern void printAttackedSquares(int whichSide, board* position);
 

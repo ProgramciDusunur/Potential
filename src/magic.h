@@ -9,36 +9,18 @@
 #include "stdio.h"
 
 
-static const int bishopRelevantBits[64] = {
-        6, 5, 5, 5, 5, 5, 5, 6,
-        5, 5, 5, 5, 5, 5, 5, 5,
-        5, 5, 7, 7, 7, 7, 5, 5,
-        5, 5, 7, 9, 9, 7, 5, 5,
-        5, 5, 7, 9, 9, 7, 5, 5,
-        5, 5, 7, 7, 7, 7, 5, 5,
-        5, 5, 5, 5, 5, 5, 5, 5,
-        6, 5, 5, 5, 5, 5, 5, 6
-};
-static const int rookRelevantBits[64] = {
-        12, 11, 11, 11, 11, 11, 11, 12,
-        11, 10, 10, 10, 10, 10, 10, 11,
-        11, 10, 10, 10, 10, 10, 10, 11,
-        11, 10, 10, 10, 10, 10, 10, 11,
-        11, 10, 10, 10, 10, 10, 10, 11,
-        11, 10, 10, 10, 10, 10, 10, 11,
-        11, 10, 10, 10, 10, 10, 10, 11,
-        12, 11, 11, 11, 11, 11, 11, 12,
-};
+extern const int bishopRelevantBits[64];
+extern const int rookRelevantBits[64];
 
 // rookMagics[square]
-U64 rookMagic[64];
+extern U64 rookMagic[64];
 // bishopMagics[square]
-U64 bishopMagic[64];
+extern U64 bishopMagic[64];
 
 // pseudo random number state
 static unsigned int state = 1804289383;
 
-inline static unsigned int getRandom32BitNumber() {
+inline static unsigned int getRandom32BitNumber(void) {
     //get current state
     unsigned int number = state;
 
@@ -53,7 +35,7 @@ inline static unsigned int getRandom32BitNumber() {
     return number;
 }
 
-inline static U64 getRandom64Numbers() {
+inline static U64 getRandom64Numbers(void) {
     U64 n1, n2, n3, n4;
 
     n1 = (U64) (getRandom32BitNumber()) & 0xFFFF;
@@ -64,7 +46,7 @@ inline static U64 getRandom64Numbers() {
     return n1 | (n2 << 16) | (n3 << 32) | (n4 << 48);
 }
 
-inline static U64 generateMagicNumber() {
+inline static U64 generateMagicNumber(void) {
     return getRandom64Numbers() & getRandom64Numbers() & getRandom64Numbers();
 }
 
@@ -133,7 +115,7 @@ inline static U64 findMagicNumber(int square, int relevantBits, int bishop) {
 }
 
 // init magic numbers
-inline static U64 initMagicNumbers() {
+inline static U64 initMagicNumbers(void) {
     // loop over 64 board squares
     for (int square = 0; square < 64; square++) {
         // init rook magic numbers

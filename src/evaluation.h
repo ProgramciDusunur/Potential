@@ -3,7 +3,6 @@
 //
 #pragma once
 
-#include "board_constants.h"
 #include "board.h"
 #include "values.h"
 #include "mask.h"

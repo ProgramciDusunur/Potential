@@ -6,7 +6,19 @@
 #include "move.h"
 #include <stdio.h>
 
-static inline void printAttackedSquares(int whichSide, board* position) {
+
+const int castlingRights[64] = {
+        7, 15, 15, 15, 3, 15, 15, 11,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        13, 15, 15, 15, 12, 15, 15, 14
+};
+
+void printAttackedSquares(int whichSide, board* position) {
     printf("\n");
     // loop over board ranks
     for (int rank = 0; rank < 8; rank++) {
@@ -22,16 +34,6 @@ static inline void printAttackedSquares(int whichSide, board* position) {
     }
     printf("\n     a b c d e f g h\n\n");
 }
-// print move
-static inline void printMove(int move) {
-    if (getMovePromoted(move)) {
-        printf("%s%s%c", squareToCoordinates[getMoveSource(move)],
-               squareToCoordinates[getMoveTarget(move)],
-               promotedPieces[getMovePromoted(move)]);
-    } else {
-        printf("%s%s", squareToCoordinates[getMoveSource(move)],
-               squareToCoordinates[getMoveTarget(move)]);
-    }
-}
+
 
 
