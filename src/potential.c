@@ -30,25 +30,34 @@
 
 
 
-void perft(int depth, board* position);
-
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
 
 void pBoard(board* position);
 
 void printMoveList(moves *moveList);
 
-void initAll(void);
-
 void uciProtocol(int argc, char* argv[]);
 
 void goCommand(char *command, board* position, time* time);
 
-void perftRoot(int depth, board* position);
-
-void perftChild(int depth, board* position);
-
 void initRandomKeys(void);
+
+void initAll(void) {
+    initLeaperAttacks();
+    initMagicNumbers();
+    initSlidersAttacks(bishop);
+    initSlidersAttacks(rook);
+    // init random keys for tranposition table
+    initRandomKeys();
+    // clear hash table
+    clearHashTable();
+    // init mask
+    initEvaluationMasks();
+    // init Late Move Reduction Table
+    initializeLMRTable();
+    // init transposition table with default 64 mb
+    init_hash_table(64);
+}
 
 
 int main(int argc, char* argv[]) {
@@ -538,72 +547,6 @@ void printMoveList(moves *moveList) {
     printf("\n\n  Total number of moves: %d\n\n", moveList->count);
 }
 
-
-void perftRoot(int depth, board* position) {
-    moves moveList[1];
-    moveGenerator(moveList, position);
-    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
-        struct copyposition copyPosition;
-        copyBoard(position, &copyPosition);
-        if (makeMove(moveList->moves[moveCount], allMoves, position) == 0) {
-            // skip to the next move
-            continue;
-        }
-        // call perft driver recursively
-        perftChild(depth - 1, position);
-        printf("%s%s%c %llu \n", squareToCoordinates[getMoveSource(moveList->moves[moveCount])],
-               squareToCoordinates[getMoveTarget(moveList->moves[moveCount])],
-               promotedPieces[getMovePromoted(moveList->moves[moveCount])], variant);
-        variant = 0;
-        takeBack(position, &copyPosition);
-    }
-    printf("\n");
-
-}
-
-void perftChild(int depth, board* position) {
-    if (depth == 0) {
-        nodes++;
-        variant++;
-        return;
-    }
-    moves moveList[1];
-    moveGenerator(moveList, position);
-    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
-        struct copyposition copyPosition;
-        copyBoard(position, &copyPosition);
-        if (makeMove(moveList->moves[moveCount], allMoves, position) == 0) {
-            // skip to the next move
-            continue;
-        }
-
-        // call perft driver recursively
-        perftChild(depth - 1, position);
-        takeBack(position, &copyPosition);
-    }
-}
-
-void perft(int depth, board* position) {
-    if (depth == 0) {
-        nodes++;
-        return;
-    }
-    moves moveList[1];
-    moveGenerator(moveList, position);
-    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
-        struct copyposition copyPosition;
-        copyBoard(position, &copyPosition);
-        if (makeMove(moveList->moves[moveCount], allMoves, position) == 0) {
-            // skip to the next move
-            continue;
-        }
-        // call perft driver recursively
-        perft(depth - 1, position);
-        takeBack(position, &copyPosition);
-    }
-}
-
-
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize) {
     if (stringSize > (int)strlen(command)) {
         return 0;
@@ -674,22 +617,3 @@ void communicate(time* time) {
     read_input(time);
 }
 
-
-
-
-void initAll(void) {
-    initLeaperAttacks();
-    initMagicNumbers();
-    initSlidersAttacks(bishop);
-    initSlidersAttacks(rook);
-    // init random keys for tranposition table
-    initRandomKeys();
-    // clear hash table
-    clearHashTable();
-    // init mask
-    initEvaluationMasks();
-    // init Late Move Reduction Table
-    initializeLMRTable();
-    // init transposition table with default 64 mb
-    init_hash_table(64);
-}

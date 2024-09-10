@@ -82,7 +82,7 @@ extern void initSlidersAttacks(int bishop);
 extern void initLeaperAttacks(void);
 extern void addMoveToHistoryList(moves* list, int move);
 extern void copyBoard(board *p, struct copyposition *cp);
-void takeBack(board *p, struct copyposition *cp);
+extern void takeBack(board *p, struct copyposition *cp);
 
 
 
