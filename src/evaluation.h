@@ -6,7 +6,7 @@
 #include "board.h"
 #include "values.h"
 #include "mask.h"
-#include "bit_manipulation.h"
+#include "bit_manipulation.c"
 #include "move.h"
 
 /**********************************\

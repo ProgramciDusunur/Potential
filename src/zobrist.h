@@ -2,6 +2,7 @@
 // Created by erena on 18.07.2024.
 //
 
+#pragma once
 #include "bit_manipulation.h"
 
 
