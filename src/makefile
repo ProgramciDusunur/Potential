@@ -3,7 +3,7 @@ _THIS       := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT       := $(_THIS)
 TARGET      := Potential
 WARNINGS    = -Wall -Wextra -Wno-unused-command-line-argument -Wno-unused-variable
-CFLAGS      := -funroll-loops -fomit-frame-pointer -Ofast -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
+CFLAGS      := -funroll-loops -fomit-frame-pointer -Ofast -flto -fwhole-program -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
 NATIVE      = -march=native
 AVX2FLAGS   = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi
 BMI2FLAGS   = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2
