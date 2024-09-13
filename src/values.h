@@ -1,8 +1,12 @@
 //
-// Created by erena on 31.05.2024.
+// Created by erena on 13.09.2024.
 //
-#pragma once
 
+#ifndef POTENTIAL_VALUES_H
+#define POTENTIAL_VALUES_H
+
+
+#pragma once
 
 /*  these are the score bounds for the range of the mating scores
                                         Score layot
@@ -12,3 +16,6 @@
 #define mateValue 49000
 #define mateScore 48000
 #define noEval 200000
+
+
+#endif //POTENTIAL_VALUES_H
