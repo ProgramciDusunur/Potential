@@ -135,7 +135,7 @@ int scoreMove(int move, board* position) {
 
 
 
-int sort_moves(moves *moveList, int bestMove, board* position) {
+void sort_moves(moves *moveList, int bestMove, board* position) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -220,6 +220,8 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     }
     // increment nodes count
     searchNodes++;
+
+    int score = 0;
 
 
     int pvNode = beta - alpha > 1;
@@ -314,7 +316,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
         legal_moves++;
 
         // score current move
-        int score = -quiescence(-beta, -alpha, position, score, time);
+        score = -quiescence(-beta, -alpha, position, score, time);
 
         // decrement ply
         position->ply--;
@@ -354,7 +356,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode) {
     // variable to store current move's score (from the static evaluation perspective)
-    int score;
+    int score = 0;
 
     // best move (to store in TT)
     int bestMove = 0;

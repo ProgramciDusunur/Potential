@@ -217,17 +217,23 @@ U64 setFileRankMask(int file_number, int rank_number) {
             if (file_number != -1)
             {
                 // on file match
-                if (file == file_number)
+                if (file == file_number) {
+                    U64 fileMask = setBit(mask, square);
                     // set bit on mask
-                    mask |= setBit(mask, square);
+                    mask |= fileMask;
+                }
+
             }
 
             else if (rank_number != -1)
             {
                 // on rank match
-                if (rank == rank_number)
+                if (rank == rank_number) {
+                    U64 rankMask = setBit(mask, square);
                     // set bit on mask
-                    mask |= setBit(mask, square);
+                    mask |= rankMask;
+                }
+
             }
         }
     }

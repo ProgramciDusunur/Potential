@@ -200,7 +200,7 @@ void goCommand(char *command, board* position, time* time) {
     time->starttime = getTimeMiliSecond();
 
     // init search depth
-    depth = depth;
+    //depth = depth;
 
     // if time control is available
     if (time->time != -1) {
@@ -272,7 +272,7 @@ void printMoveList(moves *moveList) {
 
 
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize) {
-    if (stringSize > strlen(command)) {
+    if ((size_t)stringSize > strlen(command)) {
         return 0;
     }
     for (int index = 0; index < stringSize; index++) {

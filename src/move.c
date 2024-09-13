@@ -131,232 +131,231 @@ int isSquareAttacked(int square, int whichSide, board* position) {
 
 // make move on chess board
 int makeMove(int move, int moveFlag, board* position) {
+    int isLegalCapture = getMoveCapture(move);
+    if (moveFlag == onlyCaptures && !isLegalCapture) {
+        return 0;
+    }
     // quiet moves
-    if (moveFlag == allMoves) {
-        struct copyposition copyPosition;
-        // preserve board state
-        copyBoard(position, &copyPosition);
+    struct copyposition copyPosition;
+    // preserve board state
+    copyBoard(position, &copyPosition);
 
-        // parse move
-        int sourceSquare = getMoveSource(move);
-        int targetSquare = getMoveTarget(move);
-        int piece = getMovePiece(move);
-        int promotedPiece = getMovePromoted(move);
-        int capture = getMoveCapture(move);
-        int doublePush = getMoveDouble(move);
-        int enpass = getMoveEnpassant(move);
-        int castling = getMoveCastling(move);
+    // parse move
+    int sourceSquare = getMoveSource(move);
+    int targetSquare = getMoveTarget(move);
+    int piece = getMovePiece(move);
+    int promotedPiece = getMovePromoted(move);
+    int capture = getMoveCapture(move);
+    int doublePush = getMoveDouble(move);
+    int enpass = getMoveEnpassant(move);
+    int castling = getMoveCastling(move);
 
-        // move piece
-        popBit(position->bitboards[piece], sourceSquare);
-        setBit(position->bitboards[piece], targetSquare);
+    // move piece
+    popBit(position->bitboards[piece], sourceSquare);
+    setBit(position->bitboards[piece], targetSquare);
 
-        // hash piece
-        position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
-        position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
+    // hash piece
+    position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
+    position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
 
-        // handling capture moves
-        if (capture) {
-            int startPiece, endPiece;
-            if (position->side == white) {
-                startPiece = p;
-                endPiece = k;
-            } else {
-                startPiece = P;
-                endPiece = K;
-            }
-            for (int bbPiece = startPiece; bbPiece <= endPiece; bbPiece++) {
-                if (getBit(position->bitboards[bbPiece], targetSquare)) {
-                    // remove it from corresponding bitboard
-                    popBit(position->bitboards[bbPiece], targetSquare);
-
-                    // remove the piece from hash key
-                    position->hashKey ^= pieceKeys[bbPiece][targetSquare];
-                    break;
-                }
-            }
-        }
-        // handle pawn promotions
-        if (promotedPiece) {
-            // white to move
-            if (position->side == white) {
-                // erase the pawn from the target square
-                popBit(position->bitboards[P], targetSquare);
-
-                // remove pawn from hash key
-                position->hashKey ^= pieceKeys[P][targetSquare];
-            }
-
-                // black to move
-            else {
-                // erase the pawn from the target square
-                popBit(position->bitboards[p], targetSquare);
-
-                // remove pawn from hash key
-                position->hashKey ^= pieceKeys[p][targetSquare];
-            }
-
-            // set up promoted piece on chess board
-            setBit(position->bitboards[promotedPiece], targetSquare);
-
-            // add promoted piece into the hash key
-            position->hashKey ^= pieceKeys[promotedPiece][targetSquare];
-        }
-
-        // handle enpassant captures
-        if (enpass) {
-            // erase the pawn depending on side to move
-            (position->side == white) ? popBit(position->bitboards[p], targetSquare + 8) :
-            popBit(position->bitboards[P], targetSquare - 8);
-
-            // white to move
-            if (position->side == white) {
-                // remove captured pawn
-                popBit(position->bitboards[p], targetSquare + 8);
-
-                // remove pawn from hash key
-                position->hashKey ^= pieceKeys[p][targetSquare + 8];
-            }
-
-                // black to move
-            else {
-                // remove captured pawn
-                popBit(position->bitboards[P], targetSquare - 8);
-
-                // remove pawn from hash key
-                position->hashKey ^= pieceKeys[P][targetSquare - 8];
-            }
-        }
-
-        // hash enpassant if available (remove enpassant square from hash key )
-        if (position->enpassant != no_sq) position->hashKey ^= enpassantKeys[position->enpassant];
-
-        // reset enpassant square
-        position->enpassant = no_sq;
-
-        // handle double pawn push
-        if (doublePush) {
-            // white to move
-            if (position->side == white) {
-                // set enpassant square
-                position->enpassant = targetSquare + 8;
-
-                // hash enpassant
-                position->hashKey ^= enpassantKeys[targetSquare + 8];
-            }
-
-                // black to move
-            else {
-                // set enpassant square
-                position->enpassant = targetSquare - 8;
-
-                // hash enpassant
-                position->hashKey ^= enpassantKeys[targetSquare - 8];
-            }
-        }
-
-        // handle castling moves
-        if (castling) {
-            switch (targetSquare) {
-                // white castles king side
-                case (g1):
-                    // move H rook
-                    popBit(position->bitboards[R], h1);
-                    setBit(position->bitboards[R], f1);
-
-                    // hash rook
-                    position->hashKey ^= pieceKeys[R][h1];  // remove rook from h1 from hash key
-                    position->hashKey ^= pieceKeys[R][f1];  // put rook on f1 into a hash key
-                    break;
-
-                    // white castles queen side
-                case (c1):
-                    // move A rook
-                    popBit(position->bitboards[R], a1);
-                    setBit(position->bitboards[R], d1);
-
-                    // hash rook
-                    position->hashKey ^= pieceKeys[R][a1];  // remove rook from a1 from hash key
-                    position->hashKey ^= pieceKeys[R][d1];  // put rook on d1 into a hash key
-                    break;
-
-                    // black castles king side
-                case (g8):
-                    // move H rook
-                    popBit(position->bitboards[r], h8);
-                    setBit(position->bitboards[r], f8);
-
-                    // hash rook
-                    position->hashKey ^= pieceKeys[r][h8];  // remove rook from h8 from hash key
-                    position->hashKey ^= pieceKeys[r][f8];  // put rook on f8 into a hash key
-                    break;
-
-                    // black castles queen side
-                case (c8):
-                    // move A rook
-                    popBit(position->bitboards[r], a8);
-                    setBit(position->bitboards[r], d8);
-
-                    // hash rook
-                    position->hashKey ^= pieceKeys[r][a8];  // remove rook from a8 from hash key
-                    position->hashKey ^= pieceKeys[r][d8];  // put rook on d8 into a hash key
-                    break;
-            }
-        }
-
-
-        // hash castling
-        position->hashKey ^= castleKeys[position->castle];
-
-        // update castling rights
-        position->castle &= castlingRights[sourceSquare];
-        position->castle &= castlingRights[targetSquare];
-
-        // hash castling
-        position->hashKey ^= castleKeys[position->castle];
-
-        // reset occupancies
-        position->occupancies[white] = 0LL;
-        position->occupancies[black] = 0LL,
-                position->occupancies[both] = 0LL;
-
-        // loop over white pieces bitboards
-        for (int bbPiece = P; bbPiece <= K; bbPiece++) {
-            // update white occupancies
-            position->occupancies[white] |= position->bitboards[bbPiece];
-        }
-        // loop over black pieces bitboards
-        for (int bbPiece = p; bbPiece <= k; bbPiece++) {
-            // update black occupancies
-            position->occupancies[black] |= position->bitboards[bbPiece];
-        }
-        // update both side occupancies
-        position->occupancies[both] |= position->occupancies[white];
-        position->occupancies[both] |= position->occupancies[black];
-
-        // change side
-        position->side ^= 1;
-
-        // hash side
-        position->hashKey ^= sideKey;
-
-        generateHashKey(position);
-
-        // make sure that king has not been exposed into a check
-        if (isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[k]) : getLS1BIndex(position->bitboards[K]), position->side, position)) {
-            // take move back
-            takeBack(position, &copyPosition);
-            // return illegal move
-            return 0;
-        }
-        return 1;
-    } else {
-        if (getMoveCapture(move)) {
-            makeMove(move, allMoves, position);
+    // handling capture moves
+    if (capture) {
+        int startPiece, endPiece;
+        if (position->side == white) {
+            startPiece = p;
+            endPiece = k;
         } else {
-            return 0;
+            startPiece = P;
+            endPiece = K;
+        }
+        for (int bbPiece = startPiece; bbPiece <= endPiece; bbPiece++) {
+            if (getBit(position->bitboards[bbPiece], targetSquare)) {
+                // remove it from corresponding bitboard
+                popBit(position->bitboards[bbPiece], targetSquare);
+
+                // remove the piece from hash key
+                position->hashKey ^= pieceKeys[bbPiece][targetSquare];
+                break;
+            }
         }
     }
+    // handle pawn promotions
+    if (promotedPiece) {
+        // white to move
+        if (position->side == white) {
+            // erase the pawn from the target square
+            popBit(position->bitboards[P], targetSquare);
+
+            // remove pawn from hash key
+            position->hashKey ^= pieceKeys[P][targetSquare];
+        }
+
+            // black to move
+        else {
+            // erase the pawn from the target square
+            popBit(position->bitboards[p], targetSquare);
+
+            // remove pawn from hash key
+            position->hashKey ^= pieceKeys[p][targetSquare];
+        }
+
+        // set up promoted piece on chess board
+        setBit(position->bitboards[promotedPiece], targetSquare);
+
+        // add promoted piece into the hash key
+        position->hashKey ^= pieceKeys[promotedPiece][targetSquare];
+    }
+
+    // handle enpassant captures
+    if (enpass) {
+        // erase the pawn depending on side to move
+        (position->side == white) ? popBit(position->bitboards[p], targetSquare + 8) :
+        popBit(position->bitboards[P], targetSquare - 8);
+
+        // white to move
+        if (position->side == white) {
+            // remove captured pawn
+            popBit(position->bitboards[p], targetSquare + 8);
+
+            // remove pawn from hash key
+            position->hashKey ^= pieceKeys[p][targetSquare + 8];
+        }
+
+            // black to move
+        else {
+            // remove captured pawn
+            popBit(position->bitboards[P], targetSquare - 8);
+
+            // remove pawn from hash key
+            position->hashKey ^= pieceKeys[P][targetSquare - 8];
+        }
+    }
+
+    // hash enpassant if available (remove enpassant square from hash key )
+    if (position->enpassant != no_sq) position->hashKey ^= enpassantKeys[position->enpassant];
+
+    // reset enpassant square
+    position->enpassant = no_sq;
+
+    // handle double pawn push
+    if (doublePush) {
+        // white to move
+        if (position->side == white) {
+            // set enpassant square
+            position->enpassant = targetSquare + 8;
+
+            // hash enpassant
+            position->hashKey ^= enpassantKeys[targetSquare + 8];
+        }
+
+            // black to move
+        else {
+            // set enpassant square
+            position->enpassant = targetSquare - 8;
+
+            // hash enpassant
+            position->hashKey ^= enpassantKeys[targetSquare - 8];
+        }
+    }
+
+    // handle castling moves
+    if (castling) {
+        switch (targetSquare) {
+            // white castles king side
+            case (g1):
+                // move H rook
+                popBit(position->bitboards[R], h1);
+                setBit(position->bitboards[R], f1);
+
+                // hash rook
+                position->hashKey ^= pieceKeys[R][h1];  // remove rook from h1 from hash key
+                position->hashKey ^= pieceKeys[R][f1];  // put rook on f1 into a hash key
+                break;
+
+                // white castles queen side
+            case (c1):
+                // move A rook
+                popBit(position->bitboards[R], a1);
+                setBit(position->bitboards[R], d1);
+
+                // hash rook
+                position->hashKey ^= pieceKeys[R][a1];  // remove rook from a1 from hash key
+                position->hashKey ^= pieceKeys[R][d1];  // put rook on d1 into a hash key
+                break;
+
+                // black castles king side
+            case (g8):
+                // move H rook
+                popBit(position->bitboards[r], h8);
+                setBit(position->bitboards[r], f8);
+
+                // hash rook
+                position->hashKey ^= pieceKeys[r][h8];  // remove rook from h8 from hash key
+                position->hashKey ^= pieceKeys[r][f8];  // put rook on f8 into a hash key
+                break;
+
+                // black castles queen side
+            case (c8):
+                // move A rook
+                popBit(position->bitboards[r], a8);
+                setBit(position->bitboards[r], d8);
+
+                // hash rook
+                position->hashKey ^= pieceKeys[r][a8];  // remove rook from a8 from hash key
+                position->hashKey ^= pieceKeys[r][d8];  // put rook on d8 into a hash key
+                break;
+        }
+    }
+
+
+    // hash castling
+    position->hashKey ^= castleKeys[position->castle];
+
+    // update castling rights
+    position->castle &= castlingRights[sourceSquare];
+    position->castle &= castlingRights[targetSquare];
+
+    // hash castling
+    position->hashKey ^= castleKeys[position->castle];
+
+    // reset occupancies
+    position->occupancies[white] = 0LL;
+    position->occupancies[black] = 0LL,
+            position->occupancies[both] = 0LL;
+
+    // loop over white pieces bitboards
+    for (int bbPiece = P; bbPiece <= K; bbPiece++) {
+        // update white occupancies
+        position->occupancies[white] |= position->bitboards[bbPiece];
+    }
+    // loop over black pieces bitboards
+    for (int bbPiece = p; bbPiece <= k; bbPiece++) {
+        // update black occupancies
+        position->occupancies[black] |= position->bitboards[bbPiece];
+    }
+    // update both side occupancies
+    position->occupancies[both] |= position->occupancies[white];
+    position->occupancies[both] |= position->occupancies[black];
+
+    // change side
+    position->side ^= 1;
+
+    // hash side
+    position->hashKey ^= sideKey;
+
+    generateHashKey(position);
+
+    // make sure that king has not been exposed into a check
+    if (isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[k]) : getLS1BIndex(position->bitboards[K]), position->side, position)) {
+        // take move back
+        takeBack(position, &copyPosition);
+        // return illegal move
+        return 0;
+    }
+    return 1;
+
+
+
 }
 
 
@@ -780,7 +779,7 @@ void initSlidersAttacks(int bishop) {
     }
 }
 
-void initLeaperAttacks() {
+void initLeaperAttacks(void) {
     for (int square = 0; square < 64; square++) {
         // init pawn attacks
         pawnAtacks[white][square] = maskPawnAttacks(white, square);
