@@ -1,11 +1,17 @@
 //
-// Created by erena on 29.06.2024.
+// Created by erena on 13.09.2024.
 //
+
+#ifndef POTENTIAL_HISTORY_H
+#define POTENTIAL_HISTORY_H
+
 
 #pragma once
 
-#include "board.h"
-#include "bit_manipulation.h"
+
+
+#include "structs.h"
+#include "bit_manipluation.h"
 #include "move.h"
 #include <stdio.h>
 #include <stdbool.h>
@@ -19,36 +25,9 @@ extern int historyMoves[64][64];
 
 
 
-inline int scaledBonus(int score, int bonus) {
-    return bonus - score * myAbs(bonus) / maxHistory;
-}
+int scaledBonus(int score, int bonus);
+void updateHistory(int bestMove, int depth);
+void clearHistory();
 
-inline void updateHistory(int bestMove, int depth, moves* badQuiets) {
-    int from = getMoveSource(bestMove);
-    int to = getMoveTarget(bestMove);
 
-    int bonus = depth * depth;
-    int score = historyMoves[from][to];
-
-    historyMoves[from][to] += scaledBonus(score, bonus);
-
-    /* for (int index = 0; index < badQuiets->count; index++) {
-         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
-         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
-
-         int badQuietScore = historyMoves[badQuietFrom][badQuietTo];
-
-         if (badQuiets->moves[index] == bestMove) continue;
-
-         historyMoves[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus);
-     }*/
-}
-
-inline void clearHistory() {
-    for (int i = 0; i < 64; i++) {
-        for (int j = 0; j < 64; j++) {
-            historyMoves[i][j] = 0;
-        }
-    }
-}
-
+#endif //POTENTIAL_HISTORY_H

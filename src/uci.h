@@ -4,11 +4,16 @@
 
 #pragma once
 
-#include "table.h"
+#include "structs.h"
+
 #include <string.h>
 #include <stdio.h>
+#include "move.h"
 #include "time.h"
 #include "search.h"
+#include "fen.h"
+#include "bench.h"
+
 
 #ifdef _WIN32
 #include <io.h>
@@ -16,11 +21,17 @@
 #include <unistd.h>
 #endif
 
+void uciProtocol(int argc, char *argv[]);
+int parse_move(char *move_string, board* position);
+void parse_position(char *command, board* position);
+void goCommand(char *command, board* position, time* time);
+void printMoveList(moves *moveList);
+int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
+void read_input(time* time);
+void communicate(time* time);
 
 
 
 
-//void uciProtocol();
-extern void read_input(time* time);
-extern void communicate(time* time);
-extern void goCommand(char *command, board* position, time* time);
+
+
