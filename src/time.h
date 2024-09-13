@@ -16,6 +16,11 @@
 
 #else
 #include <sys/time.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <unistd.h>
+
+
 #endif
 
 void initTimeControl(time* time);

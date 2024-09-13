@@ -33,7 +33,7 @@ void resetTimeControl(time* time) {
     time->stopped = 0;
 }
 
-int getTimeMiliSecond() {
+int getTimeMiliSecond(void) {
     #ifdef WIN64
         return GetTickCount();
     #else
@@ -43,7 +43,7 @@ int getTimeMiliSecond() {
     #endif
     }
 
-int input_waiting() {
+int input_waiting(void) {
     #ifndef WIN32
         fd_set readfds;
             struct timeval tv;

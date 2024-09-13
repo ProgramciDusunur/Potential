@@ -10,7 +10,7 @@
 #include "move.h"
 #include "table.h"
 #include "fen.h"
-#include "test/perft.h"
+#include "perft.h"
 
 
 

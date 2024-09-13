@@ -257,7 +257,7 @@ void printMoveList(moves *moveList) {
                getMoveCastling(move) ? 1 : 0);
 
 #else
-        printf(" \n  %s%s%c  %c       %d         %d        %d           %d",            squareToCoordinates[getMoveSource(move)],
+        printf(" \n  %s%s%c  %s       %d         %d        %d           %d",            squareToCoordinates[getMoveSource(move)],
                                                                                         squareToCoordinates[getMoveTarget(move)],
                                                                                         getMovePromoted(move) ? promotedPieces[getMovePromoted(move)] : ' ',
                                                                                         unicodePieces[getMovePiece(move)],
