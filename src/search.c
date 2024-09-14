@@ -666,10 +666,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     lmrReduction -= 1;
                 }
 
-                if (improving) {
-                    lmrReduction--;
-                }
-
                 if (in_check && depth > 15) {
                     lmrReduction -= 1;
                 }
@@ -684,6 +680,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 if (cutNode) {
                     lmrReduction += 1;
                 }
+                // Reduce less
+                if (improving) {
+                    lmrReduction--;
+                }
+
                 /*if (pvNode && captureMoves >= 8 && moves_searched >= 4) {
                     lmrReduction -= 1;
                 }*/
