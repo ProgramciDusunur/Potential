@@ -198,8 +198,11 @@ void printMove(int move) {
 }
 
 
-int getLmrReduction(int depth, int moveNumber) {
+int getLmrReduction(int depth, int moveNumber, bool improving) {
     int reduction = lmrTable[depth][moveNumber];
+    if (!improving) {
+        reduction++;
+    }
     return reduction;
 }
 
@@ -649,7 +652,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
             // late move reduction (LMR)
         else {
-            int lmrReduction = getLmrReduction(depth, position->ply);
+            int lmrReduction = getLmrReduction(depth, position->ply, improving);
             if (isQuiet) {
                 // Reduce More
                 if (!pvNode && quietMoves >= 4) {
@@ -678,9 +681,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             } else {
                 // Reduce More
                 if (cutNode) {
-                    lmrReduction += 1;
-                }
-                if (!improving) {
                     lmrReduction += 1;
                 }
                 /*if (pvNode && captureMoves >= 8 && moves_searched >= 4) {
