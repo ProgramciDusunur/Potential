@@ -378,9 +378,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     int ttBound = readHashFlag(position);
 
-    //bool improving;
+    bool improving = false;
 
-    //int pastStack;
+    int pastStack = -1;
 
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
@@ -423,7 +423,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // get static evaluation score
     int static_eval = evaluate(position);
 
-    /*position->staticEval[position->ply] = static_eval;
+    position->staticEval[position->ply] = static_eval;
 
     position->improvingRate[position->ply] = 0.0;
 
@@ -434,10 +434,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         pastStack = position->ply - 4;
     }
 
-    if (pastStack) {
+    if (pastStack && !in_check) {
+        improving = position->staticEval[position->ply] > position->staticEval[pastStack];
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
-        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, -3.0), 2.0);
-    }*/
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, -1.0), 1.0);
+    }
 
     /*if(in_check)
         improving = false;
@@ -651,9 +652,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             int lmrReduction = getLmrReduction(depth, position->ply);
             if (isQuiet) {
                 // Reduce More
-                /*if (!improving && quietMoves >= 8 * depth && !pvNode) {
+                if (!improving) {
                     lmrReduction += 1;
-                }*/
+                }
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1 + (depth / 10);
                 }
@@ -836,7 +837,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(historyMoves, 0, sizeof(historyMoves));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
-    memset(position->staticEval, 0, sizeof(position->staticEval));
+    //memset(position->staticEval, 0, sizeof(position->staticEval));
     //memset(time, 0, sizeof(*time));
     //memset(counterMoves, 0, sizeof(counterMoves));
 
