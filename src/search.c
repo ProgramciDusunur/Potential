@@ -42,7 +42,7 @@ int isRepetition(board* position) {
 void initializeLMRTable(void) {
     for (int i = 1; i < maxPly; ++i) {
         for (int j = 1; j < maxPly; ++j) {
-            lmrTable[i][j] = round(1.0 + log(i) * log(j) * 0.5);
+            lmrTable[i][j] = round(0.9 + log(i) * log(j) * 0.45);
         }
     }
 }
