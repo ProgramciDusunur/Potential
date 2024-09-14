@@ -200,8 +200,8 @@ void printMove(int move) {
 
 int getLmrReduction(int depth, int moveNumber, bool improving) {
     int reduction = lmrTable[depth][moveNumber];
-    if (!improving) {
-        reduction++;
+    if (improving) {
+        reduction--;
     }
     return reduction;
 }
