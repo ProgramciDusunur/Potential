@@ -437,7 +437,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     if (pastStack && !in_check) {
         improving = position->staticEval[position->ply] > position->staticEval[pastStack];
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
-        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, -1.0), 1.0);
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 75, -1.0), 1.0);
     }
 
     /*if(in_check)
@@ -681,7 +681,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     lmrReduction += 1;
                 }
                 // Reduce less
-                if (improving && captureMoves >= 5) {
+                if (improving) {
                     lmrReduction--;
                 }
 
