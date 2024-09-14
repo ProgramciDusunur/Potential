@@ -418,7 +418,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     int quietMoves = 0;
 
     // capture move counter
-    //int captureMoves = 0;
+    int captureMoves = 0;
 
     // get static evaluation score
     int static_eval = evaluate(position);
@@ -634,7 +634,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         if (isQuiet) {
             quietMoves++;
         } else {
-            //captureMoves++;
+            captureMoves++;
         }
 
 
@@ -681,7 +681,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     lmrReduction += 1;
                 }
                 // Reduce less
-                if (improving) {
+                if (improving && captureMoves >= 5) {
                     lmrReduction--;
                 }
 
