@@ -651,7 +651,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         else {
             int lmrReduction = getLmrReduction(depth, position->ply);
             // Reduce less
-            if (position->improvingRate[position->ply] > 0.85 && position->ply > 12 && captureMoves >= 6 && quietMoves <= 10) {
+            if (position->improvingRate[position->ply] > 0.85 && position->ply > 12 && captureMoves >= 6 && quietMoves <= 12) {
                 lmrReduction--;
             }
             if (isQuiet) {
