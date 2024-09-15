@@ -378,9 +378,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     int ttBound = readHashFlag(position);
 
-    //bool improving;
+    bool improving = false;
 
-    //int pastStack;
+    int pastStack = -1;
 
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
@@ -423,7 +423,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // get static evaluation score
     int static_eval = evaluate(position);
 
-    /*position->staticEval[position->ply] = static_eval;
+    position->staticEval[position->ply] = static_eval;
 
     position->improvingRate[position->ply] = 0.0;
 
@@ -434,10 +434,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         pastStack = position->ply - 4;
     }
 
-    if (pastStack) {
+    if (pastStack && !in_check) {
+        improving = position->staticEval[position->ply] > position->staticEval[pastStack];
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
-        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, -3.0), 2.0);
-    }*/
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, -1.0), 1.0);
+    }
 
     /*if(in_check)
         improving = false;
@@ -455,11 +456,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     int canPrune = in_check == 0 && pvNode == 0;
 
 
-    // evaluation pruning / static null move pruning
+    // reverse futility pruning
     if (depth < 4 && canPrune && abs(beta - 1) > -infinity + 100) {
         // define evaluation margin
-        int eval_margin = 100 * depth;
-
+        int eval_margin = improving ? 100 * depth : 120 * (depth - 1);
+        // return (new_score > score) ? new_score : score;
         // evaluation margin substracted from static evaluation score fails high
         if (static_eval - eval_margin >= beta)
             // evaluation margin substracted from static evaluation score
