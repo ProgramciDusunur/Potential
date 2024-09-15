@@ -34,7 +34,7 @@ int scoreMove(int move, board* position);
 void sort_moves(moves *moveList, int bestMove, board* position);
 void enable_pv_scoring(moves *moveList, board* position);
 void printMove(int move);
-int getLmrReduction(int depth, int moveNumber);
+int getLmrReduction(int depth, int moveNumber, double improvingRate);
 void clearCounterMoves();
 int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time);
 int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode);

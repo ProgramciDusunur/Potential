@@ -198,8 +198,12 @@ void printMove(int move) {
 }
 
 
-int getLmrReduction(int depth, int moveNumber) {
+int getLmrReduction(int depth, int moveNumber, double improvingRate) {
     int reduction = lmrTable[depth][moveNumber];
+    // Reduce less
+    if (improvingRate >= 0.7) {
+        reduction--;
+    }
     return reduction;
 }
 
@@ -378,7 +382,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     int ttBound = readHashFlag(position);
 
-    bool improving = false;
+    //bool improving = false;
 
     int pastStack = -1;
 
@@ -435,7 +439,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     if (pastStack && !in_check) {
-        improving = position->staticEval[position->ply] > position->staticEval[pastStack];
+        //improving = position->staticEval[position->ply] > position->staticEval[pastStack];
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
         position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 75, -1.0), 1.0);
     }
@@ -649,7 +653,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
             // late move reduction (LMR)
         else {
-            int lmrReduction = getLmrReduction(depth, position->ply);
+            int lmrReduction = getLmrReduction(depth, position->ply, position->improvingRate[position->ply]);
             if (isQuiet) {
                 // Reduce More
                 if (!pvNode && quietMoves >= 4) {
@@ -680,10 +684,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 if (cutNode) {
                     lmrReduction += 1;
                 }
-                // Reduce less
-                if (improving) {
-                    lmrReduction--;
-                }
+
 
                 /*if (pvNode && captureMoves >= 8 && moves_searched >= 4) {
                     lmrReduction -= 1;
