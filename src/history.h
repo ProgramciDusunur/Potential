@@ -11,7 +11,7 @@
 
 
 #include "structs.h"
-#include "bit_manipluation.h"
+#include "bit_manipulation.h"
 #include "move.h"
 #include <stdio.h>
 #include <stdbool.h>
