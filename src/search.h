@@ -15,8 +15,6 @@
 #include "evaluation.h"
 #include "uci.h"
 
-#define maxPly 64
-
 extern int lmr_full_depth_moves;
 extern int lmr_reduction_limit;
 extern int lateMovePruningBaseReduction;

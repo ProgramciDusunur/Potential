@@ -372,6 +372,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         return 0;
     }
 
+    if (position->ply >= maxPly) {
+        return evaluate(position);
+    }
+
     int pvNode = beta - alpha > 1;
 
     int rootNode = position->ply == 0;
