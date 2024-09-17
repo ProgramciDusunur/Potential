@@ -221,6 +221,10 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     // increment nodes count
     searchNodes++;
 
+    if (position->ply >= maxPly) {
+        return evaluate(position);
+    }
+
     int score = 0;
 
 
