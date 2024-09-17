@@ -221,6 +221,10 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     // increment nodes count
     searchNodes++;
 
+    if (position->ply > maxPly - 1) {
+        return evaluate(position);
+    }
+
     int score = 0;
 
 
@@ -370,6 +374,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     if (position->ply && isRepetition(position)) {
         return 0;
+    }
+
+    if (position->ply > maxPly - 1) {
+        return evaluate(position);
     }
 
     int pvNode = beta - alpha > 1;
