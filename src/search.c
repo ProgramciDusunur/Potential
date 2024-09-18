@@ -525,7 +525,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // razoring (~8 Elo)
-    if (canPrune && depth <= 3) {
+    /*if (canPrune && depth <= 3) {
         // get static eval and add first bonus
         score = static_eval + 125;
 
@@ -557,7 +557,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     return (new_score > score) ? new_score : score;
             }
         }
-    }
+    }*/
 
     // create move list instance
     moves moveList[1], badQuiets[1];
