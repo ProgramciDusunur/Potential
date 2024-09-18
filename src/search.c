@@ -593,7 +593,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         int lmpBase = 4;
         int lmpMultiplier = 3;
-        int improvingFactor = position->improvingRate[position->ply] * (0.125 * depth);
+        int improvingFactor = position->improvingRate[position->ply] * (0.375 * depth);
         int lmpThreshold = (lmpBase + (lmpMultiplier + improving) * depth * depth) - improvingFactor;
         if (!rootNode && isQuiet && isNotMated) {
             // Late Move Pruning (~18 Elo)
