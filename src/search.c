@@ -274,7 +274,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     // legal moves counter
     int legal_moves = 0;
 
-    int futilityMargin = improving ? evaluation + 100 : evaluation + 80;
+    int futilityMargin = !improving ? evaluation + 120 : evaluation + 100;
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
