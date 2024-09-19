@@ -498,8 +498,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         // hash the side
         position->hashKey ^= sideKey;
-
-        int R = 3 + (int)(0.1875 * depth);
+        int nullMoveBase = improving ? 4 : 3;
+        int R = nullMoveBase + (int)(0.1875 * depth);
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
