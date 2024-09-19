@@ -287,8 +287,8 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
         }
         bool isNotMated = alpha > -mateScore + maxPly;
         int lmpBase = 4;
-        int lmpMultiplier = 8;
-        int lmpThreshold = (lmpBase + lmpMultiplier);
+        int lmpMultiplier = 9;
+        int lmpThreshold = (lmpBase + (lmpMultiplier + improving));
         if (!rootNode && isNotMated) {
             if (legal_moves >= lmpThreshold) {
                 continue;
