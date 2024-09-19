@@ -214,7 +214,7 @@ void clearCounterMoves(void) {
 }
 
 // quiescence search
-int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time) {
+int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time, bool improving) {
     if ((searchNodes & 2047) == 0) {
         communicate(time);
     }
@@ -274,7 +274,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     // legal moves counter
     int legal_moves = 0;
 
-    int futilityMargin = evaluation + 100;
+    int futilityMargin = !improving ? evaluation + 120 : evaluation + 100;
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
@@ -320,7 +320,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
         legal_moves++;
 
         // score current move
-        score = -quiescence(-beta, -alpha, position, score, time);
+        score = -quiescence(-beta, -alpha, position, score, time, improving);
 
         // decrement ply
         position->ply--;
@@ -402,7 +402,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // recursion escapre condition
     if (depth == 0)
         // run quiescence search
-        return quiescence(alpha, beta, position, score, time);
+        return quiescence(alpha, beta, position, score, time, improving);
 
     // IIR by Ed Schroder (~15 Elo)
     if ((depth >= 4 && ttBound == hashFlagNone) || cutNode)
