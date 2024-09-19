@@ -599,15 +599,12 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             if (legal_moves>= lmpThreshold) {
                 skipQuiet = 1;
             }
-
-            if (canPrune && depth < 4 && static_eval + 100 <= alpha) {
+            // Futility pruning
+            int futilityMargin = improving ? static_eval + 100 : static_eval + 80;
+            if (canPrune && depth < 4 && futilityMargin <= alpha) {
                 skipQuiet = 1;
             }
         }
-        /*int seeScore = see(position, moveList->moves[count]);
-        if (in_check == 0 && seeScore < -17 * depth * depth) {
-            continue;
-        }*/
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
