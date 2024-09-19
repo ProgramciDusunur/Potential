@@ -599,8 +599,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             if (legal_moves>= lmpThreshold) {
                 skipQuiet = 1;
             }
-
-            int futilityMargin = improving ? static_eval + 80 : static_eval + 100;
+            // Futility pruning
+            int futilityMargin = improving ? static_eval + 100 : static_eval + 80;
             if (canPrune && depth < 4 && futilityMargin <= alpha) {
                 skipQuiet = 1;
             }
