@@ -492,9 +492,9 @@ int evaluate(board* position) {
                     // on double pawns (triple, etc)
                     if (double_pawns > 1) {
                         if (game_phase == middlegame) {
-                            score -= double_pawns * double_pawn_penalty_middlegame;
+                            score += double_pawns * double_pawn_penalty_middlegame;
                         } else if (game_phase == endgame) {
-                            score -= double_pawns * double_pawn_penalty_endgame;
+                            score += double_pawns * double_pawn_penalty_endgame;
                         }
 
                     }
