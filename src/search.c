@@ -601,7 +601,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 skipQuiet = 1;
             }
             // Futility pruning
-            int futilityMargin = improving ? static_eval + (100 * depth - 1) : static_eval + (80 * depth - 1);
+            int futilityMargin = improving ? static_eval + (100 * depth) : static_eval + (80 * depth - 1);
             if (canPrune && depth < 4 && futilityMargin <= alpha) {
                 skipQuiet = 1;
             }
