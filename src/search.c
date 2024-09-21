@@ -593,8 +593,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         int lmpBase = 4;
         int lmpMultiplier = 3;
-        int improvingFactor = position->improvingRate[position->ply] * (0.25 * depth);
-        int lmpThreshold = (lmpBase + (lmpMultiplier + improving) * depth * depth) - improvingFactor;
+        int lmpImprovingFactor = position->improvingRate[position->ply] * (0.25 * depth);
+        int lmpThreshold = (lmpBase + (lmpMultiplier + improving) * depth * depth) - lmpImprovingFactor;
         if (!rootNode && isQuiet && isNotMated) {
             // Late Move Pruning (~18 Elo)
             if (legal_moves>= lmpThreshold) {
@@ -602,7 +602,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             }
             // Futility pruning
             int futilityMargin = improving ? static_eval + 100 : static_eval + 80;
-            int futilityThreshold = futilityMargin + improvingFactor;
+            int futilityImprovingFactor = position->improvingRate[position->ply] * (0.2 * depth);
+            int futilityThreshold = futilityMargin + futilityImprovingFactor;
             if (canPrune && depth < 4 && futilityThreshold <= alpha) {
                 skipQuiet = 1;
             }
