@@ -195,7 +195,7 @@ const int queen_unit = 9;
 const int bishop_mobility_middlegame = 5;
 const int bishop_mobility_endgame = 10;
 const int queen_mobility_middlegame = 10;
-const int queen_mobility_endgame = 15;
+const int queen_mobility_endgame = 20;
 
 // King's Bonuses
 const int king_shield_bonus = 5;
