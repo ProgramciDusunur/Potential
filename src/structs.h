@@ -102,6 +102,11 @@ typedef struct {
 } time;
 
 
+// search stack
+typedef struct {
+    int continuationHistory[2][64][64];
+} SearchStack;
+
 
 
 

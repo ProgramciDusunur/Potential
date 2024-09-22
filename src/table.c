@@ -120,7 +120,7 @@ int readHashFlag(board* position) {
     return hashFlagNone;
 }
 
-void clearHashTable() {
+void clearHashTable(void) {
     // init hash table entry pointer
     tt *hash_entry;
 
@@ -179,7 +179,7 @@ void init_hash_table(int mb) {
 }
 
 // init random hash keys
-void initRandomKeys() {
+void initRandomKeys(void) {
     // update pseudo random number state
     state = 1804289383;
     // loop over piece codes

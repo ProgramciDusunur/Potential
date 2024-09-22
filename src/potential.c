@@ -45,7 +45,7 @@ void perftChild(int depth, board* position);
 
 void initRandomKeys();*/
 
-void initAll() {
+void initAll(void) {
     initLeaperAttacks();
     initMagicNumbers();
     initSlidersAttacks(bishop);
