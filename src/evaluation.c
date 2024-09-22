@@ -194,8 +194,8 @@ const int queen_unit = 9;
 // Mobility Bonuses
 const int bishop_mobility_middlegame = 5;
 const int bishop_mobility_endgame = 10;
-const int queen_mobility_middlegame = 1;
-const int queen_mobility_endgame = 2;
+const int queen_mobility_middlegame = 3;
+const int queen_mobility_endgame = 6;
 
 // King's Bonuses
 const int king_shield_bonus = 5;
@@ -442,7 +442,11 @@ int evaluate(board* position) {
                     else score += positional_score[game_phase][QUEEN][square];
 
                     // mobility
-                    //score += count_bits(get_queen_attacks(square, occupancies[both]));
+                    if (game_phase == endgame) {
+                        score += (countBits(getQueenAttacks(square, position->occupancies[both])) - queen_unit) * queen_mobility_endgame;
+                    } else {
+                        score += (countBits(getQueenAttacks(square, position->occupancies[both])) - queen_unit) * queen_mobility_middlegame;
+                    }
                     break;
 
                     // evaluate white king
@@ -596,7 +600,11 @@ int evaluate(board* position) {
                     else score -= positional_score[game_phase][QUEEN][mirrorScore[square]];
 
                     // mobility
-                    //score -= count_bits(get_queen_attacks(square, occupancies[both]));
+                    if (game_phase == endgame) {
+                        score -= (countBits(getQueenAttacks(square, position->occupancies[both])) - queen_unit) * queen_mobility_endgame;
+                    } else {
+                        score -= (countBits(getQueenAttacks(square, position->occupancies[both])) - queen_unit) * queen_mobility_middlegame;
+                    }
                     break;
 
                     // evaluate black king
