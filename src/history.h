@@ -18,7 +18,7 @@
 
 
 enum {
-    maxHistory = 16000
+    maxHistory = 16384
 };
 
 extern int historyMoves[64][64];
