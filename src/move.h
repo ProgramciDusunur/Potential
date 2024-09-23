@@ -66,7 +66,7 @@ int isSquareAttacked(int square, int whichSide, board* position);
 int makeMove(int move, int moveFlag, board* position);
 void moveGenerator(moves *moveList, board* position);
 void initSlidersAttacks(int bishop);
-void initLeaperAttacks();
+void initLeaperAttacks(void);
 void addMoveToHistoryList(moves* list, int move);
 
 #endif //POTENTIAL_MOVE_H

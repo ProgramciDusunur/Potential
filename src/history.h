@@ -27,7 +27,7 @@ extern int historyMoves[64][64];
 
 int scaledBonus(int score, int bonus);
 void updateHistory(int bestMove, int depth);
-void clearHistory();
+void clearHistory(void);
 
 
 #endif //POTENTIAL_HISTORY_H

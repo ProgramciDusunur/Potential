@@ -32,9 +32,9 @@ U64 generateHashKey(board* position);
 void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position);
 int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position);
 int readHashFlag(board* position);
-void clearHashTable();
+void clearHashTable(void);
 void init_hash_table(int mb);
-void initRandomKeys();
+void initRandomKeys(void);
 
 
 

@@ -49,7 +49,7 @@ unsigned int state = 1804289383;
 
 
 
-unsigned int getRandom32BitNumber() {
+unsigned int getRandom32BitNumber(void) {
     //get current state
     unsigned int number = state;
 
@@ -64,7 +64,7 @@ unsigned int getRandom32BitNumber() {
     return number;
 }
 
-U64 getRandom64Numbers() {
+U64 getRandom64Numbers(void) {
     U64 n1, n2, n3, n4;
 
     n1 = (U64) (getRandom32BitNumber()) & 0xFFFF;
@@ -75,7 +75,7 @@ U64 getRandom64Numbers() {
     return n1 | (n2 << 16) | (n3 << 32) | (n4 << 48);
 }
 
-U64 generateMagicNumber() {
+U64 generateMagicNumber(void) {
     return getRandom64Numbers() & getRandom64Numbers() & getRandom64Numbers();
 }
 
@@ -144,7 +144,7 @@ U64 findMagicNumber(int square, int relevantBits, int bishop) {
 }
 
 // init magic numbers
-U64 initMagicNumbers() {
+U64 initMagicNumbers(void) {
     // loop over 64 board squares
     for (int square = 0; square < 64; square++) {
         // init rook magic numbers

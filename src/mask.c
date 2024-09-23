@@ -243,7 +243,7 @@ U64 setFileRankMask(int file_number, int rank_number) {
 }
 
 
-void initEvaluationMasks() {
+void initEvaluationMasks(void) {
     // loop over ranks
     for (int rank = 0; rank < 8; rank++)
     {

@@ -25,11 +25,11 @@ extern unsigned int state;
 extern const int castlingRights[64];
 
 
-unsigned int getRandom32BitNumber();
-U64 getRandom64Numbers();
-U64 generateMagicNumber();
+unsigned int getRandom32BitNumber(void);
+U64 getRandom64Numbers(void);
+U64 generateMagicNumber(void);
 U64 findMagicNumber(int square, int relevantBits, int bishop);
-U64 initMagicNumbers();
+U64 initMagicNumbers(void);
 
 
 #endif //POTENTIAL_MAGIC_H
