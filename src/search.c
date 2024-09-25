@@ -285,6 +285,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
             }
             continue;
         }
+        /*
         bool isNotMated = alpha > -mateScore + maxPly;
         int lmpBase = 4;
         int lmpMultiplier = 8;
@@ -293,7 +294,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
             if (legal_moves >= lmpThreshold) {
                 continue;
             }
-        }
+        }*/
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
@@ -317,7 +318,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
             continue;
         }
 
-        legal_moves++;
+        //legal_moves++;
 
         // score current move
         score = -quiescence(-beta, -alpha, position, score, time, improving);
