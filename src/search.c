@@ -230,7 +230,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
 
     int pvNode = beta - alpha > 1;
 
-    int rootNode = position->ply == 0;
+    //int rootNode = position->ply == 0;
 
     // best move (to store in TT)
     int bestMove = 0;
@@ -272,7 +272,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     //sort_moves(moveList, 0, position);
 
     // legal moves counter
-    int legal_moves = 0;
+    //int legal_moves = 0;
 
     int futilityMargin = !improving ? evaluation + 120 : evaluation + 100;
 
@@ -477,7 +477,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // null move pruning
-    if (depth >= nullMoveDepth && in_check == 0 && position->ply) {
+    if (depth >= nullMoveDepth && in_check == 0 && position->ply && static_eval >= beta) {
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
