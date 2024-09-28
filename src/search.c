@@ -436,6 +436,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     position->improvingRate[position->ply] = 0.0;
 
+    double cutNodeSubtraction = cutNode ? 0.5 : 0;
+
 
     if (position->staticEval[position->ply-2] != noEval) {
         pastStack = position->ply - 2;
@@ -446,7 +448,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     if (pastStack && !in_check) {
         improving = position->staticEval[position->ply] > position->staticEval[pastStack];
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
-        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, (-1.0 - cutNode)), 1.0);
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, (-1.0 - cutNodeSubtraction)), 1.0);
     }
 
     /*if(in_check)
