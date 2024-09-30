@@ -664,9 +664,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             if (isQuiet) {
                 // Reduce More
                 // if we have a capture ttMove then reduce more on quiet moves
-                if (isTacticalTTMove) {
-                    lmrReduction += 1;
-                }
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1 + (depth / 10);
                 }
@@ -682,6 +679,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 }
 
                 if (in_check && depth > 15) {
+                    lmrReduction -= 1;
+                }
+                if (!isTacticalTTMove) {
                     lmrReduction -= 1;
                 }
 
