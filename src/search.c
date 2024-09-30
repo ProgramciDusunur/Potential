@@ -386,13 +386,15 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     int rootNode = position->ply == 0;
 
     int ttBound = readHashFlag(position);
+    bool ttMove = position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0;
+    bool isTacticalTTMove = getMoveCapture(bestMove) ? true : false;
 
     bool improving = false;
 
     int pastStack = -1;
 
     // read hash entry
-    if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
+    if (ttMove) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move
         return score;
@@ -661,9 +663,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             int lmrReduction = getLmrReduction(depth, position->ply);
             if (isQuiet) {
                 // Reduce More
-                /*if (!improving && quietMoves >= 8 * depth && !pvNode) {
+                // if we have a capture ttMove then reduce more on quiet moves
+                if (isTacticalTTMove) {
                     lmrReduction += 1;
-                }*/
+                }
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1 + (depth / 10);
                 }
