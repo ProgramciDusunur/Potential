@@ -694,8 +694,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 if (cutNode) {
                     lmrReduction += 1;
                 }
-                if (!isTacticalTTMove) {
-                    lmrReduction += 1;
+                // Reduce Less
+                if (isTacticalTTMove) {
+                    lmrReduction -= 1;
                 }
                 /*if (pvNode && captureMoves >= 8 && moves_searched >= 4) {
                     lmrReduction -= 1;
