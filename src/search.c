@@ -121,8 +121,8 @@ int scoreMove(int move, board* position) {
             // score 2nd killer move
         else if (position->killerMoves[position->ply][1] == move)
             return 800000000;
-        /*else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
-            return 700000000;*/
+        else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
+            return 700000000;
 
         /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
              printf("History score negative: %d\n", historyMoves[getMoveSource(move)][getMoveTarget(move)]);
@@ -782,7 +782,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             if (score >= beta) {
                 // store hash entry with the score equal to beta
                 writeHashEntry(beta, bestMove, depth, hashFlagBeta, position);
-                //int lastMove = moveList->moves[position->ply - 1];
+                int lastMove = moveList->moves[position->ply - 1];
                 // on quiet moves
                 if (isQuiet) {
                     // store killer moves
@@ -790,9 +790,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                         position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                         position->killerMoves[position->ply][0] = bestMove;
                     }
-                    //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
-                    //position->killerMoves[position->ply][0] = bestMove;
-                    //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
+                    counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
                     updateHistory(bestMove, depth, badQuiets);
                 }
 
