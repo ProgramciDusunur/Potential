@@ -633,9 +633,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             continue;
         }
 
-        /*if (isQuiet) {
+        if (isQuiet) {
             addMoveToHistoryList(badQuiets, currentMove);
-        }*/
+        }
 
         // increment legal moves
         legal_moves++;
@@ -793,7 +793,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
-                    updateHistory(bestMove, depth);
+                    updateHistory(bestMove, depth, badQuiets);
                 }
 
                 // node (move) fails high
