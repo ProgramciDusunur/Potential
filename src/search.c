@@ -407,7 +407,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     // IIR by Ed Schroder (~15 Elo)
     if ((depth >= 4 && ttBound == hashFlagNone) || cutNode)
-        depth -= 1 + (cutNode) + (!improving);
+        depth -= 1 + (cutNode) + (!improving && depth >= 8);
 
     // increment nodes count
     searchNodes++;
