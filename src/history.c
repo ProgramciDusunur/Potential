@@ -10,7 +10,7 @@ int scaledBonus(int score, int bonus) {
     return bonus - score * myAbs(bonus) / maxHistory;
 }
 
-void updateHistory(int bestMove, int depth) {
+void updateHistory(int bestMove, int depth, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
@@ -19,7 +19,7 @@ void updateHistory(int bestMove, int depth) {
 
     historyMoves[from][to] += scaledBonus(score, bonus);
 
-    /* for (int index = 0; index < badQuiets->count; index++) {
+     for (int index = 0; index < badQuiets->count; index++) {
          int badQuietFrom = getMoveSource(badQuiets->moves[index]);
          int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
@@ -28,7 +28,7 @@ void updateHistory(int bestMove, int depth) {
          if (badQuiets->moves[index] == bestMove) continue;
 
          historyMoves[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus);
-     }*/
+     }
 }
 
 void clearHistory() {
