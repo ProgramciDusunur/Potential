@@ -14,7 +14,7 @@ void updateHistory(int bestMove, int depth, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int bonus = depth * depth;
+    int bonus = 16 * depth * depth + 32 * depth + 16;
     int score = historyMoves[from][to];
 
     historyMoves[from][to] += scaledBonus(score, bonus);

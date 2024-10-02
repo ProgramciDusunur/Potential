@@ -124,9 +124,9 @@ int scoreMove(int move, board* position) {
         /*else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
 
-        /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
+        if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
              printf("History score negative: %d\n", historyMoves[getMoveSource(move)][getMoveTarget(move)]);
-         }*/
+         }
         return historyMoves[getMoveSource(move)][getMoveTarget(move)];
 
     }
