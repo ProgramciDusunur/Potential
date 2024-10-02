@@ -668,7 +668,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     lmrReduction += 1;
                 }*/
                 if (!pvNode && quietMoves >= 4) {
-                    lmrReduction += 1 + (depth / 10 + moveHistory <= -10240);
+                    lmrReduction += 1 + (depth / 10 && moveHistory <= -10240);
                 }
 
                 /*if (position->improvingRate[position->ply] < -2.0) {
