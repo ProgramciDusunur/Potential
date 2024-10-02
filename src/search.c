@@ -120,7 +120,7 @@ int scoreMove(int move, board* position, SearchStack *ss) {
             // score 2nd killer move
         else if (position->killerMoves[position->ply][1] == move)
             return 800000000;
-        else if (counterMoves[position->side][getMoveSource((ss-1)->lastMove)][getMoveTarget((ss-1)->lastMove)] == move)
+        else if (counterMoves[position->side][getMoveSource(ss->lastMove)][getMoveTarget(ss->lastMove)] == move)
             return 700000000;
 
         /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
