@@ -105,6 +105,9 @@ typedef struct {
 // search stack
 typedef struct {
     int continuationHistory[2][64][64];
+    // last move for counter moves heuristic
+    int lastMove;
+
 } SearchStack;
 
 
