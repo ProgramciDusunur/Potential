@@ -585,7 +585,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
+
         int currentMove = moveList->moves[count];
+
+        int moveHistory = historyMoves[getMoveSource(currentMove)][getMoveTarget(currentMove)];
 
         bool isQuiet = getMoveCapture(currentMove) == 0;
         if (skipQuiet && isQuiet) {
@@ -681,6 +684,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 if (in_check && depth > 15) {
                     lmrReduction -= 1;
                 }
+
+                // if we have a good history score reduce less otherwise reduce more
+                lmrReduction -= moveHistory / 10240;
 
                 /*if (pvNode && moves_searched <= 10) {
                     lmrReduction -= 1;
