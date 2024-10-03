@@ -276,7 +276,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
 
     int quiescenceDepth = position->ply / 2;
 
-    int improvingFactor = position->improvingRate[position->ply] * (0.6875 * quiescenceDepth);
+    int improvingFactor = position->improvingRate[position->ply] * (0.5 * quiescenceDepth);
 
     int futilityMargin = !improving ? evaluation + 120 : evaluation + 100;
 
