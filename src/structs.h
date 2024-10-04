@@ -32,8 +32,6 @@ typedef struct {
 
     double improvingRate[maxPly];
 
-    int rootBestMove;
-
     int followPv;
     int scorePv;
 
