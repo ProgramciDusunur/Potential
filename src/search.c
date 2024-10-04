@@ -921,7 +921,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     if (!benchmark) {
         // best move placeholder
         printf("bestmove ");
-        printMove(position->rootBestMove);
+        printMove(position->pvTable[0][0] ? position->pvTable[0][0] : position->rootBestMove);
         printf("\n");
     }
 
