@@ -762,6 +762,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // to the one storing score for PV node
             hashFlag = hashFlagExact;
 
+            // update rootBestMove variable for returning best move
+            if (position->ply == 0) {
+                position->rootBestMove = currentMove;
+            }
+
             // store best move (for TT)
             bestMove = currentMove;
 
@@ -916,7 +921,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     if (!benchmark) {
         // best move placeholder
         printf("bestmove ");
-        printMove(position->pvTable[0][0]);
+        printMove(position->rootBestMove);
         printf("\n");
     }
 
