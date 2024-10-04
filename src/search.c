@@ -613,6 +613,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             if (canPrune && depth < 4 && futilityMargin <= alpha) {
                 skipQuiet = 1;
             }
+            // Quiet Move History Pruning
+            if (canPrune && moveHistory <= -4096) {
+                skipQuiet = 1;
+            }
         }
         struct copyposition copyPosition;
         // preserve board state
