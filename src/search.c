@@ -617,7 +617,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             }
 
             // Quiet Move History Pruning
-            int quietHistoryThreshold = position->improvingRate[position->ply] * (16 * depth);
+            int quietHistoryThreshold = position->improvingRate[position->ply] * (32 * depth);
             if (canPrune && moveHistory + quietHistoryThreshold <= -4096) {
                 skipQuiet = 1;
             }
