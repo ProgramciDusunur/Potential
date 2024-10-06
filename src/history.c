@@ -61,7 +61,7 @@ void updateHistory(board *position, SearchStack *ss, int bestMove, int depth, mo
          if (badQuiets->moves[index] == bestMove) continue;
 
          historyMoves[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus);
-         //updateContinuationHistoryScore(position, ss, move, -bonus);
+         updateContinuationHistoryScore(position, ss, move, -bonus);
      }
 }
 
