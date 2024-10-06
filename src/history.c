@@ -13,8 +13,8 @@ int getSingleContinuationHistoryScore(const SearchStack *ss, const int move, con
 
 // Returns the history score of a move
 int getContinuationHistoryScore(const SearchStack *ss, const int move) {
-    return getSingleContinuationHistoryScore(ss, move, 1);
-    //+ getSingleContinuationHistoryScore(ss, move, 2);
+    //return getSingleContinuationHistoryScore(ss, move, 1);
+    return getSingleContinuationHistoryScore(ss, move, 2);
     //+ GetSingleCHScore(sd, ss, move, 4);
 }
 
@@ -28,8 +28,8 @@ void updateSingleContinuationHistoryScore(const board *position, SearchStack *ss
 
 void updateContinuationHistoryScore(board *position, SearchStack *ss, const int move, const int bonus) {
     const int scaledBonus = bonus - getContinuationHistoryScore(ss, move) * abs(bonus) / 8192;
-    updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 1);
-    //updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 2);
+    //updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 1);
+    updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 2);
     //updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 4);
 }
 
