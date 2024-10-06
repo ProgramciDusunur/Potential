@@ -73,9 +73,11 @@ int main(int argc, char* argv[]) {
         perftRoot(6, &position);
         printf("Nodes: %llu", perftNodes);
     } else {
+        int safetyMargin = maxPly / 4;
+
         board *position = (board *)malloc(sizeof(board));
         time *time_ctrl = (time *)malloc(sizeof(time));
-        SearchStack *ss = (SearchStack *)malloc(sizeof(SearchStack) * maxPly);
+        SearchStack *ss = (SearchStack *)malloc(sizeof(SearchStack) * (maxPly + safetyMargin));
 
         uciProtocol(argc, argv, position, time_ctrl, ss);
 
