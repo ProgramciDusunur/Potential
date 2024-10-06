@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     } else {
         board *position = (board *)malloc(sizeof(board));
         time *time_ctrl = (time *)malloc(sizeof(time));
-        SearchStack *ss = (SearchStack *)malloc(sizeof(SearchStack));
+        SearchStack *ss = (SearchStack *)malloc(sizeof(SearchStack) * maxPly);
 
         uciProtocol(argc, argv, position, time_ctrl, ss);
 
