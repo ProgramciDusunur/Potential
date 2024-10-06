@@ -127,7 +127,7 @@ int scoreMove(int move, board* position, SearchStack *ss) {
         /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
              printf("History score negative: %d\n", historyMoves[getMoveSource(move)][getMoveTarget(move)]);
          }*/
-        return historyMoves[getMoveSource(move)][getMoveTarget(move)] + getContinuationHistoryScore(position, ss, move);
+        return historyMoves[getMoveSource(move)][getMoveTarget(move)];
 
     }
     return 0;
