@@ -21,7 +21,7 @@
 #include <unistd.h>
 #endif
 
-void uciProtocol(int argc, char *argv[]);
+void uciProtocol(int argc, char *argv[], board *position, time *time_ctrl, SearchStack *ss);
 int parse_move(char *move_string, board* position);
 void parse_position(char *command, board* position);
 void goCommand(char *command, board* position, SearchStack *ss, time* time);

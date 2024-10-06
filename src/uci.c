@@ -343,14 +343,8 @@ void communicate(time* time) {
 }
 
 
-void uciProtocol(int argc, char *argv[]) {
-    board *position = (board *)malloc(sizeof(board));
-
+void uciProtocol(int argc, char *argv[], board *position, time *time_ctrl, SearchStack *ss) {
     position->ply = 0;
-
-    time *time_ctrl = (time *)malloc(sizeof(time));
-
-    SearchStack *ss = (SearchStack *)malloc(sizeof(SearchStack));
 
     // init time control
     initTimeControl(time_ctrl);
@@ -482,12 +476,6 @@ void uciProtocol(int argc, char *argv[]) {
             // parse UCI "quit" command
         else if (strncmp(input, "quit", 4) == 0) {
             // quit from the chess engine program executions
-            // free SearchStack struct
-            free(ss);
-            // free board struct
-            free(position);
-            // free time struct
-            free(time_ctrl);
             break;
         }
             // parse UCI "uci" command
