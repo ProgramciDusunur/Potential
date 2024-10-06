@@ -24,8 +24,8 @@ enum {
 extern int historyMoves[64][64];
 
 
-int getSingleContinuationHistoryScore(const SearchStack *ss, int move, int offSet);
-int getContinuationHistoryScore(const SearchStack *ss, int move);
+int getSingleContinuationHistoryScore(const board *position, const SearchStack *ss, const int move, const int offSet);
+int getContinuationHistoryScore(const board *position, const SearchStack *ss, const int move);
 void updateSingleContinuationHistoryScore(const board *position, SearchStack *ss, int move, int bonus, int offSet);
 void updateContinuationHistoryScore(board *position, SearchStack *ss, int move, int bonus);
 int scaledBonus(int score, int bonus);

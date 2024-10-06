@@ -6,30 +6,30 @@
 
 int historyMoves[64][64];
 
-int getSingleContinuationHistoryScore(const SearchStack *ss, const int move, const int offSet) {
-    const int previousMove = (ss - offSet)->move;
+int getSingleContinuationHistoryScore(const board *position, const SearchStack *ss, const int move, const int offSet) {
+    const int previousMove = (ss)->move[position->ply - offSet];
     return previousMove ? ss->continuationHistory[getMoveTarget(previousMove)][getMoveTarget(move)] : 0;
 }
 
 // Returns the history score of a move
-int getContinuationHistoryScore(const SearchStack *ss, const int move) {
-    //return getSingleContinuationHistoryScore(ss, move, 1);
-    return getSingleContinuationHistoryScore(ss, move, 2);
+int getContinuationHistoryScore(const board *position, const SearchStack *ss, const int move) {
+    return getSingleContinuationHistoryScore(position, ss, move, 1);
+    //return getSingleContinuationHistoryScore(position, ss, move, 2);
     //+ GetSingleCHScore(sd, ss, move, 4);
 }
 
 void updateSingleContinuationHistoryScore(const board *position, SearchStack *ss, const int move, const int bonus, const int offSet) {
     if (position->ply >= offSet) {
-        const int previousMove = (ss - offSet)->move;
-        const int scaledBonus = bonus - getSingleContinuationHistoryScore(ss, move, offSet) * abs(bonus) / 16384;
+        const int previousMove = (ss)->move[position->ply - offSet];
+        const int scaledBonus = bonus - getSingleContinuationHistoryScore(position, ss, move, offSet) * abs(bonus) / 16384;
         ss->continuationHistory[getMoveTarget(previousMove)][getMoveTarget(move)] += scaledBonus;
     }
 }
 
 void updateContinuationHistoryScore(board *position, SearchStack *ss, const int move, const int bonus) {
-    const int scaledBonus = bonus - getContinuationHistoryScore(ss, move) * abs(bonus) / 8192;
-    //updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 1);
-    updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 2);
+    const int scaledBonus = bonus - getContinuationHistoryScore(position, ss, move) * abs(bonus) / 8192;
+    updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 1);
+    //updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 2);
     //updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 4);
 }
 

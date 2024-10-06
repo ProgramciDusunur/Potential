@@ -127,7 +127,7 @@ int scoreMove(int move, board* position, SearchStack *ss) {
         /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
              printf("History score negative: %d\n", historyMoves[getMoveSource(move)][getMoveTarget(move)]);
          }*/
-        return historyMoves[getMoveSource(move)][getMoveTarget(move)] + getContinuationHistoryScore(ss, move);
+        return historyMoves[getMoveSource(move)][getMoveTarget(move)] + getContinuationHistoryScore(position, ss, move);
 
     }
     return 0;
@@ -638,7 +638,7 @@ int negamax(int alpha, int beta, int depth, board* position, SearchStack *ss, ti
             continue;
         }
 
-        ss->move = currentMove;
+        ss->move[position->ply] = currentMove;
 
         if (isQuiet) {
             addMoveToHistoryList(badQuiets, currentMove);
@@ -861,6 +861,7 @@ void searchPosition(int depth, board* position, SearchStack *ss, bool benchmark,
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
     memset(ss->continuationHistory, 0, sizeof(ss->continuationHistory));
+    memset(ss->move, 0, sizeof(ss->move));
     //memset(time, 0, sizeof(*time));
     //memset(counterMoves, 0, sizeof(counterMoves));
 
