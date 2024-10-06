@@ -103,7 +103,8 @@ typedef struct {
 
 // search stack
 typedef struct {
-    int continuationHistory[2][64][64];
+    int continuationHistory[12 * 64][12 * 64];
+    int move;
 } SearchStack;
 
 
