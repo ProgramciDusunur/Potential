@@ -13,24 +13,24 @@ int getSingleContinuationHistoryScore(const board *position, const SearchStack *
 
 // Returns the history score of a move
 int getContinuationHistoryScore(const board *position, const SearchStack *ss, const int move) {
-    return getSingleContinuationHistoryScore(position, ss, move, 1);
-    //return getSingleContinuationHistoryScore(position, ss, move, 2);
-    //+ GetSingleCHScore(sd, ss, move, 4);
+    return getSingleContinuationHistoryScore(position, ss, move, 1) +
+    getSingleContinuationHistoryScore(position, ss, move, 2) +
+    getSingleContinuationHistoryScore(position, ss, move, 4);
 }
 
 void updateSingleContinuationHistoryScore(const board *position, SearchStack *ss, const int move, const int bonus, const int offSet) {
     if (position->ply >= offSet) {
         const int previousMove = (ss)->move[position->ply - offSet];
-        const int scaledBonus = bonus - getSingleContinuationHistoryScore(position, ss, move, offSet) * abs(bonus) / 8192;
+        const int scaledBonus = bonus - getSingleContinuationHistoryScore(position, ss, move, offSet) * abs(bonus) / 65536;
         ss->continuationHistory[getMoveTarget(previousMove)][getMoveTarget(move)] += scaledBonus;
     }
 }
 
 void updateContinuationHistoryScore(board *position, SearchStack *ss, const int move, const int bonus) {
-    const int scaledBonus = bonus - getContinuationHistoryScore(position, ss, move) * abs(bonus) / 4096;
+    const int scaledBonus = bonus - getContinuationHistoryScore(position, ss, move) * abs(bonus) / 32768;
     updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 1);
-    //updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 2);
-    //updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 4);
+    updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 2);
+    updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 4);
 }
 
 
@@ -46,11 +46,10 @@ void updateHistory(board *position, SearchStack *ss, int bestMove, int depth, mo
     int to = getMoveTarget(bestMove);
 
     int bonus = 16 * depth * depth + 32 * depth + 16;
-    int continuationHistoryBonus = 8 * depth * depth + 16 * depth + 8;
     int score = historyMoves[from][to];
 
     historyMoves[from][to] += scaledBonus(score, bonus);
-    updateContinuationHistoryScore(position, ss, bestMove, continuationHistoryBonus);
+    updateContinuationHistoryScore(position, ss, bestMove, bonus);
 
      for (int index = 0; index < badQuiets->count; index++) {
          int move = badQuiets->moves[index];
@@ -62,7 +61,7 @@ void updateHistory(board *position, SearchStack *ss, int bestMove, int depth, mo
          if (badQuiets->moves[index] == bestMove) continue;
 
          historyMoves[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus);
-         updateContinuationHistoryScore(position, ss, move, -continuationHistoryBonus);
+         updateContinuationHistoryScore(position, ss, move, -bonus);
      }
 }
 
