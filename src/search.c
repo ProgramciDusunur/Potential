@@ -216,11 +216,10 @@ void clearCounterMoves(void) {
 bool isInSufficientMaterial(board *pos) {
     // if we are on endgame then take a look for material state
     if (pos->gamePhase == endgame) {
-        if (pos->occupancies[both] == (pos->bitboards[k] & pos->bitboards[K])) return true;
-        if (pos->occupancies[both] == (pos->bitboards[k] & pos->bitboards[N]) && countBits(pos->bitboards[N]) == 1) return true;
-        if (pos->occupancies[both] == (pos->bitboards[k] & pos->bitboards[B]) && countBits(pos->bitboards[B]) == 1) return true;
-        if (pos->occupancies[both] == (pos->bitboards[K] & pos->bitboards[n]) && countBits(pos->bitboards[n]) == 1) return true;
-        if (pos->occupancies[both] == (pos->bitboards[K] & pos->bitboards[b]) && countBits(pos->bitboards[b]) == 1) return true;
+        // white or black just have one knight, so position is draw
+        if ( (pos->bitboards[N] || pos->bitboards[n]) && (countBits(pos->occupancies[both]) == 3) ) return true;
+        // white or black just have one bishop, so position is draw
+        if ( (pos->bitboards[B] || pos->bitboards[b]) && (countBits(pos->occupancies[both]) == 3) ) return true;
     }
     return false;
 }
