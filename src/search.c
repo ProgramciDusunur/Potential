@@ -213,6 +213,18 @@ void clearCounterMoves(void) {
     }
 }
 
+bool isInSufficientMaterial(board *pos) {
+    // if we are on endgame then take a look for material state
+    if (pos->gamePhase == endgame) {
+        if (pos->occupancies[both] == (pos->bitboards[k] & pos->bitboards[K])) return true;
+        if (pos->occupancies[both] == (pos->bitboards[k] & pos->bitboards[N]) && countBits(pos->bitboards[N]) == 1) return true;
+        if (pos->occupancies[both] == (pos->bitboards[k] & pos->bitboards[B]) && countBits(pos->bitboards[B]) == 1) return true;
+        if (pos->occupancies[both] == (pos->bitboards[K] & pos->bitboards[n]) && countBits(pos->bitboards[n]) == 1) return true;
+        if (pos->occupancies[both] == (pos->bitboards[K] & pos->bitboards[b]) && countBits(pos->bitboards[b]) == 1) return true;
+    }
+    return false;
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time, bool improving) {
     if ((searchNodes & 2047) == 0) {
@@ -377,7 +389,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         communicate(time);
     }
 
-    if (position->ply && isRepetition(position)) {
+    if ((position->ply && isRepetition(position)) || isInSufficientMaterial(position)) {
         return 0;
     }
 

@@ -37,5 +37,7 @@ void clearCounterMoves(void);
 int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time, bool improving);
 int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode);
 void searchPosition(int depth, board* position, bool benchmark, time* time);
+bool isInSufficientMaterial(board *pos);
+
 
 #endif //POTENTIAL_SEARCH_H
