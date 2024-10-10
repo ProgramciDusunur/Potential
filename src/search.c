@@ -474,7 +474,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // define evaluation margin
         int rfpMargin = improving ? 80 * (depth - 1): 100 * depth;
 
-        int improvingFactor = position->improvingRate[position->ply] * (0.2 * depth);
+        int improvingFactor = position->improvingRate[position->ply] * (0.225 * depth);
 
         int rfpThreshold = rfpMargin + improvingFactor;
         // evaluation margin substracted from static evaluation score fails high
