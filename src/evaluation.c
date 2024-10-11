@@ -161,7 +161,7 @@ const int positional_score[2][6][64] = {
 
 
 // Pawn Penalties and Bonuses
-const int double_pawn_penalty_opening = -5;
+const int double_pawn_penalty_middlegame = -5;
 const int double_pawn_penalty_endgame = -10;
 const int isolated_pawn_penalty_opening = -5;
 const int isolated_pawn_penalty_endgame = -10;
@@ -328,17 +328,17 @@ int evaluate(board* position) {
                     else score += positional_score[game_phase][PAWN][square];
 
                     // double pawn penalty
-                    /*double_pawns = countBits(position->bitboards[P] & fileMasks[square]);
+                    int double_pawns = countBits(position->bitboards[P] & fileMasks[square]);
 
                     // on double pawns (tripple, etc)
                     if (double_pawns > 1) {
-                        if (game_phase == opening) {
-                            score += double_pawns * double_pawn_penalty_opening;
+                        if (game_phase == middlegame) {
+                            score += double_pawns * double_pawn_penalty_middlegame;
                         } else if (game_phase == endgame) {
                             score += double_pawns * double_pawn_penalty_endgame;
                         }
 
-                    }*/
+                    }
 
                     /*
                     // on isolated pawn
@@ -487,17 +487,17 @@ int evaluate(board* position) {
                     else score -= positional_score[game_phase][PAWN][mirrorScore[square]];
 
                     // double pawn penalty
-                    /*double_pawns = countBits(position->bitboards[p] & fileMasks[square]);
+                    double_pawns = countBits(position->bitboards[p] & fileMasks[square]);
 
                     // on double pawns (tripple, etc)
                     if (double_pawns > 1) {
-                        if (game_phase == opening) {
-                            score += double_pawns * double_pawn_penalty_opening;
+                        if (game_phase == middlegame) {
+                            score += double_pawns * double_pawn_penalty_middlegame;
                         } else if (game_phase == endgame) {
                             score += double_pawns * double_pawn_penalty_endgame;
                         }
 
-                    }*/
+                    }
 
                     // on isolated pawnd
                     /*if ((bitboards[p] & isolated_masks[square]) == 0)
