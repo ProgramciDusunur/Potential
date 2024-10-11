@@ -669,9 +669,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         else {
             int lmrReduction = getLmrReduction(depth, position->ply);
             // All moves
-            // if we are not improving then reduce more
-            if (!improving) {
-                lmrReduction += 1;
+            // if we are not improving then reduce less
+            if (improving) {
+                lmrReduction -= 1;
             }
             if (isQuiet) {
                 // Reduce More
