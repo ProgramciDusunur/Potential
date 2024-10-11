@@ -668,6 +668,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // late move reduction (LMR)
         else {
             int lmrReduction = getLmrReduction(depth, position->ply);
+            // All moves
+            // if we are not improving then reduce more
+            if (!improving) {
+                lmrReduction += 1;
+            }
             if (isQuiet) {
                 // Reduce More
                 if (!pvNode && quietMoves >= 4) {
@@ -688,9 +693,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     lmrReduction -= 1;
                 }
 
-                if (improving) {
-                    lmrReduction -= 1;
-                }
 
                 // if we have a good history score reduce less otherwise reduce more
                 lmrReduction -= moveHistory / 10240;
