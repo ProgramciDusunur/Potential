@@ -504,7 +504,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // hash the side
         position->hashKey ^= sideKey;
 
-        double nullMoveDepthMultiplier = improving ? 0.1925 : 0.1875;
+        double nullMoveDepthMultiplier = improving ? 0.225 : 0.1875;
 
         int R = 3 + (int)(nullMoveDepthMultiplier * depth);
 
