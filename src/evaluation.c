@@ -161,8 +161,8 @@ const int positional_score[2][6][64] = {
 
 
 // Pawn Penalties and Bonuses
-const int double_pawn_penalty_middlegame = -10;
-const int double_pawn_penalty_endgame = -15;
+const int double_pawn_penalty_middlegame = -15;
+const int double_pawn_penalty_endgame = -30;
 const int isolated_pawn_penalty_opening = -5;
 const int isolated_pawn_penalty_endgame = -10;
 
