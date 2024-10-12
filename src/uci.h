@@ -21,10 +21,10 @@
 #include <unistd.h>
 #endif
 
-void uciProtocol(int argc, char *argv[]);
+void uciProtocol(int argc, char *argv[], board* position, SearchStack *ss, time* time);
 int parse_move(char *move_string, board* position);
 void parse_position(char *command, board* position);
-void goCommand(char *command, board* position, time* time);
+void goCommand(char *command, SearchStack *ss, board* position, time* time);
 void printMoveList(moves *moveList);
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
 void read_input(time* time);
