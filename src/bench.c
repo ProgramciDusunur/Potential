@@ -63,28 +63,33 @@ char* benchmarkfens[52] = {
 
 void benchmark(int depth, SearchStack *ss, board* position, time* time) {
     U64 totalNodes = 0;
+    U64 totalSearchTime = 0; // Time spent searching only
 
-    int benchStartTime = getTimeMiliSecond();
-    for (int i = 0;i < 52;i++) {
+    for (int i = 0; i < 52; i++) {
+        // Parse the FEN and set up the position
         parseFEN(benchmarkfens[i], position);
+
+        // Measure search time for this position
+        int searchStartTime = getTimeMiliSecond();
         searchPosition(depth, ss, position, true, time);
-        // clear hash table
-        clearHashTable();
+        int searchEndTime = getTimeMiliSecond();
 
-        //clear history
-        clearHistory();
-
-        //clear static eval history
-        clearStaticEvaluationHistory(position);
-
-        //clear counter moves
-        clearCounterMoves();
-
-        //clear continuation history
-        clearContinuationHistory(ss);
+        // Add search time for this position
+        totalSearchTime += (searchEndTime - searchStartTime);
         totalNodes += searchNodes;
-        //printf("position: %s\n", benchmarkfens[i]);
+
+        // Clear various histories and tables (not included in the search time)
+        clearHashTable();
+        clearHistory();
+        clearStaticEvaluationHistory(position);
+        clearCounterMoves();
+        clearContinuationHistory(ss);
+
+        // Optional debug output for each position
+        // printf("Position %d finished: %s\n", i+1, benchmarkfens[i]);
     }
-    int benchFinishTime = getTimeMiliSecond() - benchStartTime;
-    printf("%llu nodes %llu nps", totalNodes, totalNodes / (benchFinishTime +1) * 1000);
+
+    // Output total nodes and nodes per second (NPS)
+    printf("%llu nodes, %llu nps\n", totalNodes, totalNodes / (totalSearchTime + 1) * 1000);
 }
+
