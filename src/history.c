@@ -74,11 +74,12 @@ void clearHistory(void) {
 }
 
 void clearContinuationHistory(SearchStack *ss) {
-    for (int i = 0; i < 64; i++) {
-        for (int j = 0; j < 64; j++) {
-            ss->continuationHistory[i][j] = 0;
+    for (int ply = 0; ply < maxPly; ply++) {
+        // Her bir SearchStack'in continuationHistory'sini temizle
+        for (int i = 0; i < 64; i++) {
+            for (int j = 0; j < 64; j++) {
+                ss[ply].continuationHistory[i][j] = 0;
+            }
         }
     }
 }
-
-//return historyMoves[getMoveSource(move)][getMoveTarget(move)] + getContinuationHistoryScore(ss, move);

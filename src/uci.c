@@ -416,6 +416,9 @@ void uciProtocol(int argc, char *argv[], board* position, SearchStack *ss, time*
 
             //clear counter moves
             clearCounterMoves();
+
+            //clear continuation history
+            clearContinuationHistory(ss);
         }
             // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0)
@@ -434,6 +437,9 @@ void uciProtocol(int argc, char *argv[], board* position, SearchStack *ss, time*
 
             //clear counter moves
             clearCounterMoves();
+
+            //clear continuation history
+            clearContinuationHistory(ss);
         }
             // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0) {
@@ -451,6 +457,9 @@ void uciProtocol(int argc, char *argv[], board* position, SearchStack *ss, time*
 
             //clear counter moves
             clearCounterMoves();
+
+            //clear continuation history
+            clearContinuationHistory(ss);
         }
         else if (!strncmp(input, "setoption name Hash value ", 26)) {
             // init MB
