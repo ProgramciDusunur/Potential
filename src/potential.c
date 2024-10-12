@@ -73,7 +73,23 @@ int main(int argc, char* argv[]) {
         perftRoot(6, &position);
         printf("Nodes: %llu", perftNodes);
     } else {
-        uciProtocol(argc, argv);
+        int safetyMargin = maxPly / 4;
+
+        board *position = (board *)malloc(sizeof(board));
+        time *time_ctrl = (time *)malloc(sizeof(time));
+        SearchStack *ss = (SearchStack *)malloc(sizeof(SearchStack) * (maxPly + safetyMargin));
+
+        uciProtocol(argc, argv, position, ss, time_ctrl);
+
+        // free SearchStack struct
+        free(ss);
+        // free board struct
+        free(position);
+        // free time struct
+        free(time_ctrl);
+        // free hash table
+        free(hashTable);
+
     }
     return 0;
 }
