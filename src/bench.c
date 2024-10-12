@@ -79,6 +79,9 @@ void benchmark(int depth, SearchStack *ss, board* position, time* time) {
 
         //clear counter moves
         clearCounterMoves();
+
+        //clear continution history
+        //clearContinuationHistory(ss);
         totalNodes += searchNodes;
         //printf("position: %s\n", benchmarkfens[i]);
     }

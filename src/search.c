@@ -59,7 +59,7 @@ void initializeLMRTable(void) {
 */
 
 // score moves
-int scoreMove(int move, board* position) {
+int scoreMove(int move, board* position, SearchStack *ss) {
     // make sure we are dealing with PV move
     if (position->scorePv && position->pvTable[0][position->ply] == move) {
         // disable score PV flag
@@ -127,7 +127,7 @@ int scoreMove(int move, board* position) {
         /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
              printf("History score negative: %d\n", historyMoves[getMoveSource(move)][getMoveTarget(move)]);
          }*/
-        return historyMoves[getMoveSource(move)][getMoveTarget(move)];
+        return historyMoves[getMoveSource(move)][getMoveTarget(move)] + getContinuationHistoryScore(ss, move);
 
     }
     return 0;
@@ -135,7 +135,7 @@ int scoreMove(int move, board* position) {
 
 
 
-void sort_moves(moves *moveList, int bestMove, board* position) {
+void sort_moves(moves *moveList, int bestMove, board* position, SearchStack *ss) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -149,7 +149,7 @@ void sort_moves(moves *moveList, int bestMove, board* position) {
         if (bestMove == current_move)
             current_score = 2000000000;
         else
-            current_score = scoreMove(current_move, position);
+            current_score = scoreMove(current_move, position, ss);
 
         // Find the correct position to insert the current move
         int insert_pos = sorted_count;
@@ -577,7 +577,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
         enable_pv_scoring(moveList, position);
 
     // sort moves
-    sort_moves(moveList, bestMove, position);
+    sort_moves(moveList, bestMove, position, ss);
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -810,7 +810,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
                     //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
-                    updateHistory(bestMove, depth, badQuiets);
+                    updateHistory(position, ss, bestMove, depth, badQuiets);
                 }
 
                 // node (move) fails high
