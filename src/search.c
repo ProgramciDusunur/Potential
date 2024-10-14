@@ -590,7 +590,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
 
         int currentMove = moveList->moves[count];
 
-        int moveHistory = historyMoves[getMoveSource(currentMove)][getMoveTarget(currentMove)];
+        int moveHistory = historyMoves[getMoveSource(currentMove)][getMoveTarget(currentMove)] + getSingleContinuationHistoryScore(ss, currentMove, 1);
 
         bool isQuiet = getMoveCapture(currentMove) == 0;
         if (skipQuiet && isQuiet) {
