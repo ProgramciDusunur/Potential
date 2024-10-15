@@ -14,7 +14,7 @@ int getSingleContinuationHistoryScore(const SearchStack *ss, const int move, con
 // Returns the history score of a move
 int getContinuationHistoryScore(const SearchStack *ss, const int move) {
     return getSingleContinuationHistoryScore(ss, move, 1);
-    return getSingleContinuationHistoryScore(ss, move, 2);
+    //return getSingleContinuationHistoryScore(ss, move, 2);
     //+ GetSingleCHScore(sd, ss, move, 4);
 }
 
