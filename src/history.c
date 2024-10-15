@@ -21,13 +21,13 @@ int getContinuationHistoryScore(const SearchStack *ss, const int move) {
 void updateSingleContinuationHistoryScore(const board *position, SearchStack *ss, const int move, const int bonus, const int offSet) {
     if (position->ply >= offSet) {
         const int previousMove = (ss - offSet)->move;
-        const int scaledBonus = bonus - getSingleContinuationHistoryScore(ss, move, offSet) * abs(bonus) / 16384;
+        const int scaledBonus = bonus - getSingleContinuationHistoryScore(ss, move, offSet) * abs(bonus) / 32768;
         ss->continuationHistory[getMovePiece(previousMove)][getMoveTarget(previousMove)][getMovePiece(move)][getMoveTarget(move)] += scaledBonus;
     }
 }
 
 void updateContinuationHistoryScore(board *position, SearchStack *ss, const int move, const int bonus) {
-    const int scaledBonus = bonus - getContinuationHistoryScore(ss, move) * abs(bonus) / 8192;
+    const int scaledBonus = bonus - getContinuationHistoryScore(ss, move) * abs(bonus) / 16384;
     updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 1);
     updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 2);
     //updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 4);
