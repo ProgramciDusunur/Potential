@@ -665,7 +665,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
         // full depth search
         if (moves_searched == 0)
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, ss+1, depth - 1, position, time, false);
+            score = -negamax(-beta, -alpha, ss, depth - 1, position, time, false);
 
             // late move reduction (LMR)
         else {
@@ -735,7 +735,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, ss+1, depth - 1, position, time, false);
+                score = -negamax(-alpha - 1, -alpha, ss, depth - 1, position, time, false);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
@@ -745,7 +745,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
                 if ((score > alpha) && (score < beta))
                     /* re-search the move that has failed to be proved to be bad
                        with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, ss+1, depth - 1, position, time, false);
+                    score = -negamax(-beta, -alpha, ss, depth - 1, position, time, false);
             }
         }
 
