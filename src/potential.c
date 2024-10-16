@@ -78,8 +78,9 @@ int main(int argc, char* argv[]) {
         board *position = (board *)malloc(sizeof(board));
         time *time_ctrl = (time *)malloc(sizeof(time));
         SearchStack *ss = (SearchStack *)malloc(sizeof(SearchStack) * (maxPly + safetyMargin));
+        SearchStack *ss_start = ss + safetyMargin;
 
-        uciProtocol(argc, argv, position, ss, time_ctrl);
+        uciProtocol(argc, argv, position, ss_start, time_ctrl);
 
         // free SearchStack struct
         free(ss);

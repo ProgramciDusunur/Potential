@@ -8,13 +8,13 @@ int historyMoves[64][64];
 
 int getSingleContinuationHistoryScore(const SearchStack *ss, const int move, const int offSet) {
     const int previousMove = (ss - offSet)->move;
-    return previousMove ? ss->continuationHistory[getMovePiece(previousMove)][getMoveTarget(previousMove)][getMovePiece(move)][getMoveTarget(move)] : 0;
+    return previousMove ? ss->continuationHistory[getPieceTo(previousMove)][getPieceTo(move)] : 0;
 }
 
 // Returns the history score of a move
 int getContinuationHistoryScore(const SearchStack *ss, const int move) {
     return getSingleContinuationHistoryScore(ss, move, 1);
-    //return getSingleContinuationHistoryScore(ss, move, 2);
+    //getSingleContinuationHistoryScore(ss, move, 2);
     //+ GetSingleCHScore(sd, ss, move, 4);
 }
 
@@ -22,7 +22,7 @@ void updateSingleContinuationHistoryScore(const board *position, SearchStack *ss
     if (position->ply >= offSet) {
         const int previousMove = (ss - offSet)->move;
         const int scaledBonus = bonus - getSingleContinuationHistoryScore(ss, move, offSet) * abs(bonus) / 16384;
-        ss->continuationHistory[getMovePiece(previousMove)][getMoveTarget(previousMove)][getMovePiece(move)][getMoveTarget(move)] += scaledBonus;
+        ss->continuationHistory[getPieceTo(previousMove)][getPieceTo(move)] += scaledBonus;
     }
 }
 
@@ -75,15 +75,7 @@ void clearHistory(void) {
 
 void clearContinuationHistory(SearchStack *ss) {
     for (int ply = 0; ply < maxPly; ply++) {
-        // Clear ongoing history for each SearchStack
-        for (int piece1 = 0; piece1 < 12; piece1++) {
-            for (int square1 = 0; square1 < 64; square1++) {
-                for (int piece2 = 0; piece2 < 12; piece2++) {
-                    for (int square2 = 0; square2 < 64; square2++) {
-                        ss[ply].continuationHistory[piece1][square1][piece2][square2] = 0;
-                    }
-                }
-            }
-        }
+        memset(ss[ply].continuationHistory, 0, sizeof(ss[ply].continuationHistory));
     }
+
 }

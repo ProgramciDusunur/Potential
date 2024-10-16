@@ -40,6 +40,8 @@
 #define getMoveEnpassant(move) (move & 0x400000)
 // extract castling flag
 #define getMoveCastling(move) (move & 0x800000)
+//
+#define getPieceTo(move) ((getMovePiece(move) << 6) | getMoveTarget(move))
 
 void copyBoard(board *p, struct copyposition *cp);
 void takeBack(board *p, struct copyposition *cp);
