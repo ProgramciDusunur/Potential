@@ -441,9 +441,9 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
     double cutNodeSubtraction = cutNode ? 0.46875 : 0;
 
 
-    if (position->staticEval[position->ply-2] != noEval) {
+    if (position->ply-2 >= 0 && position->staticEval[position->ply-2] != noEval) {
         pastStack = position->ply - 2;
-    } else if (position->staticEval[position->ply-4] != noEval) {
+    } else if (position->ply-4 >= 0 &&  position->staticEval[position->ply-4] != noEval) {
         pastStack = position->ply - 4;
     }
 
