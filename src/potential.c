@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
         perftRoot(6, &position);
         printf("Nodes: %llu", perftNodes);
     } else {
-        int safetyMargin = maxPly / 6;
+        int safetyMargin = maxPly / 4;
 
         board *position = (board *)malloc(sizeof(board));
         time *time_ctrl = (time *)malloc(sizeof(time));
