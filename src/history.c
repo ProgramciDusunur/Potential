@@ -45,7 +45,7 @@ void updateHistory(board *position, SearchStack *ss, int bestMove, int depth, mo
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int bonus = 16 * depth * depth + 32 * depth + 16;
+    int bonus = minimum(16 * depth * depth + 32 * depth + 16, 1200);
     int score = historyMoves[from][to];
 
     historyMoves[from][to] += scaledBonus(score, bonus);
