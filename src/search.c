@@ -694,7 +694,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
                 }
 
                 // if we have a good history score reduce less otherwise reduce more
-                lmrReduction -= moveHistory / 10240;
+                lmrReduction -= moveHistory / maxHistory;
 
                 /*if (pvNode && moves_searched <= 10) {
                     lmrReduction -= 1;
