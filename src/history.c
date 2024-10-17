@@ -36,7 +36,6 @@ void updateContinuationHistoryScore(board *position, SearchStack *ss, const int 
 
 
 
-
 int scaledBonus(int score, int bonus) {
     return bonus - score * myAbs(bonus) / maxHistory;
 }
