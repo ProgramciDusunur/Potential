@@ -393,7 +393,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
 
     bool improving = false;
 
-    int pastStack = -1;
+    int pastStack = 0;
 
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
