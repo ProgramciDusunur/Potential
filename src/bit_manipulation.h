@@ -26,6 +26,7 @@
 
 int countBits(U64 bitboard);
 int getLS1BIndex(U64 bitboard);
+int minimum(int a, int b);
 void printBitboard(U64 bitboard);
 U64 setOccupancy(int index, int bitsInMask, U64 attackMask);
 

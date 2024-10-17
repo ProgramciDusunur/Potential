@@ -14,6 +14,10 @@ int getLS1BIndex(U64 bitboard) {
     return __builtin_ctzll(bitboard);
 }
 
+int minimum(int a, int b) {
+    return (a < b) ? a : b;
+}
+
 void printBitboard(U64 bitboard) {
     printf("\n");
     for (int y = 0, coordinate = 8; y < 8; y++, coordinate--) {
