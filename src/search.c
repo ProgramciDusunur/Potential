@@ -393,7 +393,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
 
     bool improving = false;
 
-    int pastStack = -1;
+    int pastStack = 0;
 
     // read hash entry
     if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
@@ -441,9 +441,9 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
     double cutNodeSubtraction = cutNode ? 0.46875 : 0;
 
 
-    if (position->staticEval[position->ply-2] != noEval) {
+    if (position->ply-2 >= 0 && position->staticEval[position->ply-2] != noEval) {
         pastStack = position->ply - 2;
-    } else if (position->staticEval[position->ply-4] != noEval) {
+    } else if (position->ply-4 >= 0 &&  position->staticEval[position->ply-4] != noEval) {
         pastStack = position->ply - 4;
     }
 
@@ -669,7 +669,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
 
             // late move reduction (LMR)
         else {
-            int lmrReduction = getLmrReduction(depth, position->ply);
+            int lmrReduction = 0;
             if (isQuiet) {
                 // Reduce More
                 /*if (!improving && quietMoves >= 8 * depth && !pvNode) {
@@ -711,9 +711,8 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
                 }*/
             }
             // condition to consider LMR
-            if (moves_searched >= lmr_full_depth_moves &&
-                depth >= lmr_reduction_limit &&
-                getMovePromoted(currentMove) == 0) {
+            if (moves_searched >= lmr_full_depth_moves && depth >= lmr_reduction_limit && getMovePromoted(currentMove) == 0) {
+                lmrReduction += getLmrReduction(depth, position->ply);
                 // search current move with reduced depth:
                 if (pvNode) {
                     score = -negamax(-alpha - 1, -alpha, ss + 1, depth - lmrReduction, position, time, false);
