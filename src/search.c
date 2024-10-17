@@ -669,7 +669,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
 
             // late move reduction (LMR)
         else {
-            int lmrReduction = getLmrReduction(depth, position->ply);
+            int lmrReduction = 0;
             if (isQuiet) {
                 // Reduce More
                 /*if (!improving && quietMoves >= 8 * depth && !pvNode) {
@@ -712,6 +712,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
             }
             // condition to consider LMR
             if (moves_searched >= lmr_full_depth_moves && depth >= lmr_reduction_limit && getMovePromoted(currentMove) == 0) {
+                lmrReduction += getLmrReduction(depth, position->ply);
                 // search current move with reduced depth:
                 if (pvNode) {
                     score = -negamax(-alpha - 1, -alpha, ss + 1, depth - lmrReduction, position, time, false);
