@@ -661,7 +661,6 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
 
 
 
-
         // full depth search
         if (moves_searched == 0)
             // do normal alpha beta search
