@@ -59,7 +59,7 @@ void initializeLMRTable(void) {
 */
 
 // score moves
-int scoreMove(int move, board* position, SearchStack *ss) {
+int scoreMove(int move, board* position, SearchStack *ss, SearchData *sd) {
     // make sure we are dealing with PV move
     if (position->scorePv && position->pvTable[0][position->ply] == move) {
         // disable score PV flag
@@ -127,7 +127,7 @@ int scoreMove(int move, board* position, SearchStack *ss) {
         /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
              printf("History score negative: %d\n", historyMoves[getMoveSource(move)][getMoveTarget(move)]);
          }*/
-        return historyMoves[getMoveSource(move)][getMoveTarget(move)] + getContinuationHistoryScore(ss, move);
+        return historyMoves[getMoveSource(move)][getMoveTarget(move)] + getContinuationHistoryScore(ss, sd, move);
 
     }
     return 0;
@@ -135,7 +135,7 @@ int scoreMove(int move, board* position, SearchStack *ss) {
 
 
 
-void sort_moves(moves *moveList, int bestMove, board* position, SearchStack *ss) {
+void sort_moves(moves *moveList, int bestMove, board* position, SearchStack *ss, SearchData *sd) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -149,7 +149,7 @@ void sort_moves(moves *moveList, int bestMove, board* position, SearchStack *ss)
         if (bestMove == current_move)
             current_score = 2000000000;
         else
-            current_score = scoreMove(current_move, position, ss);
+            current_score = scoreMove(current_move, position, ss, sd);
 
         // Find the correct position to insert the current move
         int insert_pos = sorted_count;
@@ -577,7 +577,7 @@ int negamax(int alpha, int beta, SearchStack *ss, SearchData *sd, int depth, boa
         enable_pv_scoring(moveList, position);
 
     // sort moves
-    sort_moves(moveList, bestMove, position, ss);
+    sort_moves(moveList, bestMove, position, ss, sd);
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -648,8 +648,8 @@ int negamax(int alpha, int beta, SearchStack *ss, SearchData *sd, int depth, boa
 
         // increment legal moves
         legal_moves++;
+
         ss->move = currentMove;
-        ss->contHistEntry = &sd->continuationHistory[getMovePiece(currentMove)][getMoveTarget(currentMove)];
 
         if (isQuiet) {
             quietMoves++;
@@ -664,7 +664,7 @@ int negamax(int alpha, int beta, SearchStack *ss, SearchData *sd, int depth, boa
         // full depth search
         if (moves_searched == 0)
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, ss+1, sd, depth - 1, position, time, false);
+            score = -negamax(-beta, -alpha, ss, sd, depth - 1, position, time, false);
 
             // late move reduction (LMR)
         else {
@@ -733,7 +733,7 @@ int negamax(int alpha, int beta, SearchStack *ss, SearchData *sd, int depth, boa
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, ss+1, sd, depth - 1, position, time, false);
+                score = -negamax(-alpha - 1, -alpha, ss, sd, depth - 1, position, time, false);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
@@ -743,7 +743,7 @@ int negamax(int alpha, int beta, SearchStack *ss, SearchData *sd, int depth, boa
                 if ((score > alpha) && (score < beta))
                     /* re-search the move that has failed to be proved to be bad
                        with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, ss+1, sd, depth - 1, position, time, false);
+                    score = -negamax(-beta, -alpha, ss, sd, depth - 1, position, time, false);
             }
         }
 
@@ -808,7 +808,7 @@ int negamax(int alpha, int beta, SearchStack *ss, SearchData *sd, int depth, boa
                     //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
-                    updateHistory(ss, bestMove, depth, badQuiets);
+                    updateHistory(position, ss, sd, bestMove, depth, badQuiets);
                 }
 
                 // node (move) fails high
