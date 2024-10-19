@@ -494,7 +494,7 @@ void uciProtocol(int argc, char *argv[]) {
             printf("uciok\n");
         }
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(10, position, time_ctrl);
+            benchmark(8, position, time_ctrl);
         }
     }
 }
