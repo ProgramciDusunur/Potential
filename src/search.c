@@ -508,7 +508,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, ss + 1, depth - R, position, time, !cutNode);
+        score = -negamax(-beta, -beta + 1, ss, depth - R, position, time, !cutNode);
 
         // decrement ply
         position->ply--;
@@ -714,9 +714,9 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
                 lmrReduction += getLmrReduction(depth, position->ply);
                 // search current move with reduced depth:
                 if (pvNode) {
-                    score = -negamax(-alpha - 1, -alpha, ss + 1, depth - lmrReduction, position, time, false);
+                    score = -negamax(-alpha - 1, -alpha, ss , depth - lmrReduction, position, time, false);
                 } else {
-                    score = -negamax(-alpha - 1, -alpha, ss + 1, depth - lmrReduction, position, time, !cutNode);
+                    score = -negamax(-alpha - 1, -alpha, ss , depth - lmrReduction, position, time, !cutNode);
                 }
 
             }
