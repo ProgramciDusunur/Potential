@@ -138,7 +138,7 @@ void parse_position(char *command, board* position) {
 
 
 
-void goCommand(char *command, SearchStack *ss, board* position, time* time) {
+void goCommand(char *command, SearchStack *ss, SearchData *sd, board* position, time* time) {
 
     // reset time control
     resetTimeControl(time);
@@ -224,7 +224,7 @@ void goCommand(char *command, SearchStack *ss, board* position, time* time) {
            time->time, time->starttime, time->stoptime, depth, time->timeset);
 
     // search position
-    searchPosition(depth, ss, position, false, time);
+    searchPosition(depth, ss, sd, position, false, time);
 
 }
 
@@ -343,7 +343,7 @@ void communicate(time* time) {
 }
 
 
-void uciProtocol(int argc, char *argv[], board* position, SearchStack *ss, time* time_ctrl) {
+void uciProtocol(int argc, char *argv[], board* position, SearchStack *ss, SearchData *sd, time* time_ctrl) {
 
     position->ply = 0;
 
@@ -369,7 +369,7 @@ void uciProtocol(int argc, char *argv[], board* position, SearchStack *ss, time*
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..");
-        benchmark(8, ss, position, time_ctrl);
+        benchmark(8, ss, sd, position, time_ctrl);
         return;
     }
 
@@ -418,7 +418,7 @@ void uciProtocol(int argc, char *argv[], board* position, SearchStack *ss, time*
             clearCounterMoves();
 
             //clear continuation history
-            clearContinuationHistory(ss);
+            clearContinuationHistory(sd);
         }
             // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0)
@@ -439,12 +439,12 @@ void uciProtocol(int argc, char *argv[], board* position, SearchStack *ss, time*
             clearCounterMoves();
 
             //clear continuation history
-            clearContinuationHistory(ss);
+            clearContinuationHistory(sd);
         }
             // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0) {
             // call parse go function
-            goCommand(input, ss, position,  time_ctrl);
+            goCommand(input, ss, sd, position,  time_ctrl);
 
             // clear hash table
             clearHashTable();
@@ -459,7 +459,7 @@ void uciProtocol(int argc, char *argv[], board* position, SearchStack *ss, time*
             clearCounterMoves();
 
             //clear continuation history
-            clearContinuationHistory(ss);
+            clearContinuationHistory(sd);
         }
         else if (!strncmp(input, "setoption name Hash value ", 26)) {
             // init MB
@@ -493,7 +493,7 @@ void uciProtocol(int argc, char *argv[], board* position, SearchStack *ss, time*
             printf("uciok\n");
         }
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(8, ss, position, time_ctrl);
+            benchmark(8, ss, sd, position, time_ctrl);
         }
     }
 }

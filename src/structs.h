@@ -105,12 +105,13 @@ typedef struct {
 
 // search stack
 typedef struct {
-    int continuationHistory[12][64][12][64];
     int move;
-    int staticEval;
-    double improvingRate;
 } SearchStack;
 
+// search data
+typedef struct {
+    int continuationHistory[12][64][12][64];
+} SearchData;
 
 
 
