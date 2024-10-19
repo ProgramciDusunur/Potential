@@ -24,12 +24,12 @@ enum {
 extern int historyMoves[64][64];
 
 
-void updateContinuationHistoryScore(board *position, SearchStack *ss, SearchData *sd, const int move, const int bonus);
-void updateSingleContinuationHistoryScore(const board *position, SearchStack *ss, SearchData *sd, const int move, const int bonus, const int offSet);
-int getContinuationHistoryScore(const SearchStack *ss, SearchData *sd, const int move);
-int getSingleContinuationHistoryScore(const SearchStack *ss, SearchData *sd, const int move, const int offSet);
+void updateContinuationHistoryScore(SearchStack *ss, const int move, const int bonus);
+void updateSingleContinuationHistoryScore(SearchStack *ss, const int move, const int bonus, const int offSet);
+int getContinuationHistoryScore(const SearchStack *ss, const int move);
+int getSingleContinuationHistoryScore(const SearchStack *ss, const int move, const int offSet);
 int scaledBonus(int score, int bonus);
-void updateHistory(board *position, SearchStack *ss, SearchData *sd, int bestMove, int depth, moves *badQuiets);
+void updateHistory(SearchStack *ss, int bestMove, int depth, moves *badQuiets);
 void clearHistory(void);
 void clearContinuationHistory(SearchData *sd);
 

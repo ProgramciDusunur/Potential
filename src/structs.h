@@ -105,6 +105,7 @@ typedef struct {
 
 // search stack
 typedef struct {
+    int (*contHistEntry)[12][64];
     int move;
 } SearchStack;
 
