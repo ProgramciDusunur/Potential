@@ -185,6 +185,29 @@ const int passed_pawn_bonus_endgame[64] = {0, 0, 0, 0, 0, 0, 0, 0,
                                                   -2, 0, 0, 0, 0, 0, -1, -2,
                                                   0, 0, 0, 0, 0, 0, 0, 0};
 
+const int connectedPawnBonus[2][64] = {
+        // endgame
+        {0, 0, 0, 0, 0, 0, 0, 0,
+                72, 83, 83, 83, 83, 83, 83, 72,
+                28, 34, 34, 34, 34, 34, 34, 28,
+                9, 13, 13, 13, 13, 13, 13, 9,
+                0, 6, 6, 6, 6, 6, 6, 0,
+                0, 0, 2, 2, 2, 2, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+        },
+        // middlegame
+        {0, 0, 0, 0, 0, 0, 0, 0,
+                36, 42, 42, 42, 42, 42, 42, 36,
+                14, 17, 17, 17, 17, 17, 17, 14,
+                5, 7, 7, 7, 7, 7, 7, 5,
+                0, 3, 3, 3, 3, 3, 3, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,},
+};
+
+
 // File and Mobility Scores
 const int semi_open_file_score = 10;
 const int open_file_score = 15;
@@ -361,6 +384,15 @@ int evaluate(board* position) {
 
                     }
 
+                    // connected pawn bonus
+                    if (position->bitboards[P] & connectedMask[white][square]) {
+                        if (game_phase == middlegame) {
+                            score += connectedPawnBonus[1][square];
+                        } else if (game_phase == endgame) {
+                            score += connectedPawnBonus[0][square];
+                        }
+                    }
+
 
                     break;
 
@@ -515,6 +547,15 @@ int evaluate(board* position) {
                             score -= passed_pawn_bonus_endgame[mirrorScore[square]];
                         }
                         score -= passed_pawn_bonus_middle[mirrorScore[square]];
+                    }
+
+                    // connected pawn bonus
+                    if (position->bitboards[p] & connectedMask[black][square]) {
+                        if (game_phase == middlegame) {
+                            score -= connectedPawnBonus[1][mirrorScore[square]];
+                        } else if (game_phase == endgame) {
+                            score -= connectedPawnBonus[0][mirrorScore[square]];
+                        }
                     }
 
 

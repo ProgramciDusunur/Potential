@@ -26,6 +26,9 @@ extern U64 whitePassedMasks[64];
 // black passed pawn masks [square]
 extern U64 blackPassedMasks[64];
 
+// connected pawn masks [side][square]
+extern U64 connectedMask[2][64];
+
 
 // Rook attack masks rookMask[square]
 extern U64 rookMask[64];
