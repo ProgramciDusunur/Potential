@@ -29,7 +29,7 @@ void updateSingleContinuationHistoryScore(const board *position, SearchStack *ss
 int getContinuationHistoryScore(const SearchStack *ss, const int move);
 int getSingleContinuationHistoryScore(const SearchStack *ss, const int move, const int offSet);
 int scaledBonus(int score, int bonus);
-void updateHistory(board *position, SearchStack *ss, int bestMove, int depth, moves *badQuiets);
+void updateHistory(int bestMove, int depth, moves *badQuiets);
 void clearHistory(void);
 void clearContinuationHistory(SearchStack *ss);
 

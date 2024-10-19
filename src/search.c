@@ -808,7 +808,7 @@ int negamax(int alpha, int beta, SearchStack *ss, int depth, board* position, ti
                     //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
-                    updateHistory(position, ss, bestMove, depth, badQuiets);
+                    updateHistory(bestMove, depth, badQuiets);
                 }
 
                 // node (move) fails high
