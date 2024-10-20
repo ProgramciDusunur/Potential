@@ -632,7 +632,7 @@ int evaluate(board* position) {
             popBit(bitboard, square);
         }
     }
-    int tempo = 10 + (position->inCheck ? -10 : 0);
+    int tempo = 10 + (position->inCheck ? -15 : 0);
     // return final evaluation based on side
     return (position->side == white) ? score + tempo : -(score - tempo);
 }
