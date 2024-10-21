@@ -165,7 +165,7 @@ const int double_pawn_penalty_opening = -5;
 const int double_pawn_penalty_endgame = -10;
 const int isolated_pawn_penalty_opening = -5;
 const int isolated_pawn_penalty_endgame = -10;
-const int pawnStormBonus = 6;
+const int pawnStormBonus = 2;
 
 // passed pawn bonus
 const int passed_pawn_bonus_middle[64] = { 0, 0, 0, 0, 0, 0, 0, 0,
