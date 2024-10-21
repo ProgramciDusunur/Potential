@@ -62,6 +62,7 @@ extern const int isolated_pawn_penalty_opening;
 extern const int isolated_pawn_penalty_endgame;
 extern const int passed_pawn_bonus_middle[64];
 extern const int passed_pawn_bonus_endgame[64];
+extern const int pawnStormBonus;
 
 // File and Mobility Scores
 extern const int semi_open_file_score;

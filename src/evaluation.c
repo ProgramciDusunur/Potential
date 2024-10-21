@@ -165,6 +165,7 @@ const int double_pawn_penalty_opening = -5;
 const int double_pawn_penalty_endgame = -10;
 const int isolated_pawn_penalty_opening = -5;
 const int isolated_pawn_penalty_endgame = -10;
+const int pawnStormBonus = 3;
 
 // passed pawn bonus
 const int passed_pawn_bonus_middle[64] = { 0, 0, 0, 0, 0, 0, 0, 0,
@@ -346,6 +347,7 @@ int evaluate(board* position) {
                         // give an isolated pawn penalty
                         score += isolated_pawn_penalty;
                     */
+
                     // on passed pawn
                     if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                         // give passed pawn bonus
@@ -358,8 +360,15 @@ int evaluate(board* position) {
                             score += passed_pawn_bonus_endgame[square];
                         }
                         score += passed_pawn_bonus_middle[square];
-
                     }
+
+                    int howManySquareWhite = (square - getLS1BIndex(position->bitboards[k])) / 8;
+
+                    // pawn storm
+                    if (howManySquareWhite < 3 && !(getBit(position->occupancies[both], (square - 8)))) {
+                        score += howManySquareWhite * pawnStormBonus;
+                    }
+
 
 
                     break;
@@ -504,6 +513,10 @@ int evaluate(board* position) {
                         // give an isolated pawn penalty
                         score -= isolated_pawn_penalty;
                     */
+
+
+
+
                     // on passed pawn
                     if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         // give passed pawn bonus
@@ -515,6 +528,13 @@ int evaluate(board* position) {
                             score -= passed_pawn_bonus_endgame[mirrorScore[square]];
                         }
                         score -= passed_pawn_bonus_middle[mirrorScore[square]];
+                    }
+
+                    int howManySquareBlack = (getLS1BIndex(position->bitboards[K]) - square) / 8;
+
+                    // pawn storm
+                    if (howManySquareBlack < 3 && !(getBit(position->occupancies[both], (square + 8)))) {
+                        score -= howManySquareBlack * pawnStormBonus;
                     }
 
 
