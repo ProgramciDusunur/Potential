@@ -169,22 +169,22 @@ const int pawnStormBonus = 3;
 
 // passed pawn bonus
 const int passed_pawn_bonus_middle[64] = { 0, 0, 0, 0, 0, 0, 0, 0,
-                                                  36, 42, 42, 42, 42, 42, 42, 36,
-                                                  14, 17, 17, 17, 17, 17, 17, 14,
-                                                  5, 7, 7, 7, 7, 7, 7, 5,
-                                                  0, 0, 0, 0, 0, 0, 0, 0,
-                                                  0, 0, 0, 0, 0, 0, 0, 0,
-                                                  0, 0, 0, 0, 0, 0, 0, 0,
-                                                  0, 0, 0, 0, 0, 0, 0, 0,};
+                                           36, 42, 42, 42, 42, 42, 42, 36,
+                                           14, 17, 17, 17, 17, 17, 17, 14,
+                                           5, 7, 7, 7, 7, 7, 7, 5,
+                                           0, 0, 0, 0, 0, 0, 0, 0,
+                                           0, 0, 0, 0, 0, 0, 0, 0,
+                                           0, 0, 0, 0, 0, 0, 0, 0,
+                                           0, 0, 0, 0, 0, 0, 0, 0,};
 
 const int passed_pawn_bonus_endgame[64] = {0, 0, 0, 0, 0, 0, 0, 0,
-                                                  80, 85, 90, 103, 103, 90, 85, 80,
-                                                  20, 27, 30, 34, 34, 30, 27, 20,
-                                                  10, 12, 15, 20, 20, 15, 12, 10,
-                                                  0, 10, 10, 10, 10, 10, 10, 0,
-                                                  -3, 0, 0, 0, 0, 0, 0, 0,
-                                                  -2, 0, 0, 0, 0, 0, -1, -2,
-                                                  0, 0, 0, 0, 0, 0, 0, 0};
+                                           80, 85, 90, 103, 103, 90, 85, 80,
+                                           20, 27, 30, 34, 34, 30, 27, 20,
+                                           10, 12, 15, 20, 20, 15, 12, 10,
+                                           0, 10, 10, 10, 10, 10, 10, 0,
+                                           -3, 0, 0, 0, 0, 0, 0, 0,
+                                           -2, 0, 0, 0, 0, 0, -1, -2,
+                                           0, 0, 0, 0, 0, 0, 0, 0};
 
 // File and Mobility Scores
 const int semi_open_file_score = 10;
@@ -365,7 +365,7 @@ int evaluate(board* position) {
                     int howManySquareWhite = (square - getLS1BIndex(position->bitboards[k])) / 8;
 
                     // pawn storm
-                    if (howManySquareWhite < 3 && !(getBit(position->occupancies[both], (square - 8)))) {
+                    if (howManySquareWhite < 4 && !(getBit(position->occupancies[both], (square - 8)))) {
                         score += howManySquareWhite * pawnStormBonus;
                     }
 
@@ -533,7 +533,7 @@ int evaluate(board* position) {
                     int howManySquareBlack = (getLS1BIndex(position->bitboards[K]) - square) / 8;
 
                     // pawn storm
-                    if (howManySquareBlack < 3 && !(getBit(position->occupancies[both], (square + 8)))) {
+                    if (howManySquareBlack < 4 && !(getBit(position->occupancies[both], (square + 8)))) {
                         score -= howManySquareBlack * pawnStormBonus;
                     }
 
