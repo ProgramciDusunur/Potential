@@ -215,7 +215,6 @@ const int endgame_phase_score = 518;
 
 
 
-
 // get game phase score
 int get_game_phase_score(board* position) {
     /*
