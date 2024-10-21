@@ -419,6 +419,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                                     getLS1BIndex(position->bitboards[k]),
                                     position->side ^ 1, position);
 
+    position->inCheck = in_check;
+
     // increase search depth if the king has been exposed into a check
     if (in_check) depth++;
 
