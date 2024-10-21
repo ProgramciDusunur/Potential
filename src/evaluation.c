@@ -165,7 +165,7 @@ const int double_pawn_penalty_opening = -5;
 const int double_pawn_penalty_endgame = -10;
 const int isolated_pawn_penalty_opening = -5;
 const int isolated_pawn_penalty_endgame = -10;
-const int pawnStormBonus = 3;
+const int pawnStormBonus = 2;
 
 // passed pawn bonus
 const int passed_pawn_bonus_middle[64] = { 0, 0, 0, 0, 0, 0, 0, 0,
@@ -365,7 +365,7 @@ int evaluate(board* position) {
 
                     // pawn storm
                     if (howManySquareWhite > -1 && howManySquareWhite < 3 && !(getBit(position->occupancies[black], (square - 8)))) {
-                        int pawnStormMaterialScale = game_phase_score * 0.00065;
+                        int pawnStormMaterialScale = game_phase_score * 0.00070;
                         score += howManySquareWhite * (pawnStormBonus * pawnStormMaterialScale);
                     }
 
@@ -534,7 +534,7 @@ int evaluate(board* position) {
 
                     // pawn storm
                     if (howManySquareBlack > -1 && howManySquareBlack < 3 && !(getBit(position->occupancies[white], (square + 8)))) {
-                        int pawnStormMaterialScale = game_phase_score * 0.00065;
+                        int pawnStormMaterialScale = game_phase_score * 0.00070;
                         score -= howManySquareBlack * (pawnStormBonus * pawnStormMaterialScale);
                     }
 
