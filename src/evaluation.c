@@ -365,7 +365,7 @@ int evaluate(board* position) {
                     int howManySquareWhite = (square - getLS1BIndex(position->bitboards[k])) / 8;
 
                     // pawn storm
-                    if (howManySquareWhite > 0 && howManySquareWhite < 3 && !(getBit(position->occupancies[both], (square - 8)))) {
+                    if (howManySquareWhite > 0 && howManySquareWhite < 3 && !(getBit(position->occupancies[black], (square - 8)))) {
                         score += howManySquareWhite * pawnStormBonus;
                     }
 
@@ -533,7 +533,7 @@ int evaluate(board* position) {
                     int howManySquareBlack = (getLS1BIndex(position->bitboards[K]) - square) / 8;
 
                     // pawn storm
-                    if (howManySquareBlack > 0 && howManySquareBlack < 3 && !(getBit(position->occupancies[both], (square + 8)))) {
+                    if (howManySquareBlack > 0 && howManySquareBlack < 3 && !(getBit(position->occupancies[white], (square + 8)))) {
                         score -= howManySquareBlack * pawnStormBonus;
                     }
 
