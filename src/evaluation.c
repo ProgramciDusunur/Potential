@@ -365,7 +365,7 @@ int evaluate(board* position) {
 
                     // pawn storm
                     if (howManySquareWhite > -1 && howManySquareWhite < 2 && !(getBit(position->occupancies[both], (square - 8)))) {
-                        int pawnStormMaterialScale = game_phase_score / 1350;
+                        int pawnStormMaterialScale = game_phase_score / 1370;
                         score += howManySquareWhite * (pawnStormBonus * pawnStormMaterialScale);
                     }
 
@@ -533,7 +533,7 @@ int evaluate(board* position) {
 
                     // pawn storm
                     if (howManySquareBlack > -1 && howManySquareBlack < 2 && !(getBit(position->occupancies[both], (square + 8)))) {
-                        int pawnStormMaterialScale = game_phase_score / 1350;
+                        int pawnStormMaterialScale = game_phase_score / 1370;
                         score -= howManySquareBlack * (pawnStormBonus * pawnStormMaterialScale);
                     }
 
