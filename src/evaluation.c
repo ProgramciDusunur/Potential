@@ -361,12 +361,16 @@ int evaluate(board* position) {
                         score += passed_pawn_bonus_middle[square];
                     }
 
-                    int howManySquareWhite = (square - getLS1BIndex(position->bitboards[k])) / 8;
+                    int blackKingSquare = getLS1BIndex(position->bitboards[k]);
+
+                    int howManySquareWhite = (square - blackKingSquare) / 8;
+
+                    int kingShieldAttackWhite = countBits(kingAttacks[blackKingSquare] & pawnAtacks[white][square]);
 
                     // pawn storm
                     if (howManySquareWhite > -1 && howManySquareWhite < 2 && !(getBit(position->occupancies[both], (square - 8)))) {
-                        int pawnStormMaterialScale = game_phase_score / 1370;
-                        score += howManySquareWhite * (pawnStormBonus * pawnStormMaterialScale);
+                        int pawnStormMaterialScale = game_phase_score / 1350;
+                        score += howManySquareWhite * (pawnStormBonus * pawnStormMaterialScale) + kingShieldAttackWhite;
                     }
 
 
@@ -529,12 +533,16 @@ int evaluate(board* position) {
                         score -= passed_pawn_bonus_middle[mirrorScore[square]];
                     }
 
-                    int howManySquareBlack = (getLS1BIndex(position->bitboards[K]) - square) / 8;
+                    int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
+
+                    int howManySquareBlack =  (whiteKingSquare - square) / 8;
+
+                    int kingShieldAttackBlack = countBits(kingAttacks[whiteKingSquare] & pawnAtacks[black][square]);
 
                     // pawn storm
                     if (howManySquareBlack > -1 && howManySquareBlack < 2 && !(getBit(position->occupancies[both], (square + 8)))) {
-                        int pawnStormMaterialScale = game_phase_score / 1370;
-                        score -= howManySquareBlack * (pawnStormBonus * pawnStormMaterialScale);
+                        int pawnStormMaterialScale = game_phase_score / 1350;
+                        score -= howManySquareBlack * (pawnStormBonus * pawnStormMaterialScale) + kingShieldAttackBlack;
                     }
 
 
