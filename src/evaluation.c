@@ -368,9 +368,9 @@ int evaluate(board* position) {
                     int kingShieldAttackWhite = countBits(kingAttacks[blackKingSquare] & pawnAtacks[white][square]);
 
                     // pawn storm
-                    if (howManySquareWhite > -1 && howManySquareWhite < 2 && !(getBit(position->occupancies[both], (square - 8)))) {
+                    if (howManySquareWhite > -2 && howManySquareWhite < 2 && !(getBit(position->occupancies[both], (square - 8)))) {
                         int pawnStormMaterialScale = game_phase_score / 1350;
-                        score += ((pawnStormBonus + kingShieldAttackWhite) * pawnStormMaterialScale) - howManySquareWhite;
+                        score += howManySquareWhite * (pawnStormBonus * pawnStormMaterialScale) + kingShieldAttackWhite;
                     }
 
 
@@ -540,9 +540,9 @@ int evaluate(board* position) {
                     int kingShieldAttackBlack = countBits(kingAttacks[whiteKingSquare] & pawnAtacks[black][square]);
 
                     // pawn storm
-                    if (howManySquareBlack > -1 && howManySquareBlack < 2 && !(getBit(position->occupancies[both], (square + 8)))) {
+                    if (howManySquareBlack > -2 && howManySquareBlack < 2 && !(getBit(position->occupancies[both], (square + 8)))) {
                         int pawnStormMaterialScale = game_phase_score / 1350;
-                        score -= ((pawnStormBonus + kingShieldAttackBlack) * pawnStormMaterialScale) - howManySquareBlack;
+                        score -= howManySquareBlack * (pawnStormBonus * pawnStormMaterialScale) + kingShieldAttackBlack;
                     }
 
 
