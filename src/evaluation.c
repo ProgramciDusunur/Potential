@@ -516,7 +516,6 @@ int evaluate(board* position) {
 
 
 
-
                     // on passed pawn
                     if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         // give passed pawn bonus
