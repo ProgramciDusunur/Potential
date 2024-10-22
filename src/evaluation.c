@@ -534,7 +534,7 @@ int evaluate(board* position) {
 
                     // pawn storm
                     if (howManySquareBlack > -1 && howManySquareBlack < 3 && !(getBit(position->occupancies[both], (square + 8)))) {
-                        int pawnStormMaterialScale = game_phase_score / 1340;
+                        int pawnStormMaterialScale = game_phase_score / 1350;
                         score -= howManySquareBlack * (pawnStormBonus * pawnStormMaterialScale);
                     }
 
