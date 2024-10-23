@@ -421,12 +421,10 @@ int evaluate(board* position) {
                         // add semi open file bonus
                         score += semi_open_file_score;
 
-                    // semi open file
-                     /*
-                    if (((bitboards[P] | bitboards[p]) & file_masks[square]) == 0)
-                        // add semi open file bonus
+                    // open file
+                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
+                        // add open file bonus
                         score += open_file_score;
-                    */
                     break;
 
                     // evaluate white queens
@@ -576,12 +574,10 @@ int evaluate(board* position) {
                         // add semi open file bonus
                         score -= semi_open_file_score;
 
-                    // semi open file
-                     /*
-                    if (((bitboards[P] | bitboards[p]) & file_masks[square]) == 0)
-                        // add semi open file bonus
+                    // open file
+                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
+                        // add open file bonus
                         score -= open_file_score;
-                    */
                     break;
 
                     // evaluate black queens
