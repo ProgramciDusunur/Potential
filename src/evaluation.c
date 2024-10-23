@@ -350,7 +350,7 @@ int evaluate(board* position) {
                     if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                         // give passed pawn bonus
                         if (game_phase == endgame) {
-                            int materialFactorWhiteKing = game_phase_score / 172;
+                            int materialFactorWhiteKing = game_phase_score / 259;
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                             int kingDistance = blackKingDistance - whiteKingDistance;
@@ -508,7 +508,7 @@ int evaluate(board* position) {
                     if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         // give passed pawn bonus
                         if (game_phase == endgame) {
-                            int materialFactorBlackKing = game_phase_score / 172;
+                            int materialFactorBlackKing = game_phase_score / 259;
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                             int kingDistance = whiteKingDistance - blackKingDistance;
