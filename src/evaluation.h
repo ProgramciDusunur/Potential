@@ -66,6 +66,7 @@ extern const int passed_pawn_bonus_endgame[64];
 // File and Mobility Scores
 extern const int semi_open_file_score;
 extern const int open_file_score;
+extern const int rook_open_file;
 extern const int bishop_unit;
 extern const int queen_unit;
 
