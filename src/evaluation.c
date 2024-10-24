@@ -469,7 +469,8 @@ int evaluate(board* position) {
                         score -= open_file_score;
 
                     // king safety bonus
-                    score += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
+                    int materialFactorWhiteKing = game_phase_score / 2000;
+                    score += countBits(kingAttacks[square] & position->occupancies[white]) * (king_shield_bonus + materialFactorWhiteKing);
 
                     break;
 
@@ -620,9 +621,9 @@ int evaluate(board* position) {
                     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
                         // add semi open file penalty
                         score += open_file_score;
-
                     // king safety bonus
-                    score -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus;
+                    int materialFactorBlackKing = game_phase_score / 2000;
+                    score -= countBits(kingAttacks[square] & position->occupancies[black]) * (king_shield_bonus + materialFactorBlackKing);
 
                     break;
             }
