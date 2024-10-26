@@ -230,7 +230,6 @@ const int kingPressureBonus[5][4] = {
 
 
 
-
 // get game phase score
 int get_game_phase_score(board* position) {
     /*
