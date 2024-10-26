@@ -207,17 +207,17 @@ const int opening_phase_score = 6192;
 const int endgame_phase_score = 518;
 
 // King Pressure Bonus [piece][kingAttacks]
-const int kingPressureBonus[5][8] = {
+const int kingPressureBonus[5][4] = {
         // pawn
-        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0},
         // knight
-        {1, 1, 1, 1, 0, 0, 0, 0},
+        {0, 1, 1, 1},
         // bishop
-        {1, 1, 1, 1, 0, 0, 0, 0},
+        {0, 1, 1, 1},
         // rook
-        {2, 2, 3, 3, 0, 0, 0, 0},
+        {0, 1, 2, 3},
         // queen
-        {2, 2, 3, 4, 0, 0, 0, 0},
+        {0, 2, 4, 6},
 };
 
 
