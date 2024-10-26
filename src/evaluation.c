@@ -211,13 +211,13 @@ const int kingPressureBonus[5][8] = {
         // pawn
         {0, 0, 0, 0, 0, 0, 0, 0},
         // knight
-        {1, 1, 1, 1, 2, 2, 2, 2},
+        {1, 1, 1, 1, 0, 0, 0, 0},
         // bishop
-        {1, 1, 1, 1, 2, 2, 2, 2},
+        {1, 1, 1, 1, 0, 0, 0, 0},
         // rook
-        {2, 2, 3, 3, 3, 3, 4, 4},
+        {2, 2, 3, 3, 0, 0, 0, 0},
         // queen
-        {2, 2, 3, 4, 5, 6, 6, 6},
+        {2, 2, 3, 4, 0, 0, 0, 0},
 };
 
 
@@ -400,7 +400,7 @@ int evaluate(board* position) {
 
                     U64 wkKingShieldAttack = knightAttacks[square] & blackKingAttacks;
 
-                    score += wkKingShieldAttack ? kingPressureBonus[KNIGHT][blackKingAttacks] : 0;
+                    score += wkKingShieldAttack ? kingPressureBonus[KNIGHT][countBits(wkKingShieldAttack)] : 0;
 
 
 
@@ -427,7 +427,7 @@ int evaluate(board* position) {
                     }
                     U64 wbKingShieldAttack = getBishopAttacks(square, position->occupancies[both]) & blackKingAttacks;
 
-                    score += wbKingShieldAttack ? kingPressureBonus[ROOK][blackKingAttacks] : 0;
+                    score += wbKingShieldAttack ? kingPressureBonus[ROOK][countBits(wbKingShieldAttack)] : 0;
 
 
 
@@ -458,7 +458,7 @@ int evaluate(board* position) {
 
                     U64 wrKingShieldAttack = getRookAttacks(square, position->occupancies[both]) & blackKingAttacks;
 
-                    score += wrKingShieldAttack ? kingPressureBonus[ROOK][blackKingAttacks] : 0;
+                    score += wrKingShieldAttack ? kingPressureBonus[ROOK][countBits(wrKingShieldAttack)] : 0;
 
                     break;
 
@@ -479,7 +479,7 @@ int evaluate(board* position) {
                     //score += count_bits(get_queen_attacks(square, occupancies[both]));
                     U64 wqKingShieldAttack = getQueenAttacks(square, position->occupancies[both]) & blackKingAttacks;
 
-                    score += wqKingShieldAttack ? kingPressureBonus[QUEEN][blackKingAttacks] : 0;
+                    score += wqKingShieldAttack ? kingPressureBonus[QUEEN][countBits(wqKingShieldAttack)] : 0;
                     break;
 
                     // evaluate white king
@@ -574,7 +574,7 @@ int evaluate(board* position) {
 
                     U64 bkKingShieldAttack = knightAttacks[square] & whiteKingAttacks;
 
-                    score -= bkKingShieldAttack ? kingPressureBonus[KNIGHT][whiteKingAttacks] : 0;
+                    score -= bkKingShieldAttack ? kingPressureBonus[KNIGHT][countBits(bkKingShieldAttack)] : 0;
                     break;
 
                     // evaluate black bishops
@@ -598,7 +598,7 @@ int evaluate(board* position) {
                     }
                     U64 bbKingShieldAttack = getBishopAttacks(square, position->occupancies[both]) & whiteKingAttacks;
 
-                    score -= bbKingShieldAttack ? kingPressureBonus[BISHOP][whiteKingAttacks] : 0;
+                    score -= bbKingShieldAttack ? kingPressureBonus[BISHOP][countBits(bbKingShieldAttack)] : 0;
                     break;
 
                     // evaluate black rooks
@@ -626,7 +626,7 @@ int evaluate(board* position) {
 
                     U64 brKingShieldAttack = getRookAttacks(square, position->occupancies[both]) & whiteKingAttacks;
 
-                    score -= brKingShieldAttack ? kingPressureBonus[ROOK][whiteKingAttacks] : 0;
+                    score -= brKingShieldAttack ? kingPressureBonus[ROOK][countBits(brKingShieldAttack)] : 0;
                     break;
 
                     // evaluate black queens
@@ -646,7 +646,7 @@ int evaluate(board* position) {
                     //score -= count_bits(get_queen_attacks(square, occupancies[both]));
                     U64 bqKingShieldAttack = getQueenAttacks(square, position->occupancies[both]) & whiteKingAttacks;
 
-                    score -= bqKingShieldAttack ? kingPressureBonus[QUEEN][whiteKingAttacks] : 0;
+                    score -= bqKingShieldAttack ? kingPressureBonus[QUEEN][countBits(bqKingShieldAttack)] : 0;
                     break;
 
                     // evaluate black king
