@@ -206,7 +206,7 @@ const int king_distance_bonus = 2;
 const int opening_phase_score = 6192;
 const int endgame_phase_score = 518;
 
-// King Pressure Bonus [piece][kingAttack]
+// King Pressure Bonus [piece][kingAttacks]
 const int kingPressureBonus[5][8] = {
         // pawn
         {0, 0, 0, 0, 0, 0, 0, 0},
@@ -398,7 +398,11 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][KNIGHT][square];
 
-                    score += kingPressureBonus[KNIGHT][blackKingAttacks];
+                    U64 wkKingShieldAttack = knightAttacks[square] & blackKingAttacks;
+
+                    score += wkKingShieldAttack ? kingPressureBonus[KNIGHT][blackKingAttacks] : 0;
+
+
 
                     break;
 
@@ -421,7 +425,11 @@ int evaluate(board* position) {
                     } else {
                         score += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
                     }
-                    score += kingPressureBonus[BISHOP][blackKingAttacks];
+                    U64 wbKingShieldAttack = getBishopAttacks(square, position->occupancies[both]) & blackKingAttacks;
+
+                    score += wbKingShieldAttack ? kingPressureBonus[ROOK][blackKingAttacks] : 0;
+
+
 
                     break;
 
@@ -448,7 +456,10 @@ int evaluate(board* position) {
                         // add open file bonus
                         score += rook_open_file;
 
-                    score += kingPressureBonus[ROOK][blackKingAttacks];
+                    U64 wrKingShieldAttack = getRookAttacks(square, position->occupancies[both]) & blackKingAttacks;
+
+                    score += wrKingShieldAttack ? kingPressureBonus[ROOK][blackKingAttacks] : 0;
+
                     break;
 
                     // evaluate white queens
@@ -466,7 +477,9 @@ int evaluate(board* position) {
 
                     // mobility
                     //score += count_bits(get_queen_attacks(square, occupancies[both]));
-                    score += kingPressureBonus[QUEEN][blackKingAttacks];
+                    U64 wqKingShieldAttack = getQueenAttacks(square, position->occupancies[both]) & blackKingAttacks;
+
+                    score += wqKingShieldAttack ? kingPressureBonus[QUEEN][blackKingAttacks] : 0;
                     break;
 
                     // evaluate white king
@@ -556,7 +569,12 @@ int evaluate(board* position) {
 
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][KNIGHT][mirrorScore[square]];
+
                     score -= kingPressureBonus[KNIGHT][whiteKingAttacks];
+
+                    U64 bkKingShieldAttack = knightAttacks[square] & whiteKingAttacks;
+
+                    score -= bkKingShieldAttack ? kingPressureBonus[KNIGHT][whiteKingAttacks] : 0;
                     break;
 
                     // evaluate black bishops
@@ -578,7 +596,9 @@ int evaluate(board* position) {
                     } else {
                         score -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
                     }
-                    score += kingPressureBonus[BISHOP][whiteKingAttacks];
+                    U64 bbKingShieldAttack = getBishopAttacks(square, position->occupancies[both]) & whiteKingAttacks;
+
+                    score -= bbKingShieldAttack ? kingPressureBonus[BISHOP][whiteKingAttacks] : 0;
                     break;
 
                     // evaluate black rooks
@@ -603,7 +623,10 @@ int evaluate(board* position) {
                     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
                         // add open file bonus
                         score -= rook_open_file;
-                    score -= kingPressureBonus[ROOK][whiteKingAttacks];
+
+                    U64 brKingShieldAttack = getRookAttacks(square, position->occupancies[both]) & whiteKingAttacks;
+
+                    score -= brKingShieldAttack ? kingPressureBonus[ROOK][whiteKingAttacks] : 0;
                     break;
 
                     // evaluate black queens
@@ -621,7 +644,9 @@ int evaluate(board* position) {
 
                     // mobility
                     //score -= count_bits(get_queen_attacks(square, occupancies[both]));
-                    score -= kingPressureBonus[QUEEN][whiteKingAttacks];
+                    U64 bqKingShieldAttack = getQueenAttacks(square, position->occupancies[both]) & whiteKingAttacks;
+
+                    score -= bqKingShieldAttack ? kingPressureBonus[QUEEN][whiteKingAttacks] : 0;
                     break;
 
                     // evaluate black king

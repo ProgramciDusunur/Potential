@@ -84,7 +84,7 @@ extern const int king_distance_bonus;
 extern const int opening_phase_score;
 extern const int endgame_phase_score;
 
-// King Pressure Bonus [piece][kingAttack]
+// King Pressure Bonus [piece][kingAttacks]
 extern const int kingPressureBonus[5][8];
 
 
