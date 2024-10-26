@@ -474,12 +474,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // reverse futility pruning
     if (depth < 4 && canPrune && abs(beta - 1) > -infinity + 100) {
         // define evaluation margin
-        int eval_margin = improving ? 80 * (depth - 1): 100 * depth;
-        // return (new_score > score) ? new_score : score;
+        int rfpMargin = improving ? 80 * (depth - 1): 100 * depth;
+        int improvingFactor = position->improvingRate[position->ply] * (0.75 * depth);
+
+        int rfpThreshold = rfpMargin + improvingFactor;
         // evaluation margin substracted from static evaluation score fails high
-        if (static_eval - eval_margin >= beta)
+        if (static_eval - rfpThreshold >= beta)
             // evaluation margin substracted from static evaluation score
-            return static_eval - eval_margin;
+            return static_eval - rfpThreshold;
     }
 
     // null move pruning
