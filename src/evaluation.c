@@ -206,6 +206,21 @@ const int king_distance_bonus = 2;
 const int opening_phase_score = 6192;
 const int endgame_phase_score = 518;
 
+// King Pressure Bonus [piece][kingAttack]
+const int kingPressureBonus[5][8] = {
+        // pawn
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        // knight
+        {1, 1, 1, 1, 2, 2, 2, 2},
+        // bishop
+        {1, 1, 1, 1, 2, 2, 2, 2},
+        // rook
+        {2, 2, 3, 3, 3, 3, 4, 4},
+        // queen
+        {2, 2, 3, 4, 5, 6, 6, 6},
+};
+
+
 
 
 
@@ -275,6 +290,11 @@ int evaluate(board* position) {
 
     // penalties
     //int double_pawns = 0;
+    uint16_t whiteKingSquare = getLS1BIndex(position->bitboards[K]);
+    uint16_t blackKingSquare = getLS1BIndex(position->bitboards[k]);
+
+    uint16_t whiteKingAttacks = countBits(kingAttacks[whiteKingSquare]);
+    uint16_t blackKingAttacks = countBits(kingAttacks[whiteKingSquare]);
 
     // loop over piece bitboards
     for (int bb_piece = P; bb_piece <= k; bb_piece++) {
@@ -352,8 +372,8 @@ int evaluate(board* position) {
                         // give passed pawn bonus
                         if (game_phase == endgame) {
 
-                            int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
-                            int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
+                            int whiteKingDistance = (whiteKingSquare - square) / 8;
+                            int blackKingDistance = (blackKingSquare - square) / 8;
                             int kingDistance = blackKingDistance - whiteKingDistance;
                             score += kingDistance * king_distance_bonus;
                             score += passed_pawn_bonus_endgame[square];
@@ -378,6 +398,8 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][KNIGHT][square];
 
+                    score += kingPressureBonus[KNIGHT][blackKingAttacks];
+
                     break;
 
                     // evaluate white bishops
@@ -398,9 +420,8 @@ int evaluate(board* position) {
                         score += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
                     } else {
                         score += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
-
                     }
-                    //score += count_bits(get_bishop_attacks(square, occupancies[both]));
+                    score += kingPressureBonus[BISHOP][blackKingAttacks];
 
                     break;
 
@@ -426,6 +447,8 @@ int evaluate(board* position) {
                     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
                         // add open file bonus
                         score += rook_open_file;
+
+                    score += kingPressureBonus[ROOK][blackKingAttacks];
                     break;
 
                     // evaluate white queens
@@ -443,6 +466,7 @@ int evaluate(board* position) {
 
                     // mobility
                     //score += count_bits(get_queen_attacks(square, occupancies[both]));
+                    score += kingPressureBonus[QUEEN][blackKingAttacks];
                     break;
 
                     // evaluate white king
@@ -508,8 +532,8 @@ int evaluate(board* position) {
                     if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         // give passed pawn bonus
                         if (game_phase == endgame) {
-                            int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
-                            int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
+                            int whiteKingDistance = (whiteKingSquare - square) / 8;
+                            int blackKingDistance = (blackKingSquare - square) / 8;
                             int kingDistance = whiteKingDistance - blackKingDistance;
                             score -= kingDistance * king_distance_bonus;
                             score -= passed_pawn_bonus_endgame[mirrorScore[square]];
@@ -532,7 +556,7 @@ int evaluate(board* position) {
 
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][KNIGHT][mirrorScore[square]];
-
+                    score -= kingPressureBonus[KNIGHT][whiteKingAttacks];
                     break;
 
                     // evaluate black bishops
@@ -554,7 +578,7 @@ int evaluate(board* position) {
                     } else {
                         score -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
                     }
-                    //score -= count_bits(get_bishop_attacks(square, occupancies[both]));
+                    score += kingPressureBonus[BISHOP][whiteKingAttacks];
                     break;
 
                     // evaluate black rooks
@@ -579,6 +603,7 @@ int evaluate(board* position) {
                     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
                         // add open file bonus
                         score -= rook_open_file;
+                    score -= kingPressureBonus[ROOK][whiteKingAttacks];
                     break;
 
                     // evaluate black queens
@@ -596,6 +621,7 @@ int evaluate(board* position) {
 
                     // mobility
                     //score -= count_bits(get_queen_attacks(square, occupancies[both]));
+                    score -= kingPressureBonus[QUEEN][whiteKingAttacks];
                     break;
 
                     // evaluate black king
