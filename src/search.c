@@ -616,7 +616,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // Futility pruning
             int futilityHistoryFactor = ((moveHistory * 0.01) * depth);
             int futilityEvalMargin = improving ? static_eval + 100 : static_eval + 80;
-            int futilityImprovingFactor = position->improvingRate[position->ply] * (0.4 * depth);
+            int futilityImprovingFactor = position->improvingRate[position->ply] * (0.75 * depth);
             int futilityMargin = futilityEvalMargin + futilityHistoryFactor + futilityImprovingFactor;
 
             if (canPrune && depth < 4 && futilityMargin <= alpha) {
