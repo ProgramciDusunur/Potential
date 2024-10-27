@@ -211,9 +211,9 @@ const int kingPressureBonus[5][4] = {
         // pawn
         {0, 0, 0, 0},
         // knight
-        {0, 1, 2, 0},
+        {0, 1, 1, 0},
         // bishop
-        {0, 1, 2, 0},
+        {0, 1, 1, 0},
         // rook
         {0, 2, 3, 4},
         // queen
