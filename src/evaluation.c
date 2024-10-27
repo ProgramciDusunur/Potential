@@ -215,9 +215,9 @@ const int kingPressureBonus[5][4] = {
         // bishop
         {0, 1, 1, 0},
         // rook
-        {0, 2, 3, 4},
+        {0, 1, 2, 3},
         // queen
-        {0, 2, 4, 8},
+        {0, 2, 3, 5},
 };
 
 
