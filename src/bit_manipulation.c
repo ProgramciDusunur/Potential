@@ -39,3 +39,13 @@ U64 setOccupancy(int index, int bitsInMask, U64 attackMask) {
     }
     return occupancy;
 }
+
+int clamp(int value, int min, int max) {
+    if (value < min) {
+        return min;
+    } else if (value > max) {
+        return max;
+    } else {
+        return value;
+    }
+}

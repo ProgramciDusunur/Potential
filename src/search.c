@@ -662,7 +662,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
 
-
+        int newDepth = depth - 1;
 
         // full depth search
         if (moves_searched == 0)
@@ -712,6 +712,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     lmrReduction -= 1;
                 }*/
             }
+
+            lmrReduction = clamp(lmrReduction, 0, newDepth - 1);
+
             // condition to consider LMR
             if (moves_searched >= lmr_full_depth_moves &&
                 depth >= lmr_reduction_limit &&
