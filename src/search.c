@@ -608,15 +608,16 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // Late Move Pruning (~18 Elo)
             int lmpBase = 4;
             int lmpMultiplier = 3;
-            int improvingFactor = position->improvingRate[position->ply] * (0.25 * depth);
-            int lmpThreshold = ((lmpBase + (lmpMultiplier + improving) * depth * depth) - improvingFactor) + lateMoveHistoryFactor;
+            int lmpImprovingFactor = position->improvingRate[position->ply] * (0.25 * depth);
+            int lmpThreshold = ((lmpBase + (lmpMultiplier + improving) * depth * depth) - lmpImprovingFactor) + lateMoveHistoryFactor;
             if (legal_moves>= lmpThreshold) {
                 skipQuiet = 1;
             }
             // Futility pruning
             int futilityHistoryFactor = ((moveHistory * 0.01) * depth);
             int futilityEvalMargin = improving ? static_eval + 100 : static_eval + 80;
-            int futilityMargin = futilityEvalMargin + futilityHistoryFactor + improvingFactor;
+            int futilityImprovingFactor = position->improvingRate[position->ply] * (0.35 * depth);
+            int futilityMargin = futilityEvalMargin + futilityHistoryFactor + futilityImprovingFactor;
 
             if (canPrune && depth < 4 && futilityMargin <= alpha) {
                 skipQuiet = 1;
