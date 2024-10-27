@@ -816,7 +816,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
                 }
-                updateHistory(sd, bestMove, depth, badQuiets, badCaptures);
+                updateHistory(sd, bestMove, depth, badQuiets);
 
                 // node (move) fails high
                 return beta;
