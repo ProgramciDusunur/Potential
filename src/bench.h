@@ -14,6 +14,6 @@
 #include "fen.h"
 
 extern char* benchmarkfens[52];
-void benchmark(int depth, board* position, time* time);
+void benchmark(int depth, board* position, time* time, SearchData *sd);
 
 #endif //POTENTIAL_BENCH_H

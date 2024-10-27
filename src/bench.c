@@ -61,13 +61,13 @@ char* benchmarkfens[52] = {
         "7k/8/7P/5B2/5K2/8/8/8 b - - 0 175"
 };
 
-void benchmark(int depth, board* position, time* time) {
+void benchmark(int depth, board* position, time* time, SearchData *sd) {
     U64 totalNodes = 0;
 
     int benchStartTime = getTimeMiliSecond();
     for (int i = 0;i < 52;i++) {
         parseFEN(benchmarkfens[i], position);
-        searchPosition(depth, position, true, time);
+        searchPosition(depth, position, true, time, sd);
         // clear hash table
         clearHashTable();
 
@@ -79,7 +79,12 @@ void benchmark(int depth, board* position, time* time) {
 
         //clear counter moves
         clearCounterMoves();
+
+        // clear capture history
+        clearCaptureHistory(sd);
         totalNodes += searchNodes;
+
+
         //printf("position: %s\n", benchmarkfens[i]);
     }
     int benchFinishTime = getTimeMiliSecond() - benchStartTime;

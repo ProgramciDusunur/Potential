@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 
 
@@ -22,28 +20,6 @@
 
 
 
-
-
-
-/*void perft(int depth, board* position);
-
-int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
-
-void pBoard(board* position);
-
-void printMoveList(moves *moveList);
-
-void initAll();
-
-void uciProtocol(int argc, char* argv[]);
-
-void goCommand(char *command, board* position, time* time);
-
-void perftRoot(int depth, board* position);
-
-void perftChild(int depth, board* position);
-
-void initRandomKeys();*/
 
 void initAll(void) {
     initLeaperAttacks();
@@ -73,7 +49,21 @@ int main(int argc, char* argv[]) {
         perftRoot(6, &position);
         printf("Nodes: %llu", perftNodes);
     } else {
-        uciProtocol(argc, argv);
+        board *position = (board *)malloc(sizeof(board));
+        time *time_ctrl = (time *)malloc(sizeof(time));
+        SearchData *sd = (SearchData *)malloc(sizeof(SearchData));
+
+
+        uciProtocol(argc, argv, position, time_ctrl, sd);
+
+        // free SearchData struct
+        free(sd);
+        // free board struct
+        free(position);
+        // free time struct
+        free(time_ctrl);
+        // free hash table
+        free(hashTable);
     }
     return 0;
 }
