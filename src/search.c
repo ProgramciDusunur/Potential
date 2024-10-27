@@ -441,7 +441,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     position->improvingRate[position->ply] = 0.0;
 
     double cutNodeSubtraction = cutNode ? 0.46875 : 0;
-    double improvingPositiveClamp = bestMove ? 0.5 : 0;
+    double improvingPositiveClamp = bestMove && pvNode ? 0.5 : 0;
 
 
     if (position->staticEval[position->ply-2] != noEval) {
