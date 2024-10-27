@@ -866,6 +866,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time, Sear
 
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
     memset(historyMoves, 0, sizeof(historyMoves));
+    memset(sd->captureHistory, 0, sizeof(sd->captureHistory));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
