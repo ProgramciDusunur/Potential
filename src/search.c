@@ -662,7 +662,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
 
-        int newDepth = depth - 1;
+        //int newDepth = depth - 1;
 
         // full depth search
         if (moves_searched == 0)
@@ -672,15 +672,16 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // late move reduction (LMR)
         else {
             int lmrReduction = getLmrReduction(depth, position->ply);
+            // All Nodes
+            if (!improving && position->improvingRate[position->ply] < -1.0) {
+                lmrReduction += 1;
+
+            }
             if (isQuiet) {
                 // Reduce More
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1;
                 }
-                if (!improving) {
-                    lmrReduction += 1;
-                }
-
                 /*if (position->improvingRate[position->ply] < -2.0) {
                     //printf("improving rate calculated %f\n", position->improvingRate[position->ply]);
                     lmrReduction += 1;
@@ -712,8 +713,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     lmrReduction -= 1;
                 }*/
             }
-
-            lmrReduction = clamp(lmrReduction, 0, newDepth - 1);
 
             // condition to consider LMR
             if (moves_searched >= lmr_full_depth_moves &&
