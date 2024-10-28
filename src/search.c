@@ -407,9 +407,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // run quiescence search
         return quiescence(alpha, beta, position, score, time, improving);
 
+    bool moreSafeCutNodeReduction;
+    if (position->nmpNode && depth >= 3) {
+        moreSafeCutNodeReduction = true;
+    }
+
     // IIR by Ed Schroder (~15 Elo)
     if ((depth >= 4 && ttBound == hashFlagNone) || cutNode)
-        depth -= 1 + (cutNode);
+        depth -= 1 + (cutNode && !moreSafeCutNodeReduction);
 
     // increment nodes count
     searchNodes++;
@@ -508,6 +513,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // hash the side
         position->hashKey ^= sideKey;
 
+        position->nmpNode = true;
+
         int R = 3 + (int)(0.1875 * depth);
 
         /* search moves with reduced depth to find beta cutoffs
@@ -519,6 +526,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         // decrement repetition index
         position->repetitionIndex--;
+
+        position->nmpNode = false;
 
         // restore board state
         takeBack(position, &copyPosition);

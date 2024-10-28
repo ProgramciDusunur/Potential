@@ -35,6 +35,9 @@ typedef struct {
 
     double improvingRate[maxPly];
 
+    // null move pruning node
+    bool nmpNode;
+
     int followPv;
     int scorePv;
 
