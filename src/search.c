@@ -71,35 +71,10 @@ int scoreMove(int move, board* position, SearchData *sd) {
 
     // score capture move
     if (getMoveCapture(move)) {
-        // init target piece
 
-        int target_piece = P;
-
-        // pick up bitboard piece index ranges depending on side
-        int start_piece, end_piece;
-
-        // pick up side to move
-        if (position->side == white) {
-            start_piece = p;
-            end_piece = k;
-        }
-        else {
-            start_piece = P;
-            end_piece = K;
-        }
-
-        // loop over bitboards opposite to the current side to move
-        for (int bb_piece = start_piece; bb_piece <= end_piece; bb_piece++) {
-            // if there's a piece on the target square
-            if (getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
-                // remove it from corresponding bitboard
-                target_piece = bb_piece;
-                break;
-            }
-        }
 
         // score move by MVV LVA lookup [source piece][target piece]
-        return mvvLva[getMovePiece(move)][target_piece] + 1000000000 + getCaptureHistoryScore(sd, move);
+        return mvvLva[getMovePiece(move)][P] + 1000000000 + getCaptureHistoryScore(sd, move);
         /*int seeScore = see(position, move);
         if (seeScore > 0) {
             return 15000;
