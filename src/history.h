@@ -28,7 +28,7 @@ extern int historyMoves[64][64];
 int getCaptureHistoryScore(const SearchData *sd, const int move);
 void updateCaptureHistoryScore(SearchData *sd, const int move, int bonus);
 int scaledBonus(int score, int bonus);
-void updateHistory(SearchData *sd, int bestMove, int depth, moves *badQuiets);
+void updateHistory(SearchData *sd, int bestMove, int depth, moves *badQuiets, moves *badCaptures);
 void clearHistory(void);
 void clearCaptureHistory(SearchData *sd);
 

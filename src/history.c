@@ -21,7 +21,7 @@ int scaledBonus(int score, int bonus) {
     return bonus - score * myAbs(bonus) / maxHistory;
 }
 
-void updateHistory(SearchData *sd, int bestMove, int depth, moves *badQuiets) {
+void updateHistory(SearchData *sd, int bestMove, int depth, moves *badQuiets, moves *badCaptures) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
     int bonus = 16 * depth * depth + 32 * depth + 16;
@@ -44,10 +44,10 @@ void updateHistory(SearchData *sd, int bestMove, int depth, moves *badQuiets) {
     } else {
         updateCaptureHistoryScore(sd, bestMove, bonus);
     }
-    /*for (int index = 0; index < badCaptures->count; index++) {
+    for (int index = 0; index < badCaptures->count; index++) {
         if (badCaptures->moves[index] == bestMove) continue;
         updateCaptureHistoryScore(sd, badQuiets->moves[index], -bonus);
-    }*/
+    }
 
 
 }
