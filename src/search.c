@@ -475,7 +475,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     int canPrune = in_check == 0 && pvNode == 0;
 
-
     // reverse futility pruning
     if (depth < 4 && canPrune && abs(beta - 1) > -infinity + 100) {
         // define evaluation margin
