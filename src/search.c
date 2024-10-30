@@ -488,7 +488,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             return static_eval - rfpThreshold;
     }
 
-    int nmpMargin = 50 * depth;
+    int nmpMargin = 10 * depth;
 
     // null move pruning
     if (canPrune && position->ply && static_eval - nmpMargin >= beta) {
