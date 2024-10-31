@@ -274,14 +274,18 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     // legal moves counter
     //int legal_moves = 0;
 
+    int quiescenceDepth = position->ply / 2;
+
     int futilityMargin = !improving ? evaluation + 120 : evaluation + 100;
+    int improvingFactor = position->improvingRate[position->ply] * (1.25 * quiescenceDepth);
+    int futilityThreshold = futilityMargin + improvingFactor;
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
         //if (see(position, moveList->moves[count]) < 0) continue;
-        if (!pvNode && futilityMargin <= alpha) {
-            if (negamaxScore < futilityMargin) {
-                negamaxScore = futilityMargin;
+        if (!pvNode && futilityThreshold <= alpha) {
+            if (negamaxScore < futilityThreshold) {
+                negamaxScore = futilityThreshold;
             }
             continue;
         }
