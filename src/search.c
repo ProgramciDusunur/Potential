@@ -553,11 +553,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     bool razorIsNotMated = alpha > -mateScore + maxPly;
 
     // razoring
-    if (canPrune && depth < 3 && static_eval + 50 * depth < alpha && razorIsNotMated) {
-        int razoringScore = quiescence(alpha, beta, position, score, time, improving);
-        if (razoringScore <= alpha) {
-            return razoringScore;
-        }
+    if (canPrune && depth < 4 && static_eval + 300 * depth < alpha && razorIsNotMated) {
+       return quiescence(alpha, beta, position, score, time, improving);
+
     }
 
     // create move list instance
