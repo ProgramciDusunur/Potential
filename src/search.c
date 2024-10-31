@@ -497,7 +497,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // null move pruning
-    if (canPrune && position->ply && static_eval >= beta && !justPawns(position)) {
+    if (canPrune && position->ply && static_eval >= beta) {
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
