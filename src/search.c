@@ -447,7 +447,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     double cutNodeSubtraction = cutNode ? 0.46875 : 0;
 
-    uint8_t improvingTrust = pvNode ? 25 : 50;
+    uint8_t improvingTrust = pvNode ? 35 : 50;
 
 
     if (position->staticEval[position->ply-2] != noEval) {
