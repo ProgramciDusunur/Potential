@@ -79,6 +79,7 @@ extern const int queen_mobility_endgame;
 // King's Bonuses
 extern const int king_shield_bonus;
 extern const int king_distance_bonus;
+extern const int virtualMobility;
 
 // Game Phase Scores
 extern const int opening_phase_score;

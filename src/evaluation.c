@@ -201,6 +201,7 @@ const int queen_mobility_endgame = 2;
 // King's Bonuses
 const int king_shield_bonus = 5;
 const int king_distance_bonus = 2;
+const int virtualMobility = 2;
 
 // Game Phase Scores
 const int opening_phase_score = 6192;
@@ -471,6 +472,10 @@ int evaluate(board* position) {
                     // king safety bonus
                     score += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
 
+                    // virtual mobility
+                    U64 whiteVirtualMobility = getQueenAttacks(square, position->occupancies[both]);
+                    score -= countBits(whiteVirtualMobility) * virtualMobility;
+
                     break;
 
                     // evaluate black pawns
@@ -623,6 +628,10 @@ int evaluate(board* position) {
 
                     // king safety bonus
                     score -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus;
+
+                    // virtual mobility
+                    U64 blackVirtualMobility = getQueenAttacks(square, position->occupancies[both]);
+                    score += countBits(blackVirtualMobility) * virtualMobility;
 
                     break;
             }
