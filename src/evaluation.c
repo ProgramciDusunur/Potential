@@ -201,7 +201,7 @@ const int queen_mobility_endgame = 2;
 // King's Bonuses
 const int king_shield_bonus = 5;
 const int king_distance_bonus = 2;
-const int virtualMobility = 4;
+const int virtualMobility = 3;
 
 // Game Phase Scores
 const int opening_phase_score = 6192;
@@ -474,8 +474,7 @@ int evaluate(board* position) {
 
                     // virtual mobility
                     U64 whiteVirtualMobility = getQueenAttacks(square, position->occupancies[both]);
-                    whiteVirtualMobility -= kingAttacks[square] & position->occupancies[white];
-                    score += countBits(whiteVirtualMobility) * virtualMobility;
+                    score -= countBits(whiteVirtualMobility) * virtualMobility;
 
                     break;
 
@@ -632,8 +631,7 @@ int evaluate(board* position) {
 
                     // virtual mobility
                     U64 blackVirtualMobility = getQueenAttacks(square, position->occupancies[both]);
-                    blackVirtualMobility -= kingAttacks[square] & position->occupancies[black];
-                    score -= countBits(blackVirtualMobility) * virtualMobility;
+                    score += countBits(blackVirtualMobility) * virtualMobility;
 
                     break;
             }
