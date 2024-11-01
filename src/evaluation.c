@@ -474,6 +474,7 @@ int evaluate(board* position) {
 
                     // virtual mobility
                     U64 whiteVirtualMobility = getQueenAttacks(square, position->occupancies[both]);
+                    whiteVirtualMobility -= kingAttacks[square] & position->occupancies[white];
                     score -= countBits(whiteVirtualMobility) * virtualMobility;
 
                     break;
@@ -631,6 +632,7 @@ int evaluate(board* position) {
 
                     // virtual mobility
                     U64 blackVirtualMobility = getQueenAttacks(square, position->occupancies[both]);
+                    blackVirtualMobility -= kingAttacks[square] & position->occupancies[black];
                     score += countBits(blackVirtualMobility) * virtualMobility;
 
                     break;
