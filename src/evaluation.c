@@ -201,7 +201,7 @@ const int queen_mobility_endgame = 2;
 // King's Bonuses
 const int king_shield_bonus = 5;
 const int king_distance_bonus = 2;
-const int virtualMobility = 2;
+const int virtualMobility = 4;
 
 // Game Phase Scores
 const int opening_phase_score = 6192;
