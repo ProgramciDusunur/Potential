@@ -185,6 +185,8 @@ const int passed_pawn_bonus_endgame[64] = {0, 0, 0, 0, 0, 0, 0, 0,
                                                   -2, 0, 0, 0, 0, 0, -1, -2,
                                                   0, 0, 0, 0, 0, 0, 0, 0};
 
+const int passerPawnProtectionBonus = 4;
+
 // File and Mobility Scores
 const int semi_open_file_score = 10;
 const int open_file_score = 15;
@@ -359,7 +361,7 @@ int evaluate(board* position) {
                             score += passed_pawn_bonus_endgame[square];
 
                             // protected passer pawn bonus
-                            score += countBits(getWhiteAttackers(position, square)) - countBits(getBlackAttackers(position, square));
+                            score += (countBits(getWhiteAttackers(position, square)) - countBits(getBlackAttackers(position, square))) * passerPawnProtectionBonus;
                         }
                         score += passed_pawn_bonus_middle[square];
 
@@ -518,7 +520,7 @@ int evaluate(board* position) {
                             score -= passed_pawn_bonus_endgame[mirrorScore[square]];
 
                             // protected passer pawn bonus
-                            score -= countBits(getBlackAttackers(position, square)) - countBits(getWhiteAttackers(position, square));
+                            score -= (countBits(getBlackAttackers(position, square)) - countBits(getWhiteAttackers(position, square))) * passerPawnProtectionBonus;
                         }
                         score -= passed_pawn_bonus_middle[mirrorScore[square]];
                     }
