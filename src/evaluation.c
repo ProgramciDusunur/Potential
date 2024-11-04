@@ -357,6 +357,9 @@ int evaluate(board* position) {
                             int kingDistance = blackKingDistance - whiteKingDistance;
                             score += kingDistance * king_distance_bonus;
                             score += passed_pawn_bonus_endgame[square];
+
+                            // protected passer pawn bonus
+                            score += countBits(getWhiteAttackers(position, square));
                         }
                         score += passed_pawn_bonus_middle[square];
 
@@ -513,6 +516,9 @@ int evaluate(board* position) {
                             int kingDistance = whiteKingDistance - blackKingDistance;
                             score -= kingDistance * king_distance_bonus;
                             score -= passed_pawn_bonus_endgame[mirrorScore[square]];
+
+                            // protected passer pawn bonus
+                            score -= countBits(getBlackAttackers(position, square));
                         }
                         score -= passed_pawn_bonus_middle[mirrorScore[square]];
                     }
