@@ -185,7 +185,7 @@ const int passed_pawn_bonus_endgame[64] = {0, 0, 0, 0, 0, 0, 0, 0,
                                                   -2, 0, 0, 0, 0, 0, -1, -2,
                                                   0, 0, 0, 0, 0, 0, 0, 0};
 
-const int passerPawnProtectionBonus = 4;
+const int passerPawnProtectionBonus = 5;
 
 // File and Mobility Scores
 const int semi_open_file_score = 10;
