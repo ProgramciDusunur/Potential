@@ -266,7 +266,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     moves moveList[1];
 
     // generate moves
-    moveGenerator(moveList, position);
+    captureGenerator(moveList, position);
 
     // sort moves
     //sort_moves(moveList, 0, position);
