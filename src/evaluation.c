@@ -359,7 +359,7 @@ int evaluate(board* position) {
                             score += passed_pawn_bonus_endgame[square];
 
                             // protected passer pawn bonus
-                            score += countBits(getWhiteAttackers(position, square));
+                            score += countBits(getWhiteAttackers(position, square)) - countBits(getBlackAttackers(position, square));
                         }
                         score += passed_pawn_bonus_middle[square];
 
@@ -518,7 +518,7 @@ int evaluate(board* position) {
                             score -= passed_pawn_bonus_endgame[mirrorScore[square]];
 
                             // protected passer pawn bonus
-                            score -= countBits(getBlackAttackers(position, square));
+                            score -= countBits(getBlackAttackers(position, square)) - countBits(getWhiteAttackers(position, square));
                         }
                         score -= passed_pawn_bonus_middle[mirrorScore[square]];
                     }
