@@ -616,7 +616,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             int lateMoveHistoryFactor = ((moveHistory * 0.001) * depth);
             // Late Move Pruning (~18 Elo)
             int lmpBase = 4;
-            int lmpMultiplier = 3 - (getMoveCapture(bestMove) && depth >= 3);
+            int lmpMultiplier = 3 - (getMoveCapture(bestMove) && (depth >= 4 + (4 * improving)));
             int improvingFactor = position->improvingRate[position->ply] * (0.25 * depth);
             int lmpThreshold = ((lmpBase + (lmpMultiplier + improving) * depth * depth) - improvingFactor) + lateMoveHistoryFactor;
             if (legal_moves>= lmpThreshold) {
