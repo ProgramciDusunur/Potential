@@ -613,19 +613,19 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         bool isNotMated = alpha > -mateScore + maxPly;
 
         if (!rootNode && isQuiet && isNotMated) {
+            uint8_t noisyTTMoveDivisor = getMoveCapture(bestMove) ? (2 - (position->nmpNode && depth >= 3)) : 1;
             int lateMoveHistoryFactor = ((moveHistory * 0.001) * depth);
             // Late Move Pruning (~18 Elo)
             int lmpBase = 4;
-            int lmpMultiplier = 3 - (getMoveCapture(bestMove) && (depth >= 4 -  (2 * improving)));
+            int lmpMultiplier = 3;
             int improvingFactor = position->improvingRate[position->ply] * (0.25 * depth);
-            int lmpThreshold = ((lmpBase + (lmpMultiplier + improving) * depth * depth) - improvingFactor) + lateMoveHistoryFactor;
+            int lmpThreshold = (((lmpBase + (lmpMultiplier + improving) * depth * depth) - improvingFactor) + lateMoveHistoryFactor) / noisyTTMoveDivisor;
             if (legal_moves>= lmpThreshold) {
                 skipQuiet = 1;
             }
             // Futility pruning
             int futilityHistoryFactor = ((moveHistory * 0.01) * depth);
             int futilityEvalMargin = improving ? static_eval + 100 : static_eval + 80;
-            uint8_t noisyTTMoveDivisor = getMoveCapture(bestMove) ? (2 - (position->nmpNode && depth >= 3)) : 1;
             int futilityMargin = (futilityEvalMargin + futilityHistoryFactor) / noisyTTMoveDivisor;
 
             if (canPrune && depth < 4 && futilityMargin <= alpha) {
