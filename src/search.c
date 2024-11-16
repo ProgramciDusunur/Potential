@@ -628,7 +628,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             uint8_t noisyTTMoveDivisor = getMoveCapture(bestMove) ? (2 - (position->nmpNode && depth >= 3)) : 1;
             int futilityMargin = (futilityEvalMargin + futilityHistoryFactor) / noisyTTMoveDivisor;
 
-            if (canPrune && depth < 4 + improving && futilityMargin <= alpha) {
+            if (canPrune && depth < 5 + improving && futilityMargin <= alpha) {
                 skipQuiet = 1;
             }
         }
