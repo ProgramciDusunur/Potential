@@ -83,6 +83,9 @@ int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position
             // extract stored score from TT entry
             int score = hashEntry->score;
 
+            // store best move
+            *bestMove = hashEntry->bestMove;
+
             // retrieve score independent from the actual path
             // from root node (position) to current node (position)
             if (score < -mateScore) score -= position->ply;
@@ -104,8 +107,7 @@ int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position
                 return beta;
             }
         }
-        // store best move
-        *bestMove = hashEntry->bestMove;
+
 
     }
     // if hash entry doesn't exist

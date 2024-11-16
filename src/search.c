@@ -369,6 +369,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     // best move (to store in TT)
     int bestMove = 0;
+    /*int16_t ttScore = 0;
+    uint8_t ttHit = 0;
+    uint8_t ttDepth = 0;
+    uint8_t ttFlag = hashFlagExact;*/
 
     // define hash flag
     int hashFlag = hashFlagAlpha;
