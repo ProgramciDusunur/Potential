@@ -477,7 +477,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // reverse futility pruning
-    if (depth < 4 + improving && canPrune && abs(beta - 1) > -infinity + 100) {
+    if (depth < 4 + position->improvingRate[position->ply] && canPrune && abs(beta - 1) > -infinity + 100) {
         // define evaluation margin
         int rfpMargin = improving ? 80 * (depth - 1): 100 * depth;
         int improvingFactor = position->improvingRate[position->ply] * (0.75 * depth);
