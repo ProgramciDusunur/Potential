@@ -32,6 +32,7 @@ int scoreMove(int move, board* position);
 void sort_moves(moves *moveList, int bestMove, board* position);
 void enable_pv_scoring(moves *moveList, board* position);
 void printMove(int move);
+uint8_t justPawns(board *pos);
 int getLmrReduction(int depth, int moveNumber);
 void clearCounterMoves(void);
 int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time, bool improving);

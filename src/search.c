@@ -213,6 +213,13 @@ void clearCounterMoves(void) {
     }
 }
 
+uint8_t justPawns(board *pos) {
+    return !((pos->bitboards[N] | pos->bitboards[n] | pos->bitboards[B] |
+              pos->bitboards[b] | pos->bitboards[R] | pos->bitboards[r] |
+              pos->bitboards[Q] | pos->bitboards[q]) &
+             pos->occupancies[pos->side]);
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time, bool improving) {
     if ((searchNodes & 2047) == 0) {
@@ -490,7 +497,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // null move pruning
-    if (canPrune && position->ply && static_eval >= beta) {
+    if (canPrune && position->ply && static_eval >= beta && !justPawns(position)) {
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
