@@ -30,7 +30,7 @@ extern tt *hashTable;
 
 U64 generateHashKey(board* position);
 void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position);
-int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position);
+int readHashEntry(int alpha, int beta, int depth, board* position, int *ttMove, int16_t *ttScore, uint8_t *ttDepth, uint8_t *ttFlag);
 int readHashFlag(board* position);
 void clearHashTable(void);
 void init_hash_table(int mb);

@@ -69,7 +69,7 @@ void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* pos
 }
 
 // read hash entry data
-int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position) {
+int readHashEntry(int alpha, int beta, int depth, board* position, int *ttMove, int16_t *ttScore, uint8_t *ttDepth, uint8_t *ttFlag) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
     tt *hashEntry = &hashTable[position->hashKey % hash_entries];
@@ -105,7 +105,10 @@ int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position
             }
         }
         // store best move
-        *bestMove = hashEntry->bestMove;
+        *ttMove = hashEntry->bestMove;
+        *ttScore = hashEntry->score;
+        *ttDepth = hashEntry->depth;
+        *ttFlag = hashEntry->flag;
 
     }
     // if hash entry doesn't exist

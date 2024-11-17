@@ -233,14 +233,18 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     //int rootNode = position->ply == 0;
 
     // best move (to store in TT)
-    int bestMove = 0;
+    int ttMove = 0;
+    int16_t ttScore = 0;
+    //uint8_t ttHit = 0;
+    uint8_t ttDepth = 0;
+    uint8_t ttFlag = hashFlagExact;
 
     // define hash flag
     int hashFlag = hashFlagAlpha;
 
 
     // read hash entry
-    if (position->ply && (negamaxScore = readHashEntry(alpha, beta, &bestMove, 0, position)) != noHashEntry && pvNode == 0) {
+    if (position->ply && (score = readHashEntry(alpha, beta, 0, position, &ttMove, &ttScore, &ttDepth, &ttFlag)) != noHashEntry && pvNode == 0) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move
         return negamaxScore;
@@ -340,19 +344,19 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
             // PV node (move)
             alpha = score;
 
-            bestMove = moveList->moves[count];
+            ttMove = moveList->moves[count];
 
             hashFlag = hashFlagExact;
             // fail-hard beta cutoff
             if (score >= beta) {
-                writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
+                writeHashEntry(beta, ttMove, 0, hashFlagBeta, position);
                 // node (move) fails high
                 return beta;
             }
         }
 
     }
-    writeHashEntry(alpha, bestMove, 0, hashFlag, position);
+    writeHashEntry(alpha, ttMove, 0, hashFlag, position);
     // node (move) fails low
     return alpha;
 }
@@ -368,7 +372,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     int score = 0;
 
     // best move (to store in TT)
-    int bestMove = 0;
+    int ttMove = 0;
+    int16_t ttScore = 0;
+    //uint8_t ttHit = 0;
+    uint8_t ttDepth = 0;
+    uint8_t ttFlag = hashFlagExact;
 
     // define hash flag
     int hashFlag = hashFlagAlpha;
@@ -396,7 +404,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     int pastStack = -1;
 
     // read hash entry
-    if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
+    if (position->ply && (score = readHashEntry(alpha, beta, depth, position, &ttMove, &ttScore, &ttDepth, &ttFlag)) != noHashEntry && pvNode == 0) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move
         return score;
@@ -590,7 +598,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         enable_pv_scoring(moveList, position);
 
     // sort moves
-    sort_moves(moveList, bestMove, position);
+    sort_moves(moveList, ttMove, position);
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -625,7 +633,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // Futility pruning
             int futilityHistoryFactor = ((moveHistory * 0.01) * depth);
             int futilityEvalMargin = improving ? static_eval + 100 : static_eval + 80;
-            uint8_t noisyTTMoveDivisor = getMoveCapture(bestMove) ? (2 - (position->nmpNode && depth >= 3)) : 1;
+            uint8_t noisyTTMoveDivisor = getMoveCapture(ttMove) ? (2 - (position->nmpNode && depth >= 3)) : 1;
             int futilityMargin = (futilityEvalMargin + futilityHistoryFactor) / noisyTTMoveDivisor;
 
             if (canPrune && depth < 4 && futilityMargin <= alpha) {
@@ -697,7 +705,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 }*/
 
                 // Reduce Less
-                if (position->killerMoves[position->ply][0] == bestMove || position->killerMoves[position->ply][1] == bestMove) {
+                if (position->killerMoves[position->ply][0] == ttMove || position->killerMoves[position->ply][1] == ttMove) {
                     lmrReduction -= 1;
                 }
 
@@ -783,7 +791,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             hashFlag = hashFlagExact;
 
             // store best move (for TT)
-            bestMove = currentMove;
+            ttMove = currentMove;
 
             // on quiet moves
             /*if (getMoveCapture(currentMove) == 0)
@@ -810,19 +818,19 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // fail-hard beta cutoff
             if (score >= beta) {
                 // store hash entry with the score equal to beta
-                writeHashEntry(beta, bestMove, depth, hashFlagBeta, position);
+                writeHashEntry(beta, ttMove, depth, hashFlagBeta, position);
                 //int lastMove = moveList->moves[position->ply - 1];
                 // on quiet moves
                 if (isQuiet) {
                     // store killer moves
-                    if (position->killerMoves[position->ply][0] != bestMove) {
+                    if (position->killerMoves[position->ply][0] != ttMove) {
                         position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
-                        position->killerMoves[position->ply][0] = bestMove;
+                        position->killerMoves[position->ply][0] = ttMove;
                     }
                     //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
-                    updateHistory(bestMove, depth, badQuiets);
+                    updateHistory(ttMove, depth, badQuiets);
                 }
 
                 // node (move) fails high
@@ -848,7 +856,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             return 0;
     }
     // store hash entry with the score equal to alpha
-    writeHashEntry(alpha, bestMove, depth, hashFlag, position);
+    writeHashEntry(alpha, ttMove, depth, hashFlag, position);
 
     // node (move) fails low
     return alpha;
