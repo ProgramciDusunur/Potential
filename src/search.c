@@ -626,7 +626,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             int lmpMultiplier = 3;
             int improvingFactor = position->improvingRate[position->ply] * (0.25 * depth);
             int lmpThreshold = ((lmpBase + (lmpMultiplier + improving) * depth * depth) - improvingFactor) + lateMoveHistoryFactor;
-            if (legal_moves>= lmpThreshold && !justPawns(position)) {
+            if (legal_moves>= lmpThreshold) {
                 skipQuiet = 1;
             }
             // Futility pruning
@@ -635,7 +635,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             uint8_t noisyTTMoveDivisor = getMoveCapture(bestMove) ? (2 - (position->nmpNode && depth >= 3)) : 1;
             int futilityMargin = (futilityEvalMargin + futilityHistoryFactor) / noisyTTMoveDivisor;
 
-            if (canPrune && depth < 4 && futilityMargin <= alpha) {
+            if (canPrune && depth < 4 && futilityMargin <= alpha && !justPawns(position)) {
                 skipQuiet = 1;
             }
         }
