@@ -213,6 +213,13 @@ void clearCounterMoves(void) {
     }
 }
 
+uint8_t justPawns(board *pos) {
+    return !((pos->bitboards[N] | pos->bitboards[n] | pos->bitboards[B] |
+              pos->bitboards[b] | pos->bitboards[R] | pos->bitboards[r] |
+              pos->bitboards[Q] | pos->bitboards[q]) &
+             pos->occupancies[pos->side]);
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time, bool improving) {
     if ((searchNodes & 2047) == 0) {
@@ -619,7 +626,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             int lmpMultiplier = 3;
             int improvingFactor = position->improvingRate[position->ply] * (0.25 * depth);
             int lmpThreshold = ((lmpBase + (lmpMultiplier + improving) * depth * depth) - improvingFactor) + lateMoveHistoryFactor;
-            if (legal_moves>= lmpThreshold) {
+            if (legal_moves>= lmpThreshold && !justPawns(position)) {
                 skipQuiet = 1;
             }
             // Futility pruning
