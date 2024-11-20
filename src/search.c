@@ -675,7 +675,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
         // full depth search
-        if (moves_searched == 0)
+        if (moves_searched == 0 + pvNode)
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, depth - 1, position, time, false);
 
