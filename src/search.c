@@ -213,6 +213,13 @@ void clearCounterMoves(void) {
     }
 }
 
+uint8_t justPawns(board *pos) {
+    return !((pos->bitboards[N] | pos->bitboards[n] | pos->bitboards[B] |
+              pos->bitboards[b] | pos->bitboards[R] | pos->bitboards[r] |
+              pos->bitboards[Q] | pos->bitboards[q]) &
+             pos->occupancies[pos->side]);
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time, bool improving) {
     if ((searchNodes & 2047) == 0) {
@@ -612,7 +619,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         bool isNotMated = alpha > -mateScore + maxPly;
 
-        if (!rootNode && isQuiet && isNotMated) {
+        if (!rootNode && isQuiet && isNotMated && !justPawns(position)) {
             int lateMoveHistoryFactor = ((moveHistory * 0.001) * depth);
             // Late Move Pruning (~18 Elo)
             int lmpBase = 4;

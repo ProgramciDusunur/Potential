@@ -29,6 +29,7 @@ extern int counterMoves[2][maxPly][maxPly];
 int isRepetition(board* position);
 void initializeLMRTable(void);
 int scoreMove(int move, board* position);
+uint8_t justPawns(board *pos);
 void sort_moves(moves *moveList, int bestMove, board* position);
 void enable_pv_scoring(moves *moveList, board* position);
 void printMove(int move);
