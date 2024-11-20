@@ -454,7 +454,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         pastStack = position->ply - 4;
     }*/
 
-    for (uint8_t plyIndex = position->ply;plyIndex-2 >= 0 && position->staticEval[position->ply-plyIndex] != noEval;plyIndex-=2) {
+    for (uint8_t plyIndex = position->ply;plyIndex-1 >= 0 && position->staticEval[position->ply-plyIndex] != noEval;plyIndex--) {
         pastStack = position->ply - plyIndex;
     }
 
