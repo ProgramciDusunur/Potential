@@ -448,15 +448,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     double cutNodeSubtraction = cutNode ? 0.46875 : 0;
 
 
-    /*if (position->staticEval[position->ply-2] != noEval) {
+    if (position->staticEval[position->ply-2] != noEval) {
         pastStack = position->ply - 2;
     } else if (position->staticEval[position->ply-4] != noEval) {
         pastStack = position->ply - 4;
-    }*/
-
-    for (uint8_t plyIndex = position->ply;plyIndex-1 >= 0 && position->staticEval[position->ply-plyIndex] != noEval;plyIndex--) {
-        pastStack = position->ply - plyIndex;
+    } else if (position->staticEval[position->ply-6] != noEval) {
+        pastStack = position->ply - 6;
     }
+
 
     if (pastStack && !in_check) {
         improving = position->staticEval[position->ply] > position->staticEval[pastStack];
