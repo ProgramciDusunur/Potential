@@ -640,7 +640,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 skipQuiet = 1;
             }
             // Quiet History Pruning
-            if (canPrune && depth <= 2 && moveHistory < depth * -8192) {
+            if (canPrune && depth <= 2 && moveHistory < depth * (-8192 / noisyTTMoveDivisor)) {
                 skipQuiet = 1;
             }
         }
