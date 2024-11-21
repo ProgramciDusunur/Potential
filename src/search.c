@@ -639,9 +639,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             if (canPrune && depth < 4 && futilityMargin <= alpha) {
                 skipQuiet = 1;
             }
-            //printf("History  score: %d", moveHistory);
             // Quiet History Pruning
-            if (depth <= 2 && moveHistory < depth * -5000) {
+            if (depth <= 2 && moveHistory < depth * -2048) {
                 skipQuiet = 1;
             }
         }
