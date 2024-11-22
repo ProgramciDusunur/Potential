@@ -633,14 +633,15 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
             int futilityHistoryFactor = ((moveHistory * 0.01) * depth);
             int futilityEvalMargin = improving ? static_eval + 100 : static_eval + 80;
-            uint8_t noisyTTMoveDivisor = getMoveCapture(bestMove) ? (2 - (position->nmpNode && depth >= 3)) : 1;
-            int futilityMargin = (futilityEvalMargin + futilityHistoryFactor) / noisyTTMoveDivisor;
+            uint8_t fpNoisyTTMoveDivisor = getMoveCapture(bestMove) ? (2 - (position->nmpNode && depth >= 3)) : 1;
+            int futilityMargin = (futilityEvalMargin + futilityHistoryFactor) / fpNoisyTTMoveDivisor;
             // Futility Pruning
             if (canPrune && depth < 4 && futilityMargin <= alpha) {
                 skipQuiet = 1;
             }
+            uint8_t historyNoisyTTMoveDivisor = getMoveCapture(bestMove) ? (2 - position->nmpNode) : 1;
             // Quiet History Pruning
-            if (canPrune && depth <= 2 && moveHistory < depth * (-8192 / noisyTTMoveDivisor)) {
+            if (canPrune && depth <= 3 && moveHistory < depth * (-8192 / historyNoisyTTMoveDivisor)) {
                 skipQuiet = 1;
             }
         }
