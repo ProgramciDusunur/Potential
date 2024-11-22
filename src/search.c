@@ -641,7 +641,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             }
             uint8_t historyNoisyTTMoveDivisor = getMoveCapture(bestMove) ? 2 : 1;
             // Quiet History Pruning
-            if (canPrune && depth <= 2 && moveHistory < depth * (-10240 / historyNoisyTTMoveDivisor)) {
+            if (canPrune && depth <= 2 && moveHistory < depth * (-6144 / historyNoisyTTMoveDivisor)) {
                 skipQuiet = 1;
             }
         }
