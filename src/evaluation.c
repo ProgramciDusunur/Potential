@@ -206,7 +206,8 @@ const int king_distance_bonus = 2;
 const int opening_phase_score = 6192;
 const int endgame_phase_score = 518;
 
-
+// Safe Check Bonuses
+const int queenSafeCheckBonus = 3;
 
 
 
@@ -441,8 +442,10 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][QUEEN][square];
 
-                    // mobility
-                    //score += count_bits(get_queen_attacks(square, occupancies[both]));
+                    // safe check
+                    if ((position->side & position->inCheck)) {
+                        score += (countBits(getWhiteAttackers(position, square)) - countBits(getBlackAttackers(position, square))) * queenSafeCheckBonus;
+                    }
                     break;
 
                     // evaluate white king
@@ -594,8 +597,10 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][QUEEN][mirrorScore[square]];
 
-                    // mobility
-                    //score -= count_bits(get_queen_attacks(square, occupancies[both]));
+                    // safe check
+                    if ((!position->side & position->inCheck)) {
+                        score += (countBits(getBlackAttackers(position, square)) - countBits(getWhiteAttackers(position, square))) * queenSafeCheckBonus;
+                    }
                     break;
 
                     // evaluate black king

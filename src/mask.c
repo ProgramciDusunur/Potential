@@ -201,6 +201,28 @@ U64 get_attackers(const board *pos, int square, int side) {
     return attacks;
 }
 
+U64 getWhiteAttackers(const board *pos, int square) {
+    U64 attacks = 0ULL;
+
+    attacks |= (maskPawnAttacks(white, square) & pos->bitboards[P]);
+    attacks |= (maskKnightAttacks(square) & (pos->bitboards[N]));
+    attacks |= (maskKingAttacks(square) & (pos->bitboards[K]));
+    attacks |= (bishopAttack(square,pos->occupancies[both]) & (pos->bitboards[B] | pos->bitboards[Q]));
+    attacks |= (rookAttack(square, pos->occupancies[both]) & (pos->bitboards[R]  | pos->bitboards[Q] ));
+    return attacks;
+}
+
+U64 getBlackAttackers(const board *pos, int square) {
+    U64 attacks = 0ULL;
+
+    attacks |= (maskPawnAttacks(black, square) & pos->bitboards[p]);
+    attacks |= (maskKnightAttacks(square) & (pos->bitboards[n]));
+    attacks |= (maskKingAttacks(square) & (pos->bitboards[k]));
+    attacks |= (bishopAttack(square,pos->occupancies[both]) & (pos->bitboards[b] | pos->bitboards[q]));
+    attacks |= (rookAttack(square, pos->occupancies[both]) & (pos->bitboards[r]  | pos->bitboards[q] ));
+    return attacks;
+}
+
 U64 setFileRankMask(int file_number, int rank_number) {
     // file or rank mask
     U64 mask = 0ULL;
