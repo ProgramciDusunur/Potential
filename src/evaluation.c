@@ -429,10 +429,6 @@ int evaluate(board* position) {
                         // add open file bonus
                         score += rook_open_file;
 
-                    // safe check
-                    if ((position->side && position->inCheck)) {
-                        score += (countBits(getWhiteAttackers(position, square)) - countBits(getBlackAttackers(position, square))) * rookSafeCheckBonus;
-                    }
                     break;
 
                     // evaluate white queens
@@ -449,8 +445,8 @@ int evaluate(board* position) {
                     else score += positional_score[game_phase][QUEEN][square];
 
                     // safe check
-                    if ((position->side && position->inCheck)) {
-                        score += (countBits(getWhiteAttackers(position, square)) - countBits(getBlackAttackers(position, square))) * queenSafeCheckBonus;
+                    if (getQueenAttacks(getLS1BIndex(position->bitboards[k]), position->occupancies[both]) & position->bitboards[Q]) {
+                        score += queenSafeCheckBonus;
                     }
                     break;
 
@@ -589,11 +585,6 @@ int evaluate(board* position) {
                         // add open file bonus
                         score -= rook_open_file;
 
-
-                    // safe check
-                    if ((!position->side && position->inCheck)) {
-                        score -= (countBits(getBlackAttackers(position, square)) - countBits(getWhiteAttackers(position, square))) * rookSafeCheckBonus;
-                    }
                     break;
 
 
@@ -611,8 +602,8 @@ int evaluate(board* position) {
                     else score -= positional_score[game_phase][QUEEN][mirrorScore[square]];
 
                     // safe check
-                    if ((!position->side && position->inCheck)) {
-                        score -= (countBits(getBlackAttackers(position, square)) - countBits(getWhiteAttackers(position, square))) * queenSafeCheckBonus;
+                    if (getQueenAttacks(getLS1BIndex(position->bitboards[K]), position->occupancies[both]) & position->bitboards[q]) {
+                        score += queenSafeCheckBonus;
                     }
                     break;
 
