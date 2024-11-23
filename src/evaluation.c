@@ -599,7 +599,7 @@ int evaluate(board* position) {
 
                     // safe check
                     if ((!position->side & position->inCheck)) {
-                        score += (countBits(getBlackAttackers(position, square)) - countBits(getWhiteAttackers(position, square))) * queenSafeCheckBonus;
+                        score -= (countBits(getBlackAttackers(position, square)) - countBits(getWhiteAttackers(position, square))) * queenSafeCheckBonus;
                     }
                     break;
 
