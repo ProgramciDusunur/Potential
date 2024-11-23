@@ -207,7 +207,7 @@ const int opening_phase_score = 6192;
 const int endgame_phase_score = 518;
 
 // Safe Check Bonuses
-const int queenSafeCheckBonus = 4;
+const int queenSafeCheckBonus = 10;
 const int rookSafeCheckBonus = 2;
 
 
