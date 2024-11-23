@@ -603,7 +603,7 @@ int evaluate(board* position) {
 
                     // safe check
                     if (getQueenAttacks(getLS1BIndex(position->bitboards[K]), position->occupancies[both]) & position->bitboards[q]) {
-                        score += queenSafeCheckBonus;
+                        score -= queenSafeCheckBonus;
                     }
                     break;
 
