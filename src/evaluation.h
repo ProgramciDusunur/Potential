@@ -86,6 +86,7 @@ extern const int endgame_phase_score;
 
 // Safe Check Bonuses
 extern const int queenSafeCheckBonus;
+extern const int rookSafeCheckBonus;
 
 
 int get_game_phase_score(board* position);

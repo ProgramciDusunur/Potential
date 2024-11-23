@@ -207,7 +207,8 @@ const int opening_phase_score = 6192;
 const int endgame_phase_score = 518;
 
 // Safe Check Bonuses
-const int queenSafeCheckBonus = 3;
+const int queenSafeCheckBonus = 4;
+const int rookSafeCheckBonus = 2;
 
 
 
@@ -443,7 +444,7 @@ int evaluate(board* position) {
                     else score += positional_score[game_phase][QUEEN][square];
 
                     // safe check
-                    if ((position->side & position->inCheck)) {
+                    if ((position->side && position->inCheck)) {
                         score += (countBits(getWhiteAttackers(position, square)) - countBits(getBlackAttackers(position, square))) * queenSafeCheckBonus;
                     }
                     break;
@@ -598,7 +599,7 @@ int evaluate(board* position) {
                     else score -= positional_score[game_phase][QUEEN][mirrorScore[square]];
 
                     // safe check
-                    if ((!position->side & position->inCheck)) {
+                    if ((!position->side && position->inCheck)) {
                         score -= (countBits(getBlackAttackers(position, square)) - countBits(getWhiteAttackers(position, square))) * queenSafeCheckBonus;
                     }
                     break;
