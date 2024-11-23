@@ -428,6 +428,11 @@ int evaluate(board* position) {
                     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
                         // add open file bonus
                         score += rook_open_file;
+
+                    // safe check
+                    if ((position->side && position->inCheck)) {
+                        score += (countBits(getWhiteAttackers(position, square)) - countBits(getBlackAttackers(position, square))) * rookSafeCheckBonus;
+                    }
                     break;
 
                     // evaluate white queens
@@ -583,7 +588,14 @@ int evaluate(board* position) {
                     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
                         // add open file bonus
                         score -= rook_open_file;
+
+
+                    // safe check
+                    if ((!position->side && position->inCheck)) {
+                        score -= (countBits(getBlackAttackers(position, square)) - countBits(getWhiteAttackers(position, square))) * rookSafeCheckBonus;
+                    }
                     break;
+
 
                     // evaluate black queens
                 case q:
