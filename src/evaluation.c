@@ -445,7 +445,8 @@ int evaluate(board* position) {
                     else score += positional_score[game_phase][QUEEN][square];
 
                     // safe check
-                    if (getQueenAttacks(getLS1BIndex(position->bitboards[k]), position->occupancies[both]) & position->bitboards[Q]) {
+                    if ((getQueenAttacks(getLS1BIndex(position->bitboards[k]), position->occupancies[both]) & position->bitboards[Q])
+                        && !getBlackAttackers(position, square)) {
                         score += queenSafeCheckBonus;
                     }
                     break;
@@ -602,7 +603,8 @@ int evaluate(board* position) {
                     else score -= positional_score[game_phase][QUEEN][mirrorScore[square]];
 
                     // safe check
-                    if (getQueenAttacks(getLS1BIndex(position->bitboards[K]), position->occupancies[both]) & position->bitboards[q]) {
+                    if ((getQueenAttacks(getLS1BIndex(position->bitboards[K]), position->occupancies[both]) & position->bitboards[q])
+                        && !getWhiteAttackers(position, square)) {
                         score -= queenSafeCheckBonus;
                     }
                     break;
