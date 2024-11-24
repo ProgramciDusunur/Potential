@@ -206,6 +206,9 @@ const int king_distance_bonus = 2;
 const int opening_phase_score = 6192;
 const int endgame_phase_score = 518;
 
+// Bishop Pair Bonus
+const int bishopPairBonus = 30;
+
 
 
 
@@ -275,6 +278,12 @@ int evaluate(board* position) {
 
     // penalties
     //int double_pawns = 0;
+
+    // Bishop Pair
+    if (game_phase == endgame) {
+        score += countBits(position->bitboards[B]) == 2 ? bishopPairBonus : 0;
+        score -= countBits(position->bitboards[b]) == 2 ? bishopPairBonus : 0;
+    }
 
     // loop over piece bitboards
     for (int bb_piece = P; bb_piece <= k; bb_piece++) {

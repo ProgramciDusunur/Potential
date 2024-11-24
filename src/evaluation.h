@@ -84,6 +84,9 @@ extern const int king_distance_bonus;
 extern const int opening_phase_score;
 extern const int endgame_phase_score;
 
+// Bishop Pair Bonus
+extern const int bishopPairBonus;
+
 
 int get_game_phase_score(board* position);
 int evaluate(board* position);
