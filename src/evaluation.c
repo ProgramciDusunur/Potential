@@ -517,7 +517,7 @@ int evaluate(board* position) {
 
                         // passed pawn can move bonus
                         if (!(getBit(position->occupancies[both], (square + 8)))) {
-                            score += passedCanMoveBonus;
+                            score -= passedCanMoveBonus;
                         }
 
 
