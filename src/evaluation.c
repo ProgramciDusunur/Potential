@@ -218,7 +218,6 @@ const int bishopPairBonus = 20;
 
 
 
-
 // get game phase score
 int get_game_phase_score(board* position) {
     /*
