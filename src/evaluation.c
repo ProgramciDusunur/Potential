@@ -207,7 +207,7 @@ const int opening_phase_score = 6192;
 const int endgame_phase_score = 518;
 
 // Bishop Pair Bonus
-const int bishopPairBonus = 30;
+const int bishopPairBonus = 20;
 
 
 
