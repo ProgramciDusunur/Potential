@@ -42,6 +42,8 @@ U64 bishopAttack(int square, U64 block);
 U64 maskRookAttacks(int square);
 U64 rookAttack(int square, U64 block);
 U64 get_attackers(const board *pos, int square, int side);
+U64 getWhiteAttackers(const board *pos, int square);
+U64 getBlackAttackers(const board *pos, int square);
 U64 setFileRankMask(int file_number, int rank_number);
 void initEvaluationMasks(void);
 

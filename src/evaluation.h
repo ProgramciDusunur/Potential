@@ -87,6 +87,9 @@ extern const int endgame_phase_score;
 // Passed Can Move Bonus
 extern const int passedCanMoveBonus;
 
+// Passed Pawn Move Control Penalty
+extern const int passedMoveControlPenalty;
+
 int get_game_phase_score(board* position);
 int evaluate(board* position);
 void clearStaticEvaluationHistory(board* position);

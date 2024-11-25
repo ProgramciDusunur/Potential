@@ -209,6 +209,9 @@ const int endgame_phase_score = 518;
 // Passed Can Move Bonus
 const int passedCanMoveBonus = 5;
 
+// Passed Pawn Move Control Penalty
+const int passedMoveControlPenalty = 5;
+
 
 
 
@@ -359,6 +362,10 @@ int evaluate(board* position) {
                             if (!(getBit(position->occupancies[both], (square - 8)))) {
                                 score += passedCanMoveBonus;
                             }
+
+                            // controlled passed pawn penalty
+                            score -= countBits(getWhiteAttackers(position, square - 8)) - countBits(getBlackAttackers(position, square - 8))
+                                    < 0 ? passedMoveControlPenalty : 0;
 
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
@@ -519,6 +526,10 @@ int evaluate(board* position) {
                         if (!(getBit(position->occupancies[both], (square + 8)))) {
                             score -= passedCanMoveBonus;
                         }
+
+                        // controlled passed pawn penalty
+                        score += countBits(getBlackAttackers(position, square + 8)) - countBits(getWhiteAttackers(position, square + 8))
+                                 < 0 ? passedMoveControlPenalty : 0;
 
 
 
