@@ -369,7 +369,7 @@ int evaluate(board* position) {
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                             int kingDistance = blackKingDistance - whiteKingDistance;
-                            scalableScore += kingDistance * king_distance_bonus;
+                            score += kingDistance * king_distance_bonus;
                             score += passed_pawn_bonus_endgame[square];
                         }
                         score += passed_pawn_bonus_middle[square];
@@ -409,9 +409,9 @@ int evaluate(board* position) {
 
                     // mobility
                     if (game_phase == endgame) {
-                        score += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
+                        scalableScore += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
                     } else {
-                        score += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
+                        scalableScore += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
 
                     }
                     //score += count_bits(get_bishop_attacks(square, occupancies[both]));
@@ -533,7 +533,7 @@ int evaluate(board* position) {
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                             int kingDistance = whiteKingDistance - blackKingDistance;
-                            scalableScore -= kingDistance * king_distance_bonus;
+                            score -= kingDistance * king_distance_bonus;
                             score -= passed_pawn_bonus_endgame[mirrorScore[square]];
                         }
                         score -= passed_pawn_bonus_middle[mirrorScore[square]];
@@ -572,9 +572,9 @@ int evaluate(board* position) {
 
                     // mobility
                     if (game_phase == endgame) {
-                        score -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
+                        scalableScore -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
                     } else {
-                        score -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
+                        scalableScore -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
                     }
                     //score -= count_bits(get_bishop_attacks(square, occupancies[both]));
                     break;
