@@ -369,7 +369,7 @@ int evaluate(board* position) {
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                             int kingDistance = blackKingDistance - whiteKingDistance;
-                            score += kingDistance * king_distance_bonus;
+                            scalableScore += kingDistance * king_distance_bonus;
                             score += passed_pawn_bonus_endgame[square];
                         }
                         score += passed_pawn_bonus_middle[square];
@@ -533,7 +533,7 @@ int evaluate(board* position) {
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                             int kingDistance = whiteKingDistance - blackKingDistance;
-                            score -= kingDistance * king_distance_bonus;
+                            scalableScore -= kingDistance * king_distance_bonus;
                             score -= passed_pawn_bonus_endgame[mirrorScore[square]];
                         }
                         score -= passed_pawn_bonus_middle[mirrorScore[square]];
