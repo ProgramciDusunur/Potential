@@ -278,6 +278,12 @@ int evaluate(board* position) {
     // penalties
     //int double_pawns = 0;
 
+    int materialFactor = game_phase_score / 2000;
+
+    int scalableScore = 0;
+
+    //printf("Material factor: %d\n", materialFactor);
+
     // loop over piece bitboards
     for (int bb_piece = P; bb_piece <= k; bb_piece++) {
         // init piece bitboard copy
@@ -477,7 +483,7 @@ int evaluate(board* position) {
                         score -= open_file_score;
 
                     // king safety bonus
-                    score += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
+                    scalableScore += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
 
                     break;
 
@@ -638,7 +644,7 @@ int evaluate(board* position) {
                         score += open_file_score;
 
                     // king safety bonus
-                    score -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus;
+                    scalableScore -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus;
 
                     break;
             }
@@ -647,6 +653,13 @@ int evaluate(board* position) {
             popBit(bitboard, square);
         }
     }
+
+
+    int lastScalableScore = materialFactor >= 0 ? materialFactor * 10 : -(2000 / game_phase_score) * 10;
+
+    score += (scalableScore * myAbs(lastScalableScore)) / 100;
+
+
     int tempo = 10 + (position->inCheck ? -10 : 0);
     // return final evaluation based on side
     return (position->side == white) ? score + tempo : -(score - tempo);
