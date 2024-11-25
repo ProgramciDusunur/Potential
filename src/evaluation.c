@@ -655,7 +655,7 @@ int evaluate(board* position) {
     }
 
 
-    int lastScalableScore = materialFactor >= 0 ? materialFactor * 10 : -(2500 / game_phase_score) * 10;
+    int lastScalableScore = materialFactor > 1 ? materialFactor * 10 : 0;
 
     score += (scalableScore * myAbs(lastScalableScore)) / 100;
 
