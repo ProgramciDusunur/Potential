@@ -278,7 +278,7 @@ int evaluate(board* position) {
     // penalties
     //int double_pawns = 0;
 
-    int materialFactor = game_phase_score / 2000;
+    int materialFactor = game_phase_score / 2500;
 
     int scalableScore = 0;
 
@@ -655,7 +655,7 @@ int evaluate(board* position) {
     }
 
 
-    int lastScalableScore = materialFactor >= 0 ? materialFactor * 10 : -(2000 / game_phase_score) * 10;
+    int lastScalableScore = materialFactor >= 0 ? materialFactor * 10 : -(2500 / game_phase_score) * 10;
 
     score += (scalableScore * myAbs(lastScalableScore)) / 100;
 
