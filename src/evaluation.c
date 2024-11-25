@@ -206,6 +206,8 @@ const int king_distance_bonus = 2;
 const int opening_phase_score = 6192;
 const int endgame_phase_score = 518;
 
+// Passed Can Move Bonus
+const int passedCanMoveBonus = 5;
 
 
 
@@ -351,6 +353,12 @@ int evaluate(board* position) {
                     if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                         // give passed pawn bonus
                         if (game_phase == endgame) {
+
+
+                            // passed pawn can move bonus
+                            if (!(getBit(position->occupancies[both], (square - 8)))) {
+                                score += passedCanMoveBonus;
+                            }
 
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
@@ -506,6 +514,14 @@ int evaluate(board* position) {
                     */
                     // on passed pawn
                     if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
+
+                        // passed pawn can move bonus
+                        if (!(getBit(position->occupancies[both], (square + 8)))) {
+                            score -= passedCanMoveBonus;
+                        }
+
+
+
                         // give passed pawn bonus
                         if (game_phase == endgame) {
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
