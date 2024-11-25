@@ -364,8 +364,9 @@ int evaluate(board* position) {
                             }
 
                             // controlled passed pawn penalty
-                            score -= countBits(getWhiteAttackers(position, square - 8)) - countBits(getBlackAttackers(position, square - 8))
-                                    < 0 ? passedMoveControlPenalty : 0;
+                            int attackers = countBits(getWhiteAttackers(position, square - 8)) - countBits(getBlackAttackers(position, square - 8));
+                            score -= attackers
+                                    < 0 ? passedMoveControlPenalty * attackers: 0;
 
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
@@ -528,8 +529,9 @@ int evaluate(board* position) {
                         }
 
                         // controlled passed pawn penalty
-                        score += countBits(getBlackAttackers(position, square + 8)) - countBits(getWhiteAttackers(position, square + 8))
-                                 < 0 ? passedMoveControlPenalty : 0;
+                        int attackers = countBits(getBlackAttackers(position, square + 8)) - countBits(getWhiteAttackers(position, square + 8));
+                        score += attackers
+                                 < 0 ? passedMoveControlPenalty * attackers : 0;
 
 
 
