@@ -658,23 +658,22 @@ int evaluate(board* position) {
             // pop ls1b
             popBit(bitboard, square);
         }
-
-        // white queen safe check
-        U64 whiteQueenAndVirtualQueenAttacks = getQueenAttacks(getLS1BIndex(position->bitboards[Q]), position->occupancies[both])
-                                             & getQueenAttacks(getLS1BIndex(position->bitboards[k]), position->occupancies[both]);
-        whiteQueenAndVirtualQueenAttacks &= ~blackAttacks;
-
-        if (whiteQueenAndVirtualQueenAttacks) {score += queenSafeCheckBonus;}
-
-        // black queen safe check
-        U64 blackQueenAndVirtualQueenAttacks = getQueenAttacks(getLS1BIndex(position->bitboards[q]), position->occupancies[both])
-                                             & getQueenAttacks(getLS1BIndex(position->bitboards[K]), position->occupancies[both]);
-        blackQueenAndVirtualQueenAttacks &= ~whiteAttacks;
-
-        if (blackQueenAndVirtualQueenAttacks) {score -= queenSafeCheckBonus;}
-
-
     }
+
+    // white queen safe check
+    U64 whiteQueenAndVirtualQueenAttacks = getQueenAttacks(getLS1BIndex(position->bitboards[Q]), position->occupancies[both])
+                                           & getQueenAttacks(getLS1BIndex(position->bitboards[k]), position->occupancies[both]);
+    whiteQueenAndVirtualQueenAttacks &= ~blackAttacks;
+
+    if (whiteQueenAndVirtualQueenAttacks) {score += queenSafeCheckBonus;}
+
+    // black queen safe check
+    U64 blackQueenAndVirtualQueenAttacks = getQueenAttacks(getLS1BIndex(position->bitboards[q]), position->occupancies[both])
+                                           & getQueenAttacks(getLS1BIndex(position->bitboards[K]), position->occupancies[both]);
+    blackQueenAndVirtualQueenAttacks &= ~whiteAttacks;
+
+    if (blackQueenAndVirtualQueenAttacks) {score -= queenSafeCheckBonus;}
+
     int tempo = 10 + (position->inCheck ? -10 : 0);
     // return final evaluation based on side
     return (position->side == white) ? score + tempo : -(score - tempo);
