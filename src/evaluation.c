@@ -411,7 +411,7 @@ int evaluate(board* position) {
                     else score += positional_score[game_phase][KNIGHT][square];
 
                     // Knight Outpost Bonus
-                    if (maskPawnAttacks(white, square) & position->bitboards[P]) {
+                    if (!(position->bitboards[p] & (whitePassedMasks[square] & isolatedMasks[square]))) {
                         if (game_phase == endgame) {
                             score += knightOutpost[endgame][square];
                         } else {
@@ -583,7 +583,7 @@ int evaluate(board* position) {
                     else score -= positional_score[game_phase][KNIGHT][mirrorScore[square]];
 
                     // Knight Outpost Bonus
-                    if (maskPawnAttacks(black, square) & position->bitboards[p]) {
+                    if (!(position->bitboards[P] & (blackPassedMasks[square] & isolatedMasks[square]))) {
                         if (game_phase == endgame) {
                             score -= knightOutpost[endgame][square];
                         } else {
