@@ -87,6 +87,10 @@ extern const int endgame_phase_score;
 // Passed Can Move Bonus
 extern const int passedCanMoveBonus;
 
+// Knight Outpost Bonus
+extern const int knightOutpost[2][64];
+
+
 int get_game_phase_score(board* position);
 int evaluate(board* position);
 void clearStaticEvaluationHistory(board* position);

@@ -211,6 +211,30 @@ const int passedCanMoveBonus = 5;
 
 
 
+// Knight Evaluation
+const int knightOutpost[2][64] = {
+        {   0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 2, 2, 2, 2, 1, 0,
+                0, 2, 4, 4, 4, 4, 2, 0,
+                0, 3, 2, 8, 4, 6, 3, 0,
+                0, 0, 4, 0, 4, 4, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+        },
+        {   0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 2, 0, 4, 0, 0, 0, 0,
+                0, 3, 3, 4, 8, 2, 3, 0,
+                0, 2, 0, 4, 3, 0, 2, 0,
+                0, 0, 2, 0, 2, 0, 1, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+        },
+};
+
+
+
 
 
 
@@ -386,6 +410,15 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][KNIGHT][square];
 
+                    // Knight Outpost Bonus
+                    if (maskPawnAttacks(white, square) & position->bitboards[P]) {
+                        if (game_phase == endgame) {
+                            score += knightOutpost[endgame][square];
+                        } else {
+                            score += knightOutpost[opening][square];
+                        }
+                    }
+
                     break;
 
                     // evaluate white bishops
@@ -548,6 +581,15 @@ int evaluate(board* position) {
 
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][KNIGHT][mirrorScore[square]];
+
+                    // Knight Outpost Bonus
+                    if (maskPawnAttacks(black, square) & position->bitboards[p]) {
+                        if (game_phase == endgame) {
+                            score -= knightOutpost[endgame][square];
+                        } else {
+                            score -= knightOutpost[opening][square];
+                        }
+                    }
 
                     break;
 
