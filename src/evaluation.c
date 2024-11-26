@@ -336,9 +336,9 @@ int evaluate(board* position) {
                     // on double pawns (tripple, etc)
                     if (double_pawns > 1) {
                         if (game_phase == middlegame) {
-                            score += double_pawns * double_pawn_penalty_middle;
+                            score += double_pawn_penalty_middle;
                         } else if (game_phase == endgame) {
-                            score += double_pawns * double_pawn_penalty_endgame;
+                            score += double_pawn_penalty_endgame;
                         }
                     }
 
@@ -499,9 +499,9 @@ int evaluate(board* position) {
                     // on double pawns (tripple, etc)
                     if (double_pawns > 1) {
                         if (game_phase == opening) {
-                            score += double_pawns * double_pawn_penalty_middle;
+                            score += double_pawn_penalty_middle;
                         } else if (game_phase == endgame) {
-                            score += double_pawns * double_pawn_penalty_endgame;
+                            score += double_pawn_penalty_endgame;
                         }
 
                     }
