@@ -56,7 +56,7 @@ extern const int seeMaterial[12];
 extern const int positional_score[2][6][64];
 
 // Pawn Penalties and Bonuses
-extern const int double_pawn_penalty_opening;
+extern const int double_pawn_penalty_middle;
 extern const int double_pawn_penalty_endgame;
 extern const int isolated_pawn_penalty_opening;
 extern const int isolated_pawn_penalty_endgame;
