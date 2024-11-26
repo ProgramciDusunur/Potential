@@ -275,6 +275,10 @@ int evaluate(board* position) {
     // init piece & square
     int piece, square;
 
+    // init white piece attacks & black piece attacks
+    U64 whiteAttacks = 0, blackAttacks = 0;
+
+
     // penalties
     //int double_pawns = 0;
 
@@ -330,6 +334,8 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][PAWN][square];
 
+                    whiteAttacks |= pawnAtacks[white][square];
+
                     // double pawn penalty
                     /*double_pawns = countBits(position->bitboards[P] & fileMasks[square]);
 
@@ -380,6 +386,8 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][KNIGHT][square];
 
+                    whiteAttacks |= knightAttacks[square];
+
                     break;
 
                     // evaluate white bishops
@@ -394,6 +402,8 @@ int evaluate(board* position) {
 
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][BISHOP][square];
+
+                    whiteAttacks |= getBishopAttacks(square, position->occupancies[both]);
 
                     // mobility
                     if (game_phase == endgame) {
@@ -418,6 +428,8 @@ int evaluate(board* position) {
 
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][ROOK][square];
+
+                    whiteAttacks |= getRookAttacks(square, position->occupancies[both]);
 
                     // semi open file
                     if ((position->bitboards[P] & fileMasks[square]) == 0)
@@ -444,11 +456,8 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][QUEEN][square];
 
-                    // safe check
-                    if ((getQueenAttacks(getLS1BIndex(position->bitboards[k]), position->occupancies[both]) & position->bitboards[Q])
-                        && !getBlackAttackers(position, square)) {
-                        score += queenSafeCheckBonus;
-                    }
+                    whiteAttacks |= getQueenAttacks(square, position->occupancies[both]);
+
                     break;
 
                     // evaluate white king
@@ -463,6 +472,8 @@ int evaluate(board* position) {
 
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][KING][square];
+
+                    whiteAttacks |= kingAttacks[square];
 
                     // semi open file
                     if ((position->bitboards[P] & fileMasks[square]) == 0)
@@ -491,6 +502,8 @@ int evaluate(board* position) {
 
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][PAWN][mirrorScore[square]];
+
+                    blackAttacks |= pawnAtacks[black][square];
 
                     // double pawn penalty
                     /*double_pawns = countBits(position->bitboards[p] & fileMasks[square]);
@@ -539,6 +552,8 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][KNIGHT][mirrorScore[square]];
 
+                    blackAttacks |= knightAttacks[square];
+
                     break;
 
                     // evaluate black bishops
@@ -553,6 +568,8 @@ int evaluate(board* position) {
 
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][BISHOP][mirrorScore[square]];
+
+                    blackAttacks |= getBishopAttacks(square, position->occupancies[both]);
 
                     // mobility
                     if (game_phase == endgame) {
@@ -575,6 +592,8 @@ int evaluate(board* position) {
 
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][ROOK][mirrorScore[square]];
+
+                    blackAttacks |= getRookAttacks(square, position->occupancies[both]);
 
                     // semi open file
                     if ((position->bitboards[p] & fileMasks[square]) == 0)
@@ -602,11 +621,7 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][QUEEN][mirrorScore[square]];
 
-                    // safe check
-                    if ((getQueenAttacks(getLS1BIndex(position->bitboards[K]), position->occupancies[both]) & position->bitboards[q])
-                        && !getWhiteAttackers(position, square)) {
-                        score -= queenSafeCheckBonus;
-                    }
+                    blackAttacks |= getQueenAttacks(square, position->occupancies[both]);
                     break;
 
                     // evaluate black king
@@ -621,6 +636,8 @@ int evaluate(board* position) {
 
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][KING][mirrorScore[square]];
+
+                    blackAttacks |= kingAttacks[square];
 
                     // semi open file
                     if ((position->bitboards[p] & fileMasks[square]) == 0)
@@ -641,6 +658,22 @@ int evaluate(board* position) {
             // pop ls1b
             popBit(bitboard, square);
         }
+
+        // white queen safe check
+        U64 whiteQueenAndVirtualQueenAttacks = getQueenAttacks(getLS1BIndex(position->bitboards[Q]), position->occupancies[both])
+                                             & getQueenAttacks(getLS1BIndex(position->bitboards[k]), position->occupancies[both]);
+        whiteQueenAndVirtualQueenAttacks &= ~blackAttacks;
+
+        if (whiteQueenAndVirtualQueenAttacks) {score += queenSafeCheckBonus;}
+
+        // black queen safe check
+        U64 blackQueenAndVirtualQueenAttacks = getQueenAttacks(getLS1BIndex(position->bitboards[q]), position->occupancies[both])
+                                             & getQueenAttacks(getLS1BIndex(position->bitboards[K]), position->occupancies[both]);
+        blackQueenAndVirtualQueenAttacks &= ~whiteAttacks;
+
+        if (blackQueenAndVirtualQueenAttacks) {score -= queenSafeCheckBonus;}
+
+
     }
     int tempo = 10 + (position->inCheck ? -10 : 0);
     // return final evaluation based on side
