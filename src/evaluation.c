@@ -3,6 +3,7 @@
 //
 
 #include "evaluation.h"
+#include "fen.h"
 
 
 // Mirror Score Array
@@ -209,6 +210,9 @@ const int endgame_phase_score = 518;
 // Passed Can Move Bonus
 const int passedCanMoveBonus = 5;
 
+// Pawn Hole Bonus
+const int pawnHoleBonus = 5;
+
 
 
 // Knight Evaluation
@@ -410,8 +414,16 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][KNIGHT][square];
 
+
+
                     // Knight Outpost Bonus
                     if (!(position->bitboards[p] & (whitePassedMasks[square] & isolatedMasks[square]))) {
+
+                        // Pawn Hole Bonus
+                        if (getBit(position->bitboards[p], (square - 1)) && getBit(position->bitboards[p], (square + 1)) && getBit(position->bitboards[p], (square - 8))) {
+                            score += pawnHoleBonus;
+                        }
+
                         if (game_phase == endgame) {
                             score += knightOutpost[endgame][square];
                         } else {
@@ -584,6 +596,13 @@ int evaluate(board* position) {
 
                     // Knight Outpost Bonus
                     if (!(position->bitboards[P] & (blackPassedMasks[square] & isolatedMasks[square]))) {
+
+                        // Pawn Hole Bonus
+                        if (getBit(position->bitboards[P], (square - 1)) && getBit(position->bitboards[P], (square + 1)) && getBit(position->bitboards[P], (square + 8))) {
+                            score -= pawnHoleBonus;
+                        }
+
+
                         if (game_phase == endgame) {
                             score -= knightOutpost[endgame][square];
                         } else {

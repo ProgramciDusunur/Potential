@@ -90,6 +90,9 @@ extern const int passedCanMoveBonus;
 // Knight Outpost Bonus
 extern const int knightOutpost[2][64];
 
+// Pawn Hole Bonus
+extern const int pawnHoleBonus;
+
 
 int get_game_phase_score(board* position);
 int evaluate(board* position);
