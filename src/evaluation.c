@@ -419,8 +419,11 @@ int evaluate(board* position) {
                     // Knight Outpost Bonus
                     if (!(position->bitboards[p] & (whitePassedMasks[square] & isolatedMasks[square]))) {
 
+                        // check corners to avoid wrong patterns
+                        bool pawnHoleCheck = (position->bitboards[N] & not_h_file) && (position->bitboards[N] & not_a_file);
+
                         // Pawn Hole Bonus
-                        if (getBit(position->bitboards[p], (square - 1)) && getBit(position->bitboards[p], (square + 1)) && getBit(position->bitboards[p], (square - 8))) {
+                        if (pawnHoleCheck && (getBit(position->bitboards[p], (square - 1)) && getBit(position->bitboards[p], (square + 1)) && getBit(position->bitboards[p], (square - 8)))) {
                             score += pawnHoleBonus;
                         }
 
@@ -597,8 +600,12 @@ int evaluate(board* position) {
                     // Knight Outpost Bonus
                     if (!(position->bitboards[P] & (blackPassedMasks[square] & isolatedMasks[square]))) {
 
+
+                        // check corners to avoid wrong patterns
+                        bool pawnHoleCheck = (position->bitboards[n] & not_h_file) && (position->bitboards[n] & not_a_file);
+
                         // Pawn Hole Bonus
-                        if (getBit(position->bitboards[P], (square - 1)) && getBit(position->bitboards[P], (square + 1)) && getBit(position->bitboards[P], (square + 8))) {
+                        if (pawnHoleCheck && (getBit(position->bitboards[P], (square - 1)) && getBit(position->bitboards[P], (square + 1)) && getBit(position->bitboards[P], (square + 8)))) {
                             score -= pawnHoleBonus;
                         }
 
