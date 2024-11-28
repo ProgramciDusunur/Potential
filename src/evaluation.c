@@ -445,7 +445,7 @@ int evaluate(board* position) {
                         if (pawnHoleCheck && (getBit(position->bitboards[p], (square - 1)) && getBit(position->bitboards[p], (square + 1)) && getBit(position->bitboards[p], (square - 8)))) {
                             int pawnHoleDefenderPawnsBonus = countBits((getBit(position->bitboards[P], (square + 7))) | (getBit(position->bitboards[P], (square + 9)))) == 2
                                                             ? 2 : 1;
-                            score += pawnHoleBonus[square] * pawnHoleDefenderPawnsBonus;
+                            score += pawnHoleBonus[square] + pawnHoleDefenderPawnsBonus;
                         }
 
                         if (game_phase == endgame) {
@@ -629,7 +629,7 @@ int evaluate(board* position) {
                         if (pawnHoleCheck && (getBit(position->bitboards[P], (square - 1)) && getBit(position->bitboards[P], (square + 1)) && getBit(position->bitboards[P], (square + 8)))) {
                             int pawnHoleDefenderPawnsBonus = countBits((getBit(position->bitboards[p], (square - 7))) | (getBit(position->bitboards[p], (square - 9)))) == 2
                                                             ? 2 : 1;
-                            score -= pawnHoleBonus[square] * pawnHoleDefenderPawnsBonus;
+                            score -= pawnHoleBonus[square] + pawnHoleDefenderPawnsBonus;
                         }
 
 
