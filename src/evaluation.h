@@ -91,7 +91,7 @@ extern const int passedCanMoveBonus;
 extern const int knightOutpost[2][64];
 
 // Pawn Hole Bonus
-extern const int pawnHoleBonus;
+extern const int pawnHoleBonus[64];
 extern const bool pawnHoleSquareCheck[64];
 
 

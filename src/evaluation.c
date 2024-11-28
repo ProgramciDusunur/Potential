@@ -210,10 +210,18 @@ const int endgame_phase_score = 518;
 // Passed Can Move Bonus
 const int passedCanMoveBonus = 5;
 
-// Pawn Hole Bonus
-const int pawnHoleBonus = 5;
-
-// [square]
+// Pawn Hole Bonus [square]
+const int pawnHoleBonus [64] = {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 2, 3, 3, 2, 1, 0,
+        0, 1, 2, 4, 4, 2, 1, 0,
+        0, 1, 2, 2, 2, 2, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+};
+// Pawn hole knight check [square]
 const bool pawnHoleSquareCheck[64] = {
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 1, 1, 1, 1, 1, 1, 0,
@@ -434,7 +442,7 @@ int evaluate(board* position) {
 
                         // Pawn Hole Bonus
                         if (pawnHoleCheck && (getBit(position->bitboards[p], (square - 1)) && getBit(position->bitboards[p], (square + 1)) && getBit(position->bitboards[p], (square - 8)))) {
-                            score += pawnHoleBonus;
+                            score += pawnHoleBonus[square];
                         }
 
                         if (game_phase == endgame) {
@@ -616,7 +624,7 @@ int evaluate(board* position) {
 
                         // Pawn Hole Bonus
                         if (pawnHoleCheck && (getBit(position->bitboards[P], (square - 1)) && getBit(position->bitboards[P], (square + 1)) && getBit(position->bitboards[P], (square + 8)))) {
-                            score -= pawnHoleBonus;
+                            score -= pawnHoleBonus[square];
                         }
 
 
