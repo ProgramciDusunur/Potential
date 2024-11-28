@@ -420,7 +420,7 @@ int evaluate(board* position) {
                     if (!(position->bitboards[p] & (whitePassedMasks[square] & isolatedMasks[square]))) {
 
                         // check corners to avoid wrong patterns
-                        bool pawnHoleCheck = (position->bitboards[N] & not_h_file) && (position->bitboards[N] & not_a_file);
+                        bool pawnHoleCheck = !(position->bitboards[N] & not_h_file) && !(position->bitboards[N] & not_a_file);
 
                         // Pawn Hole Bonus
                         if (pawnHoleCheck && (getBit(position->bitboards[p], (square - 1)) && getBit(position->bitboards[p], (square + 1)) && getBit(position->bitboards[p], (square - 8)))) {
@@ -602,7 +602,7 @@ int evaluate(board* position) {
 
 
                         // check corners to avoid wrong patterns
-                        bool pawnHoleCheck = (position->bitboards[n] & not_h_file) && (position->bitboards[n] & not_a_file);
+                        bool pawnHoleCheck = !(position->bitboards[n] & not_h_file) && !(position->bitboards[n] & not_a_file);
 
                         // Pawn Hole Bonus
                         if (pawnHoleCheck && (getBit(position->bitboards[P], (square - 1)) && getBit(position->bitboards[P], (square + 1)) && getBit(position->bitboards[P], (square + 8)))) {
