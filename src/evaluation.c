@@ -211,16 +211,17 @@ const int endgame_phase_score = 518;
 const int passedCanMoveBonus = 5;
 
 // Pawn Hole Bonus [square]
-const int pawnHoleBonus [64] = {
+const int pawnHoleBonus[64] = {
         0, 0, 0, 0, 0, 0, 0, 0,
-        0, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 2, 3, 3, 2, 1, 0,
-        0, 1, 2, 4, 4, 2, 1, 0,
-        0, 1, 2, 2, 2, 2, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 1, 1, 1, 0, 0,
+        0, 0, 1, 2, 2, 1, 0, 0,
+        0, 0, 1, 1, 1, 1, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
 };
+
 // Pawn hole knight check [square]
 const bool pawnHoleSquareCheck[64] = {
         0, 0, 0, 0, 0, 0, 0, 0,
