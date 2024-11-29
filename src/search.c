@@ -221,7 +221,7 @@ uint8_t justPawns(board *pos) {
 }
 
 double getImprovingRate(board *position, double diff, double cutNodeSubtraction, int improvingRateHistory) {
-    return fmin(fmax(position->improvingRate[position->ply - improvingRateHistory] + diff / 50, (-1.0 - cutNodeSubtraction)), 1.0);
+    return position->ply - improvingRateHistory >= 0 ? fmin(fmax(position->improvingRate[position->ply - improvingRateHistory] + diff / 50, (-1.0 - cutNodeSubtraction)), 1.0) : 0;
 }
 
 
@@ -469,7 +469,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     if (pastStack && !in_check) {
         improving = position->staticEval[position->ply] > position->staticEval[pastStack];
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
-        position->improvingRate[position->ply] = (getImprovingRate(position, diff, cutNodeSubtraction, 0) + getImprovingRate(position, diff, cutNodeSubtraction, 2)) / 2;
+        position->improvingRate[position->ply] = (getImprovingRate(position, diff, cutNodeSubtraction, 0) + getImprovingRate(position, diff, cutNodeSubtraction, 1)) / 2;
     }
 
     /*if(in_check)
