@@ -284,7 +284,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     int quiescenceDepth = position->ply / 2;
 
     int futilityMargin = !improving ? evaluation + 120 : evaluation + 100;
-    int improvingFactor = position->improvingRate[position->ply] * (1.25 * quiescenceDepth);
+    int improvingFactor = position->improvingRate[position->ply] * (0.75 * quiescenceDepth);
     int futilityThreshold = futilityMargin + improvingFactor;
 
     // loop over moves within a movelist
