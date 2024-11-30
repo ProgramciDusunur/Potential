@@ -167,6 +167,79 @@ void sort_moves(moves *moveList, int bestMove, board* position) {
     }
 }
 
+
+int quiescenceScoreMove(int move, board* position) {
+    // score capture move
+    if (getMoveCapture(move)) {
+        // init target piece
+
+        int target_piece = P;
+
+        // pick up bitboard piece index ranges depending on side
+        int start_piece, end_piece;
+
+        // pick up side to move
+        if (position->side == white) {
+            start_piece = p;
+            end_piece = k;
+        }
+        else {
+            start_piece = P;
+            end_piece = K;
+        }
+
+        // loop over bitboards opposite to the current side to move
+        for (int bb_piece = start_piece; bb_piece <= end_piece; bb_piece++) {
+            // if there's a piece on the target square
+            if (getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
+                // remove it from corresponding bitboard
+                target_piece = bb_piece;
+                break;
+            }
+        }
+
+        // score move by MVV LVA lookup [source piece][target piece]
+        return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
+    }
+
+    return 0;
+}
+
+void quiescence_sort_moves(moves *moveList, int bestMove, board* position) {
+    // move scores
+    int move_scores[moveList->count];
+    int sorted_count = 0;
+
+    // score and insert moves one by one
+    for (int count = 0; count < moveList->count; count++) {
+        int current_move = moveList->moves[count];
+        int current_score;
+
+        // if hash move available
+        if (bestMove == current_move)
+            current_score = 2000000000;
+        else
+            current_score = quiescenceScoreMove(current_move, position);
+
+        // Find the correct position to insert the current move
+        int insert_pos = sorted_count;
+        while (insert_pos > 0 && move_scores[insert_pos - 1] < current_score) {
+            move_scores[insert_pos] = move_scores[insert_pos - 1];
+            moveList->moves[insert_pos] = moveList->moves[insert_pos - 1];
+            insert_pos--;
+        }
+
+        // Insert the current move and score
+        move_scores[insert_pos] = current_score;
+        moveList->moves[insert_pos] = current_move;
+
+        sorted_count++;
+    }
+}
+
+
+
+
 // enable PV move scoring
 void enable_pv_scoring(moves *moveList, board* position) {
     // disable following PV
@@ -276,7 +349,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     captureGenerator(moveList, position);
 
     // sort moves
-    //sort_moves(moveList, 0, position);
+    quiescence_sort_moves(moveList, 0, position);
 
     // legal moves counter
     //int legal_moves = 0;
@@ -806,6 +879,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             alpha = score;
 
             if (pvNode) {
+                // store best move
+                if (rootNode) {
+                    position->rootBestMove = currentMove;
+                }
+
                 // write PV move
                 position->pvTable[position->ply][position->ply] = currentMove;
 
@@ -951,9 +1029,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     if (!benchmark) {
         // best move placeholder
         printf("bestmove ");
-        if (position->pvTable[0][0]) {
-            printMove(position->pvTable[0][0]);
-        }
+        printMove(position->rootBestMove);
         printf("\n");
     }
 

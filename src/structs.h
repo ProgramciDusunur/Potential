@@ -45,6 +45,8 @@ typedef struct {
     bool inCheck;
     U64 hashKey;
 
+    int rootBestMove;
+
     int gamePhase;
 } board;
 
