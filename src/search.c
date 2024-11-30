@@ -806,6 +806,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             alpha = score;
 
             if (pvNode) {
+                // store best move
+                if (rootNode) {
+                    position->rootBestMove = currentMove;
+                }
+
                 // write PV move
                 position->pvTable[position->ply][position->ply] = currentMove;
 
@@ -951,9 +956,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     if (!benchmark) {
         // best move placeholder
         printf("bestmove ");
-        if (position->pvTable[0][0]) {
-            printMove(position->pvTable[0][0]);
-        }
+        printMove(position->rootBestMove);
         printf("\n");
     }
 
