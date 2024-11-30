@@ -8,6 +8,12 @@ U64 sideKey;
 U64 hash_entries = 0;
 tt *hashTable = NULL;
 
+__extension__ typedef unsigned __int128 uint128_t;
+
+uint64_t getHasIndex(uint64_t hash) {
+    return ((uint128_t)hash * (uint128_t)hash_entries) >> 64;
+}
+
 
 // generate "almost" unique position ID aka hash key from scratch
 U64 generateHashKey(board* position) {
@@ -53,7 +59,7 @@ U64 generateHashKey(board* position) {
 void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[position->hashKey % hash_entries];
+    tt *hashEntry = &hashTable[getHasIndex(position->hashKey)];
 
     // store score independent from the actual path
     // from root node (position) to current node (position)
@@ -72,7 +78,7 @@ void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* pos
 int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[position->hashKey % hash_entries];
+    tt *hashEntry = &hashTable[getHasIndex(position->hashKey)];
 
     // make sure we're dealing with the exact position we need
     if (hashEntry->hashKey == position->hashKey) {
@@ -112,7 +118,7 @@ int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position
     return noHashEntry;
 }
 int readHashFlag(board* position) {
-    tt *hashEntry = &hashTable[position->hashKey % hash_entries];
+    tt *hashEntry = &hashTable[getHasIndex(position->hashKey)];
     if (hashEntry->hashKey == position->hashKey && hashEntry->flag > hashFlagNone) {
         return 1;
     }
