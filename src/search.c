@@ -192,6 +192,31 @@ void sort_moves(moves *moveList, int bestMove, board* position) {
 
 
 int quiescenceScoreMove(int move, board* position) {
+
+    int isPromotionMove = getMovePromoted(move);
+    // score promotion move
+    if (isPromotionMove) {
+        switch (isPromotionMove) {
+            case q:
+            case Q:
+                return 1000000000;
+                break;
+            case n:
+            case N:
+                return 800000000;
+                break;
+            case r:
+            case R:
+                return -500000000;
+                break;
+            case b:
+            case B:
+                return -800000000;
+                break;
+        }
+    }
+
+
     // score capture move
     if (getMoveCapture(move)) {
         // init target piece
