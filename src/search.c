@@ -72,7 +72,6 @@ int scoreMove(int move, board* position) {
     // score capture move
     if (getMoveCapture(move)) {
 
-
         int captureHistoryBonus = captureMoveHistory[position->side][getMoveSource(move)][getMoveTarget(move)] / 2;
 
         // score move by MVV LVA lookup [source piece][target piece]
