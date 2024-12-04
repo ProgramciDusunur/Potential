@@ -46,7 +46,7 @@ void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisy
         int noisyFrom = getMoveSource(noisyMoves->moves[index]);
         int noisyTo = getMoveTarget(noisyMoves->moves[index]);
 
-        int noisyMoveScore = quietMoveHistory[noisyFrom][noisyTo];
+        int noisyMoveScore = captureMoveHistory[position->side][noisyFrom][noisyTo];
 
         if (noisyMoves->moves[index] == bestMove) continue;
 
