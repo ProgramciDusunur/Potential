@@ -98,8 +98,10 @@ int scoreMove(int move, board* position) {
             }
         }
 
+        int captureHistoryBonus = captureMoveHistory[position->side][getMoveSource(move)][getMoveTarget(move)] / 8;
+
         // score move by MVV LVA lookup [source piece][target piece]
-        return mvvLva[getMovePiece(move)][target_piece] + 1000000000 + captureMoveHistory[position->side][getMoveSource(move)][getMoveTarget(move)];
+        return mvvLva[getMovePiece(move)][target_piece] + 1000000000 + captureHistoryBonus;
         /*int seeScore = see(position, move);
         if (seeScore > 0) {
             return 15000;
