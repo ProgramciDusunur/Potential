@@ -8,8 +8,8 @@ int quietMoveHistory[64][64];
 // [side][square][square]
 int captureMoveHistory[2][64][64];
 
-int scaledBonus(int score, int bonus) {
-    return bonus - score * myAbs(bonus) / maxQuietHistory;
+int scaledBonus(int score, int bonus, int gravity) {
+    return bonus - score * myAbs(bonus) / gravity;
 }
 
 void updateQuietHistory(int bestMove, int depth, moves *badQuiets) {
@@ -19,7 +19,7 @@ void updateQuietHistory(int bestMove, int depth, moves *badQuiets) {
     int bonus = 16 * depth * depth + 32 * depth + 16;
     int score = quietMoveHistory[from][to];
 
-    quietMoveHistory[from][to] += scaledBonus(score, bonus);
+    quietMoveHistory[from][to] += scaledBonus(score, bonus, maxQuietHistory);
 
      for (int index = 0; index < badQuiets->count; index++) {
          int badQuietFrom = getMoveSource(badQuiets->moves[index]);
@@ -29,7 +29,7 @@ void updateQuietHistory(int bestMove, int depth, moves *badQuiets) {
 
          if (badQuiets->moves[index] == bestMove) continue;
 
-         quietMoveHistory[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus);
+         quietMoveHistory[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
      }
 }
 
@@ -40,7 +40,7 @@ void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisy
     int bonus = 16 * depth * depth + 32 * depth + 16;
     int score = captureMoveHistory[position->side][from][to];
 
-    captureMoveHistory[position->side][from][to] += scaledBonus(score, bonus);
+    captureMoveHistory[position->side][from][to] += scaledBonus(score, bonus, maxCaptureHistory);
 
     for (int index = 0; index < noisyMoves->count; index++) {
         int noisyFrom = getMoveSource(noisyMoves->moves[index]);
@@ -50,7 +50,7 @@ void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisy
 
         if (noisyMoves->moves[index] == bestMove) continue;
 
-        captureMoveHistory[position->side][from][to] += scaledBonus(noisyMoveScore, -bonus);
+        captureMoveHistory[position->side][from][to] += scaledBonus(noisyMoveScore, -bonus, maxCaptureHistory);
     }
 }
 

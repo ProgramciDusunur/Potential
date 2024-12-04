@@ -18,7 +18,8 @@
 
 
 enum {
-    maxQuietHistory = 16384
+    maxQuietHistory = 16384,
+    maxCaptureHistory = 32768
 };
 
 extern int quietMoveHistory[64][64];
@@ -26,7 +27,7 @@ extern int captureMoveHistory[2][64][64];
 
 
 
-int scaledBonus(int score, int bonus);
+int scaledBonus(int score, int bonus, int gravity);
 void updateQuietHistory(int bestMove, int depth, moves *badQuiets);
 void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisyMoves);
 void clearHistory(void);
