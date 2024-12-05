@@ -50,7 +50,7 @@ void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisy
 
         if (noisyMoves->moves[index] == bestMove) continue;
 
-        captureMoveHistory[position->side][from][to] += scaledBonus(noisyMoveScore, -bonus, maxCaptureHistory);
+        captureMoveHistory[position->side][noisyFrom][noisyTo] += scaledBonus(noisyMoveScore, -bonus, maxCaptureHistory);
     }
 }
 
