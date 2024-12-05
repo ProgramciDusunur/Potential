@@ -30,7 +30,8 @@ extern int captureMoveHistory[2][64][64];
 int scaledBonus(int score, int bonus, int gravity);
 void updateQuietHistory(int bestMove, int depth, moves *badQuiets);
 void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisyMoves);
-void clearHistory(void);
+void clearQuietHistory(void);
+void clearCaptureHistory(void);
 
 
 #endif //POTENTIAL_HISTORY_H

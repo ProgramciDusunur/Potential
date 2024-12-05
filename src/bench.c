@@ -76,9 +76,10 @@ void benchmark(int depth, board* position, time* time) {
 
         // Clear all history and hash table after each search
         clearHashTable();
-        clearHistory();
+        clearQuietHistory();
         clearStaticEvaluationHistory(position);
         clearCounterMoves();
+        clearCaptureHistory();
 
         totalNodes += searchNodes;
     }

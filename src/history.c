@@ -54,10 +54,10 @@ void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisy
     }
 }
 
-void clearHistory(void) {
-    for (int i = 0; i < 64; i++) {
-        for (int j = 0; j < 64; j++) {
-            quietMoveHistory[i][j] = 0;
-        }
-    }
+void clearQuietHistory(void) {
+    memset(quietMoveHistory, 0, sizeof(quietMoveHistory));
+}
+
+void clearCaptureHistory(void) {
+    memset(captureMoveHistory, 0, sizeof(captureMoveHistory));
 }
