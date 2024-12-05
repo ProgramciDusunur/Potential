@@ -200,10 +200,8 @@ int quiescenceScoreMove(int move, board* position) {
             }
         }
 
-        int captureHistoryBonus = captureMoveHistory[position->side][getMoveSource(move)][getMoveTarget(move)];
-
         // score move by MVV LVA lookup [source piece][target piece]
-        return mvv[target_piece] + 1000000000 + captureHistoryBonus;
+        return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
     }
 
     return 0;
