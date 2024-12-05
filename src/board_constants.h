@@ -58,6 +58,7 @@ extern char promotedPieces[];
 extern char *unicodePieces[12];
 extern int charPieces[];
 extern int mvvLva[12][12];
+extern int mvv[12];
 extern const U64 notHFile;
 extern const U64 notAFile;
 extern const U64 not8Rank;
