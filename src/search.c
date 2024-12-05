@@ -99,7 +99,7 @@ int scoreMove(int move, board* position) {
             }
         }
 
-        int captureHistoryBonus = captureMoveHistory[position->side][getMoveSource(move)][getMoveTarget(move)] / 8;
+        int captureHistoryBonus = captureMoveHistory[position->side][getMoveSource(move)][getMoveTarget(move)];
 
         // score move by MVV LVA lookup [source piece][target piece]
         return mvv[target_piece] + 1000000000 + captureHistoryBonus;
@@ -200,7 +200,7 @@ int quiescenceScoreMove(int move, board* position) {
             }
         }
 
-        int captureHistoryBonus = captureMoveHistory[position->side][getMoveSource(move)][getMoveTarget(move)] / 8;
+        int captureHistoryBonus = captureMoveHistory[position->side][getMoveSource(move)][getMoveTarget(move)];
 
         // score move by MVV LVA lookup [source piece][target piece]
         return mvv[target_piece] + 1000000000 + captureHistoryBonus;
