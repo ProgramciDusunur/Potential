@@ -19,7 +19,7 @@
 
 enum {
     maxQuietHistory = 16384,
-    maxCaptureHistory = 8192
+    maxCaptureHistory = 16384
 };
 
 extern int quietMoveHistory[64][64];
