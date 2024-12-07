@@ -623,7 +623,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         int R = 3 + (int)(0.1875 * depth);
 
-        R -= !improving;
+        R += !improving;
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
