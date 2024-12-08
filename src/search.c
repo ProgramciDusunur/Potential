@@ -649,7 +649,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // IIR 2
-    if ((depth >= 4 && ttBound == hashFlagNone) || cutNode)
+    if ((depth >= 4 && ttBound == hashFlagNone))
         depth -= 1 ;
 
     // razoring (~8 Elo)
