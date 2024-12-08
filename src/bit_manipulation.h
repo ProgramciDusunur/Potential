@@ -12,9 +12,6 @@
 
 #include <stdio.h>
 
-
-//#define max(x, y) ((x) > (y) ? (x) : (y))
-//#define min(x, y) ((x) < (y) ? (x) : (y))
 #define myAbs(x) ((x) < 0 ? -(x) : (x))
 
 
@@ -26,6 +23,8 @@
 
 int countBits(U64 bitboard);
 int getLS1BIndex(U64 bitboard);
+int MAX(int x, int y);
+int MIN(int x, int y);
 void printBitboard(U64 bitboard);
 U64 setOccupancy(int index, int bitsInMask, U64 attackMask);
 
