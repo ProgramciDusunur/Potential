@@ -648,6 +648,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             return beta;
     }
 
+    // IIR 2
+    if ((depth >= 4 && ttBound == hashFlagNone) || cutNode)
+        depth -= 1 ;
+
     // razoring (~8 Elo)
     /*if (canPrune && depth <= 3) {
         // get static eval and add first bonus
