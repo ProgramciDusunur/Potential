@@ -648,40 +648,13 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             return beta;
     }
 
-    // razoring (~8 Elo)
-    /*if (canPrune && depth <= 3) {
-        // get static eval and add first bonus
-        score = static_eval + 125;
-
-        // define new score
-        int new_score;
-
-        // static evaluation indicates a fail-low node
-        if (score < beta) {
-            // on depth 1
-            if (depth == 1) {
-                // get quiscence score
-                new_score = quiescence(alpha, beta, position, score, time);
-
-                // return quiescence score if it's greater then static evaluation score
-                return (new_score > score) ? new_score : score;
-            }
-
-            // add second bonus to static evaluation
-            score += 175;
-
-            // static evaluation indicates a fail-low node
-            if (score < beta && depth <= 2) {
-                // get quiscence score
-                new_score = quiescence(alpha, beta, position, score, time);
-
-                // quiescence score indicates fail-low node
-                if (new_score < beta)
-                    // return quiescence score if it's greater than static evaluation score
-                    return (new_score > score) ? new_score : score;
-            }
+    // razoring
+    if (depth == 1 && static_eval + 350 * depth < alpha) {
+        int razoringScore = quiescence(alpha, beta, position, score, time, improving);
+        if (razoringScore <= alpha) {
+            return razoringScore;
         }
-    }*/
+    }
 
     // create move list instance
     moves moveList[1], badQuiets[1], noisyMoves[1];
