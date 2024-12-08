@@ -13,8 +13,8 @@
 #include <stdio.h>
 
 
-//#define max(x, y) ((x) > (y) ? (x) : (y))
-//#define min(x, y) ((x) < (y) ? (x) : (y))
+#define max(x, y) ((x) > (y) ? (x) : (y))
+#define min(x, y) ((x) < (y) ? (x) : (y))
 #define myAbs(x) ((x) < 0 ? -(x) : (x))
 
 
