@@ -652,6 +652,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             return beta;
     }
 
+    // IIR2
+    if ((pvNode || cutNode) && depth >= 8 && !bestMove) {
+        depth--;
+    }
+
     // razoring (~8 Elo)
     /*if (canPrune && depth <= 3) {
         // get static eval and add first bonus
