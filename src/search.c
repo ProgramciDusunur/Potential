@@ -144,10 +144,6 @@ int scoreMove(int move, board* position) {
         // score 1st killer move
         if (position->killerMoves[position->ply][0] == move)
             return 900000000;
-
-            // score 2nd killer move
-        else if (position->killerMoves[position->ply][1] == move)
-            return 800000000;
         /*else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
 
@@ -818,7 +814,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 }*/
 
                 // Reduce Less
-                if (position->killerMoves[position->ply][0] == bestMove || position->killerMoves[position->ply][1] == bestMove) {
+                if (position->killerMoves[position->ply][0] == bestMove) {
                     lmrReduction -= 1;
                 }
 
@@ -944,10 +940,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 // on quiet moves
                 if (isQuiet) {
                     // store killer moves
-                    if (position->killerMoves[position->ply][0] != bestMove) {
-                        position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
-                        position->killerMoves[position->ply][0] = bestMove;
-                    }
+                    position->killerMoves[position->ply][0] = bestMove;
                     //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
