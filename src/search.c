@@ -459,7 +459,6 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     return alpha;
 }
 
-
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode) {
 
