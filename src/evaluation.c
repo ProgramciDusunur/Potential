@@ -278,6 +278,9 @@ int evaluate(board* position) {
     // penalties
     //int double_pawns = 0;
 
+    // passed pawn count
+    int passedPawnCount = 0;
+
     // loop over piece bitboards
     for (int bb_piece = P; bb_piece <= k; bb_piece++) {
         // init piece bitboard copy
@@ -353,7 +356,7 @@ int evaluate(board* position) {
                     if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                         // give passed pawn bonus
                         if (game_phase == endgame) {
-
+                            passedPawnCount += 1;
 
                             // passed pawn can move bonus
                             if (!(getBit(position->occupancies[both], (square - 8)))) {
@@ -524,6 +527,8 @@ int evaluate(board* position) {
 
                         // give passed pawn bonus
                         if (game_phase == endgame) {
+                            passedPawnCount -= 1;
+
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                             int kingDistance = whiteKingDistance - blackKingDistance;
@@ -647,6 +652,14 @@ int evaluate(board* position) {
             popBit(bitboard, square);
         }
     }
+
+    // winnable
+    int winnableScore = 0;
+    if (game_phase == endgame) {
+        winnableScore = 4 * passedPawnCount;
+        score += winnableScore;
+    }
+
     int tempo = 10 + (position->inCheck ? -10 : 0);
     // return final evaluation based on side
     return (position->side == white) ? score + tempo : -(score - tempo);
