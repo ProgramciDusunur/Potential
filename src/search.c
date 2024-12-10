@@ -713,34 +713,51 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         int currentMove = moveList->moves[count];
 
-        int moveHistory = quietMoveHistory[getMoveSource(currentMove)][getMoveTarget(currentMove)];
-
         bool isQuiet = getMoveCapture(currentMove) == 0;
+
+        int moveHistory = isQuiet ? quietMoveHistory[getMoveSource(currentMove)][getMoveTarget(currentMove)] :
+                                    captureMoveHistory[position->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
+
+
         if (skipQuiet && isQuiet) {
             continue;
         }
 
         bool isNotMated = alpha > -mateScore + maxPly;
 
-        if (!rootNode && isQuiet && isNotMated && !justPawns(position)) {
-            int lateMoveHistoryFactor = ((moveHistory * 0.001) * depth);
-            // Late Move Pruning (~18 Elo)
-            int lmpBase = 4;
-            int lmpMultiplier = 3;
-            int improvingFactor = position->improvingRate[position->ply] * (0.25 * depth);
-            int lmpThreshold = ((lmpBase + (lmpMultiplier + improving) * depth * depth) - improvingFactor) + lateMoveHistoryFactor;
-            if (legal_moves>= lmpThreshold) {
-                skipQuiet = 1;
-            }
-            // Futility pruning
-            int futilityHistoryFactor = ((moveHistory * 0.01) * depth);
-            int futilityEvalMargin = improving ? static_eval + 100 : static_eval + 80;
-            uint8_t noisyTTMoveDivisor = getMoveCapture(bestMove) ? (2 - (position->nmpNode && depth >= 3)) : 1;
-            int futilityMargin = (futilityEvalMargin + futilityHistoryFactor) / noisyTTMoveDivisor;
+        if (!rootNode && isNotMated && !justPawns(position)) {
 
-            if (canPrune && depth < 4 && futilityMargin <= alpha) {
-                skipQuiet = 1;
+            if (isQuiet) {
+
+                // Late Move Pruning (~18 Elo)
+                int lmpBase = 4;
+                int lmpMultiplier = 3;
+                int improvingFactor = position->improvingRate[position->ply] * (0.25 * depth);
+                int lateMoveHistoryFactor = ((moveHistory * 0.001) * depth);
+                int lmpThreshold = ((lmpBase + (lmpMultiplier + improving) * depth * depth) - improvingFactor) + lateMoveHistoryFactor;
+                if (legal_moves>= lmpThreshold) {
+                    skipQuiet = 1;
+                }
+
+                // Futility pruning
+                int futilityHistoryFactor = ((moveHistory * 0.01) * depth);
+                int futilityEvalMargin = improving ? static_eval + 100 : static_eval + 80;
+                uint8_t noisyTTMoveDivisor = getMoveCapture(bestMove) ? (2 - (position->nmpNode && depth >= 3)) : 1;
+                int futilityMargin = (futilityEvalMargin + futilityHistoryFactor) / noisyTTMoveDivisor;
+
+                if (canPrune && depth < 4 && futilityMargin <= alpha) {
+                    skipQuiet = 1;
+                }
+                // if current move is capture
+            } else {
+                // Capture History Pruning
+                if (canPrune && depth <= 2 && moveHistory < depth * -2048) {
+                    skipQuiet = 1;
+                }
             }
+
+
+
         }
         struct copyposition copyPosition;
         // preserve board state
