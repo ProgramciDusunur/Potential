@@ -758,7 +758,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 // if current move is capture
             } else {
                 // Capture History Pruning
-                if (canPrune && depth <= 2 && moveHistory < depth * -2048) {
+                if (canPrune && depth <= 2 && moveHistory < depth * -4096) {
                     skipCapture = 1;
                 }
             }
