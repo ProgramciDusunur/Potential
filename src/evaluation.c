@@ -656,7 +656,7 @@ int evaluate(board* position) {
     // winnable
     int winnableScore = 0;
     if (game_phase == endgame) {
-        winnableScore = 4 * passedPawnCount;
+        winnableScore = 6 * passedPawnCount;
         score += winnableScore;
     }
 
