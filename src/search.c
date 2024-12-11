@@ -705,7 +705,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // number of moves searched in a move list
     int moves_searched = 0;
 
-    int skipQuiet = 0;
+    bool skipQuiet = false;
+
+    bool skipCapture = false;
 
 
     // loop over moves within a movelist
@@ -719,9 +721,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                                     captureMoveHistory[position->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
 
 
-        if (skipQuiet && isQuiet) {
+        if (isQuiet) {
+            if (skipQuiet)
             continue;
+        } else {
+            if (skipCapture)
+                continue;
         }
+
 
         bool isNotMated = alpha > -mateScore + maxPly;
 
@@ -752,7 +759,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             } else {
                 // Capture History Pruning
                 if (canPrune && depth <= 2 && moveHistory < depth * -2048) {
-                    skipQuiet = 1;
+                    skipCapture = 1;
                 }
             }
 
