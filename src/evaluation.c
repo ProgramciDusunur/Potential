@@ -653,12 +653,12 @@ int evaluate(board* position) {
         }
     }
 
-    // winnable
-    int winnableScore = 0;
     if (game_phase == endgame) {
-        winnableScore = 6 * passedPawnCount +
+        uint8_t nonPawnMaterialBonus = position->side ? -30 : 30;
+        // winnable
+        int winnableScore = 6 * passedPawnCount +
                         8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p])) +
-                        30 * !justPawns(position);
+                        nonPawnMaterialBonus * !justPawns(position);
 
                 ;
         score += winnableScore;
