@@ -657,7 +657,8 @@ int evaluate(board* position) {
     int winnableScore = 0;
     if (game_phase == endgame) {
         winnableScore = 6 * passedPawnCount +
-                        8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]))
+                        8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p])) +
+                        30 * !justPawns(position);
 
                 ;
         score += winnableScore;
