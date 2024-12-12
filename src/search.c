@@ -721,12 +721,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                                     captureMoveHistory[position->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
 
 
-        if (isQuiet) {
-            if (skipQuiet)
+        if (isQuiet && skipQuiet) {
             continue;
-        } else {
-            if (skipCapture)
-                continue;
+        } else if (!isQuiet && skipCapture) {
+            continue;
         }
 
 
@@ -758,7 +756,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 // if current move is capture
             } else {
                 // Capture History Pruning
-                if (canPrune && depth <= 2 && moveHistory < depth * -4096) {
+                if (depth <= 2 && moveHistory < depth * -2048) {
                     skipCapture = 1;
                 }
             }
