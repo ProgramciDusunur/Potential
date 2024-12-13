@@ -11,6 +11,7 @@
 #include "mask.h"
 #include "move.h"
 #include "values.h"
+#include "search.h"
 
 
 /**********************************\
