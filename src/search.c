@@ -751,7 +751,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 // Capture Moves
             } else {
                 // Capture Futility Pruning
-                int futilityEvalMargin = static_eval + 200 * depth;
+                int futilityEvalMargin = static_eval + 300 * depth;
                 if (canPrune && depth < 3 && futilityEvalMargin <= alpha) {
                     skipCapture = 1;
                 }
