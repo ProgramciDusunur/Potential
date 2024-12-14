@@ -595,7 +595,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // evaluation margin substracted from static evaluation score fails high
         if (static_eval - rfpThreshold >= beta)
             // evaluation margin substracted from static evaluation score
-            return static_eval - rfpThreshold;
+            return (static_eval + beta) / 2;
     }
 
     // null move pruning
