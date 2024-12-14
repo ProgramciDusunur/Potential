@@ -340,7 +340,6 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     // define hash flag
     int hashFlag = hashFlagAlpha;
 
-
     // read hash entry
     if (position->ply && (negamaxScore = readHashEntry(alpha, beta, &bestMove, 0, position)) != noHashEntry && pvNode == 0) {
         // if the move has already been searched (hence has a value)
