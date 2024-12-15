@@ -32,6 +32,12 @@ extern U64 rookMask[64];
 // BishopMask[square]
 extern U64 bishopMask[64];
 
+extern U64 whiteKingSide;
+extern U64 whiteQueenSide;
+
+extern U64 blackQueenSide;
+extern U64 blackKingSide;
+
 
 
 U64 maskPawnAttacks(int isWhite, int square);

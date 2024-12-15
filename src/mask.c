@@ -25,6 +25,12 @@ U64 rookMask[64];
 // BishopMask[square]
 U64 bishopMask[64];
 
+U64 whiteKingSide = 67553994410557440LL;
+U64 whiteQueenSide = 4222124650659840LL;
+
+U64 blackQueenSide = 3840LL;
+U64 blackKingSide = 61440LL;
+
 
 U64 maskPawnAttacks(int isWhite, int square) {
     U64 attacks = 0ULL;
