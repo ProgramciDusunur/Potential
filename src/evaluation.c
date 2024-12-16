@@ -660,9 +660,9 @@ int evaluate(board* position) {
         int pawnsOnBothFlanks = 0;
 
         if (!position->side && ((position->bitboards[P] & whiteKingSide) && (position->bitboards[P] & whiteQueenSide))) {
-            pawnsOnBothFlanks = 25;
+            pawnsOnBothFlanks = 20;
         } else if (position->side && ((position->bitboards[p] & blackKingSide) && (position->bitboards[p] & blackQueenSide))) {
-            pawnsOnBothFlanks = -25;
+            pawnsOnBothFlanks = -20;
         }
 
         if (!position->side && get_rank[getLS1BIndex(position->bitboards[K])] > 5) {
