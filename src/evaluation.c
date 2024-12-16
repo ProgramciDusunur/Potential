@@ -674,7 +674,9 @@ int evaluate(board* position) {
         int winnableScore = 6 * passedPawnCount +
                         8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p])) +
                         infiltriation +
-                        pawnsOnBothFlanks
+                        pawnsOnBothFlanks +
+                        50 * justPawns(position);
+
                 ;
         score += winnableScore;
     }
