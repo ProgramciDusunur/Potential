@@ -90,7 +90,6 @@ int getContinuationHistoryScore(SearchStack *ss, int move, int offSet) {
 }
 
 
-
 void clearQuietHistory(void) {
     memset(quietMoveHistory, 0, sizeof(quietMoveHistory));
 }
