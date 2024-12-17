@@ -61,7 +61,7 @@ char* benchmarkfens[52] = {
         "7k/8/7P/5B2/5K2/8/8/8 b - - 0 175"
 };
 
-void benchmark(int depth, board* position, time* time) {
+void benchmark(int depth, SearchStack *ss, board* position, time* time) {
     U64 totalNodes = 0;
     int totalSearchTime = 0;
 
@@ -70,7 +70,7 @@ void benchmark(int depth, board* position, time* time) {
 
         // Search time measurement starts
         int searchStartTime = getTimeMiliSecond();
-        searchPosition(depth, position, true, time);
+        searchPosition(depth, ss, position, true, time);
         int searchEndTime = getTimeMiliSecond();
         totalSearchTime += (searchEndTime - searchStartTime);  // Only search time is accumulated
 
@@ -80,6 +80,7 @@ void benchmark(int depth, board* position, time* time) {
         clearStaticEvaluationHistory(position);
         clearCounterMoves();
         clearCaptureHistory();
+        clearContinuationHistory(ss);
 
         totalNodes += searchNodes;
     }

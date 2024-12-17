@@ -14,6 +14,7 @@
 #endif
 
 #define maxPly 256
+#define safetyMarginDivisor 32
 
 typedef struct {
     U64 bitboards[12];
@@ -112,7 +113,8 @@ typedef struct {
 
 // search stack
 typedef struct {
-    int continuationHistory[2][64][64];
+    int move;
+    uint8_t piece;
 } SearchStack;
 
 

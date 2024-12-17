@@ -59,7 +59,7 @@ void initializeLMRTable(void) {
 */
 
 // score moves
-int scoreMove(int move, board* position) {
+int scoreMove(int move, board* position, SearchStack *ss) {
     // make sure we are dealing with PV move
     if (position->scorePv && position->pvTable[0][position->ply] == move) {
         // disable score PV flag
@@ -150,7 +150,7 @@ int scoreMove(int move, board* position) {
         /*if (quietMoveHistory[getMoveSource(move)][getMoveTarget(move)] < 0) {
              printf("History score negative: %d\n", quietMoveHistory[getMoveSource(move)][getMoveTarget(move)]);
          }*/
-        return quietMoveHistory[getMoveSource(move)][getMoveTarget(move)];
+        return quietMoveHistory[getMoveSource(move)][getMoveTarget(move)] + getContinuationHistoryScore(ss, move, 1);
 
     }
     return 0;
@@ -158,7 +158,7 @@ int scoreMove(int move, board* position) {
 
 
 
-void sort_moves(moves *moveList, int bestMove, board* position) {
+void sort_moves(moves *moveList, int bestMove, board* position, SearchStack *ss) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -172,7 +172,7 @@ void sort_moves(moves *moveList, int bestMove, board* position) {
         if (bestMove == current_move)
             current_score = 2000000000;
         else
-            current_score = scoreMove(current_move, position);
+            current_score = scoreMove(current_move, position, ss);
 
         // Find the correct position to insert the current move
         int insert_pos = sorted_count;
@@ -316,7 +316,7 @@ uint8_t justPawns(board *pos) {
 }
 
 // quiescence search
-int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time, bool improving) {
+int quiescence(int alpha, int beta, SearchStack *ss, board* position, int negamaxScore, time* time, bool improving) {
     if ((searchNodes & 2047) == 0) {
         communicate(time);
     }
@@ -422,7 +422,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
         //legal_moves++;
 
         // score current move
-        score = -quiescence(-beta, -alpha, position, score, time, improving);
+        score = -quiescence(-beta, -alpha, ss, position, score, time, improving);
 
         // decrement ply
         position->ply--;
@@ -459,7 +459,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
 }
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode) {
+int negamax(int alpha, int beta, int depth, SearchStack *ss, board* position, time* time, bool cutNode) {
 
     // init PV length
     position->pvLength[position->ply] = position->ply;
@@ -513,7 +513,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // recursion escapre condition
     if (depth == 0)
         // run quiescence search
-        return quiescence(alpha, beta, position, score, time, improving);
+        return quiescence(alpha, beta, ss, position, score, time, improving);
 
     bool moreSafeCutNodeReduction;
     if (position->nmpNode && depth >= 3) {
@@ -627,7 +627,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, depth - R, position, time, !cutNode);
+        score = -negamax(-beta, -beta + 1, depth - R, ss + 1, position, time, !cutNode);
 
         // decrement ply
         position->ply--;
@@ -699,7 +699,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         enable_pv_scoring(moveList, position);
 
     // sort moves
-    sort_moves(moveList, bestMove, position);
+    sort_moves(moveList, bestMove, position, ss);
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -765,6 +765,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             continue;
         }
 
+        ss->piece = getMovePiece(currentMove);
+        ss->move = getMoveTarget(currentMove);
+
         if (isQuiet) {
             addMoveToHistoryList(badQuiets, currentMove);
         } else {
@@ -787,7 +790,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // full depth search
         if (moves_searched == 0)
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, depth - 1, position, time, false);
+            score = -negamax(-beta, -alpha, depth - 1, ss + 1, position, time, false);
 
             // late move reduction (LMR)
         else {
@@ -843,9 +846,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 getMovePromoted(currentMove) == 0) {
                 // search current move with reduced depth:
                 if (pvNode) {
-                    score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, false);
+                    score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, ss + 1, position, time, false);
                 } else {
-                    score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, !cutNode);
+                    score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, ss + 1, position, time, !cutNode);
                 }
 
             }
@@ -862,7 +865,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time, false);
+                score = -negamax(-alpha - 1, -alpha, depth - 1, ss + 1, position, time, false);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
@@ -872,7 +875,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 if ((score > alpha) && (score < beta))
                     /* re-search the move that has failed to be proved to be bad
                        with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, depth - 1, position, time, false);
+                    score = -negamax(-beta, -alpha, depth - 1, ss + 1, position, time, false);
             }
         }
 
@@ -943,6 +946,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
                     updateQuietHistory(bestMove, depth, badQuiets);
+                    updateContinuationHistoryMoves(position, ss, bestMove, depth, badQuiets);
                     // on noisy moves
                 } else {
                     updateCaptureHistory(position, bestMove, depth, noisyMoves);
@@ -980,7 +984,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
 // search position for the best move
-void searchPosition(int depth, board* position, bool benchmark, time* time) {
+void searchPosition(int depth, SearchStack *ss, board* position, bool benchmark, time* time) {
     // define best score variable
     int score = 0;
 
@@ -1000,12 +1004,15 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
+
     //memset(time, 0, sizeof(*time));
     //memset(counterMoves, 0, sizeof(counterMoves));
 
     // define initial alpha beta bounds
     int alpha = -infinity;
     int beta = infinity;
+
+    clearContinuationHistory(ss);
 
     int totalTime = 0;
 
@@ -1018,7 +1025,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         int startTime = getTimeMiliSecond();
         position->followPv = 1;
         // find best move within a given position
-        score = negamax(alpha, beta, current_depth, position, time, false);
+        score = negamax(alpha, beta, current_depth, ss, position, time, false);
 
         if (score <= alpha || score >= beta) {
             alpha = -infinity;

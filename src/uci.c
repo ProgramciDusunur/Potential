@@ -138,7 +138,7 @@ void parse_position(char *command, board* position) {
 
 
 
-void goCommand(char *command, board* position, time* time) {
+void goCommand(char *command, SearchStack *ss, board* position, time* time) {
 
     // reset time control
     resetTimeControl(time);
@@ -224,7 +224,7 @@ void goCommand(char *command, board* position, time* time) {
            time->time, time->starttime, time->stoptime, depth, time->timeset);
 
     // search position
-    searchPosition(depth, position, false, time);
+    searchPosition(depth, ss, position, false, time);
 
 }
 
@@ -344,13 +344,16 @@ void communicate(time* time) {
 
 
 void uciProtocol(int argc, char *argv[]) {
+
+    int safetyMargin = maxPly / safetyMarginDivisor;
+
     board *position = (board *)malloc(sizeof(board));
 
     position->ply = 0;
 
     time *time_ctrl = (time *)malloc(sizeof(time));
 
-    //SearchStack *ss = (SearchStack *)malloc(sizeof(SearchStack));
+    SearchStack *ss = (SearchStack *)calloc(maxPly + safetyMargin, sizeof(SearchStack));
 
     // init time control
     initTimeControl(time_ctrl);
@@ -373,7 +376,7 @@ void uciProtocol(int argc, char *argv[]) {
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..");
-        benchmark(8, position, time_ctrl);
+        benchmark(8, ss, position, time_ctrl);
         return;
     }
 
@@ -442,7 +445,7 @@ void uciProtocol(int argc, char *argv[]) {
             // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0) {
             // call parse go function
-            goCommand(input, position,  time_ctrl);
+            goCommand(input, ss, position,  time_ctrl);
 
             // clear hash table
             clearHashTable();
@@ -494,7 +497,7 @@ void uciProtocol(int argc, char *argv[]) {
             printf("uciok\n");
         }
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(8, position, time_ctrl);
+            benchmark(8, ss, position, time_ctrl);
         }
     }
 }
