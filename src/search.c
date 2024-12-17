@@ -150,7 +150,7 @@ int scoreMove(int move, board* position, SearchStack *ss) {
         /*if (quietMoveHistory[getMoveSource(move)][getMoveTarget(move)] < 0) {
              printf("History score negative: %d\n", quietMoveHistory[getMoveSource(move)][getMoveTarget(move)]);
          }*/
-        return quietMoveHistory[getMoveSource(move)][getMoveTarget(move)] + getContinuationHistoryScore(ss, move, 1);
+        return quietMoveHistory[getMoveSource(move)][getMoveTarget(move)] + getContinuationHistoryScore(ss, move);
 
     }
     return 0;
@@ -625,6 +625,9 @@ int negamax(int alpha, int beta, int depth, SearchStack *ss, board* position, ti
 
         int R = 3 + (int)(0.1875 * depth);
 
+        ss->move = 0;
+        ss->piece = 0;
+
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
         score = -negamax(-beta, -beta + 1, depth - R, ss + 1, position, time, !cutNode);
@@ -945,8 +948,7 @@ int negamax(int alpha, int beta, int depth, SearchStack *ss, board* position, ti
                     //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
-                    updateQuietHistory(bestMove, depth, badQuiets);
-                    updateContinuationHistoryMoves(position, ss, bestMove, depth, badQuiets);
+                    updateQuietHistory(position, ss, bestMove, depth, badQuiets);
                     // on noisy moves
                 } else {
                     updateCaptureHistory(position, bestMove, depth, noisyMoves);

@@ -15,7 +15,7 @@ int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
 }
 
-void updateQuietHistory(int bestMove, int depth, moves *badQuiets) {
+void updateQuietHistory(board *position, SearchStack *ss, int bestMove, int depth, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
@@ -23,17 +23,20 @@ void updateQuietHistory(int bestMove, int depth, moves *badQuiets) {
     int score = quietMoveHistory[from][to];
 
     quietMoveHistory[from][to] += scaledBonus(score, bonus, maxQuietHistory);
+    updateContinuationHistoryScore(position, ss, bestMove, bonus);
 
-     for (int index = 0; index < badQuiets->count; index++) {
-         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
-         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
+    for (int index = 0; index < badQuiets->count; index++) {
+        int move = badQuiets->moves[index];
+        int badQuietFrom = getMoveSource(move);
+        int badQuietTo = getMoveTarget(move);
 
-         int badQuietScore = quietMoveHistory[badQuietFrom][badQuietTo];
+        int badQuietScore = quietMoveHistory[badQuietFrom][badQuietTo];
 
-         if (badQuiets->moves[index] == bestMove) continue;
+        if (badQuiets->moves[index] == bestMove) continue;
 
-         quietMoveHistory[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
-     }
+        quietMoveHistory[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
+        updateContinuationHistoryScore(position, ss, move, -bonus);
+    }
 }
 
 void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisyMoves) {
@@ -57,37 +60,33 @@ void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisy
     }
 }
 
-void updateContinuationHistoryEntry(board *position, int offSet, SearchStack *ss, int depth, int move, bool isBestMove) {
+int getSingleContinuationHistoryScore(const SearchStack *ss, const int move, const int offSet) {
+    const int previousMove = (ss - offSet)->piece;
+    return previousMove ? continuationHistory[getMovePiece((ss - offSet)->piece)][getMoveTarget((ss - offSet)->move)][getMovePiece(move)][getMoveTarget(move)] : 0;
+}
+
+// Returns the history score of a move
+int getContinuationHistoryScore(const SearchStack *ss, const int move) {
+    return getSingleContinuationHistoryScore(ss, move, 1);
+    // + getSingleContinuationHistoryScore(ss, move, 2);
+}
+
+void updateSingleContinuationHistoryScore(const board *position, SearchStack *ss, const int move, const int bonus, const int offSet) {
     if (position->ply >= offSet) {
-        int previousPiece = ss->piece;
-        int previousTarget = getMoveTarget(ss->move);
-        int piece = getMovePiece(move);
-        int target = getMoveTarget(move);
-        int bonus = 16 * depth * depth + 32 * depth + 16;
-        int adjust = isBestMove ? bonus : -bonus;
-
-        continuationHistory[previousPiece][previousTarget][piece][target] +=
-                scaledBonus(continuationHistory[previousPiece][previousTarget][piece][target], adjust, maxQuietHistory);
+        const int scaledBonus = bonus - getSingleContinuationHistoryScore(ss, move, offSet) * abs(bonus) / maxQuietHistory;
+        continuationHistory[getMoveTarget((ss - offSet)->piece)][getMoveTarget((ss - offSet)->move)][getMovePiece(move)][getMoveTarget(move)] += scaledBonus;
     }
 }
 
-void updateContinuationHistoryMoves(board *position, SearchStack *ss, int bestMove, int depth, moves *quietMoves) {
-    for (int index = 0;index < quietMoves->count;index++) {
-        if (quietMoves->moves[index] == bestMove) {
-            updateContinuationHistoryEntry(position, 1, ss, depth, bestMove,true);
-        } else {
-            updateContinuationHistoryEntry(position, 1, ss, depth, quietMoves->moves[index],false);
-        }
-
-    }
+void updateContinuationHistoryScore(board *position, SearchStack *ss, const int move, const int bonus) {
+    const int scaledBonus = bonus - getContinuationHistoryScore(ss, move) * abs(bonus) / 8192;
+    updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 1);
+    //updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 2);
+    //updateSingleContinuationHistoryScore(position, ss, move, scaledBonus, 4);
 }
 
-int getContinuationHistoryScore(SearchStack *ss, int move, int offSet) {
-    int previousMove = (ss - offSet)->piece && (ss - offSet)->move;
-    return previousMove ? continuationHistory[ss->piece][getMoveTarget(ss->move)][getMovePiece(move)][getMoveTarget(move)] : 0;
 
 
-}
 
 
 void clearQuietHistory(void) {
@@ -99,7 +98,7 @@ void clearCaptureHistory(void) {
 }
 
 void clearContinuationHistory(SearchStack *ss) {
-    for (int index = 0;index < maxPly + (maxPly / safetyMarginDivisor);index++) {
+    for (int index = 0 -  (maxPly / safetyMarginDivisor);index < maxPly;index++) {
         ss[index].piece = 0;
         ss[index].move = 0;
     }

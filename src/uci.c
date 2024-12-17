@@ -355,6 +355,8 @@ void uciProtocol(int argc, char *argv[]) {
 
     SearchStack *ss = (SearchStack *)calloc(maxPly + safetyMargin, sizeof(SearchStack));
 
+    ss += safetyMargin;
+
     // init time control
     initTimeControl(time_ctrl);
 
