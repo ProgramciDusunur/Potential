@@ -33,7 +33,7 @@ void updateQuietHistory(board *position, SearchStack *ss, int bestMove, int dept
 void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisyMoves);
 void updateContinuationHistoryScore(board *position, SearchStack *ss, int move, int bonus);
 int getContinuationHistoryScore(const SearchStack *ss, int move);
-int getSingleContinuationHistoryScore(const SearchStack *ss, const int move);
+int getSingleContinuationHistoryScore(const SearchStack *ss, int move, int offSet);
 void clearQuietHistory(void);
 void clearCaptureHistory(void);
 void clearContinuationHistory(void);
