@@ -60,21 +60,20 @@ void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisy
     }
 }
 
-int getSingleContinuationHistoryScore(const SearchStack *ss, const int move, const int offSet) {
-    const int previousMove = (ss - offSet)->piece;
-    return previousMove ? continuationHistory[getMovePiece((ss - offSet)->piece)][getMoveTarget((ss - offSet)->move)][getMovePiece(move)][getMoveTarget(move)] : 0;
+int getSingleContinuationHistoryScore(const SearchStack *ss, const int move) {
+    return continuationHistory[getMovePiece(ss->piece)][getMoveTarget(ss->move)][getMovePiece(move)][getMoveTarget(move)];
 }
 
 // Returns the history score of a move
 int getContinuationHistoryScore(const SearchStack *ss, const int move) {
-    return getSingleContinuationHistoryScore(ss, move, 1);
+    return getSingleContinuationHistoryScore(ss - 1, move);
     // + getSingleContinuationHistoryScore(ss, move, 2);
 }
 
 void updateSingleContinuationHistoryScore(const board *position, SearchStack *ss, const int move, const int bonus, const int offSet) {
     if (position->ply >= offSet) {
-        const int scaledBonus = bonus - getSingleContinuationHistoryScore(ss, move, offSet) * abs(bonus) / maxQuietHistory;
-        continuationHistory[getMoveTarget((ss - offSet)->piece)][getMoveTarget((ss - offSet)->move)][getMovePiece(move)][getMoveTarget(move)] += scaledBonus;
+        const int scaledBonus = bonus - getSingleContinuationHistoryScore(ss - offSet, move) * abs(bonus) / maxQuietHistory;
+        continuationHistory[getMoveTarget(ss->piece)][getMoveTarget(ss->move)][getMovePiece(move)][getMoveTarget(move)] += scaledBonus;
     }
 }
 
@@ -97,9 +96,6 @@ void clearCaptureHistory(void) {
     memset(captureMoveHistory, 0, sizeof(captureMoveHistory));
 }
 
-void clearContinuationHistory(SearchStack *ss) {
-    for (int index = 0 -  (maxPly / safetyMarginDivisor);index < maxPly;index++) {
-        ss[index].piece = 0;
-        ss[index].move = 0;
-    }
+void clearContinuationHistory(void) {
+    memset(continuationHistory, 0, sizeof(continuationHistory));
 }

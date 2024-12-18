@@ -80,7 +80,7 @@ void benchmark(int depth, SearchStack *ss, board* position, time* time) {
         clearStaticEvaluationHistory(position);
         clearCounterMoves();
         clearCaptureHistory();
-        clearContinuationHistory(ss);
+        clearContinuationHistory();
 
         totalNodes += searchNodes;
     }

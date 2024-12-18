@@ -1006,6 +1006,7 @@ void searchPosition(int depth, SearchStack *ss, board* position, bool benchmark,
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
+    clearContinuationHistory();
 
     //memset(time, 0, sizeof(*time));
     //memset(counterMoves, 0, sizeof(counterMoves));
@@ -1013,8 +1014,6 @@ void searchPosition(int depth, SearchStack *ss, board* position, bool benchmark,
     // define initial alpha beta bounds
     int alpha = -infinity;
     int beta = infinity;
-
-    clearContinuationHistory(ss);
 
     int totalTime = 0;
 
