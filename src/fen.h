@@ -7,7 +7,7 @@
 
 #include "board_constants.h"
 #include "structs.h"
-#include "bit_manipluation.h"
+#include "bit_manipulation.h"
 #include "table.h"
 #include <string.h>
 

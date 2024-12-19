@@ -2,7 +2,7 @@
 // Created by erena on 13.09.2024.
 //
 
-#include "bit_manipluation.h"
+#include "bit_manipulation.h"
 
 
 int countBits(U64 bitboard) {

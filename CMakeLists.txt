@@ -1,37 +1,33 @@
 cmake_minimum_required(VERSION 3.25)
 project(Potential C)
 
+# General warning flags
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -Werror")
 
-# Optimizasyon bayrakları
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Ofast -march=native -fwhole-program -ffast-math -fomit-frame-pointer")
+# Debug mode
+set(CMAKE_C_FLAGS_DEBUG "-Ofast -g3 -DDEBUG")
 
+# Release mode
+set(CMAKE_C_FLAGS_RELEASE "-Ofast -march=native -ffast-math -fomit-frame-pointer -DNDEBUG")
+
+# Source files
 include_directories(src)
 
 add_executable(Potential
-        src/bit_manipulation.c
-        src/bit_manipulation.h
-        src/board.c
-        src/board.h
-        src/board_constants.c
-        src/board_constants.h
-        src/evaluation.c
-        src/evaluation.h
-        src/fen.c
-        src/fen.h
-        src/magic.c
-        src/magic.h
-        src/mask.c
-        src/mask.h
-        src/move.c
-        src/move.h
         src/potential.c
-        src/search.c
-        src/search.h
-        src/see.c
-        src/see.h
-        src/table.c
-        src/table.h
-        src/time.c
-        src/time.h
-        src/values.c
-        src/values.h src/test/see_test.c src/history.c src/history.h src/uci.c src/uci.h src/bench.c src/bench.h src/zobrist.c src/zobrist.h)
+        src/uci.c src/uci.h src/structs.h
+        src/perft.c src/perft.h
+        src/move.c src/move.h
+        src/bit_manipulation.c src/bit_manipulation.h
+        src/mask.c src/mask.h
+        src/board_constants.c src/board_constants.h
+        src/magic.c src/magic.h
+        src/table.c src/table.h
+        src/fen.c src/fen.h
+        src/history.c src/history.h
+        src/time.c src/time.h
+        src/evaluation.c src/evaluation.h
+        src/values.h
+        src/search.c src/search.h
+        src/bench.c src/bench.h
+        )

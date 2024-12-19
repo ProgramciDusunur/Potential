@@ -8,7 +8,7 @@
 #pragma once
 
 #include "structs.h"
-#include "bit_manipluation.h"
+#include "bit_manipulation.h"
 #include "mask.h"
 #include "magic.h"
 #include "table.h"

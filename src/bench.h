@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "bit_manipluation.h"
+#include "bit_manipulation.h"
 #include <stdio.h>
 #include "search.h"
 #include "time.h"

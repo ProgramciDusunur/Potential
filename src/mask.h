@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "bit_manipluation.h"
+#include "bit_manipulation.h"
 #include "board_constants.h"
 #include "structs.h"
 

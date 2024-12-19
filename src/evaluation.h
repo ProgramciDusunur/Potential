@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "bit_manipluation.h"
+#include "bit_manipulation.h"
 #include "mask.h"
 #include "move.h"
 #include "values.h"

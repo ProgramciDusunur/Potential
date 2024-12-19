@@ -35,9 +35,9 @@ void sort_moves(moves *moveList, int bestMove, board* position);
 void enable_pv_scoring(moves *moveList, board* position);
 void printMove(int move);
 int getLmrReduction(int depth, int moveNumber);
-void clearCounterMoves();
+void clearCounterMoves(void);
 int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time);
-int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode);
+int negamax(int alpha, int beta, int depth, board* position, time* time);
 void searchPosition(int depth, board* position, bool benchmark, time* time);
 
 #endif //POTENTIAL_SEARCH_H
