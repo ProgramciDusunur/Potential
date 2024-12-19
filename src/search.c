@@ -75,11 +75,11 @@ int scoreMove(int move, board* position) {
         switch (isPromotionMove) {
             case q:
             case Q:
-                return 1000000000;
+                return 1000000002;
                 break;
             case n:
             case N:
-                return 800000000;
+                return 1000000001;
                 break;
             case r:
             case R:
