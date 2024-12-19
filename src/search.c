@@ -61,13 +61,13 @@ void initializeLMRTable(void) {
 // score moves
 int scoreMove(int move, board* position) {
     // make sure we are dealing with PV move
-    if (position->scorePv && position->pvTable[0][position->ply] == move) {
+    /*if (position->scorePv && position->pvTable[0][position->ply] == move) {
         // disable score PV flag
         position->scorePv = 0;
 
         // give PV move the highest score to search it first
         return 1500000000;
-    }
+    }*/
 
     // score capture move
     if (getMoveCapture(move)) {
@@ -112,7 +112,7 @@ int scoreMove(int move, board* position) {
     }
 
         // score quiet move
-    else {
+    /*else {
 
         // score 1st killer move
         if (position->killerMoves[position->ply][0] == move)
@@ -121,21 +121,21 @@ int scoreMove(int move, board* position) {
             // score 2nd killer move
         else if (position->killerMoves[position->ply][1] == move)
             return 800000000;
-        /*else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
-            return 700000000;*/
+        else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
+            return 700000000;
 
-        /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
+        if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
              printf("History score negative: %d\n", historyMoves[getMoveSource(move)][getMoveTarget(move)]);
-         }*/
-        return historyMoves[getMoveSource(move)][getMoveTarget(move)];
+         }
+        //return historyMoves[getMoveSource(move)][getMoveTarget(move)];
 
-    }
+    }*/
     return 0;
 }
 
 
 
-void sort_moves(moves *moveList, int bestMove, board* position) {
+void sort_moves(moves *moveList, board* position) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -146,10 +146,10 @@ void sort_moves(moves *moveList, int bestMove, board* position) {
         int current_score;
 
         // if hash move available
-        if (bestMove == current_move)
+        /*if (bestMove == current_move)
             current_score = 2000000000;
-        else
-            current_score = scoreMove(current_move, position);
+        else*/
+        current_score = scoreMove(current_move, position);
 
         // Find the correct position to insert the current move
         int insert_pos = sorted_count;
@@ -482,10 +482,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         enable_pv_scoring(moveList, position);
 
     // sort moves
-    //sort_moves(moveList, bestMove, position);
+    sort_moves(moveList, position);
 
     // number of moves searched in a move list
-    int moves_searched = 0;
+    //int moves_searched = 0;
 
 
 
@@ -558,7 +558,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         if (time->stopped == 1) return 0;
 
         // increment the counter of moves searched so far
-        moves_searched++;
+        //moves_searched++;
 
 
         // found a better move
