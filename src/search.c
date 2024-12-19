@@ -112,24 +112,24 @@ int scoreMove(int move, board* position) {
     }
 
         // score quiet move
-    /*else {
+    else {
 
         // score 1st killer move
-        if (position->killerMoves[position->ply][0] == move)
+        /*if (position->killerMoves[position->ply][0] == move)
             return 900000000;
 
             // score 2nd killer move
         else if (position->killerMoves[position->ply][1] == move)
             return 800000000;
         else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
-            return 700000000;
+            return 700000000;*/
 
-        if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
+        /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
              printf("History score negative: %d\n", historyMoves[getMoveSource(move)][getMoveTarget(move)]);
-         }
-        //return historyMoves[getMoveSource(move)][getMoveTarget(move)];
+         }*/
+        return historyMoves[getMoveSource(move)][getMoveTarget(move)];
 
-    }*/
+    }
     return 0;
 }
 
@@ -359,7 +359,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     int score = 0;
 
     // best move (to store in TT)
-    //int bestMove = 0;
+    int bestMove = 0;
 
     // define hash flag
     //int hashFlag = hashFlagAlpha;
@@ -524,9 +524,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             continue;
         }
 
-        /*if (isQuiet) {
+        if (isQuiet) {
             addMoveToHistoryList(badQuiets, currentMove);
-        }*/
+        }
 
         // increment legal moves
         legal_moves++;
@@ -568,7 +568,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             //hashFlag = hashFlagExact;
 
             // store best move (for TT)
-            //bestMove = currentMove;
+            bestMove = currentMove;
 
             // on quiet moves
             /*if (getMoveCapture(currentMove) == 0)
@@ -607,7 +607,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
                     //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
-                    //updateHistory(bestMove, depth);
+                    updateQuietMoveHistory(bestMove, depth, badQuiets);
                 }
 
                 // node (move) fails high
