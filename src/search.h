@@ -31,7 +31,7 @@ extern int counterMoves[2][maxPly][maxPly];
 int isRepetition(board* position);
 void initializeLMRTable();
 int scoreMove(int move, board* position);
-void sort_moves(moves *moveList, int bestMove, board* position);
+void sort_moves(moves *moveList, board* position);
 void enable_pv_scoring(moves *moveList, board* position);
 void printMove(int move);
 int getLmrReduction(int depth, int moveNumber);
