@@ -361,7 +361,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     int bestMove = 0;
 
     // define hash flag
-    //int hashFlag = hashFlagAlpha;
+    int hashFlag = hashFlagAlpha;
 
     if ((searchNodes & 2047) == 0) {
         communicate(time);
@@ -373,7 +373,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     int pvNode = beta - alpha > 1;
 
-    //int rootNode = position->ply == 0;
+    int rootNode = position->ply == 0;
 
     //int ttBound = readHashFlag(position);
 
@@ -382,11 +382,12 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     //int pastStack;
 
     // read hash entry
-    /*if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
+    if (!rootNode && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move
         return score;
-    }*/
+    }
+
     // init PV length
     position->pvLength[position->ply] = position->ply;
 
@@ -564,7 +565,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         if (score > alpha) {
             // switch hash flag from storing for fail-low node
             // to the one storing score for PV node
-            //hashFlag = hashFlagExact;
+            hashFlag = hashFlagExact;
 
             // store best move (for TT)
             bestMove = currentMove;
@@ -594,7 +595,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             // fail-hard beta cutoff
             if (score >= beta) {
                 // store hash entry with the score equal to beta
-                //writeHashEntry(beta, bestMove, depth, hashFlagBeta, position);
+                writeHashEntry(beta, bestMove, depth, hashFlagBeta, position);
                 //int lastMove = moveList->moves[position->ply - 1];
                 // on quiet moves
                 if (isQuiet) {
@@ -628,7 +629,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             return 0;
     }
     // store hash entry with the score equal to alpha
-    //writeHashEntry(alpha, bestMove, depth, hashFlag, position);
+    writeHashEntry(alpha, bestMove, depth, hashFlag, position);
 
     // node (move) fails low
     return alpha;
