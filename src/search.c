@@ -61,13 +61,13 @@ void initializeLMRTable(void) {
 // score moves
 int scoreMove(int move, board* position) {
     // make sure we are dealing with PV move
-    /*if (position->scorePv && position->pvTable[0][position->ply] == move) {
+    if (position->scorePv && position->pvTable[0][position->ply] == move) {
         // disable score PV flag
         position->scorePv = 0;
 
         // give PV move the highest score to search it first
         return 1500000000;
-    }*/
+    }
 
     // score capture move
     if (getMoveCapture(move)) {
@@ -612,11 +612,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
                 // node (move) fails high
                 return beta;
-            }/* else {
-                if (isQuiet) {
-                    addMoveToHistoryList(badQuiets, currentMove);
-                }
-            }*/
+            }
         }
     }
 
