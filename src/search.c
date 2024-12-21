@@ -237,7 +237,6 @@ void quiescence_sort_moves(moves *moveList, board* position) {
 }
 
 
-
 // enable PV move scoring
 void enable_pv_scoring(moves *moveList, board* position) {
     // disable following PV
