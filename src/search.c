@@ -421,7 +421,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     //int captureMoves = 0;
 
     // get static evaluation score
-    //int static_eval = evaluate(position);
+    int static_eval = evaluate(position);
 
     /*position->staticEval[position->ply] = static_eval;
 
@@ -452,11 +452,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     //printf("static eval calculated %d\n", position->staticEval[position->ply]);
 
-    //int canPrune = in_check == 0 && pvNode == 0;
+    int canPrune = in_check == 0 && pvNode == 0;
 
 
-    // evaluation pruning / static null move pruning
-    /*if (depth < 4 && canPrune && abs(beta - 1) > -infinity + 100) {
+    // reverse futility pruning
+    if (depth < 4 && canPrune) {
         // define evaluation margin
         int eval_margin = 100 * depth;
 
@@ -464,10 +464,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         if (static_eval - eval_margin >= beta)
             // evaluation margin substracted from static evaluation score
             return static_eval - eval_margin;
-    }*/
+    }
 
-    //info depth 7 score cp 99 nodes 112899 nps 206396 time 547 pv e2e3 d7d5 d1h5 c8e6 f1d3 g8f6 h5f7
-    //info depth 8 score cp -44 nodes 981880 nps 241663 time 4063 pv d2d4 b7b6 c1f4 c8b7 g1f3 g8f6 e2e4 b7e4
 
 
     // create move list instance
