@@ -358,7 +358,6 @@ int makeMove(int move, int moveFlag, board* position) {
 
 }
 
-
 // generate all moves
 void moveGenerator(moves *moveList, board* position) {
     // init move count
