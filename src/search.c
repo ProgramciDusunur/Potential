@@ -213,33 +213,31 @@ void clearCounterMoves(void) {
 }
 
 // quiescence search
-int quiescence(int alpha, int beta, board* position, int negamaxScore, time* time) {
+int quiescence(int alpha, int beta, board* position, time* time) {
     if ((searchNodes & 2047) == 0) {
         communicate(time);
     }
-    // increment nodes count
-    searchNodes++;
 
     int score = 0;
 
 
-    int pvNode = beta - alpha > 1;
+    //int pvNode = beta - alpha > 1;
 
-    int rootNode = position->ply == 0;
+    //int rootNode = position->ply == 0;
 
     // best move (to store in TT)
-    int bestMove = 0;
+    //int bestMove = 0;
 
     // define hash flag
-    int hashFlag = hashFlagAlpha;
+    //int hashFlag = hashFlagAlpha;
 
 
     // read hash entry
-    if (position->ply && (negamaxScore = readHashEntry(alpha, beta, &bestMove, 0, position)) != noHashEntry && pvNode == 0) {
+    /*if (position->ply && (negamaxScore = readHashEntry(alpha, beta, &bestMove, 0, position)) != noHashEntry && pvNode == 0) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move
         return negamaxScore;
-    }
+    }*/
 
     // evaluate position
     int evaluation = evaluate(position);
@@ -267,20 +265,20 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
     //sort_moves(moveList, 0, position);
 
     // legal moves counter
-    int legal_moves = 0;
+    //int legal_moves = 0;
 
-    int futilityMargin = evaluation + 100;
+    //int futilityMargin = evaluation + 100;
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
         //if (see(position, moveList->moves[count]) < 0) continue;
-        if (!pvNode && futilityMargin <= alpha) {
+        /*if (!pvNode && futilityMargin <= alpha) {
             if (negamaxScore < futilityMargin) {
                 negamaxScore = futilityMargin;
             }
             continue;
-        }
-        bool isNotMated = alpha > -mateScore + maxPly;
+        }*/
+        /*bool isNotMated = alpha > -mateScore + maxPly;
         int lmpBase = 4;
         int lmpMultiplier = 8;
         int lmpThreshold = (lmpBase + lmpMultiplier);
@@ -288,7 +286,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
             if (legal_moves >= lmpThreshold) {
                 continue;
             }
-        }
+        }*/
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
@@ -312,10 +310,13 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
             continue;
         }
 
-        legal_moves++;
+        //legal_moves++;
+
+        // increment nodes count
+        searchNodes++;
 
         // score current move
-        score = -quiescence(-beta, -alpha, position, score, time);
+        score = -quiescence(-beta, -alpha, position, time);
 
         // decrement ply
         position->ply--;
@@ -334,19 +335,19 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
             // PV node (move)
             alpha = score;
 
-            bestMove = moveList->moves[count];
+            //bestMove = moveList->moves[count];
 
-            hashFlag = hashFlagExact;
+            //hashFlag = hashFlagExact;
             // fail-hard beta cutoff
             if (score >= beta) {
-                writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
+                //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
                 // node (move) fails high
                 return beta;
             }
         }
 
     }
-    writeHashEntry(alpha, bestMove, 0, hashFlag, position);
+    //writeHashEntry(alpha, bestMove, 0, hashFlag, position);
     // node (move) fails low
     return alpha;
 }
@@ -394,14 +395,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     // recursion escapre condition
     if (depth == 0)
         // run quiescence search
-        return evaluate(position);
+        return quiescence(alpha, beta, position, time);
 
     // IIR by Ed Schroder (~15 Elo)
     /*if ((depth >= 4 && ttBound == hashFlagNone) || cutNode)
         depth -= 1 + (cutNode);*/
-
-    // increment nodes count
-    searchNodes++;
 
     // is king in check
     int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
@@ -466,8 +464,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             return static_eval - eval_margin;
     }*/
 
-    //info depth 7 score cp 99 nodes 112899 nps 206396 time 547 pv e2e3 d7d5 d1h5 c8e6 f1d3 g8f6 h5f7
-    //info depth 8 score cp -44 nodes 981880 nps 241663 time 4063 pv d2d4 b7b6 c1f4 c8b7 g1f3 g8f6 e2e4 b7e4
+
 
 
     // create move list instance
@@ -531,6 +528,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
         // increment legal moves
         legal_moves++;
+
+        // increment nodes count
+        searchNodes++;
 
         if (isQuiet) {
             //quietMoves++;
