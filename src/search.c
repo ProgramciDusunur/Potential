@@ -99,7 +99,7 @@ int scoreMove(int move, board* position) {
         }
 
         // score move by MVV LVA lookup [source piece][target piece]
-        return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
+        return mvv[target_piece] + 1000000000;
         /*int seeScore = see(position, move);
         if (seeScore > 0) {
             return 15000;
