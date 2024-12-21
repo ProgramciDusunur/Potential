@@ -520,7 +520,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     //printf("static eval calculated %d\n", position->staticEval[position->ply]);
 
-    //int canPrune = in_check == 0 && pvNode == 0;
+    int canPrune = !in_check && !pvNode;
 
 
     // evaluation pruning / static null move pruning
@@ -533,6 +533,56 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             // evaluation margin substracted from static evaluation score
             return static_eval - eval_margin;
     }*/
+
+
+    // null move pruning
+    if (canPrune && depth >= nullMoveDepth && position->ply) {
+        struct copyposition copyPosition;
+        // preserve board state
+        copyBoard(position, &copyPosition);
+
+        position->ply++;
+
+        // increment repetition index & store hash key
+        position->repetitionIndex++;
+        position->repetitionTable[position->repetitionIndex] = position->hashKey;
+
+        // hash enpassant if available
+        if (position->enpassant != no_sq) { position->hashKey ^= enpassantKeys[position->enpassant]; }
+
+        // reset enpassant capture square
+        position->enpassant = no_sq;
+
+        // switch the side, literally giving opponent an extra move to make
+        position->side ^= 1;
+
+        // hash the side
+        position->hashKey ^= sideKey;
+
+        int R = 3;
+
+        /* search moves with reduced depth to find beta cutoffs
+           depth - R where R is a reduction limit */
+        score = -negamax(-beta, -beta + 1, depth - R, position, time);
+
+        // decrement ply
+        position->ply--;
+
+        // decrement repetition index
+        position->repetitionIndex--;
+
+        // restore board state
+        takeBack(position, &copyPosition);
+
+
+        if (time->stopped == 1) return 0;
+
+        // fail-hard beta cutoff
+        if (score >= beta)
+
+            // node (move) fails high
+            return beta;
+    }
 
 
 
