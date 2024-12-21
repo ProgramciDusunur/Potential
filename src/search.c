@@ -534,7 +534,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             return static_eval - eval_margin;
     }*/
 
-
     // null move pruning
     if (depth >= nullMoveDepth && in_check == 0 && position->ply) {
         struct copyposition copyPosition;
