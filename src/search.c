@@ -119,9 +119,9 @@ int scoreMove(int move, board* position) {
             return 900000000;
 
             // score 2nd killer move
-        /*else if (position->killerMoves[position->ply][1] == move)
+        else if (position->killerMoves[position->ply][1] == move)
             return 800000000;
-        else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
+        /*else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
 
         /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
@@ -674,11 +674,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
                 // on quiet moves
                 if (isQuiet) {
                     // store killer moves
-                    position->killerMoves[position->ply][0] = bestMove;
-                    /*if (position->killerMoves[position->ply][0] != bestMove) {
+                    if (position->killerMoves[position->ply][0] != bestMove) {
                         position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
-
-                    }*/
+                        position->killerMoves[position->ply][0] = bestMove;
+                    }
                     //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
