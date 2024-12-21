@@ -489,7 +489,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     //int captureMoves = 0;
 
     // get static evaluation score
-    //int static_eval = evaluate(position);
+    int static_eval = evaluate(position);
 
     /*position->staticEval[position->ply] = static_eval;
 
@@ -535,7 +535,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     }*/
 
     // null move pruning
-    if (depth >= nullMoveDepth && in_check == 0 && position->ply) {
+    if (depth >= nullMoveDepth && in_check == 0 && position->ply && static_eval >= beta) {
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
@@ -582,7 +582,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             // node (move) fails high
             return beta;
     }
-
 
 
 
