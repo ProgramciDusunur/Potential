@@ -259,7 +259,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     moves moveList[1];
 
     // generate moves
-    moveGenerator(moveList, position);
+    noisyGenerator(moveList, position);
 
     // sort moves
     //sort_moves(moveList, 0, position);
