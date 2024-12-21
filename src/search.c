@@ -98,8 +98,10 @@ int scoreMove(int move, board* position) {
             }
         }
 
+        int captureHistoryBonus = captureMoveHistory[position->side][getMoveSource(move)][getMoveTarget(move)];
+
         // score move by MVV LVA lookup [source piece][target piece]
-        return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
+        return mvvLva[getMovePiece(move)][target_piece] + 1000000000 + captureHistoryBonus;
         /*int seeScore = see(position, move);
         if (seeScore > 0) {
             return 15000;
@@ -124,10 +126,10 @@ int scoreMove(int move, board* position) {
         else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
 
-        /*if (historyMoves[getMoveSource(move)][getMoveTarget(move)] < 0) {
-             printf("History score negative: %d\n", historyMoves[getMoveSource(move)][getMoveTarget(move)]);
+        /*if (quietMoveHistory[getMoveSource(move)][getMoveTarget(move)] < 0) {
+             printf("History score negative: %d\n", quietMoveHistory[getMoveSource(move)][getMoveTarget(move)]);
          }*/
-        return historyMoves[getMoveSource(move)][getMoveTarget(move)];
+        return quietMoveHistory[getMoveSource(move)][getMoveTarget(move)];
 
     }
     return 0;
@@ -538,8 +540,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
 
     // create move list instance
-    moves moveList[1], badQuiets[1];
+    moves moveList[1], badQuiets[1], noisyMoves[1];
     badQuiets->count = 0;
+    noisyMoves->count = 0;
 
     // generate moves
     moveGenerator(moveList, position);
@@ -594,6 +597,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
         if (isQuiet) {
             addMoveToHistoryList(badQuiets, currentMove);
+        } else {
+            addMoveToHistoryList(noisyMoves, currentMove);
         }
 
         // increment legal moves
@@ -644,7 +649,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             // on quiet moves
             /*if (getMoveCapture(currentMove) == 0)
                 // store history moves
-                position->historyMoves[getMovePiece(currentMove)][getMoveTarget(currentMove)] += depth;*/
+                position->quietMoveHistory[getMovePiece(currentMove)][getMoveTarget(currentMove)] += depth;*/
 
             // PV node (move)
             alpha = score;
@@ -683,6 +688,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
                     //position->killerMoves[position->ply][0] = bestMove;
                     //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
                     updateQuietMoveHistory(bestMove, depth, badQuiets);
+                } else {
+                    updateCaptureHistory(position, bestMove, depth, noisyMoves);
                 }
 
                 // node (move) fails high
@@ -728,7 +735,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     position->scorePv = 0;
 
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
-    memset(historyMoves, 0, sizeof(historyMoves));
+    memset(quietMoveHistory, 0, sizeof(quietMoveHistory));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
