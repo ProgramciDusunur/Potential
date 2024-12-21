@@ -453,7 +453,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     //int pastStack;
 
     // read hash entry
-    if (!rootNode && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry) {
+    if (!rootNode &&
+      (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry
+       && !pvNode) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move
         return score;
