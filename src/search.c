@@ -520,7 +520,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     //printf("static eval calculated %d\n", position->staticEval[position->ply]);
 
-    int canPrune = !in_check && !pvNode;
+    //int canPrune = in_check == 0 && pvNode == 0;
 
 
     // evaluation pruning / static null move pruning
@@ -536,7 +536,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
 
     // null move pruning
-    if (canPrune && depth >= nullMoveDepth && position->ply) {
+    if (depth >= nullMoveDepth && in_check == 0 && position->ply) {
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
@@ -583,6 +583,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             // node (move) fails high
             return beta;
     }
+
 
 
 
