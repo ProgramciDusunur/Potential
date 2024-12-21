@@ -423,7 +423,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     return alpha;
 }
 
-
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, board* position, time* time) {
     // variable to store current move's score (from the static evaluation perspective)
