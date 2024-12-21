@@ -36,6 +36,8 @@ typedef struct {
     int followPv;
     int scorePv;
 
+    int rootBestMove;
+
     //int depth;
     U64 hashKey;
 
