@@ -134,7 +134,7 @@ int scoreMove(int move, board* position) {
 }
 
 
-void sort_moves(moves *moveList, board* position) {
+void sort_moves(moves *moveList, int bestMove, board* position) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -145,9 +145,9 @@ void sort_moves(moves *moveList, board* position) {
         int current_score;
 
         // if hash move available
-        /*if (bestMove == current_move)
+        if (bestMove == current_move)
             current_score = 2000000000;
-        else*/
+        else
         current_score = scoreMove(current_move, position);
 
         // Find the correct position to insert the current move
@@ -466,7 +466,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             return static_eval - eval_margin;
     }*/
 
-
+    //info depth 7 score cp 99 nodes 112899 nps 206396 time 547 pv e2e3 d7d5 d1h5 c8e6 f1d3 g8f6 h5f7
+    //info depth 8 score cp -44 nodes 981880 nps 241663 time 4063 pv d2d4 b7b6 c1f4 c8b7 g1f3 g8f6 e2e4 b7e4
 
 
     // create move list instance
@@ -482,7 +483,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         enable_pv_scoring(moveList, position);
 
     // sort moves
-    sort_moves(moveList, position);
+    sort_moves(moveList, bestMove, position);
 
     // number of moves searched in a move list
     //int moves_searched = 0;
