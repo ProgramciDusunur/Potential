@@ -604,7 +604,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     //int moves_searched = 0;
 
 
-
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
         int currentMove = moveList->moves[count];
