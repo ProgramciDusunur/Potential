@@ -525,7 +525,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     // evaluation pruning / static null move pruning
     if (depth < 4 && canPrune) {
         // define evaluation margin
-        int eval_margin = 100 * depth;
+        int eval_margin = 50 * depth;
 
         // evaluation margin substracted from static evaluation score fails high
         if (static_eval - eval_margin >= beta)
