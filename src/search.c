@@ -291,9 +291,9 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     int score = 0;
 
-    //int pvNode = beta - alpha > 1;
+    int pvNode = beta - alpha > 1;
 
-    //int rootNode = position->ply == 0;
+    int rootNode = position->ply == 0;
 
     // best move (to store in TT)
     int bestMove = 0;
@@ -303,7 +303,9 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
 
     // read hash entry
-    if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, 0, position)) != noHashEntry) {
+    if (!rootNode &&
+        (score = readHashEntry(alpha, beta, &bestMove, 0, position)) != noHashEntry &&
+        !pvNode) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move
         return score;
