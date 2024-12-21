@@ -666,7 +666,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
                 position->pvLength[position->ply] = position->pvLength[position->ply + 1];
             }
 
-
             // fail-hard beta cutoff
             if (score >= beta) {
                 // store hash entry with the score equal to beta
