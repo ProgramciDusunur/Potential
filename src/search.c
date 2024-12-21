@@ -520,12 +520,13 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     //printf("static eval calculated %d\n", position->staticEval[position->ply]);
 
+
     int canPrune = in_check == 0 && pvNode == 0;
 
     // evaluation pruning / static null move pruning
     if (depth < 4 && canPrune) {
         // define evaluation margin
-        int eval_margin = 82 * depth;
+        int eval_margin = 65 * depth;
 
         // evaluation margin substracted from static evaluation score fails high
         if (static_eval - eval_margin >= beta)
