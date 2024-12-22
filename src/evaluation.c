@@ -188,6 +188,7 @@ const int passed_pawn_bonus_endgame[64] = {0, 0, 0, 0, 0, 0, 0, 0,
 // File and Mobility Scores
 const int semi_open_file_score = 10;
 const int open_file_score = 15;
+const int rook_open_file = 10;
 const int bishop_unit = 4;
 const int queen_unit = 9;
 
@@ -421,11 +422,12 @@ int evaluate(board* position) {
                         // add semi open file bonus
                         score += semi_open_file_score;
 
-                    // semi open file
-                    if (((bitboards[P] | bitboards[p]) & file_masks[square]) == 0)
-                        // add semi open file bonus
-                        score += open_file_score;
+
                     */
+                    // open file
+                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
+                        // add open file bonus
+                        score += rook_open_file;
                     break;
 
                     // evaluate white queens
@@ -574,12 +576,12 @@ int evaluate(board* position) {
                     if ((bitboards[p] & file_masks[square]) == 0)
                         // add semi open file bonus
                         score -= semi_open_file_score;
-
-                    // semi open file
-                    if (((bitboards[P] | bitboards[p]) & file_masks[square]) == 0)
-                        // add semi open file bonus
-                        score -= open_file_score;
                     */
+
+                    // open file
+                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
+                        // add open file bonus
+                        score -= rook_open_file;
                     break;
 
                     // evaluate black queens
