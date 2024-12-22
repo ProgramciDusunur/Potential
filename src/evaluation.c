@@ -601,6 +601,7 @@ int evaluate(board* position) {
                     //score -= count_bits(get_queen_attacks(square, occupancies[both]));
                     break;
 
+
                     // evaluate black king
                 case k:
                     // interpolate scores in middle_game
