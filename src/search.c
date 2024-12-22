@@ -520,6 +520,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     //printf("static eval calculated %d\n", position->staticEval[position->ply]);
 
+
     bool canPrune = in_check == 0 && pvNode == 0;
 
     // reverse futility pruning
