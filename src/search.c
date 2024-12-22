@@ -847,5 +847,4 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         printMove(position->rootBestMove);
         printf("\n");
     }
-
 }
