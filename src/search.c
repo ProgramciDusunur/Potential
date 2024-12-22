@@ -602,7 +602,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     sort_moves(moveList, bestMove, position);
 
     // number of moves searched in a move list
-    //int moves_searched = 0;
+    int moves_searched = 0;
 
 
 
@@ -659,11 +659,23 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
 
 
+        // full-depth search
+        if (moves_searched == 0) {
+            // do normal alpha beta search
+            score = -negamax(-beta, -alpha, depth - 1, position, time);
+        } else {
 
+            // We found a move with a score that is between alpha and beta
+            // then we should provide the subsequent moves are all bad.
+            score = -negamax(-alpha - 1 , -alpha, depth - 1, position, time);
 
+            // If our search finds out that it was wrong, and that one of the subsequent moves
+            // better then the first PV move. It has t be search again.
+            if (score > alpha && score < beta) {
+                score = -negamax(-beta, -alpha, depth - 1, position, time);
+            }
+        }
 
-        // do normal alpha beta search
-        score = -negamax(-beta, -alpha, depth - 1, position, time);
 
 
         // decrement ply
