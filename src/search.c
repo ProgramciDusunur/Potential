@@ -603,7 +603,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     for (int count = 0; count < moveList->count; count++) {
         int currentMove = moveList->moves[count];
 
-
         bool isQuiet = getMoveCapture(currentMove) == 0;
 
         if (skipQuiet && isQuiet) {
