@@ -489,7 +489,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     //int captureMoves = 0;
 
     // get static evaluation score
-    //int static_eval = evaluate(position);
+    int static_eval = evaluate(position);
 
     /*position->staticEval[position->ply] = static_eval;
 
@@ -523,16 +523,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     //int canPrune = in_check == 0 && pvNode == 0;
 
 
-    // evaluation pruning / static null move pruning
-    /*if (depth < 4 && canPrune && abs(beta - 1) > -infinity + 100) {
-        // define evaluation margin
-        int eval_margin = 100 * depth;
-
-        // evaluation margin substracted from static evaluation score fails high
-        if (static_eval - eval_margin >= beta)
-            // evaluation margin substracted from static evaluation score
-            return static_eval - eval_margin;
-    }*/
+    // reverse futility pruning
+    if (depth <= 2 && !pvNode && !in_check && static_eval - 82 * depth >= beta)
+        return static_eval;
 
     // null move pruning
     if (depth >= nullMoveDepth && in_check == 0 && position->ply) {
