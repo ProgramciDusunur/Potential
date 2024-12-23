@@ -524,7 +524,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
 
     // reverse futility pruning
-    if (depth <= 2 && !pvNode && !in_check && static_eval - 82 * depth >= beta)
+    if (depth <= 3 && !pvNode && !in_check && static_eval - 82 * depth >= beta)
         return static_eval;
 
     // null move pruning
