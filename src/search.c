@@ -467,9 +467,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         // run quiescence search
         return quiescence(alpha, beta, position, time);
 
-    // IIR by Ed Schroder (~15 Elo)
-    /*if ((depth >= 4 && ttBound == hashFlagNone) || cutNode)
-        depth -= 1 + (cutNode);*/
+    // Internal Iterative Reductions
+    if (depth >= 4 && !bestMove) {
+        depth--;
+    }
 
     // is king in check
     int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
