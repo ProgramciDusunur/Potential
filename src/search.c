@@ -483,7 +483,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     int legal_moves = 0;
 
     // quiet move counter
-    //int quietMoves = 0;
+    int quietMoves = 0;
 
     // capture move counter
     //int captureMoves = 0;
@@ -645,7 +645,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         searchNodes++;
 
         if (isQuiet) {
-            //quietMoves++;
+            quietMoves++;
         } else {
             //captureMoves++;
         }
@@ -662,7 +662,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             if (isQuiet) {
 
                 // Reduce More
-                if (!pvNode) {
+                if (!pvNode && quietMoves >= 2) {
                     lmrReduction += 1;
                 }
 
