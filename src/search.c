@@ -343,6 +343,9 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     for (int count = 0; count < moveList->count; count++) {
         //if (see(position, moveList->moves[count]) < 0) continue;
         if (!pvNode && futilityMargin <= alpha) {
+            if (score < futilityMargin) {
+                score = futilityMargin;
+            }
             continue;
         }
         /*bool isNotMated = alpha > -mateScore + maxPly;
