@@ -520,7 +520,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     //printf("static eval calculated %d\n", position->staticEval[position->ply]);
 
-    //int canPrune = in_check == 0 && pvNode == 0;
+    int canPrune = in_check == 0 && pvNode == 0;
 
 
     // reverse futility pruning
@@ -597,7 +597,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     // number of moves searched in a move list
     int moves_searched = 0;
 
-
+    bool skipQuiet;
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
@@ -606,10 +606,21 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         bool isQuiet = getMoveCapture(currentMove) == 0;
 
 
-        /*int seeScore = see(position, moveList->moves[count]);
-        if (in_check == 0 && seeScore < -17 * depth * depth) {
-            continue;
-        }*/
+        if (skipQuiet && isQuiet) {
+            //continue;
+        }
+
+        bool isNotMated = alpha > -mateScore + maxPly;
+
+        if (!rootNode && isQuiet && isNotMated) {
+
+            if (canPrune && depth <= 2 && static_eval + 82 <= alpha) {
+                skipQuiet = 1;
+                continue;
+            }
+
+        }
+
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
