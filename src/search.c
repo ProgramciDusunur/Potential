@@ -483,7 +483,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     int legal_moves = 0;
 
     // quiet move counter
-    //int quietMoves = 0;
+    int quietMoves = 0;
 
     // capture move counter
     //int captureMoves = 0;
@@ -645,11 +645,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         searchNodes++;
 
         if (isQuiet) {
-            //quietMoves++;
+            quietMoves++;
         } else {
             //captureMoves++;
         }
-
 
 
 
@@ -658,11 +657,26 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, depth - 1, position, time);
         } else {
+            int lmrReduction = 2;
+            if (isQuiet) {
+
+                // Reduce More
+                if (!pvNode && quietMoves >= 4) {
+                    lmrReduction += 1;
+                }
+
+
+            } else {
+
+            }
+
+
+
             // condition to consider LMR
             if(moves_searched >= lmr_full_depth_moves &&
                     depth >= lmr_reduction_limit) {
                 // search current move with reduced depth:
-                score = -negamax(-alpha - 1, -alpha, depth - 2, position, time);
+                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time);
             } else {
                 // hack to ensure that full-depth search is done
                 score = alpha + 1;
