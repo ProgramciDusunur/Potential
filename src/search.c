@@ -324,6 +324,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         alpha = evaluation;
     }
 
+
     // create move list instance
     moves moveList[1];
 
