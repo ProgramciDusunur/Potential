@@ -291,7 +291,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     int score = 0;
 
-    //int pvNode = beta - alpha > 1;
+    int pvNode = beta - alpha > 1;
 
     //int rootNode = position->ply == 0;
 
@@ -337,17 +337,14 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // legal moves counter
     //int legal_moves = 0;
 
-    //int futilityMargin = evaluation + 100;
+    int futilityMargin = evaluation + 82;
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
         //if (see(position, moveList->moves[count]) < 0) continue;
-        /*if (!pvNode && futilityMargin <= alpha) {
-            if (negamaxScore < futilityMargin) {
-                negamaxScore = futilityMargin;
-            }
+        if (!pvNode && futilityMargin <= alpha) {
             continue;
-        }*/
+        }
         /*bool isNotMated = alpha > -mateScore + maxPly;
         int lmpBase = 4;
         int lmpMultiplier = 8;
