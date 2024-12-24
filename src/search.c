@@ -296,18 +296,18 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     //int rootNode = position->ply == 0;
 
     // best move (to store in TT)
-    //int bestMove = 0;
+    int bestMove = 0;
 
     // define hash flag
-    //int hashFlag = hashFlagAlpha;
+    int hashFlag = hashFlagAlpha;
 
 
     // read hash entry
-    /*if (position->ply && (negamaxScore = readHashEntry(alpha, beta, &bestMove, 0, position)) != noHashEntry && pvNode == 0) {
+    if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, 0, position)) != noHashEntry) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move
-        return negamaxScore;
-    }*/
+        return score;
+    }
 
     // evaluate position
     int evaluation = evaluate(position);
@@ -405,19 +405,22 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             // PV node (move)
             alpha = score;
 
-            //bestMove = moveList->moves[count];
+            bestMove = moveList->moves[count];
 
-            //hashFlag = hashFlagExact;
+            hashFlag = hashFlagExact;
+
             // fail-hard beta cutoff
             if (score >= beta) {
-                //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
+
+                writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
+
                 // node (move) fails high
                 return beta;
             }
         }
 
     }
-    //writeHashEntry(alpha, bestMove, 0, hashFlag, position);
+    writeHashEntry(alpha, bestMove, 0, hashFlag, position);
     // node (move) fails low
     return alpha;
 }
