@@ -694,7 +694,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             }
 
 
-
             // principle variation search PVS
             if (score > alpha) {
                 /* Once you've found a move with a score that is between alpha and beta,
