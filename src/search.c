@@ -492,6 +492,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // get static evaluation score
     int static_eval = evaluate(position);
 
+
     /*position->staticEval[position->ply] = static_eval;
 
     position->improvingRate[position->ply] = 0.0;
