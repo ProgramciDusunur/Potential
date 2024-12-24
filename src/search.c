@@ -687,7 +687,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             if(moves_searched >= lmr_full_depth_moves &&
                     depth >= lmr_reduction_limit) {
                 // search current move with reduced depth:
-                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, 1);
+                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, true);
             } else {
                 // hack to ensure that full-depth search is done
                 score = alpha + 1;
@@ -695,13 +695,13 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
 
-                // principle variation search PVS
+            // principle variation search PVS
             if (score > alpha) {
                 /* Once you've found a move with a score that is between alpha and beta,
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time, !cutNode);
+                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time, false);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
@@ -711,7 +711,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 if((score > alpha) && (score < beta))
                     /* re-search the move that has failed to be proved to be bad
                        with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, depth - 1, position, time, 0);
+                    score = -negamax(-beta, -alpha, depth - 1, position, time, false);
             }
 
         }
