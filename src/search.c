@@ -285,6 +285,7 @@ void clearCounterMoves(void) {
 
 // quiescence search
 int quiescence(int alpha, int beta, board* position, time* time) {
+
     if ((searchNodes & 2047) == 0) {
         communicate(time);
     }
