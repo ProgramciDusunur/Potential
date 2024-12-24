@@ -6,6 +6,8 @@
 #ifndef POTENTIAL_STRUCTS_H
 #define POTENTIAL_STRUCTS_H
 
+#include <stdint.h>
+
 #ifndef U64
 #define U64 unsigned long long
 #endif
@@ -49,9 +51,9 @@ typedef struct {
 // transposition table data structure
 typedef struct {
     U64 hashKey;     // "almost" unique chess position identifier
-    int depth;       // current search depth
-    int flag;       // flag the type of node (fail-high(score >= beta)/fail-low(score < alpha))
-    int score;       // score (alpha/beta/PV)
+    int8_t depth;       // current search depth
+    uint8_t flag;       // flag the type of node (fail-high(score >= beta)/fail-low(score < alpha))
+    int16_t score;       // score (alpha/beta/PV)
     int bestMove;
 } tt;                 // transposition table (TT aka hash table)
 

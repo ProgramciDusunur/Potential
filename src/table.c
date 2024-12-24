@@ -111,16 +111,9 @@ int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position
     // if hash entry doesn't exist
     return noHashEntry;
 }
-int readHashFlag(board* position) {
-    tt *hashEntry = &hashTable[position->hashKey % hash_entries];
-    if (hashEntry->hashKey == position->hashKey && hashEntry->flag > hashFlagNone) {
-        return 1;
-    }
 
-    return hashFlagNone;
-}
 
-void clearHashTable() {
+void clearHashTable(void) {
     // init hash table entry pointer
     tt *hash_entry;
 
@@ -179,7 +172,7 @@ void init_hash_table(int mb) {
 }
 
 // init random hash keys
-void initRandomKeys() {
+void initRandomKeys(void) {
     // update pseudo random number state
     state = 1804289383;
     // loop over piece codes
