@@ -669,6 +669,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             score = -negamax(-beta, -alpha, depth - 1, position, time, 0);
         } else {
             int lmrReduction = 2;
+
+            /* All Moves */
+
+            // Reduce More
+            if (cutNode) {
+                lmrReduction += 1;
+            }
+
             if (isQuiet) {
 
                 // Reduce More
