@@ -423,7 +423,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 }
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, board* position, time* time) {
+int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode) {
     // variable to store current move's score (from the static evaluation perspective)
     int score = 0;
 
@@ -556,7 +556,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, depth - R, position, time);
+        score = -negamax(-beta, -beta + 1, depth - R, position, time, !cutNode);
 
         // decrement ply
         position->ply--;
@@ -665,9 +665,18 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         // full-depth search
         if (moves_searched == 0) {
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, depth - 1, position, time);
+            score = -negamax(-beta, -alpha, depth - 1, position, time, 0);
         } else {
             int lmrReduction = 2;
+
+            /* All Moves */
+
+            // Reduce More
+            if (cutNode) {
+                lmrReduction += 1;
+            }
+
+
             if (isQuiet) {
 
                 // Reduce More
@@ -686,7 +695,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             if(moves_searched >= lmr_full_depth_moves &&
                     depth >= lmr_reduction_limit) {
                 // search current move with reduced depth:
-                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time);
+                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, true);
             } else {
                 // hack to ensure that full-depth search is done
                 score = alpha + 1;
@@ -700,7 +709,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time);
+                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time, !cutNode);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
@@ -710,7 +719,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
                 if((score > alpha) && (score < beta))
                     /* re-search the move that has failed to be proved to be bad
                        with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, depth - 1, position, time);
+                    score = -negamax(-beta, -alpha, depth - 1, position, time, false);
             }
 
         }
@@ -850,7 +859,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         int startTime = getTimeMiliSecond();
         position->followPv = 1;
         // find best move within a given position
-        score = negamax(alpha, beta, current_depth, position, time);
+        score = negamax(alpha, beta, current_depth, position, time, false);
 
         if (score <= alpha || score >= beta) {
             alpha = -infinity;
