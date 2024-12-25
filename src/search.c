@@ -469,7 +469,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= 4 && !bestMove) {
-        depth--;
+        depth -= 1 + cutNode;
     }
 
     // is king in check
