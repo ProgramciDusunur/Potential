@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <stdint.h>
 #include "structs.h"
 #include "time.h"
 #include "values.h"
@@ -37,6 +38,7 @@ void quiescence_sort_moves(moves *moveList, board* position);
 void enable_pv_scoring(moves *moveList, board* position);
 void printMove(int move);
 int getLmrReduction(int depth, int moveNumber);
+uint8_t justPawns(board *pos);
 void clearCounterMoves(void);
 int quiescence(int alpha, int beta, board* position, time* time);
 int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode);
