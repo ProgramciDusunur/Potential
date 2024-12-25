@@ -534,6 +534,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     int cutNodeDivisor = cutNode ? 2 : 1;
 
+
     // reverse futility pruning
     if (depth <= 4 && !pvNode && !in_check && static_eval - (82 / cutNodeDivisor) * depth >= beta)
         return static_eval;
