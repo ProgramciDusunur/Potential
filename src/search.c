@@ -621,6 +621,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             continue;
         }
 
+        int moveHistory = historyMoves[getMoveSource(currentMove)][getMoveTarget(currentMove)];
+
 
         bool isNotMated = alpha > -mateScore + maxPly;
 
@@ -635,6 +637,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             }
 
             if (canPrune && depth <= 2 && static_eval + 82 * depth <= alpha) {
+                skipQuiet = 1;
+            }
+
+            // Quiet History Pruning
+            if (canPrune && depth <= 2 && moveHistory < depth * -2048) {
                 skipQuiet = 1;
             }
 
