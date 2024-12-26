@@ -347,6 +347,9 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     //int futilityMargin = evaluation + 100;
 
+    // number of moves searched in a move list
+    int moves_searched = 0;
+
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
         //if (see(position, moveList->moves[count]) < 0) continue;
@@ -393,8 +396,28 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         // increment nodes count
         searchNodes++;
 
-        // score current move
-        score = -quiescence(-beta, -alpha, position, time);
+
+
+        // do full depth search
+        if (moves_searched == 0) {
+            score = -quiescence(-beta, -alpha, position, time);
+        } else {
+            /* Once you've found a move with a score that is between alpha and beta,
+                  the rest of the moves are searched with the goal of proving that they are all bad.
+                  It's possible to do this a bit faster than a search that worries that one
+                  of the remaining moves might be good. */
+            score = -quiescence(-alpha - 1, -alpha, position, time);
+
+            /* If the algorithm finds out that it was wrong, and that one of the
+               subsequent moves was better than the first PV move, it has to search again,
+               in the normal alpha-beta manner.  This happens sometimes, and it's a waste of time,
+               but generally not often enough to counteract the savings gained from doing the
+               "bad move proof" search referred to earlier. */
+            if((score > alpha) && (score < beta))
+                /* re-search the move that has failed to be proved to be bad
+                   with normal alpha beta score bounds*/
+                score = -quiescence(-beta, -alpha, position, time);
+        }
 
         // decrement ply
         position->ply--;
@@ -406,6 +429,9 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         takeBack(position, &copyPosition);
 
         if (time->stopped == 1) return 0;
+
+        // increment the counter of moves searched so far
+        moves_searched++;
 
 
         // found a better move
