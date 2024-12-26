@@ -397,7 +397,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         searchNodes++;
 
 
-
         // do full depth search
         if (moves_searched == 0) {
             score = -quiescence(-beta, -alpha, position, time);
