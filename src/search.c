@@ -39,10 +39,16 @@ int isRepetition(board* position) {
     return 0;
 }
 
+// [depth][ply]
 void initializeLMRTable(void) {
-    for (int i = 1; i < maxPly; ++i) {
-        for (int j = 1; j < maxPly; ++j) {
-            lmrTable[i][j] = round(1.0 + log(i) * log(j) * 0.5);
+    for (int depth = 1; depth < maxPly; ++depth) {
+        for (int ply = 1; ply < maxPly; ++ply) {
+            if (ply == 0 || depth == 0) {
+                lmrTable[depth][ply] = 0;
+                lmrTable[depth][ply] = 0;
+                continue;
+            }
+            lmrTable[depth][ply] = round(1.0 + log(depth) * log(ply) * 0.5);
         }
     }
 }
@@ -686,7 +692,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, depth - 1, position, time, 0);
         } else {
-            int lmrReduction = 2;
+            int lmrReduction = getLmrReduction(depth, legal_moves);
             if (isQuiet) {
 
                 // Reduce More
