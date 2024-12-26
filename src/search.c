@@ -624,7 +624,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         bool isNotMated = alpha > -mateScore + maxPly;
 
-        if (!rootNode && isQuiet && isNotMated) {
+        if (!rootNode && isQuiet && isNotMated && !justPawns(position)) {
 
             int lmpBase = 4;
             int lmpMultiplier = 3;
