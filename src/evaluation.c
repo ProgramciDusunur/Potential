@@ -185,6 +185,9 @@ const int passed_pawn_bonus_endgame[64] = {0, 0, 0, 0, 0, 0, 0, 0,
                                                   -2, 0, 0, 0, 0, 0, -1, -2,
                                                   0, 0, 0, 0, 0, 0, 0, 0};
 
+// Passed Can Move Bonus
+const int passedCanMoveBonus = 5;
+
 // File and Mobility Scores
 const int semi_open_file_score = 10;
 const int open_file_score = 15;
@@ -352,6 +355,11 @@ int evaluate(board* position) {
                         // give passed pawn bonus
                         if (game_phase == endgame) {
 
+                            // passed pawn can move bonus
+                            if (!(getBit(position->occupancies[both], (square - 8)))) {
+                                score += passedCanMoveBonus;
+                            }
+
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                             int kingDistance = blackKingDistance - whiteKingDistance;
@@ -510,6 +518,14 @@ int evaluate(board* position) {
                     if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         // give passed pawn bonus
                         if (game_phase == endgame) {
+
+                            // passed pawn can move bonus
+                            if (!(getBit(position->occupancies[both], (square + 8)))) {
+                                score -= passedCanMoveBonus;
+                            }
+
+
+
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                             int kingDistance = whiteKingDistance - blackKingDistance;
