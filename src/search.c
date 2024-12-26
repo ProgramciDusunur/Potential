@@ -621,6 +621,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             continue;
         }
 
+        int moveHistory = historyMoves[getMoveSource(currentMove)][getMoveTarget(currentMove)];
+
 
         bool isNotMated = alpha > -mateScore + maxPly;
 
@@ -694,6 +696,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     lmrReduction += 1;
                 }
 
+
+                // if we have a good history score reduce less otherwise reduce more
+                lmrReduction -= moveHistory / 4096;
 
             } else {
 
