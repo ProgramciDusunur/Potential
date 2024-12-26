@@ -62,6 +62,7 @@ extern const int isolated_pawn_penalty_opening;
 extern const int isolated_pawn_penalty_endgame;
 extern const int passed_pawn_bonus_middle[64];
 extern const int passed_pawn_bonus_endgame[64];
+extern const int passedCanMoveBonus;
 
 // File and Mobility Scores
 extern const int semi_open_file_score;
@@ -83,6 +84,8 @@ extern const int king_distance_bonus;
 // Game Phase Scores
 extern const int opening_phase_score;
 extern const int endgame_phase_score;
+
+
 
 
 int get_game_phase_score(board* position);
