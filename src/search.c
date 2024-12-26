@@ -39,7 +39,7 @@ int isRepetition(board* position) {
     return 0;
 }
 
-// [depth][ply]
+// [depth][moveNumber]
 void initializeLMRTable(void) {
     for (int depth = 1; depth < maxPly; ++depth) {
         for (int ply = 1; ply < maxPly; ++ply) {
@@ -48,7 +48,7 @@ void initializeLMRTable(void) {
                 lmrTable[depth][ply] = 0;
                 continue;
             }
-            lmrTable[depth][ply] = round(1.5 + log(depth) * log(ply) * 1.0);
+            lmrTable[depth][ply] = round(0.75 + log(depth) * log(ply) * 0.375);
         }
     }
 }
