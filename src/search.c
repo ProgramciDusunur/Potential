@@ -49,10 +49,10 @@ void initializeLMRTable(void) {
                 continue;
             }
             // noisy
-            lmrTable[0][depth][moveNumber] = round(-0.1 + log(depth) * log(moveNumber) / 3.1);
+            lmrTable[0][depth][moveNumber] = round(0.5 + log(depth) * log(moveNumber) * 0.25);
 
             // quiet
-            lmrTable[1][depth][moveNumber] = round(0.86 + log(depth) * log(moveNumber) / 1.6);
+            lmrTable[1][depth][moveNumber] = round(0.8 + log(depth) * log(moveNumber) * 0.4);
         }
     }
 }
