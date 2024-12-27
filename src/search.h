@@ -26,7 +26,7 @@ extern int nullMoveDepth;
 
 extern U64 searchNodes;
 
-extern int lmrTable[maxPly][maxPly];
+extern int lmrTable[2][maxPly][256];
 extern int counterMoves[2][maxPly][maxPly];
 
 
@@ -38,7 +38,7 @@ void sort_moves(moves *moveList, int bestMove, board* position);
 void quiescence_sort_moves(moves *moveList, board* position);
 void enable_pv_scoring(moves *moveList, board* position);
 void printMove(int move);
-int getLmrReduction(int depth, int moveNumber);
+int getLmrReduction(bool quiet, int depth, int moveNumber);
 uint8_t justPawns(board *pos);
 void clearCounterMoves(void);
 int quiescence(int alpha, int beta, board* position, time* time);

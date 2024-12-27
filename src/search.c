@@ -14,7 +14,7 @@ int nullMoveDepth = 3;
 
 U64 searchNodes = 0;
 
-int lmrTable[maxPly][maxPly];
+int lmrTable[2][maxPly][256];
 int counterMoves[2][maxPly][maxPly];
 
 
@@ -42,13 +42,14 @@ int isRepetition(board* position) {
 // [depth][moveNumber]
 void initializeLMRTable(void) {
     for (int depth = 1; depth < maxPly; ++depth) {
-        for (int ply = 1; ply < maxPly; ++ply) {
-            if (ply == 0 || depth == 0) {
-                lmrTable[depth][ply] = 0;
-                lmrTable[depth][ply] = 0;
+        for (int moveNumber = 1; moveNumber < 256; ++moveNumber) {
+            if (moveNumber == 0 || depth == 0) {
+                lmrTable[0][depth][moveNumber] = 0;
+                lmrTable[1][depth][moveNumber] = 0;
                 continue;
             }
-            lmrTable[depth][ply] = round(0.75 + log(depth) * log(ply) * 0.375);
+            lmrTable[0][depth][moveNumber] = round(0.3 + log(depth) * log(moveNumber) / 3);
+            lmrTable[1][depth][moveNumber] = round(1.0 + log(depth) * log(moveNumber) / 2);
         }
     }
 }
@@ -274,8 +275,8 @@ void printMove(int move) {
 }
 
 
-int getLmrReduction(int depth, int moveNumber) {
-    int reduction = lmrTable[depth][moveNumber];
+int getLmrReduction(bool quiet, int depth, int moveNumber) {
+    int reduction = lmrTable[quiet][depth][moveNumber];
     return reduction;
 }
 
@@ -691,7 +692,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, depth - 1, position, time, 0);
         } else {
-            int lmrReduction = getLmrReduction(depth, legal_moves);
+            int lmrReduction = getLmrReduction(isQuiet, depth, legal_moves);
             if (isQuiet) {
 
                 // Reduce More
