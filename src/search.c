@@ -506,8 +506,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // get static evaluation score
     int static_eval = evaluate(position);
 
+    bool improving = false;
 
-    /*position->staticEval[position->ply] = static_eval;
+    int pastStack = -1;
+
+    position->staticEval[position->ply] = static_eval;
 
     position->improvingRate[position->ply] = 0.0;
 
@@ -518,28 +521,18 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         pastStack = position->ply - 4;
     }
 
-    if (pastStack) {
+    if (pastStack && !in_check) {
+        improving = position->staticEval[position->ply] > position->staticEval[pastStack];
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
-        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, -3.0), 2.0);
-    }*/
-
-    /*if(in_check)
-        improving = false;
-    else if (position->staticEval[position->ply-2] != noEval) {
-        improving = position->staticEval[position->ply] > position->staticEval[position->ply-2];
+        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, (-1.0)), 1.0);
     }
-    else if (position->staticEval[position->ply-4] != noEval) {
-        improving = position->staticEval[position->ply] > position->staticEval[position->ply-4];
-    }
-    else
-        improving = true;*/
-
-    //printf("static eval calculated %d\n", position->staticEval[position->ply]);
 
     int canPrune = in_check == 0 && pvNode == 0;
 
+    uint16_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
+
     // reverse futility pruning
-    if (depth <= 4 && !pvNode && !in_check && static_eval - 82 * depth >= beta)
+    if (depth <= 4 && !pvNode && !in_check && static_eval - rfpMargin >= beta)
         return static_eval;
 
     // null move pruning
