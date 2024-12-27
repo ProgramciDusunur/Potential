@@ -685,6 +685,13 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             score = -negamax(-beta, -alpha, depth - 1, position, time, 0);
         } else {
             int lmrReduction = getLmrReduction(depth, legal_moves);
+
+            /* All Moves */
+            if (!improving) {
+                lmrReduction += 1;
+            }
+
+
             if (isQuiet) {
 
                 // Reduce More
@@ -702,6 +709,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // condition to consider LMR
             if(moves_searched >= lmr_full_depth_moves &&
                     depth >= lmr_reduction_limit) {
+                lmrReduction = clamp(lmrReduction, 1, depth - 1);
+
                 // search current move with reduced depth:
                 score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, true);
             } else {
