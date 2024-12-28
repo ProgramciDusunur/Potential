@@ -646,7 +646,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             }
         }
 
-
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
