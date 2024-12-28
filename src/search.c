@@ -641,7 +641,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 skipQuiet = 1;
             }
 
-            if (canPrune && depth <= 2 && static_eval + 82 * depth <= alpha) {
+            uint16_t fpMargin = improving ? 65 * depth : 82 * depth;
+            if (canPrune && depth <= 2 && static_eval + fpMargin <= alpha) {
                 skipQuiet = 1;
             }
 
