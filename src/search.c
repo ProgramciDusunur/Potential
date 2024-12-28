@@ -644,7 +644,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             if (canPrune && depth <= 3 && static_eval + 82 * depth <= alpha) {
                 skipQuiet = 1;
             }
-
         }
 
         struct copyposition copyPosition;
