@@ -430,7 +430,6 @@ int evaluate(board* position) {
                         // add semi open file bonus
                         score += semi_open_file_score;
 
-
                     // open file
                     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
                         // add open file bonus
