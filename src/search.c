@@ -634,7 +634,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
             int lmpBase = 4;
             int lmpMultiplier = improving ? 3 : 2;
-            int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth);
+            int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
 
             if (legal_moves>= lmpThreshold) {
                 skipQuiet = 1;
