@@ -628,14 +628,13 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             continue;
         }
 
-
         bool isNotMated = alpha > -mateScore + maxPly;
 
         if (!rootNode && isQuiet && isNotMated) {
 
             int lmpBase = 4;
             int lmpMultiplier = 3;
-            int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth);
+            int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
 
             if (legal_moves>= lmpThreshold) {
                 skipQuiet = 1;
@@ -644,7 +643,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             if (canPrune && depth <= 2 && static_eval + 82 * depth <= alpha) {
                 skipQuiet = 1;
             }
-
         }
 
         struct copyposition copyPosition;
