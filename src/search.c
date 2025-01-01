@@ -303,7 +303,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         communicate(time);
     }
 
-    int score = 0;
+    int bestScore;
 
     //int pvNode = beta - alpha > 1;
 
@@ -325,6 +325,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     // evaluate position
     int evaluation = evaluate(position);
+
+    bestScore = evaluation;
 
     // fail-hard beta cutoff
     if (evaluation >= beta) {
@@ -400,7 +402,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         searchNodes++;
 
         // score current move
-        score = -quiescence(-beta, -alpha, position, time);
+        const int score = -quiescence(-beta, -alpha, position, time);
 
         // decrement ply
         position->ply--;
@@ -415,25 +417,31 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
 
         // found a better move
-        if (score > alpha) {
+        if (score > bestScore) {
             // PV node (move)
-            alpha = score;
+            bestScore = score;
 
-            //bestMove = moveList->moves[count];
 
-            //hashFlag = hashFlagExact;
+
             // fail-hard beta cutoff
-            if (score >= beta) {
-                //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
-                // node (move) fails high
-                return beta;
+            if (score > alpha) {
+                //bestMove = moveList->moves[count];
+
+                //hashFlag = hashFlagExact;
+                if (score >= beta) {
+                    //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
+                    // node (move) fails high
+                    break;
+                }
+
+                alpha = score;
             }
         }
 
     }
     //writeHashEntry(alpha, bestMove, 0, hashFlag, position);
     // node (move) fails low
-    return alpha;
+    return bestScore;
 }
 
 // negamax alpha beta search
