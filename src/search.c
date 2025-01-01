@@ -323,21 +323,21 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     }*/
 
     // evaluate position
-    int evaluation = evaluate(position);
+    int standPat = evaluate(position);
 
-    bestScore = evaluation;
+    bestScore = standPat;
 
     // fail-hard beta cutoff
-    if (evaluation >= beta) {
+    if (standPat >= beta) {
         // node (move) fails high
-        return beta;
+        return standPat;
     }
 
 
     // found a better move
-    if (evaluation > alpha) {
+    if (alpha < standPat) {
         // PV node (move)
-        alpha = evaluation;
+        alpha = standPat;
     }
 
     // create move list instance
