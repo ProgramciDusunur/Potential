@@ -867,11 +867,11 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             time->stopped = 1;
         }
 
-        int window = 20;
+        int window = 18;
 
         while (true) {
 
-            if (current_depth >= 6) {
+            if (current_depth >= 4) {
                 alpha = MAX(-infinity, score - window);
                 beta = MIN(infinity, score + window);
             }
@@ -879,6 +879,16 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             position->followPv = 1;
             // find best move within a given position
             score = negamax(alpha, beta, current_depth, position, time, false);
+
+
+            if (score == infinity) {
+                // Restore the saved best line
+                memset(position->pvTable, 0, sizeof(position->pvTable));
+                memset(position->pvLength, 0, sizeof(position->pvLength));
+                // Break out of the loop without printing info about the unfinished
+                // depth
+                break;
+            }
 
 
             if (score <= alpha) {
