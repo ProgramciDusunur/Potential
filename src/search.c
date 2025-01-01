@@ -869,6 +869,8 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
         int window = 18;
 
+        int fail_high_count = 0;
+
         while (true) {
 
             if (current_depth >= 4) {
@@ -892,16 +894,23 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
 
             if (score <= alpha) {
+                beta = (alpha + beta) / 2;
                 alpha = MAX(-infinity, alpha - window);
+
+                fail_high_count = 0;
             }
 
             else if (score >= beta) {
                 beta = MIN(infinity, beta + window);
 
+                if (alpha < 2000 && fail_high_count < 2) {
+                    ++fail_high_count;
+                }
+
             } else {
                 break;
             }
-            window *= 3.1f;
+            window *= 1.88f;
 
         }
 
