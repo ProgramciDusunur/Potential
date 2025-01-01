@@ -763,11 +763,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // store best move (for TT)
             bestMove = currentMove;
 
-            // on quiet moves
-            /*if (getMoveCapture(currentMove) == 0)
-                // store history moves
-                position->historyMoves[getMovePiece(currentMove)][getMoveTarget(currentMove)] += depth;*/
-
             // PV node (move)
             alpha = score;
 
@@ -791,19 +786,15 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
             // fail-hard beta cutoff
             if (score >= beta) {
+
                 // store hash entry with the score equal to beta
                 writeHashEntry(beta, bestMove, depth, hashFlagBeta, position);
-                //int lastMove = moveList->moves[position->ply - 1];
+
                 // on quiet moves
                 if (isQuiet) {
                     // store killer moves
-                    /*if (position->killerMoves[position->ply][0] != bestMove) {
-                        position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
-                        position->killerMoves[position->ply][0] = bestMove;
-                    }*/
-                    //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
                     //position->killerMoves[position->ply][0] = bestMove;
-                    //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
+
                     updateQuietMoveHistory(bestMove, depth, badQuiets);
                 }
 
@@ -870,6 +861,11 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         }
 
         int startTime = getTimeMiliSecond();
+
+        if (time->timeset && startTime >= time->softLimit) {
+            time->stopped = 1;
+        }
+
         position->followPv = 1;
         // find best move within a given position
         score = negamax(alpha, beta, current_depth, position, time, false);
