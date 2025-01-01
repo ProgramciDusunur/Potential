@@ -30,4 +30,4 @@ add_executable(Potential
         src/values.h
         src/search.c src/search.h
         src/bench.c src/bench.h
-        )
+        src/utils.c src/utils.h)
