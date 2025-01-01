@@ -330,7 +330,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // fail-hard beta cutoff
     if (standPat >= beta) {
         // node (move) fails high
-        return standPat;
+        return beta;
     }
 
 
@@ -426,6 +426,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             if (score > alpha) {
                 //bestMove = moveList->moves[count];
 
+                alpha = score;
+
                 //hashFlag = hashFlagExact;
                 if (score >= beta) {
                     //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
@@ -433,7 +435,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
                     break;
                 }
 
-                alpha = score;
+
             }
         }
 
