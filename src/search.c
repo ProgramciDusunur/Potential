@@ -867,11 +867,14 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             time->stopped = 1;
         }
 
-        int window = 9;
+        int window = 20;
 
-        alpha = MAX(-infinity, score - window);
-        beta = MIN(infinity, score + window);
         while (true) {
+
+            if (current_depth >= 6) {
+                alpha = MAX(-infinity, score - window);
+                beta = MIN(infinity, score + window);
+            }
 
             position->followPv = 1;
             // find best move within a given position
