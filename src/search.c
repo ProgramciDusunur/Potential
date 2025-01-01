@@ -860,6 +860,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             break;
         }
 
+
         int startTime = getTimeMiliSecond();
 
         if (time->timeset && startTime >= time->softLimit) {
