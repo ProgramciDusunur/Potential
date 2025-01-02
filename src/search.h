@@ -16,6 +16,7 @@
 #include "math.h"
 #include "evaluation.h"
 #include "uci.h"
+#include "utils.h"
 
 #define maxPly 64
 

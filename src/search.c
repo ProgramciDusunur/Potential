@@ -867,19 +867,44 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             time->stopped = 1;
         }
 
-        position->followPv = 1;
-        // find best move within a given position
-        score = negamax(alpha, beta, current_depth, position, time, false);
+        int window = 30;
 
-        if (score <= alpha || score >= beta) {
-            alpha = -infinity;
-            beta = infinity;
-            current_depth -= 1;
-            continue;
+        while (true) {
+
+            if (current_depth >= 4) {
+                alpha = MAX(-infinity, score - window);
+                beta = MIN(infinity, score + window);
+            }
+
+            position->followPv = 1;
+            // find best move within a given position
+            score = negamax(alpha, beta, current_depth, position, time, false);
+
+
+            if (score == infinity) {
+                // Restore the saved best line
+                memset(position->pvTable, 0, sizeof(position->pvTable));
+                memset(position->pvLength, 0, sizeof(position->pvLength));
+                // Break out of the loop without printing info about the unfinished
+                // depth
+                break;
+            }
+
+
+            if (score <= alpha) {
+                alpha = MAX(-infinity, alpha - window);
+            }
+
+            else if (score >= beta) {
+                beta = MIN(infinity, beta + window);
+
+            } else {
+                break;
+            }
+            window *= 1.25f;
+
         }
 
-        alpha = score - 50;
-        beta = score + 50;
 
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
