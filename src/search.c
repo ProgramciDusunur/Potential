@@ -905,7 +905,6 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
         }
 
-
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
 
