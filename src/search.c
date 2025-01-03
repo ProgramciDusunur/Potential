@@ -640,7 +640,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 skipQuiet = 1;
             }
 
-            if (canPrune && depth <= 4 && static_eval + 82 * depth <= alpha) {
+            if (canPrune && depth <= 3 && static_eval + 82 * depth <= alpha) {
                 skipQuiet = 1;
             }
         }
