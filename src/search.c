@@ -643,7 +643,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             }
 
 
-            int futilityMargin = (static_eval + 82 * depth) + ((moveHistory / 500) * depth);
+            int futilityMargin = (static_eval + 82 * depth) + ((moveHistory / 250) * depth);
 
             if (canPrune && depth <= 2 && futilityMargin <= alpha) {
                 skipQuiet = 1;
