@@ -628,6 +628,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             continue;
         }
 
+        int moveHistory = historyMoves[getMoveSource(currentMove)][getMoveTarget(currentMove)];
+
         bool isNotMated = alpha > -mateScore + maxPly;
 
         if (!rootNode && isQuiet && isNotMated) {
@@ -640,7 +642,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 skipQuiet = 1;
             }
 
-            if (canPrune && depth <= 2 && static_eval + 82 * depth <= alpha) {
+            int futilityMargin = (static_eval + 82 * depth) + ((moveHistory / 500) * depth);
+
+            if (canPrune && depth <= 2 && futilityMargin <= alpha) {
                 skipQuiet = 1;
             }
         }
