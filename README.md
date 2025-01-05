@@ -16,13 +16,15 @@ The evaluation function determines how good or bad a position is for each side. 
 - Endgame Winnability
 - Can Passer Pawn Move
 - King Distance
+- Rook Open File
+- Rook Semi Open File
 - Pawn Structure  
   ### Key Factors in Pawn Structure:
-  - **Passed Pawns** 🚧  
-  - **Isolated Pawns** 🚧  
-  - **Doubled Pawns** 🚧  
-  - **Backward Pawns** 🚧  
-  - **Pawn Chains** 🚧  
+  - Passed Pawns 🚧  
+  - Isolated Pawns 🚧  
+  - Doubled Pawns 🚧  
+  - Backward Pawns 🚧  
+  - Pawn Chains 🚧  
 
 - Tapered Eval (Opening, Middlegame, Endgame)
 
@@ -46,12 +48,12 @@ The search function explores possible moves and evaluates their outcomes to find
 - Quiescence Search
 - Move Ordering  
   ### Priorities in Move Ordering:
-  When searching for the best move, the engine searches moves in the following order:
+    When searching for the best move, the engine searches moves in the following order:
   
-  1. **Transposition Table Move**
-  2. **Principle Variation Moves**
-  3. **MVV/LVA (Capture Moves)**
-  4. **Quiet History Moves**
+  1. Transposition Table Move
+  2. Principle Variation Moves
+  3. MVV/LVA (Capture Moves)
+  4. Quiet History Moves
 ---
 
 ## Time Control
