@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include "bit_manipulation.h"
 #include "mask.h"
 #include "move.h"
@@ -84,6 +85,13 @@ extern const int king_distance_bonus;
 // Game Phase Scores
 extern const int opening_phase_score;
 extern const int endgame_phase_score;
+
+// Knight Outpost Bonus
+extern const int knightOutpost[2][64];
+
+// Pawn Hole Bonus
+extern const int pawnHoleBonus[64];
+extern const bool pawnHoleSquareCheck[64];
 
 
 
