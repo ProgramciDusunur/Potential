@@ -753,20 +753,18 @@ int evaluate(board* position) {
         }
     }
 
-    if (game_phase == endgame) {
-        int infiltriation = 0;
-        if (!position->side && get_rank[getLS1BIndex(position->bitboards[K])] > 5) {
-            infiltriation = 20;
-        } else if (position->side && get_rank[getLS1BIndex(position->bitboards[k])] < 2) {
-            infiltriation = -20;
-        }
-        // winnable
-        int winnableScore = 6 * passedPawnCount +
-                            8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p])) +
-                            infiltriation
-        ;
-        score += winnableScore;
+    int infiltriation = 0;
+    if (!position->side && get_rank[getLS1BIndex(position->bitboards[K])] > 5) {
+        infiltriation = 20;
+    } else if (position->side && get_rank[getLS1BIndex(position->bitboards[k])] < 2) {
+        infiltriation = -20;
     }
+    // winnable
+    int winnableScore = 6 * passedPawnCount +
+                        8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p])) +
+                        infiltriation
+    ;
+    score += winnableScore;
 
 
 
