@@ -11,7 +11,6 @@
 
 
 
-
 void initAll(void) {
     initLeaperAttacks();
     initMagicNumbers();
