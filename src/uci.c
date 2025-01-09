@@ -346,7 +346,6 @@ void communicate(time* time) {
     read_input(time);
 }
 
-
 void uciProtocol(int argc, char *argv[]) {
     board *position = (board *)malloc(sizeof(board));
 
