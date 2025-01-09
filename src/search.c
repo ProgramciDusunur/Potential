@@ -941,3 +941,4 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         printf("\n");
     }
 }
+
