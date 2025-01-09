@@ -381,6 +381,7 @@ void uciProtocol(int argc, char *argv[]) {
         return;
     }
 
+
     // main loop
     while (1)
     {
@@ -391,7 +392,7 @@ void uciProtocol(int argc, char *argv[]) {
         fflush(stdout);
 
         // get user / GUI input
-        if (!fgets(input, 2000, stdin))
+        if (!fgets(input, 10000, stdin))
             // continue the loop
             continue;
 
