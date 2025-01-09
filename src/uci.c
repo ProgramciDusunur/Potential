@@ -348,12 +348,16 @@ void communicate(time* time) {
 
 
 void uciProtocol(int argc, char *argv[]) {
-    board position;
+    board *position = (board *)malloc(sizeof(board));
 
-    time time;
+    position->ply = 0;
+
+    time *time_ctrl = (time *)malloc(sizeof(time));
+
+    clearStaticEvaluationHistory(position);
 
     // init time control
-    initTimeControl(&time);
+    initTimeControl(time_ctrl);
 
     // max hash MB
     int max_hash = 32768;
@@ -373,7 +377,7 @@ void uciProtocol(int argc, char *argv[]) {
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..");
-        benchmark(13, &position, &time);
+        benchmark(13, position, time_ctrl);
         return;
     }
 
@@ -407,7 +411,7 @@ void uciProtocol(int argc, char *argv[]) {
         else if (strncmp(input, "position", 8) == 0)
         {
             // call parse position function
-            parse_position(input, &position);
+            parse_position(input, position);
 
             // clear hash table
             clearHashTable();
@@ -416,7 +420,7 @@ void uciProtocol(int argc, char *argv[]) {
             clearHistory();
 
             //clear static eval history
-            clearStaticEvaluationHistory(&position);
+            clearStaticEvaluationHistory(position);
 
             //clear counter moves
             clearCounterMoves();
@@ -425,7 +429,7 @@ void uciProtocol(int argc, char *argv[]) {
         else if (strncmp(input, "ucinewgame", 10) == 0)
         {
             // call parse position function
-            parse_position("position startpos", &position);
+            parse_position("position startpos", position);
 
             // clear hash table
             clearHashTable();
@@ -434,7 +438,7 @@ void uciProtocol(int argc, char *argv[]) {
             clearHistory();
 
             //clear static eval history
-            clearStaticEvaluationHistory(&position);
+            clearStaticEvaluationHistory(position);
 
             //clear counter moves
             clearCounterMoves();
@@ -442,7 +446,7 @@ void uciProtocol(int argc, char *argv[]) {
             // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0) {
             // call parse go function
-            goCommand(input, &position, &time);
+            goCommand(input, position, time_ctrl);
 
             // clear hash table
             clearHashTable();
@@ -451,7 +455,7 @@ void uciProtocol(int argc, char *argv[]) {
             clearHistory();
 
             //clear static eval history
-            clearStaticEvaluationHistory(&position);
+            clearStaticEvaluationHistory(position);
 
             //clear counter moves
             clearCounterMoves();
@@ -488,7 +492,7 @@ void uciProtocol(int argc, char *argv[]) {
             printf("uciok\n");
         }
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(13, &position, &time);
+            benchmark(13, position, time_ctrl);
         }
     }
 }

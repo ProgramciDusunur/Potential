@@ -840,11 +840,10 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     position->followPv = 0;
     position->scorePv = 0;
 
-    memset(position->killerMoves, 0, sizeof(position->killerMoves));
     memset(historyMoves, 0, sizeof(historyMoves));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
-    memset(position->staticEval, 0, sizeof(position->staticEval));
+    memset(position->staticEval, noEval, sizeof(position->staticEval));
     //memset(time, 0, sizeof(*time));
     //memset(counterMoves, 0, sizeof(counterMoves));
 
