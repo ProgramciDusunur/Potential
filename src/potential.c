@@ -28,10 +28,9 @@ void initAll(void) {
     init_hash_table(64);
 }
 
-
 int main(int argc, char* argv[]) {
     initAll();
-    int debug = 1;
+    int debug = 0;
     if (debug) {
         board position;
         parseFEN("5r2/P7/1Bk5/2P5/8/8/K7/8 b - - 88 192", &position);
