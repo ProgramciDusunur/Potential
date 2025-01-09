@@ -369,7 +369,7 @@ void uciProtocol(int argc, char *argv[]) {
     setbuf(stdout, NULL);
 
     // define user / GUI input buffer
-    char input[2000];
+    char input[10000];
 
     // print engine info
     printf("Potential by ProgramciDusunur\n");
