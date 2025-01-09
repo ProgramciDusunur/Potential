@@ -938,6 +938,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         // best move placeholder
         printf("bestmove ");
         printMove(position->rootBestMove);
+        position->rootBestMove = 0;
         printf("\n");
     }
 }

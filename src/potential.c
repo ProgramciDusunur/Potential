@@ -35,10 +35,11 @@ int main(int argc, char* argv[]) {
     int debug = 0;
     if (debug) {
         board position;
-        parseFEN(startPosition, &position);
+        parseFEN("5r2/P7/1Bk5/2P5/8/8/K7/8 b - - 88 192", &position);
 
-        perftRoot(6, &position);
-        printf("Nodes: %llu", perftNodes);
+
+        //perftRoot(8, &position);
+        //printf("Nodes: %llu", perftNodes);
     } else {
         uciProtocol(argc, argv);
     }
