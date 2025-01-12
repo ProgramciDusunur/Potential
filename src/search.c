@@ -936,6 +936,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         }
 
     }
+
     if (!benchmark) {
         // best move placeholder
         printf("bestmove ");
@@ -946,5 +947,6 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         }
         printf("\n");
     }
+
 }
 
