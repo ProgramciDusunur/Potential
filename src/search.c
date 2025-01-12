@@ -465,7 +465,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     //int pastStack;
 
-
     // read hash entry
     if (!rootNode &&
        (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry) {
