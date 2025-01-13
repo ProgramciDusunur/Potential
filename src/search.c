@@ -6,7 +6,6 @@
 
 
 
-
 int lmr_full_depth_moves = 4;
 int lmr_reduction_limit = 3;
 int lateMovePruningBaseReduction = 4;
@@ -16,12 +15,6 @@ U64 searchNodes = 0;
 
 int lmrTable[maxPly][maxPly];
 int counterMoves[2][maxPly][maxPly];
-
-
-
-
-
-
 
 
 // position repetition detection
