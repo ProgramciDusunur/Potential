@@ -268,7 +268,7 @@ void printMove(int move) {
 
 
 int getLmrReduction(int depth, int moveNumber) {
-    int reduction = lmrTable[depth][moveNumber];
+    int reduction = lmrTable[myMIN(63, depth)][myMIN(63, moveNumber)];
     return reduction;
 }
 
