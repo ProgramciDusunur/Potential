@@ -1,7 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 
 
@@ -14,38 +11,7 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-/*void perft(int depth, board* position);
-
-int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
-
-void pBoard(board* position);
-
-void printMoveList(moves *moveList);
-
-void initAll();
-
-void uciProtocol(int argc, char* argv[]);
-
-void goCommand(char *command, board* position, time* time);
-
-void perftRoot(int depth, board* position);
-
-void perftChild(int depth, board* position);
-
-void initRandomKeys();*/
-
-void initAll() {
+void initAll(void) {
     initLeaperAttacks();
     initMagicNumbers();
     initSlidersAttacks(bishop);
@@ -61,7 +27,6 @@ void initAll() {
     // init tranposition table
     init_hash_table(64);
 }
-
 
 int main(int argc, char* argv[]) {
     initAll();

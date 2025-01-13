@@ -466,7 +466,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     //int pastStack;
 
     // read hash entry
-    if (!rootNode && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry) {
+    if (!rootNode &&
+       (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move
         return score;
@@ -840,11 +841,10 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     position->followPv = 0;
     position->scorePv = 0;
 
-    memset(position->killerMoves, 0, sizeof(position->killerMoves));
     memset(historyMoves, 0, sizeof(historyMoves));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
-    memset(position->staticEval, 0, sizeof(position->staticEval));
+    memset(position->staticEval, noEval, sizeof(position->staticEval));
     //memset(time, 0, sizeof(*time));
     //memset(counterMoves, 0, sizeof(counterMoves));
 
@@ -935,10 +935,17 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         }
 
     }
+
     if (!benchmark) {
         // best move placeholder
         printf("bestmove ");
-        printMove(position->rootBestMove);
+        if (position->pvTable[0][0]) {
+            printMove(position->pvTable[0][0]);
+        } else {
+            printf("(none)");
+        }
         printf("\n");
     }
+
 }
+
