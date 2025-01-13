@@ -459,6 +459,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     int rootNode = position->ply == 0;
 
+    if (!rootNode) {
+        // Mate distance pruning
+        alpha = myMAX(alpha, -mateValue + (int)position->ply);
+        beta = myMIN(beta, mateValue - (int)position->ply - 1);
+        if (alpha >= beta)
+            return alpha;
+    }
+
     //int ttBound = readHashFlag(position);
 
     //bool improving;
