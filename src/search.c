@@ -629,13 +629,16 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             continue;
         }
 
+        int moveHistory = historyMoves[getMoveSource(currentMove)][getMoveTarget(currentMove)];
+
+
         bool isNotMated = alpha > -mateScore + maxPly;
 
         if (!rootNode && isQuiet && isNotMated) {
 
             int lmpBase = 4;
             int lmpMultiplier = 3;
-            int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
+            int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1)) + ((moveHistory / 2000) * depth);
 
             if (legal_moves>= lmpThreshold) {
                 skipQuiet = 1;
