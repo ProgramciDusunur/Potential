@@ -68,6 +68,7 @@ int scoreMove(int move, board* position) {
         return 1500000000;
     }
 
+
     int isPromotionMove = getMovePromoted(move);
     // score promotion move
     if (isPromotionMove) {
