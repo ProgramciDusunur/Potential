@@ -6,7 +6,6 @@
 
 
 
-
 int lmr_full_depth_moves = 4;
 int lmr_reduction_limit = 3;
 int lateMovePruningBaseReduction = 4;
@@ -16,12 +15,6 @@ U64 searchNodes = 0;
 
 int lmrTable[maxPly][maxPly];
 int counterMoves[2][maxPly][maxPly];
-
-
-
-
-
-
 
 
 // position repetition detection
@@ -458,6 +451,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     int pvNode = beta - alpha > 1;
 
     int rootNode = position->ply == 0;
+
+    if (!rootNode) {
+        // Mate distance pruning
+        alpha = myMAX(alpha, -mateValue + (int)position->ply);
+        beta = myMIN(beta, mateValue - (int)position->ply - 1);
+        if (alpha >= beta)
+            return alpha;
+    }
 
     //int ttBound = readHashFlag(position);
 

@@ -4,6 +4,13 @@
 
 #include "bit_manipulation.h"
 
+int myMAX(int x, int y) {
+    return (x > y) ? x : y;
+}
+
+int myMIN(int x, int y) {
+    return (x < y) ? x : y;
+}
 
 int countBits(U64 bitboard) {
     return __builtin_popcountll(bitboard);
