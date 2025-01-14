@@ -13,6 +13,8 @@
 
 extern const int bishopRelevantBits[64];
 extern const int rookRelevantBits[64];
+extern const uint64_t rookMagicNumbers[64];
+extern const uint64_t bishopMagicNumbers[64];
 
 // rookMagics[square]
 extern U64 rookMagic[64];

@@ -17,6 +17,7 @@
 #include "evaluation.h"
 #include "uci.h"
 #include "utils.h"
+#include "move.h"
 
 #define maxPly 64
 

@@ -16,6 +16,8 @@ U64 searchNodes = 0;
 int lmrTable[maxPly][maxPly];
 int counterMoves[2][maxPly][maxPly];
 
+const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
+
 
 // position repetition detection
 int isRepetition(board* position) {
@@ -288,6 +290,154 @@ uint8_t justPawns(board *pos) {
              pos->occupancies[pos->side]);
 }
 
+int move_estimated_value(int move) {
+
+    // Start with the value of the piece on the target square
+    int target_piece = getMovePiece(move);
+    int promoted_piece = getMovePromoted(move) > 5 ? getMovePromoted(move) - 6
+                                                     : getMovePromoted(move);
+    int value = SEEPieceValues[target_piece];
+
+    // Factor in the new piece's value and remove our promoted pawn
+    if (getMovePromoted(move))
+        value += SEEPieceValues[promoted_piece] - SEEPieceValues[PAWN];
+
+        // Target square is encoded as empty for enpass moves
+    else if (getMoveEnpassant(move))
+        value = SEEPieceValues[PAWN];
+
+        // We encode Castle moves as KxR, so the initial step is wrong
+    else if (getMoveCastling(move))
+        value = 0;
+
+    return value;
+}
+
+uint64_t all_attackers_to_square(board *pos, uint64_t occupied, int sq) {
+
+    // When performing a static exchange evaluation we need to find all
+    // attacks to a given square, but we also are given an updated occupied
+    // bitboard, which will likely not match the actual board, as pieces are
+    // removed during the iterations in the static exchange evaluation
+
+    return (getPawnAttacks(white, sq) & pos->bitboards[p]) |
+           (getPawnAttacks(black, sq) & pos->bitboards[P]) |
+           (getKnightAttacks(sq) & (pos->bitboards[n] | pos->bitboards[N])) |
+           (getBishopAttacks(sq, occupied) &
+            ((pos->bitboards[b] | pos->bitboards[B]) |
+             (pos->bitboards[q] | pos->bitboards[Q]))) |
+           (getRookAttacks(sq, occupied) &
+            ((pos->bitboards[r] | pos->bitboards[R]) |
+             (pos->bitboards[q] | pos->bitboards[Q]))) |
+           (getKingAttacks(sq) & (pos->bitboards[k] | pos->bitboards[K]));
+}
+
+int SEE(board *pos, int move, int threshold) {
+
+    int from, to, enpassant, promotion, colour, balance, nextVictim;
+    uint64_t bishops, rooks, occupied, attackers, myAttackers;
+
+    // Unpack move information
+    from = getMoveSource(move);
+    to = getMoveTarget(move);
+    enpassant = getMoveEnpassant(move);
+    promotion = getMovePromoted(move);
+
+    // Next victim is moved piece or promotion type
+    nextVictim = promotion ? promotion : getMovePiece(move);
+    nextVictim = nextVictim > 5 ? nextVictim - 6 : nextVictim;
+
+    // Balance is the value of the move minus threshold. Function
+    // call takes care for Enpass, Promotion and Castling moves.
+    balance = move_estimated_value(move) - threshold;
+
+    // Best case still fails to beat the threshold
+    if (balance < 0)
+        return 0;
+
+    // Worst case is losing the moved piece
+    balance -= SEEPieceValues[nextVictim];
+
+    // If the balance is positive even if losing the moved piece,
+    // the exchange is guaranteed to beat the threshold.
+    if (balance >= 0)
+        return 1;
+
+    // Grab sliders for updating revealed attackers
+    bishops = pos->bitboards[b] | pos->bitboards[B] | pos->bitboards[q] |
+              pos->bitboards[Q];
+    rooks = pos->bitboards[r] | pos->bitboards[R] | pos->bitboards[q] |
+            pos->bitboards[Q];
+
+    // Let occupied suppose that the move was actually made
+    occupied = pos->occupancies[both];
+    occupied = (occupied ^ (1ull << from)) | (1ull << to);
+    if (enpassant)
+        occupied ^= (1ull << pos->enpassant);
+
+    // Get all pieces which attack the target square. And with occupied
+    // so that we do not let the same piece attack twice
+    attackers = all_attackers_to_square(pos, occupied, to) & occupied;
+
+    // Now our opponents turn to recapture
+    colour = pos->side ^ 1;
+
+    while (1) {
+
+        // If we have no more attackers left we lose
+        myAttackers = attackers & pos->occupancies[colour];
+        if (myAttackers == 0ull) {
+            break;
+        }
+
+        // Find our weakest piece to attack with
+        for (nextVictim = PAWN; nextVictim <= QUEEN; nextVictim++) {
+            if (myAttackers &
+                (pos->bitboards[nextVictim] | pos->bitboards[nextVictim + 6])) {
+                break;
+            }
+        }
+
+        // Remove this attacker from the occupied
+        occupied ^=
+                (1ull << getLS1BIndex(myAttackers & (pos->bitboards[nextVictim] |
+                                                pos->bitboards[nextVictim + 6])));
+
+        // A diagonal move may reveal bishop or queen attackers
+        if (nextVictim == PAWN || nextVictim == BISHOP || nextVictim == QUEEN)
+            attackers |= getBishopAttacks(to, occupied) & bishops;
+
+        // A vertical or horizontal move may reveal rook or queen attackers
+        if (nextVictim == ROOK || nextVictim == QUEEN)
+            attackers |= getRookAttacks(to, occupied) & rooks;
+
+        // Make sure we did not add any already used attacks
+        attackers &= occupied;
+
+        // Swap the turn
+        colour = !colour;
+
+        // Negamax the balance and add the value of the next victim
+        balance = -balance - 1 - SEEPieceValues[nextVictim];
+
+        // If the balance is non negative after giving away our piece then we win
+        if (balance >= 0) {
+
+            // As a slide speed up for move legality checking, if our last attacking
+            // piece is a king, and our opponent still has attackers, then we've
+            // lost as the move we followed would be illegal
+            if (nextVictim == KING && (attackers & pos->occupancies[colour]))
+                colour = colour ^ 1;
+
+            break;
+        }
+    }
+
+    // Side to move after the loop loses
+    return pos->side != colour;
+}
+
+
 
 // quiescence search
 int quiescence(int alpha, int beta, board* position, time* time) {
@@ -363,6 +513,11 @@ int quiescence(int alpha, int beta, board* position, time* time) {
                 continue;
             }
         }*/
+
+        if (!SEE(position, moveList->moves[count], 0))
+        {
+            continue;
+        }
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
