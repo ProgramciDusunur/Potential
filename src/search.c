@@ -459,7 +459,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             return alpha;
     }
 
-    //int ttBound = readHashFlag(position);
 
     //bool improving;
 
