@@ -293,7 +293,7 @@ uint8_t justPawns(board *pos) {
 int getVictim(int targetSquare, board *pos) {
     for (int p_trav = P; p_trav <= K; p_trav++) {
         int offset = pos->side * 6;
-        U64 bb = (pos->bitboards[p_trav + offset] >> targetSquare) & 1;
+        U64 bb = (pos->bitboards[p_trav + offset] << targetSquare) & 1;
         if (bb) {
             return p_trav;
         }
