@@ -290,10 +290,21 @@ uint8_t justPawns(board *pos) {
              pos->occupancies[pos->side]);
 }
 
-int move_estimated_value(int move) {
+U64 get_least_valuable_piece(U64 attadef, int side, const board *pos) {
+    for (int p_trav = P; p_trav <= K; p_trav++) {
+        int offset = side * 6;
+        U64 bb = pos->bitboards[p_trav + offset] & attadef;
+        if (bb) {
+            return bb & -bb;
+        }
+    }
+    return 0ULL;
+}
+
+int move_estimated_value(board *pos, int move) {
 
     // Start with the value of the piece on the target square
-    int target_piece = getMovePiece(move);
+    int target_piece = get_least_valuable_piece(getMoveTarget(move), pos->side, pos);
     int promoted_piece = getMovePromoted(move) > 5 ? getMovePromoted(move) - 6
                                                      : getMovePromoted(move);
     int value = SEEPieceValues[target_piece];
@@ -344,12 +355,12 @@ int SEE(board *pos, int move, int threshold) {
     promotion = getMovePromoted(move);
 
     // Next victim is moved piece or promotion type
-    nextVictim = promotion ? promotion : getMovePiece(move);
+    nextVictim = promotion ? promotion : getMovePiece(from);
     nextVictim = nextVictim > 5 ? nextVictim - 6 : nextVictim;
 
     // Balance is the value of the move minus threshold. Function
     // call takes care for Enpass, Promotion and Castling moves.
-    balance = move_estimated_value(move) - threshold;
+    balance = move_estimated_value(pos, move) - threshold;
 
     // Best case still fails to beat the threshold
     if (balance < 0)
