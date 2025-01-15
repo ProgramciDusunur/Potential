@@ -290,21 +290,21 @@ uint8_t justPawns(board *pos) {
              pos->occupancies[pos->side]);
 }
 
-U64 get_least_valuable_piece(U64 attadef, int side, const board *pos) {
+int getVictim(int targetSquare, board *pos) {
     for (int p_trav = P; p_trav <= K; p_trav++) {
-        int offset = side * 6;
-        U64 bb = pos->bitboards[p_trav + offset] & attadef;
+        int offset = pos->side * 6;
+        U64 bb = (pos->bitboards[p_trav + offset] >> targetSquare) & 1;
         if (bb) {
-            return bb & -bb;
+            return p_trav;
         }
     }
-    return 0ULL;
+    return 7;
 }
 
 int move_estimated_value(board *pos, int move) {
 
     // Start with the value of the piece on the target square
-    int target_piece = get_least_valuable_piece(getMoveTarget(move), pos->side, pos);
+    int target_piece = getVictim(getMoveTarget(move), pos);
     int promoted_piece = getMovePromoted(move) > 5 ? getMovePromoted(move) - 6
                                                      : getMovePromoted(move);
     int value = SEEPieceValues[target_piece];
