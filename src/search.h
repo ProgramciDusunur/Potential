@@ -17,6 +17,7 @@
 #include "evaluation.h"
 #include "uci.h"
 #include "utils.h"
+#include "move.h"
 
 #define maxPly 64
 
@@ -32,6 +33,8 @@ extern int counterMoves[2][maxPly][maxPly];
 
 
 int isRepetition(board* position);
+int SEE(board *pos, int move, int threshold);
+uint64_t all_attackers_to_square(board *pos, uint64_t occupied, int sq);
 void initializeLMRTable(void);
 int scoreMove(int move, board* position);
 int quiescenceScoreMove(int move, board* position);

@@ -45,7 +45,7 @@ void copyBoard(board *p, struct copyposition *cp);
 void takeBack(board *p, struct copyposition *cp);
 
 // Pawn attack masks pawnAttacks[side][square]
-extern U64 pawnAtacks[2][64];
+extern U64 pawnAttacks[2][64];
 // Knight attack masks knightAttacks[square]
 extern U64 knightAttacks[64];
 // King attack masks kingAttacks[square]
@@ -62,6 +62,9 @@ void addMove(moves *moveList, int move);
 U64 getBishopAttacks(int square, U64 occupancy);
 U64 getRookAttacks(int square, U64 occupancy);
 U64 getQueenAttacks(int square, U64 occupancy);
+U64 getKingAttacks(int square);
+U64 getPawnAttacks(uint8_t side, int square);
+U64 getKnightAttacks(int square);
 int isSquareAttacked(int square, int whichSide, board* position);
 int makeMove(int move, int moveFlag, board* position);
 void moveGenerator(moves *moveList, board* position);
