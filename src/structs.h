@@ -6,6 +6,8 @@
 #ifndef POTENTIAL_STRUCTS_H
 #define POTENTIAL_STRUCTS_H
 
+#include "stdint.h"
+
 #ifndef U64
 #define U64 unsigned long long
 #endif
@@ -15,6 +17,7 @@
 typedef struct {
     U64 bitboards[12];
     U64 occupancies[3];
+    uint8_t mailbox[64];
     int side;
     int castle;
     int enpassant;
@@ -68,6 +71,7 @@ typedef struct {
 struct copyposition {
     U64 bitboardsCopy[12];
     U64 occupanciesCopy[3];
+    uint8_t mailboxCopy[64];
     U64 hashKeyCopy;
     int sideCopy;
     int enpassantCopy;
