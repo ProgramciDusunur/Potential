@@ -290,31 +290,29 @@ uint8_t justPawns(board *pos) {
              pos->occupancies[pos->side]);
 }
 
-int getVictim(int targetSquare, board *pos) {
-    for (int p_trav = P; p_trav <= K; p_trav++) {
-        int offset = pos->side * 6;
-        U64 bb = (pos->bitboards[p_trav + offset] << targetSquare) & 1;
-        if (bb) {
-            printf("There is a victim.");
-            return p_trav;
-        }
-    }
-    return 7;
-}
-
 int move_estimated_value(board *pos, int move) {
+
     // Start with the value of the piece on the target square
-    int value = SEEPieceValues[pos->mailbox[getMoveSource(move)]];
+    int target_piece = pos->mailbox[getMoveTarget(move)] > 5
+                       ? pos->mailbox[getMoveTarget(move)] - 6
+                       : pos->mailbox[getMoveTarget(move)];
+    int promoted_piece = getMovePromoted(move);
+    promoted_piece = promoted_piece > 5 ? promoted_piece - 6 : promoted_piece;
+
+    int value = SEEPieceValues[target_piece];
 
     // Factor in the new piece's value and remove our promoted pawn
     if (getMovePromoted(move))
-        value += SEEPieceValues[getMovePromoted(move)] - SEEPieceValues[PAWN];
+        value += SEEPieceValues[promoted_piece] - SEEPieceValues[PAWN];
+
         // Target square is encoded as empty for enpass moves
     else if (getMoveEnpassant(move))
         value = SEEPieceValues[PAWN];
+
         // We encode Castle moves as KxR, so the initial step is wrong
     else if (getMoveCastling(move))
         value = 0;
+
     return value;
 }
 
@@ -349,7 +347,7 @@ int SEE(board *pos, int move, int threshold) {
     promotion = getMovePromoted(move);
 
     // Next victim is moved piece or promotion type
-    nextVictim = promotion ? pos->mailbox[from] : promotion;
+    nextVictim = promotion ? promotion : pos->mailbox[from];
     nextVictim = nextVictim > 5 ? nextVictim - 6 : nextVictim;
 
     // Balance is the value of the move minus threshold. Function
