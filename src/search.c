@@ -801,6 +801,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         if (depth <= 10 && legal_moves > 0 && !SEE(position, currentMove, seeThreshold))
             continue;
 
+
+
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
