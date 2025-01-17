@@ -35,9 +35,7 @@ int main(int argc, char* argv[]) {
         board position;
         parseFEN(startPosition, &position);
 
-        //int move = encodeMove(f1, f4, R, 0, 1, 0, 0, 0);
 
-        //printf("SEE result: %d", SEE(&position, move, 100));
 
         perftRoot(6, &position);
         printf("Nodes: %llu", perftNodes);
