@@ -94,6 +94,7 @@ void parseFEN(char *fen, board* position) {
     position->hashKey = generateHashKey(position);
 }
 
+
 void pBoard(board* position) {
     printf("\n");
     // loop over board ranks
