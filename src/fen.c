@@ -25,9 +25,11 @@ void parseFEN(char *fen, board* position) {
     for (int rank = 0; rank < 8; rank++) {
         for (int file = 0; file < 8; file++) {
             int square = rank * 8 + file;
+            position->mailbox[square] = 64;
             if ((*fen >= 'a' && *fen <= 'z') || (*fen >= 'A' && *fen <= 'Z')) {
                 int piece = charPieces[(unsigned char)*fen];
                 setBit(position->bitboards[piece], square);
+                position->mailbox[square] = piece;
                 fen++;
             }
             if (*fen >= '0' && *fen <= '9') {
