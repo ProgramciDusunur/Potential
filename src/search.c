@@ -296,6 +296,7 @@ int move_estimated_value(board *pos, int move) {
     int target_piece = pos->mailbox[getMoveTarget(move)] > 5
                        ? pos->mailbox[getMoveTarget(move)] - 6
                        : pos->mailbox[getMoveTarget(move)];
+    target_piece = myMIN(7, target_piece);
     int promoted_piece = getMovePromoted(move);
     promoted_piece = promoted_piece > 5 ? promoted_piece - 6 : promoted_piece;
 
