@@ -117,8 +117,9 @@ int scoreMove(int move, board* position) {
 
     // score capture move
     if (getMoveCapture(move)) {
-        // init target piece
+        int captureScore = 0;
 
+        // init target piece
         int target_piece = P;
 
         // pick up bitboard piece index ranges depending on side
@@ -145,7 +146,12 @@ int scoreMove(int move, board* position) {
         }
 
         // score move by MVV LVA lookup [source piece][target piece]
-        return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
+        captureScore += mvvLva[getMovePiece(move)][target_piece];
+
+        captureScore += SEE(position, move, SEE_MOVE_ORDER_THRESHOLD) ? 1000000000 : -1000000;
+
+        return captureScore;
+
     }
 
         // score quiet move
@@ -831,10 +837,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         }
 
         // SEE PVS Pruning
-        int seeThreshold =
+        /*int seeThreshold =
                 isQuiet ? SEE_QUIET_THRESHOLD * depth : SEE_NOISY_THRESHOLD * depth * depth;
         if (depth <= SEE_DEPTH && legal_moves > 0 && !SEE(position, currentMove, seeThreshold))
-            continue;
+            continue;*/
 
 
 
