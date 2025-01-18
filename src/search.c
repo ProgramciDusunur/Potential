@@ -1100,7 +1100,6 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
                 break;
             }
             window *= ASP_WINDOW_MULTIPLIER;
-
         }
 
         int endTime = getTimeMiliSecond();
