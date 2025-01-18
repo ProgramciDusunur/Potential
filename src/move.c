@@ -168,45 +168,24 @@ int makeMove(int move, int moveFlag, board* position) {
     // handling capture moves
     if (capture) {
 
-        // loop over bitboards opposite to the current side to move
-        // if there's a piece on the target square
-        uint8_t bb_piece = position->mailbox[targetSquare];
-        if (getBit(position->bitboards[bb_piece], targetSquare)) {
-
-            // remove it from corresponding bitboard
-            popBit(position->bitboards[bb_piece], targetSquare);
-
-            // remove the piece from hash key
-            position->hashKey ^= pieceKeys[bb_piece][targetSquare];
-        }
-    }
-
-    // handle pawn promotions
-    if (promotedPiece) {
-        // white to move
+        int startPiece, endPiece;
         if (position->side == white) {
-            // erase the pawn from the target square
-            popBit(position->bitboards[P], targetSquare);
-
-            // remove pawn from hash key
-            position->hashKey ^= pieceKeys[P][targetSquare];
+            startPiece = p;
+            endPiece = k;
+        } else {
+            startPiece = P;
+            endPiece = K;
         }
+        for (int bbPiece = startPiece; bbPiece <= endPiece; bbPiece++) {
+            if (getBit(position->bitboards[bbPiece], targetSquare)) {
+                // remove it from corresponding bitboard
+                popBit(position->bitboards[bbPiece], targetSquare);
 
-            // black to move
-        else {
-            // erase the pawn from the target square
-            popBit(position->bitboards[p], targetSquare);
-
-            // remove pawn from hash key
-            position->hashKey ^= pieceKeys[p][targetSquare];
+                // remove the piece from hash key
+                position->hashKey ^= pieceKeys[bbPiece][targetSquare];
+                break;
+            }
         }
-
-        // set up promoted piece on chess board
-        setBit(position->bitboards[promotedPiece], targetSquare);
-        position->mailbox[targetSquare] = promotedPiece;
-
-        // add promoted piece into the hash key
-        position->hashKey ^= pieceKeys[promotedPiece][targetSquare];
     }
 
     // handle enpassant captures
@@ -245,6 +224,34 @@ int makeMove(int move, int moveFlag, board* position) {
     // hash piece
     position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
     position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
+
+    // handle pawn promotions
+    if (promotedPiece) {
+        // white to move
+        if (position->side == white) {
+            // erase the pawn from the target square
+            popBit(position->bitboards[P], targetSquare);
+
+            // remove pawn from hash key
+            position->hashKey ^= pieceKeys[P][targetSquare];
+        }
+
+            // black to move
+        else {
+            // erase the pawn from the target square
+            popBit(position->bitboards[p], targetSquare);
+
+            // remove pawn from hash key
+            position->hashKey ^= pieceKeys[p][targetSquare];
+        }
+
+        // set up promoted piece on chess board
+        setBit(position->bitboards[promotedPiece], targetSquare);
+        position->mailbox[targetSquare] = promotedPiece;
+
+        // add promoted piece into the hash key
+        position->hashKey ^= pieceKeys[promotedPiece][targetSquare];
+    }
 
 
     // hash enpassant if available (remove enpassant square from hash key )
