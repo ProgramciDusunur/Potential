@@ -5,11 +5,55 @@
 #include "search.h"
 
 
+//    =======================
+//      Tuneable Parameters
+//    =======================
 
-int lmr_full_depth_moves = 4;
-int lmr_reduction_limit = 3;
-int lateMovePruningBaseReduction = 4;
-int nullMoveDepth = 3;
+// Aspiration Windows
+int ASP_WINDOW_BASE = 18;
+int ASP_WINDOWS_DEPTH = 4;
+float ASP_WINDOW_MULTIPLIER = 1.6f;
+
+// Late Move Reduction
+int LMR_FULL_DEPTH_MOVES = 4;
+int LMR_REDUCTION_DEPTH_LIMIT = 3;
+int LMR_NON_PV_QUIET_MOVES = 4;
+float LMR_TABLE_OFFSET = 0.75;
+float LMR_TABLE_MULTIPLIER = 0.375;
+
+// Internal Iterative Reduction
+int IIR_DEPTH = 4;
+
+// Futility Pruning
+int FP_MARGIN = 82;
+int FP_DEPTH = 2;
+
+// Reverse Futility Pruning
+int RFP_MARGIN = 82;
+int RFP_IMPROVING_MARGIN = 65;
+int RFP_DEPTH = 4;
+int RFP_DEPTH_SUBTRACTOR = 1;
+
+// Razoring
+int RAZOR_DEPH = 3;
+int RAZOR_MARGIN = 200;
+
+// Static Exchange Evaluation
+int QS_SEE_THRESHOLD = 0;
+int SEE_MOVE_ORDER_THRESHOLD = -82;
+int SEE_QUIET_THRESHOLD = -67;
+int SEE_NOISY_THRESHOLD = -32;
+int SEE_DEPTH = 10;
+
+// Late Move Pruning
+int LMP_BASE = 4;
+int LMP_MULTIPLIER = 3;
+int LMP_DEPTH_SUBTRACTOR = 1;
+
+// Null Move Pruning
+int NULL_MOVE_DEPTH = 3;
+int NULL_MOVE_BASE_REDUCTION = 3;
+int NULL_MOVE_DEPTH_DIVISOR = 3;
 
 U64 searchNodes = 0;
 
@@ -43,7 +87,7 @@ void initializeLMRTable(void) {
                 lmrTable[depth][ply] = 0;
                 continue;
             }
-            lmrTable[depth][ply] = round(0.75 + log(depth) * log(ply) * 0.375);
+            lmrTable[depth][ply] = round(LMR_TABLE_OFFSET + log(depth) * log(ply) * LMR_TABLE_MULTIPLIER);
         }
     }
 }
@@ -52,11 +96,12 @@ void initializeLMRTable(void) {
          Move ordering
     =======================
 
-    1. PV move
-    2. Captures in MVV/LVA
-    3. 1st killer move
-    4. 2nd killer move
+    1. TT Move
+    2. PV Move
+    3. SEE
+    4. MVV/LVA
     5. History moves
+
 */
 
 // score moves
@@ -103,7 +148,7 @@ int scoreMove(int move, board* position) {
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[getMovePiece(move)][target_piece];
 
-        captureScore += SEE(position, move, -82) ? 1000000000 : -1000000;
+        captureScore += SEE(position, move, SEE_MOVE_ORDER_THRESHOLD) ? 1000000000 : -1000000;
 
         return captureScore;
 
@@ -497,7 +542,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
-        //if (see(position, moveList->moves[count]) < 0) continue;
         /*if (!pvNode && futilityMargin <= alpha) {
             if (negamaxScore < futilityMargin) {
                 negamaxScore = futilityMargin;
@@ -505,7 +549,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             continue;
         }*/
 
-        if (!SEE(position, moveList->moves[count], 0))
+        if (!SEE(position, moveList->moves[count], QS_SEE_THRESHOLD))
         {
             continue;
         }
@@ -629,7 +673,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // Internal Iterative Reductions
-    if ((pvNode || cutNode) && depth >= 4 && !bestMove) {
+    if ((pvNode || cutNode) && depth >= IIR_DEPTH && !bestMove) {
         depth--;
     }
 
@@ -676,14 +720,15 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     int canPrune = in_check == 0 && pvNode == 0;
 
-    uint16_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
+    uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - RFP_DEPTH_SUBTRACTOR)
+            : RFP_MARGIN * depth;
 
     // reverse futility pruning
-    if (depth <= 4 && !pvNode && !in_check && static_eval - rfpMargin >= beta)
+    if (depth <= RFP_DEPTH && !pvNode && !in_check && static_eval - rfpMargin >= beta)
         return static_eval;
 
     // null move pruning
-    if (depth >= nullMoveDepth &&
+    if (depth >= NULL_MOVE_DEPTH &&
         !in_check && position->ply && static_eval >= beta &&
         !justPawns(position)) {
         struct copyposition copyPosition;
@@ -708,7 +753,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // hash the side
         position->hashKey ^= sideKey;
 
-        int R = 3 + depth / 3;
+        int R = NULL_MOVE_BASE_REDUCTION + depth / NULL_MOVE_DEPTH_DIVISOR;
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
@@ -735,7 +780,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // razoring
-    if (canPrune && depth <= 3 && static_eval + 200 * depth < alpha) {
+    if (canPrune && depth <= RAZOR_DEPH && static_eval + RAZOR_MARGIN * depth < alpha) {
         int razoringScore = quiescence(alpha, beta, position, time);
         if (razoringScore <= alpha) {
             return razoringScore;
@@ -779,15 +824,13 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         if (!rootNode && isQuiet && isNotMated) {
 
-            int lmpBase = 4;
-            int lmpMultiplier = 3;
-            int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
 
+            int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * (depth - LMP_DEPTH_SUBTRACTOR) * (depth - LMP_DEPTH_SUBTRACTOR));
             if (legal_moves>= lmpThreshold) {
                 skipQuiet = 1;
             }
 
-            if (canPrune && depth <= 2 && static_eval + 82 * depth <= alpha) {
+            if (canPrune && depth <= FP_DEPTH && static_eval + FP_MARGIN * depth <= alpha) {
                 skipQuiet = 1;
             }
 
@@ -795,8 +838,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         // SEE PVS Pruning
         int seeThreshold =
-                isQuiet ? -67 * depth : -32 * depth * depth;
-        if (depth <= 10 && legal_moves > 0 && !SEE(position, currentMove, seeThreshold))
+                isQuiet ? SEE_QUIET_THRESHOLD * depth : SEE_NOISY_THRESHOLD * depth * depth;
+        if (depth <= SEE_DEPTH && legal_moves > 0 && !SEE(position, currentMove, seeThreshold))
             continue;
 
 
@@ -850,7 +893,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             if (isQuiet) {
 
                 // Reduce More
-                if (!pvNode && quietMoves >= 4) {
+                if (!pvNode && quietMoves >= LMR_NON_PV_QUIET_MOVES) {
                     lmrReduction += 1;
                 }
 
@@ -862,8 +905,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
             // condition to consider LMR
-            if(moves_searched >= lmr_full_depth_moves &&
-                    depth >= lmr_reduction_limit) {
+            if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
+               depth >= LMR_REDUCTION_DEPTH_LIMIT) {
                 // search current move with reduced depth:
                 score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, true);
             } else {
@@ -1022,11 +1065,11 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             time->stopped = 1;
         }
 
-        int window = 18;
+        int window = ASP_WINDOW_BASE;
 
         while (true) {
 
-            if (current_depth >= 4) {
+            if (current_depth >= ASP_WINDOWS_DEPTH) {
                 alpha = MAX(-infinity, score - window);
                 beta = MIN(infinity, score + window);
             }
@@ -1056,8 +1099,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             } else {
                 break;
             }
-            window *= 1.6f;
-
+            window *= ASP_WINDOW_MULTIPLIER;
         }
 
         int endTime = getTimeMiliSecond();
