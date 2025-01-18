@@ -831,10 +831,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         }
 
         // SEE PVS Pruning
-        /*int seeThreshold =
+        int seeThreshold =
                 isQuiet ? SEE_QUIET_THRESHOLD * depth : SEE_NOISY_THRESHOLD * depth * depth;
         if (depth <= SEE_DEPTH && legal_moves > 0 && !SEE(position, currentMove, seeThreshold))
-            continue;*/
+            continue;
 
 
 
