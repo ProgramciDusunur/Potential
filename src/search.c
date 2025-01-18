@@ -543,10 +543,10 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             continue;
         }*/
 
-        /*if (!SEE(position, moveList->moves[count], QS_SEE_THRESHOLD))
+        if (!SEE(position, moveList->moves[count], QS_SEE_THRESHOLD))
         {
             continue;
-        }*/
+        }
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
