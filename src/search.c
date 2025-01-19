@@ -908,7 +908,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             }
 
 
-
             // condition to consider LMR
             if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
                depth >= LMR_REDUCTION_DEPTH_LIMIT) {
