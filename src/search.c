@@ -341,7 +341,8 @@ int move_estimated_value(board *pos, int move) {
     int promoted_piece = getMovePromoted(move);
     promoted_piece = promoted_piece > 5 ? promoted_piece - 6 : promoted_piece;
 
-    int value = SEEPieceValues[target_piece];
+    int value = target_piece >= 0 && target_piece <= 6 ?
+            SEEPieceValues[target_piece] : 0;
 
     // Factor in the new piece's value and remove our promoted pawn
     if (getMovePromoted(move))
@@ -706,9 +707,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     position->improvingRate[position->ply] = 0.0;
 
 
-    if (position->staticEval[position->ply-2] != noEval) {
+    if (position->ply >= 2 && position->staticEval[position->ply-2] != noEval) {
         pastStack = position->ply - 2;
-    } else if (position->staticEval[position->ply-4] != noEval) {
+    } else if (position->ply >= 4 && position->staticEval[position->ply-4] != noEval) {
         pastStack = position->ply - 4;
     }
 
