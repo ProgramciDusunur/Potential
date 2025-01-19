@@ -619,7 +619,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     return alpha;
 }
 
-
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode) {
     // variable to store current move's score (from the static evaluation perspective)
@@ -714,7 +713,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         pastStack = position->ply - 4;
     }
 
-    if (pastStack >= 2 && !in_check) {
+    if (pastStack && !in_check) {
         improving = position->staticEval[position->ply] > position->staticEval[pastStack];
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
         position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, (-1.0)), 1.0);
