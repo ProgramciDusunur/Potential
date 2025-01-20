@@ -1107,7 +1107,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         }
 
         if (position->pvTable[0][0] == previousBestMove) {
-            bestMoveStability = MIN(bestMoveStability + 1, 4);
+            bestMoveStability = MIN(bestMoveStability + 1, 6);
         } else {
             previousBestMove = position->pvTable[0][0];
             bestMoveStability = 0;
