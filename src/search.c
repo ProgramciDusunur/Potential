@@ -1112,7 +1112,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             previousBestMove = position->pvTable[0][0];
             bestMoveStability = 0;
         }
-        if (time->timeset && current_depth > 6) {
+        if (time->timeset && current_depth > 8) {
             scaleTime(time, bestMoveStability);
         }
 
