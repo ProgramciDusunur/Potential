@@ -1053,6 +1053,9 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
     int totalTime = 0;
 
+    int previousBestMove = 0;
+    uint8_t bestMoveStability = 0;
+
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
         if (time->stopped == 1) {
@@ -1102,6 +1105,17 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             }
             window *= ASP_WINDOW_MULTIPLIER;
         }
+
+        if (position->pvTable[0][0] == previousBestMove) {
+            bestMoveStability = MIN(bestMoveStability + 1, 4);
+        } else {
+            previousBestMove = position->pvTable[0][0];
+            bestMoveStability = 0;
+        }
+        if (time->timeset && current_depth > 6) {
+            scaleTime(time, bestMoveStability);
+        }
+
 
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
