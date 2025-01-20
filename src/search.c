@@ -1144,7 +1144,6 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             // print new line
             printf("\n");
         }
-
     }
 
     if (!benchmark) {
