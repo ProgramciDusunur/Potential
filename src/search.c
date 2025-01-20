@@ -1116,7 +1116,6 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             scaleTime(time, bestMoveStability);
         }
 
-
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
 
