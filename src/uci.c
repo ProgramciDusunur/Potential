@@ -143,8 +143,7 @@ void parse_position(char *command, board* position) {
 }
 
 void scaleTime(time* time, uint8_t bestMoveStability) {
-    double bestMoveScale[8] =
-            {2.43, 1.35, 1.09, 0.88, 0.68, 0.53, 0.413, 0.322};
+    double bestMoveScale[7] = {2.43, 1.35, 1.09, 0.88, 0.68, 0.53, 0.413};
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability], time->maxTime + time->starttime);
 }
@@ -209,9 +208,6 @@ void goCommand(char *command, board* position, time* time) {
 
     // init start time
     time->starttime = getTimeMiliSecond();
-
-    // init search depth
-    //depth = depth;
 
     // if time control is available
     if (time->time != -1) {
