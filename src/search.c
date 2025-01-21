@@ -549,6 +549,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             continue;
         }
 
+
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
