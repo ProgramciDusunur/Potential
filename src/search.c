@@ -62,7 +62,6 @@ int counterMoves[2][maxPly][maxPly];
 
 const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
 
-
 // position repetition detection
 int isRepetition(board* position) {
     // loop over repetition indicies range
