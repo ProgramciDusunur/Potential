@@ -893,10 +893,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool pr
 
             /* All Moves */
 
-            // Reduce More
-            if (predictedCutNode) {
-                lmrReduction += 1;
-            }
 
             if (isQuiet) {
 
@@ -907,6 +903,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool pr
 
 
             } else {
+
+                // Reduce More
+                if (predictedCutNode) {
+                    lmrReduction += 1;
+                }
 
             }
 
