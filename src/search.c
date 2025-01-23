@@ -519,6 +519,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         return beta;
     }
 
+
     // found a better move
     if (evaluation > alpha) {
         // PV node (move)
@@ -532,9 +533,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     noisyGenerator(moveList, position);
 
     // sort moves
-    if (moveList->count > 0) {
-        quiescence_sort_moves(moveList, position);
-    }
+    quiescence_sort_moves(moveList, position);
 
     // legal moves counter
     //int legal_moves = 0;
@@ -792,7 +791,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     // create move list instance
     moves moveList[1], badQuiets[1];
-    badQuiets->count = 1;
+    badQuiets->count = 0;
 
     // generate moves
     moveGenerator(moveList, position);
