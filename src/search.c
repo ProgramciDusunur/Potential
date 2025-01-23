@@ -528,6 +528,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     // create move list instance
     moves moveList[1];
+    moveList->count = 0;
 
     // generate moves
     noisyGenerator(moveList, position);
@@ -712,7 +713,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         pastStack = position->ply - 4;
     }
 
-    if (pastStack && !in_check) {
+    if (pastStack > -1 && !in_check) {
         improving = position->staticEval[position->ply] > position->staticEval[pastStack];
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
         position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, (-1.0)), 1.0);
@@ -792,6 +793,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // create move list instance
     moves moveList[1], badQuiets[1];
     badQuiets->count = 0;
+    moveList->count = 0;
 
     // generate moves
     moveGenerator(moveList, position);
