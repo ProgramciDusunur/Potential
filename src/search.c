@@ -527,7 +527,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     // create move list instance
     moves moveList[1];
-    moveList->count = 0;
+    moveList->count = 1;
 
     // generate moves
     noisyGenerator(moveList, position);
@@ -791,8 +791,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     // create move list instance
     moves moveList[1], badQuiets[1];
-    badQuiets->count = 0;
-    moveList->count = 0;
+    badQuiets->count = 1;
 
     // generate moves
     moveGenerator(moveList, position);
