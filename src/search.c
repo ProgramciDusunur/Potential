@@ -705,7 +705,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     position->improvingRate[position->ply] = 0.0;
 
-
     if (position->ply >= 2 && position->staticEval[position->ply-2] != noEval) {
         pastStack = position->ply - 2;
     } else if (position->ply >= 4 && position->staticEval[position->ply-4] != noEval) {
