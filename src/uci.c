@@ -364,7 +364,7 @@ void communicate(timeControl* time) {
         // tell engine to stop calculating
         time->stopped = 1;
     }
-    read_input(time);
+    //read_input(time);
 }
 
 
