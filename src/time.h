@@ -15,7 +15,7 @@
 #include <stdbool.h>
 
 #else
-#include <sys/timeControl.h>
+#include <sys/time.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
