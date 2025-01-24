@@ -35,7 +35,7 @@ ifeq ($(OS), Windows_NT)
 	SUFFIX   := .exe
 	CFLAGS  += -static
 else
-	FLAGS    = -pthread -lm
+	FLAGS    = -lm
 	SUFFIX  :=
 	uname_S := $(shell uname -s)
 endif
