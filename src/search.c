@@ -705,14 +705,13 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     position->improvingRate[position->ply] = 0.0;
 
-
     if (position->ply >= 2 && position->staticEval[position->ply-2] != noEval) {
         pastStack = position->ply - 2;
     } else if (position->ply >= 4 && position->staticEval[position->ply-4] != noEval) {
         pastStack = position->ply - 4;
     }
 
-    if (pastStack && !in_check) {
+    if (pastStack > -1 && !in_check) {
         improving = position->staticEval[position->ply] > position->staticEval[pastStack];
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
         position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, (-1.0)), 1.0);
