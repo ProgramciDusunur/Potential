@@ -1134,15 +1134,15 @@ void searchPosition(int depth, board* position, bool benchmark, timeControl* tim
             printf("info depth %d ", current_depth);
 
             if (score > -mateValue && score < -mateScore)
-                printf("score mate %d nodes %llu nps %llu timeControl %d pv ",
+                printf("score mate %d nodes %llu nps %llu time %d pv ",
                        -(score + mateValue) / 2 - 1,
                        searchNodes, nps, totalTime);
             else if (score > mateScore && score < mateValue)
-                printf("score mate %d nodes %llu nps %llu timeControl %d pv ",
+                printf("score mate %d nodes %llu nps %llu time %d pv ",
                        (mateValue - score) / 2 + 1,
                        searchNodes, nps, totalTime);
             else
-                printf("score cp %d nodes %llu nps %llu timeControl %d pv ",
+                printf("score cp %d nodes %llu nps %llu time %d pv ",
                        score, searchNodes, nps, totalTime);
 
             // loop over the moves within a PV line
