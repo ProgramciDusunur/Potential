@@ -314,7 +314,7 @@ int areSubStringsEqual(char *command, char *uciCommand, int stringSize) {
 
 
 // read GUI/user input
-void read_input(timeControl* time) {
+/*void read_input(timeControl* time) {
     // bytes to read holder
     int bytes;
 
@@ -356,7 +356,7 @@ void read_input(timeControl* time) {
             }
         }
     }
-}
+}*/
 
 void communicate(timeControl* time) {
     // if timeControl is up break here
