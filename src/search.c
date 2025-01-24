@@ -485,7 +485,7 @@ int SEE(board *pos, int move, int threshold) {
 
 
 // quiescence search
-int quiescence(int alpha, int beta, board* position, time* time) {
+int quiescence(int alpha, int beta, board* position, timeControl* time) {
     if ((searchNodes & 2047) == 0) {
         communicate(time);
     }
@@ -619,7 +619,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 }
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode) {
+int negamax(int alpha, int beta, int depth, board* position, timeControl* time, bool cutNode) {
     // variable to store current move's score (from the static evaluation perspective)
     int score = 0;
 
@@ -925,7 +925,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
-                   in the normal alpha-beta manner.  This happens sometimes, and it's a waste of time,
+                   in the normal alpha-beta manner.  This happens sometimes, and it's a waste of timeControl,
                    but generally not often enough to counteract the savings gained from doing the
                    "bad move proof" search referred to earlier. */
                 if((score > alpha) && (score < beta))
@@ -1025,11 +1025,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
 // search position for the best move
-void searchPosition(int depth, board* position, bool benchmark, time* time) {
+void searchPosition(int depth, board* position, bool benchmark, timeControl* time) {
     // define best score variable
     int score = 0;
 
-    // reset "time is up" flag
+    // reset "timeControl is up" flag
     time->stopped = 0;
 
     // reset nodes counter
@@ -1043,7 +1043,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, noEval, sizeof(position->staticEval));
-    //memset(time, 0, sizeof(*time));
+    //memset(timeControl, 0, sizeof(*timeControl));
     //memset(counterMoves, 0, sizeof(counterMoves));
 
     // define initial alpha beta bounds
@@ -1135,15 +1135,15 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             printf("info depth %d ", current_depth);
 
             if (score > -mateValue && score < -mateScore)
-                printf("score mate %d nodes %llu nps %llu time %d pv ",
+                printf("score mate %d nodes %llu nps %llu timeControl %d pv ",
                        -(score + mateValue) / 2 - 1,
                        searchNodes, nps, totalTime);
             else if (score > mateScore && score < mateValue)
-                printf("score mate %d nodes %llu nps %llu time %d pv ",
+                printf("score mate %d nodes %llu nps %llu timeControl %d pv ",
                        (mateValue - score) / 2 + 1,
                        searchNodes, nps, totalTime);
             else
-                printf("score cp %d nodes %llu nps %llu time %d pv ",
+                printf("score cp %d nodes %llu nps %llu timeControl %d pv ",
                        score, searchNodes, nps, totalTime);
 
             // loop over the moves within a PV line

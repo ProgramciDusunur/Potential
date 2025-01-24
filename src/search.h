@@ -40,8 +40,8 @@ void printMove(int move);
 int getLmrReduction(int depth, int moveNumber);
 uint8_t justPawns(board *pos);
 void clearCounterMoves(void);
-int quiescence(int alpha, int beta, board* position, time* time);
-int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode);
-void searchPosition(int depth, board* position, bool benchmark, time* time);
+int quiescence(int alpha, int beta, board* position, timeControl* time);
+int negamax(int alpha, int beta, int depth, board* position, timeControl* time, bool cutNode);
+void searchPosition(int depth, board* position, bool benchmark, timeControl* time);
 
 #endif //POTENTIAL_SEARCH_H

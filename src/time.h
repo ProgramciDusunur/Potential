@@ -15,7 +15,7 @@
 #include <stdbool.h>
 
 #else
-#include <sys/time.h>
+#include <sys/timeControl.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -23,8 +23,8 @@
 
 #endif
 
-void initTimeControl(time* time);
-void resetTimeControl(time* time);
+void initTimeControl(timeControl* time);
+void resetTimeControl(timeControl* time);
 int getTimeMiliSecond();
 int input_waiting();
 

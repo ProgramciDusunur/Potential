@@ -5,7 +5,7 @@
 #include "time.h"
 
 
-void initTimeControl(time* time) {
+void initTimeControl(timeControl* time) {
     // init timing
     time->quit = 0;
     time->movestogo = 20;
@@ -21,8 +21,8 @@ void initTimeControl(time* time) {
 }
 
 
-// reset time control variables
-void resetTimeControl(time* time) {
+// reset timeControl control variables
+void resetTimeControl(timeControl* time) {
     // reset timing
     time->quit = 0;
     time->movestogo = 20;

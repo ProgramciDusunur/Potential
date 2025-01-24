@@ -142,16 +142,16 @@ void parse_position(char *command, board* position) {
     pBoard(position);
 }
 
-void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability) {
+void scaleTime(timeControl* time, uint8_t bestMoveStability, uint8_t evalStability) {
     double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * evalScale[evalStability], time->maxTime + time->starttime);
 }
 
-void goCommand(char *command, board* position, time* time) {
+void goCommand(char *command, board* position, timeControl* time) {
 
-    // reset time control
+    // reset timeControl control
     resetTimeControl(time);
 
     // init parameters
@@ -165,22 +165,22 @@ void goCommand(char *command, board* position, time* time) {
 
     // match UCI "binc" command
     if ((argument = strstr(command, "binc")) && position->side == black)
-        // parse black time increment
+        // parse black timeControl increment
         time->inc = atoi(argument + 5);
 
     // match UCI "winc" command
     if ((argument = strstr(command, "winc")) && position->side == white)
-        // parse white time increment
+        // parse white timeControl increment
         time->inc = atoi(argument + 5);
 
     // match UCI "wtime" command
     if ((argument = strstr(command, "wtime")) && position->side == white)
-        // parse white time limit
+        // parse white timeControl limit
         time->time = atoi(argument + 6);
 
     // match UCI "btime" command
     if ((argument = strstr(command, "btime")) && position->side == black)
-        // parse black time limit
+        // parse black timeControl limit
         time->time = atoi(argument + 6);
 
     // match UCI "movestogo" command
@@ -190,7 +190,7 @@ void goCommand(char *command, board* position, time* time) {
 
     // match UCI "movetime" command
     if ((argument = strstr(command, "movetime")))
-        // parse amount of time allowed to spend to make a move
+        // parse amount of timeControl allowed to spend to make a move
         time->movetime = atoi(argument + 9);
 
     // match UCI "depth" command
@@ -198,24 +198,24 @@ void goCommand(char *command, board* position, time* time) {
         // parse search depth
         depth = atoi(argument + 6);
 
-    // if move time is not available
+    // if move timeControl is not available
     if (time->movetime != -1) {
-        // set time equal to move time
+        // set timeControl equal to move timeControl
         time->time = time->movetime;
 
         // set moves to go to 1
         time->movestogo = 1;
     }
 
-    // init start time
+    // init start timeControl
     time->starttime = getTimeMiliSecond();
 
     // init search depth
     //depth = depth;
 
-    // if time control is available
+    // if timeControl control is available
     if (time->time != -1) {
-        // flag we're playing with time control
+        // flag we're playing with timeControl control
         time->timeset = 1;
 
         // Engine <--> GUI communication safety margin
@@ -245,7 +245,7 @@ void goCommand(char *command, board* position, time* time) {
         depth = 64;
 
     // print debug info
-    printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
+    printf("timeControl:%d start:%d stop:%d depth:%d timeset:%d\n",
            time->time, time->starttime, time->stoptime, depth, time->timeset);
 
     // search position
@@ -314,7 +314,7 @@ int areSubStringsEqual(char *command, char *uciCommand, int stringSize) {
 
 
 // read GUI/user input
-void read_input(time* time) {
+void read_input(timeControl* time) {
     // bytes to read holder
     int bytes;
 
@@ -358,8 +358,8 @@ void read_input(time* time) {
     }
 }
 
-void communicate(time* time) {
-    // if time is up break here
+void communicate(timeControl* time) {
+    // if timeControl is up break here
     if (time->timeset == 1 && getTimeMiliSecond() > time->hardLimit) {
         // tell engine to stop calculating
         time->stopped = 1;
@@ -377,11 +377,11 @@ void uciProtocol(int argc, char *argv[]) {
         position->mailbox[i] = 0;
     }
 
-    time *time_ctrl = (time *)malloc(sizeof(time));
+    timeControl *time_ctrl = (timeControl *)malloc(sizeof(timeControl));
 
     clearStaticEvaluationHistory(position);
 
-    // init time control
+    // init timeControl control
     initTimeControl(time_ctrl);
 
     // max hash MB

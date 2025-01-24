@@ -22,14 +22,14 @@
 #endif
 
 void uciProtocol(int argc, char *argv[]);
-void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability);
+void scaleTime(timeControl* time, uint8_t bestMoveStability, uint8_t evalStability);
 int parse_move(char *move_string, board* position);
 void parse_position(char *command, board* position);
-void goCommand(char *command, board* position, time* time);
+void goCommand(char *command, board* position, timeControl* time);
 void printMoveList(moves *moveList);
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
-void read_input(time* time);
-void communicate(time* time);
+void read_input(timeControl* time);
+void communicate(timeControl* time);
 
 
 

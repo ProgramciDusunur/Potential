@@ -84,16 +84,16 @@ typedef struct {
     // UCI "movestogo" command moves counter
     int movestogo;
 
-    // UCI "movetime" command time counter
+    // UCI "movetime" command timeControl counter
     int movetime;
 
-    // UCI "time" command holder (ms)
+    // UCI "timeControl" command holder (ms)
     int time;
 
-    // UCI "inc" command's time increment holder
+    // UCI "inc" command's timeControl increment holder
     int inc;
 
-    // UCI "starttime" command time holder
+    // UCI "starttime" command timeControl holder
     int starttime;
 
     int softLimit;
@@ -106,15 +106,15 @@ typedef struct {
 
     uint32_t maxTime;
 
-    // UCI "stoptime" command time holder
+    // UCI "stoptime" command timeControl holder
     int stoptime;
 
-    // variable to flag time control availability
+    // variable to flag timeControl control availability
     int timeset;
 
-    // variable to flag when the time is up
+    // variable to flag when the timeControl is up
     int stopped;
-} time;
+} timeControl;
 
 
 
