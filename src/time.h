@@ -25,7 +25,7 @@
 
 void initTimeControl(timeControl* time);
 void resetTimeControl(timeControl* time);
-int getTimeMiliSecond();
+int getTimeMilliSecond();
 int input_waiting();
 
 

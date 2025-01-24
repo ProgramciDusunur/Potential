@@ -37,7 +37,7 @@ void resetTimeControl(timeControl* time) {
     time->hardLimit = 0;
 }
 
-int getTimeMiliSecond(void) {
+int getTimeMilliSecond(void) {
     #ifdef WIN64
         return GetTickCount();
     #else

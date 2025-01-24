@@ -208,7 +208,7 @@ void goCommand(char *command, board* position, timeControl* time) {
     }
 
     // init start timeControl
-    time->starttime = getTimeMiliSecond();
+    time->starttime = getTimeMilliSecond();
 
     // init search depth
     //depth = depth;
@@ -360,7 +360,7 @@ void read_input(timeControl* time) {
 
 void communicate(timeControl* time) {
     // if timeControl is up break here
-    if (time->timeset == 1 && getTimeMiliSecond() > time->hardLimit) {
+    if (time->timeset == 1 && getTimeMilliSecond() > time->hardLimit) {
         // tell engine to stop calculating
         time->stopped = 1;
     }

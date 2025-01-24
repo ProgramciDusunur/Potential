@@ -1063,7 +1063,7 @@ void searchPosition(int depth, board* position, bool benchmark, timeControl* tim
         }
 
 
-        int startTime = getTimeMiliSecond();
+        int startTime = getTimeMilliSecond();
 
         if (time->timeset && startTime >= time->softLimit) {
             time->stopped = 1;
@@ -1125,7 +1125,7 @@ void searchPosition(int depth, board* position, bool benchmark, timeControl* tim
             scaleTime(time, bestMoveStability, evalStability);
         }
 
-        int endTime = getTimeMiliSecond();
+        int endTime = getTimeMilliSecond();
         totalTime += endTime - startTime;
 
         if (position->pvLength[0] && !benchmark) {

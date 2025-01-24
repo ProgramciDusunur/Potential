@@ -64,7 +64,7 @@ char* benchmarkfens[52] = {
 void benchmark(int depth, board* position, timeControl* time) {
     U64 totalNodes = 0;
 
-    int benchStartTime = getTimeMiliSecond();
+    int benchStartTime = getTimeMilliSecond();
     for (int i = 0;i < 52;i++) {
         parseFEN(benchmarkfens[i], position);
         searchPosition(depth, position, true, time);
@@ -82,6 +82,6 @@ void benchmark(int depth, board* position, timeControl* time) {
         totalNodes += searchNodes;
         //printf("position: %s\n", benchmarkfens[i]);
     }
-    int benchFinishTime = getTimeMiliSecond() - benchStartTime;
+    int benchFinishTime = getTimeMilliSecond() - benchStartTime;
     printf("%llu nodes %llu nps", totalNodes, totalNodes / (benchFinishTime +1) * 1000);
 }
