@@ -483,7 +483,6 @@ int SEE(board *pos, int move, int threshold) {
 }
 
 
-
 // quiescence search
 int quiescence(int alpha, int beta, board* position, time* time) {
     if ((searchNodes & 2047) == 0) {
