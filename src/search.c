@@ -334,7 +334,7 @@ uint8_t justPawns(board *pos) {
 int move_estimated_value(board *pos, int move) {
 
     // Start with the value of the piece on the target square
-    int target_piece = pos->mailbox[getMoveTarget(move)] > 5
+    int target_piece = pos->mailbox[getMoveTarget(move)] > 5 && pos->mailbox[getMoveTarget(move)] <= 11
                        ? pos->mailbox[getMoveTarget(move)] - 6
                        : pos->mailbox[getMoveTarget(move)];
     int promoted_piece = getMovePromoted(move);
