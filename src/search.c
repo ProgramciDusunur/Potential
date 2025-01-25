@@ -248,7 +248,7 @@ int quiescenceScoreMove(int move, board* position) {
 
 void quiescence_sort_moves(moves *moveList, board* position) {
     // move scores
-    int move_scores[moveList->count];
+    int move_scores[maxPly / 4];
     int sorted_count = 0;
 
     // score and insert moves one by one
