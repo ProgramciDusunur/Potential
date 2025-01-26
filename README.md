@@ -1,6 +1,6 @@
-# Potential
+<h1 align="center">Potential</h1>
 
-UCI chess engine.
+<h3 align="center">Decent UCI chess engine.</h3>
 
 ---
 
@@ -13,7 +13,7 @@ The evaluation function determines how good or bad a position is for each side. 
 - King Safety
 - Tempo
 - Check Tempo (If we are in a check then our tempo bonus cancelled.)
-- Endgame Winnability
+- Winnable
 - Can Passer Pawn Move
 - King Distance
 - Rook Open File
@@ -39,10 +39,14 @@ The search function explores possible moves and evaluates their outcomes to find
 - Transposition Table (TT)
 - Aspiration Windows
 - Late Move Pruning
+- Mate Distance Pruning
 - Late Move Reduction
 - Null Move Pruning
 - Futility Pruning (Quiet Moves)
 - Reverse Futility Pruning
+- Quiescence SEE Pruning
+- PVS SEE Pruning
+- Improving Heuristic
 - Razoring
 - Cut Node
 - Quiescence Search
@@ -52,14 +56,17 @@ The search function explores possible moves and evaluates their outcomes to find
   
   1. Transposition Table Move
   2. Principle Variation Moves
-  3. MVV/LVA (Capture Moves)
-  4. Quiet History Moves
+  3. SEE Move Ordering (Capture Moves)
+  4. MVV/LVA (Capture Moves)
+  5. Quiet History Moves
 ---
 
 ## Time Control
 
 - **Hard Limit**
 - **Soft Limit**
+- **Best Move TM**
+- **Evaluation TM**
 
 ---
 
