@@ -77,8 +77,6 @@ void benchmark(int depth, board* position, time* time) {
         //clear static eval history
         clearStaticEvaluationHistory(position);
 
-        //clear counter moves
-        //clearCounterMoves();
         totalNodes += searchNodes;
         //printf("position: %s\n", benchmarkfens[i]);
     }

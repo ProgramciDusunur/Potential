@@ -248,7 +248,7 @@ int quiescenceScoreMove(int move, board* position) {
 
 void quiescence_sort_moves(moves *moveList, board* position) {
     // move scores
-    int move_scores[moveList->count];
+    int move_scores[maxPly / 4];
     int sorted_count = 0;
 
     // score and insert moves one by one
@@ -334,7 +334,7 @@ uint8_t justPawns(board *pos) {
 int move_estimated_value(board *pos, int move) {
 
     // Start with the value of the piece on the target square
-    int target_piece = pos->mailbox[getMoveTarget(move)] > 5
+    int target_piece = pos->mailbox[getMoveTarget(move)] > 5 && pos->mailbox[getMoveTarget(move)] <= 11
                        ? pos->mailbox[getMoveTarget(move)] - 6
                        : pos->mailbox[getMoveTarget(move)];
     int promoted_piece = getMovePromoted(move);
@@ -481,7 +481,6 @@ int SEE(board *pos, int move, int threshold) {
     // Side to move after the loop loses
     return pos->side != colour;
 }
-
 
 
 // quiescence search
