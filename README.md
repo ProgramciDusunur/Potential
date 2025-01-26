@@ -1,25 +1,80 @@
-# UCI Chess Engine
+<h1 align="center">Potential</h1>
 
-## Magic Bitboards
-- Pre-Calculated Attack Tables
-- Bitboard Board Representation
+<h3 align="center">Decent UCI chess engine.</h3>
+
+---
+
+## Evaluation
+
+The evaluation function determines how good or bad a position is for each side. Key evaluation aspects include:  
+
+- Material Balance  
+- Mobility
+- King Safety
+- Tempo
+- Check Tempo (If we are in a check then our tempo bonus cancelled.)
+- Winnable
+- Can Passer Pawn Move
+- King Distance
+- Rook Open File
+- Rook Semi Open File
+- Pawn Structure  
+  ### Key Factors in Pawn Structure:
+  - Passed Pawns 🚧  
+  - Isolated Pawns 🚧  
+  - Doubled Pawns 🚧  
+  - Backward Pawns 🚧  
+  - Pawn Chains 🚧  
+
+- Tapered Eval (Opening, Middlegame, Endgame)
+
+---
+
 ## Search
-- Minmax/Alpha Beta Pruning  
-- Quiescence Search
-- Null Move Pruning
-- Razoring
-- Aspiration Window
-- Tranposition Table
-- Principal Variation Search
-- Static Null Move Pruning
-- Killer/History Moves
+
+The search function explores possible moves and evaluates their outcomes to find the best one. Core techniques include:  
+
+- Negamax with Fail-Hard Framework
+- Iterative Deepening 
+- Transposition Table (TT)
+- Aspiration Windows
+- Late Move Pruning
+- Mate Distance Pruning
 - Late Move Reduction
-- Static Exchange Evaluation
-## Credits
+- Null Move Pruning
+- Futility Pruning (Quiet Moves)
+- Reverse Futility Pruning
+- Quiescence SEE Pruning
+- PVS SEE Pruning
+- Improving Heuristic
+- Razoring
+- Cut Node
+- Quiescence Search
+- Move Ordering  
+  ### Priorities in Move Ordering:
+    When searching for the best move, the engine searches moves in the following order:
+  
+  1. Transposition Table Move
+  2. Principle Variation Moves
+  3. SEE Move Ordering (Capture Moves)
+  4. MVV/LVA (Capture Moves)
+  5. Quiet History Moves
+---
 
-I would like to extend my gratitude to some fantastic individuals who have contributed to the creation and development of this project:
+## Time Control
 
-- [Code Monkey King](https://github.com/maksimKorzh/bbc) - For significant contributions to the chess engine tutorial and guide.
-- DarkNeutrino and Zuppa thanks for tips and makefile.
+- **Hard Limit**
+- **Soft Limit**
+- **Best Move TM**
+- **Evaluation TM**
 
-Thank you for helping us make this project better!
+---
+
+## Installation & Usage
+
+### Running the Engine
+```bash
+$ git clone https://github.com/ProgramciDusunur/Potential.git
+$ cd Potential/src
+$ make
+$ ./Potential
