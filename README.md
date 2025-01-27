@@ -2,7 +2,7 @@
 
 <h3 align="center">Decent UCI chess engine.</h3>
 
----
+
 
 
 ## Strength
