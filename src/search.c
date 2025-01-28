@@ -884,6 +884,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             int lmrReduction = getLmrReduction(depth, legal_moves);
             if (isQuiet) {
 
+                /* All Moves */
+
+                // Reduce More
+
+                if (!improving) {
+                    lmrReduction += 1;
+                }
+
                 // Reduce More
                 if (!pvNode && quietMoves >= LMR_NON_PV_QUIET_MOVES) {
                     lmrReduction += 1;
