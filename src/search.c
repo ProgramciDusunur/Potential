@@ -882,15 +882,17 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             score = -negamax(-beta, -alpha, depth - 1, position, time, 0);
         } else {
             int lmrReduction = getLmrReduction(depth, legal_moves);
+
+            /* All Moves */
+
+            // Reduce More
+
+            if (cutNode) {
+                lmrReduction += 1;
+            }
+
             if (isQuiet) {
 
-                /* All Moves */
-
-                // Reduce More
-
-                if (!improving) {
-                    lmrReduction += 1;
-                }
 
                 // Reduce More
                 if (!pvNode && quietMoves >= LMR_NON_PV_QUIET_MOVES) {
