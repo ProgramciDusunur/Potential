@@ -512,10 +512,12 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // evaluate position
     int evaluation = evaluate(position);
 
+    int bestScore = evaluation;
+
     // fail-hard beta cutoff
     if (evaluation >= beta) {
         // node (move) fails high
-        return beta;
+        return evaluation;
     }
 
 
@@ -537,16 +539,10 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // legal moves counter
     //int legal_moves = 0;
 
-    //int futilityMargin = evaluation + 100;
+
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
-        /*if (!pvNode && futilityMargin <= alpha) {
-            if (negamaxScore < futilityMargin) {
-                negamaxScore = futilityMargin;
-            }
-            continue;
-        }*/
 
         if (!SEE(position, moveList->moves[count], QS_SEE_THRESHOLD))
         {
@@ -595,26 +591,27 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         if (time->stopped == 1) return 0;
 
 
-        // found a better move
-        if (score > alpha) {
-            // PV node (move)
-            alpha = score;
+        if (score > bestScore) {
+            bestScore = score;
+            // found a better move
+            if (score > alpha) {
+                //bestMove = moveList->moves[count];
 
-            //bestMove = moveList->moves[count];
+                //hashFlag = hashFlagExact;
+                alpha = score;
+            }
 
-            //hashFlag = hashFlagExact;
-            // fail-hard beta cutoff
             if (score >= beta) {
                 //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
                 // node (move) fails high
-                return beta;
+                break;
             }
         }
 
     }
     //writeHashEntry(alpha, bestMove, 0, hashFlag, position);
     // node (move) fails low
-    return alpha;
+    return bestScore;
 }
 
 // negamax alpha beta search
