@@ -631,7 +631,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
                 return score;
             }
         }
-
     }
 
     if (legal_moves == 0) {
