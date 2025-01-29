@@ -607,8 +607,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
                 break;
             }
         }
-
     }
+
     //writeHashEntry(alpha, bestMove, 0, hashFlag, position);
     // node (move) fails low
     return bestScore;
