@@ -515,7 +515,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // fail-hard beta cutoff
     if (evaluation >= beta) {
         // node (move) fails high
-        return beta;
+        return evaluation;
     }
 
 
@@ -534,8 +534,10 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // sort moves
     quiescence_sort_moves(moveList, position);
 
+    int bestValue = -infinity;
+
     // legal moves counter
-    //int legal_moves = 0;
+    int legal_moves = 0;
 
     //int futilityMargin = evaluation + 100;
 
@@ -575,7 +577,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             continue;
         }
 
-        //legal_moves++;
+        legal_moves++;
 
         // increment nodes count
         searchNodes++;
@@ -595,8 +597,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         if (time->stopped == 1) return 0;
 
 
-        // found a better move
-        if (score > alpha) {
+
+        /*if (score > alpha) {
             // PV node (move)
             alpha = score;
 
@@ -609,12 +611,35 @@ int quiescence(int alpha, int beta, board* position, time* time) {
                 // node (move) fails high
                 return beta;
             }
+        }*/
+
+        /* fail-soft framework */
+
+        if (score > bestValue) {
+            bestValue = score;
+            // found a better move
+            if (score > alpha) {
+                //bestMove = moveList->moves[count];
+
+                //hashFlag = hashFlagExact;
+                alpha = score;
+            }
+
+            if (score >= beta) {
+                //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
+                // node (move) fails high
+                return score;
+            }
         }
 
     }
+
+    if (legal_moves == 0) {
+        return evaluation;
+    }
     //writeHashEntry(alpha, bestMove, 0, hashFlag, position);
     // node (move) fails low
-    return alpha;
+    return bestValue;
 }
 
 // negamax alpha beta search
