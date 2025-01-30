@@ -630,7 +630,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     int bestMove = 0;
 
     // define hash flag
-    int hashFlag = hashFlagAlpha;
+    //int hashFlag = hashFlagAlpha;
 
     if ((searchNodes & 2047) == 0) {
         communicate(time);
@@ -653,12 +653,12 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // read hash entry
-    if (!rootNode &&
+    /*if (!rootNode &&
        (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move
         return score;
-    }
+    }*/
 
     // recursion escapre condition
     if (depth <= 0)
@@ -949,7 +949,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         if (score > alpha) {
             // switch hash flag from storing for fail-low node
             // to the one storing score for PV node
-            hashFlag = hashFlagExact;
+            //hashFlag = hashFlagExact;
 
             // store best move (for TT)
             bestMove = currentMove;
@@ -975,7 +975,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             if (score >= beta) {
 
                 // store hash entry with the score equal to beta
-                writeHashEntry(beta, bestMove, depth, hashFlagBeta, position);
+                //writeHashEntry(beta, bestMove, depth, hashFlagBeta, position);
 
                 // on quiet moves
                 if (isQuiet) {
@@ -1004,7 +1004,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             return 0;
     }
     // store hash entry with the score equal to alpha
-    writeHashEntry(alpha, bestMove, depth, hashFlag, position);
+    //writeHashEntry(alpha, bestMove, depth, hashFlag, position);
 
     // node (move) fails low
     return alpha;
