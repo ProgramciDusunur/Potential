@@ -356,7 +356,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, board* position, time* time) {
     // variable to store current move's score (from the static evaluation perspective)
-    int score;
+    int score = 0;
 
     // best move (to store in TT)
     //int bestMove = 0;
@@ -408,8 +408,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
                                     getLS1BIndex(position->bitboards[k]),
                                     position->side ^ 1, position);
 
-    // increase search depth if the king has been exposed into a check
-    if (in_check) depth++;
+
 
     // legal moves counter
     int legal_moves = 0;
@@ -488,7 +487,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     //int moves_searched = 0;
 
     int bestScore = -infinity;
-    score = -infinity;
 
 
     // loop over moves within a movelist
