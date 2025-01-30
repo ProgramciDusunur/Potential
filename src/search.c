@@ -652,8 +652,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     // read hash entry
     if (!rootNode &&
-       (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry &&
-       !pvNode) {
+       (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move
         return score;
@@ -1012,7 +1011,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // store hash entry with the score equal to alpha
-    writeHashEntry(alpha, bestMove, depth, hashFlag, position);
+    writeHashEntry(bestScore, bestMove, depth, hashFlag, position);
 
     // node (move) fails low
     return bestScore;
