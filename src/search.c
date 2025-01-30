@@ -943,10 +943,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // increment the counter of moves searched so far
         moves_searched++;
 
-
         // found a better move
-
-
         if (score > bestScore) {
             bestScore = score;
             if (score > alpha) {
