@@ -626,8 +626,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // best move (to store in TT)
     int bestMove = 0;
 
-    // define hash flag
-    int hashFlag = hashFlagAlpha;
 
     if ((searchNodes & 2047) == 0) {
         communicate(time);
@@ -794,6 +792,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // sort moves
     sort_moves(moveList, bestMove, position);
 
+    int bestScore = -infinity;
+
+    const int originalAlpha = alpha;
+
     // number of moves searched in a move list
     int moves_searched = 0;
 
@@ -941,51 +943,48 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // increment the counter of moves searched so far
         moves_searched++;
 
-
         // found a better move
-        if (score > alpha) {
-            // switch hash flag from storing for fail-low node
-            // to the one storing score for PV node
-            hashFlag = hashFlagExact;
+        if (score > bestScore) {
+            bestScore = score;
+            if (score > alpha) {
+                // store best move (for TT)
+                bestMove = currentMove;
 
-            // store best move (for TT)
-            bestMove = currentMove;
+                // PV node (move)
+                alpha = score;
 
-            // PV node (move)
-            alpha = score;
+                if (pvNode) {
+                    // write PV move
+                    position->pvTable[position->ply][position->ply] = currentMove;
 
-            if (pvNode) {
-                // write PV move
-                position->pvTable[position->ply][position->ply] = currentMove;
+                    // loop over the next ply
+                    for (int next_ply = position->ply + 1; next_ply < position->pvLength[position->ply + 1]; next_ply++)
+                        // copy move from deeper ply into a current ply's line
+                        position->pvTable[position->ply][next_ply] = position->pvTable[position->ply + 1][next_ply];
 
-                // loop over the next ply
-                for (int next_ply = position->ply + 1; next_ply < position->pvLength[position->ply + 1]; next_ply++)
-                    // copy move from deeper ply into a current ply's line
-                    position->pvTable[position->ply][next_ply] = position->pvTable[position->ply + 1][next_ply];
-
-                // adjust PV length
-                position->pvLength[position->ply] = position->pvLength[position->ply + 1];
-            }
-
-
-            // fail-hard beta cutoff
-            if (score >= beta) {
-
-                // store hash entry with the score equal to beta
-                writeHashEntry(beta, bestMove, depth, hashFlagBeta, position);
-
-                // on quiet moves
-                if (isQuiet) {
-                    // store killer moves
-                    //position->killerMoves[position->ply][0] = bestMove;
-
-                    updateQuietMoveHistory(bestMove, depth, badQuiets);
+                    // adjust PV length
+                    position->pvLength[position->ply] = position->pvLength[position->ply + 1];
                 }
 
-                // node (move) fails high
-                return beta;
+
+                // fail-hard beta cutoff
+                if (score >= beta) {
+                    // on quiet moves
+                    if (isQuiet) {
+                        // store killer moves
+                        //position->killerMoves[position->ply][0] = bestMove;
+
+                        updateQuietMoveHistory(bestMove, depth, badQuiets);
+                    }
+
+                    // node (move) fails high
+                    break;
+                }
             }
+
         }
+
+
     }
 
     // we don't have any legal moves to make in the current postion
@@ -1000,11 +999,19 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // return stalemate score
             return 0;
     }
+
+    uint8_t hashFlag = hashFlagExact;
+    if (alpha >= beta) {
+        hashFlag = hashFlagAlpha;
+    } else if (alpha <= originalAlpha) {
+        hashFlag = hashFlagBeta;
+    }
+
     // store hash entry with the score equal to alpha
-    writeHashEntry(alpha, bestMove, depth, hashFlag, position);
+    writeHashEntry(bestScore, bestMove, depth, hashFlag, position);
 
     // node (move) fails low
-    return alpha;
+    return bestScore;
 }
 
 
