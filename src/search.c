@@ -356,7 +356,7 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, board* position, time* time) {
     // variable to store current move's score (from the static evaluation perspective)
-    int score = 0;
+    int score;
 
     // best move (to store in TT)
     //int bestMove = 0;
@@ -487,6 +487,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     // number of moves searched in a move list
     //int moves_searched = 0;
 
+    int bestScore = -infinity;
+    score = -infinity;
 
 
     // loop over moves within a movelist
@@ -562,61 +564,34 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
 
         // found a better move
-        if (score > alpha) {
-            // switch hash flag from storing for fail-low node
-            // to the one storing score for PV node
-            //hashFlag = hashFlagExact;
+        if (score > bestScore) {
+            bestScore = score;
 
-            // store best move (for TT)
-            //bestMove = currentMove;
+            if (score > alpha) {
+                // PV node (move)
+                alpha = score;
 
-            // on quiet moves
-            /*if (getMoveCapture(currentMove) == 0)
-                // store history moves
-                position->historyMoves[getMovePiece(currentMove)][getMoveTarget(currentMove)] += depth;*/
+                if (pvNode) {
+                    // write PV move
+                    position->pvTable[position->ply][position->ply] = currentMove;
 
-            // PV node (move)
-            alpha = score;
+                    // loop over the next ply
+                    for (int next_ply = position->ply + 1; next_ply < position->pvLength[position->ply + 1]; next_ply++)
+                        // copy move from deeper ply into a current ply's line
+                        position->pvTable[position->ply][next_ply] = position->pvTable[position->ply + 1][next_ply];
 
-            if (pvNode) {
-                // write PV move
-                position->pvTable[position->ply][position->ply] = currentMove;
+                    // adjust PV length
+                    position->pvLength[position->ply] = position->pvLength[position->ply + 1];
+                }
 
-                // loop over the next ply
-                for (int next_ply = position->ply + 1; next_ply < position->pvLength[position->ply + 1]; next_ply++)
-                    // copy move from deeper ply into a current ply's line
-                    position->pvTable[position->ply][next_ply] = position->pvTable[position->ply + 1][next_ply];
 
-                // adjust PV length
-                position->pvLength[position->ply] = position->pvLength[position->ply + 1];
+                // fail-hard beta cutoff
+                if (score >= beta) {
+                    // node (move) fails high
+                    break;
+                }
             }
 
-
-            // fail-hard beta cutoff
-            if (score >= beta) {
-                // store hash entry with the score equal to beta
-                //writeHashEntry(beta, bestMove, depth, hashFlagBeta, position);
-                //int lastMove = moveList->moves[position->ply - 1];
-                // on quiet moves
-                if (isQuiet) {
-                    // store killer moves
-                    /*if (position->killerMoves[position->ply][0] != bestMove) {
-                        position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
-                        position->killerMoves[position->ply][0] = bestMove;
-                    }*/
-                    //position->killerMoves[position->ply][1] = position->killerMoves[position->ply][0];
-                    //position->killerMoves[position->ply][0] = bestMove;
-                    //counterMoves[position->side][getMoveSource(lastMove)][getMoveTarget(lastMove)] = currentMove;
-                    //updateHistory(bestMove, depth);
-                }
-
-                // node (move) fails high
-                return beta;
-            }/* else {
-                if (isQuiet) {
-                    addMoveToHistoryList(badQuiets, currentMove);
-                }
-            }*/
         }
     }
 
@@ -636,7 +611,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     //writeHashEntry(alpha, bestMove, depth, hashFlag, position);
 
     // node (move) fails low
-    return alpha;
+    return bestScore;
 }
 
 
