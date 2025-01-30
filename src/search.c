@@ -626,6 +626,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // best move (to store in TT)
     int bestMove = 0;
 
+    // define hash flag
+    int hashFlag = hashFlagAlpha;
+
 
     if ((searchNodes & 2047) == 0) {
         communicate(time);
@@ -794,8 +797,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     int bestScore = -infinity;
 
-    const int originalAlpha = alpha;
-
     // number of moves searched in a move list
     int moves_searched = 0;
 
@@ -947,6 +948,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         if (score > bestScore) {
             bestScore = score;
             if (score > alpha) {
+                // switch hash flag from storing for fail-low node
+                // to the one storing score for PV node
+                hashFlag = hashFlagExact;
+
+
                 // store best move (for TT)
                 bestMove = currentMove;
 
@@ -969,6 +975,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
+                    // store hash entry with the score equal to beta
+                    writeHashEntry(beta, bestMove, depth, hashFlagBeta, position);
+
                     // on quiet moves
                     if (isQuiet) {
                         // store killer moves
@@ -1000,15 +1009,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             return 0;
     }
 
-    uint8_t hashFlag = hashFlagExact;
-    if (alpha >= beta) {
-        hashFlag = hashFlagAlpha;
-    } else if (alpha <= originalAlpha) {
-        hashFlag = hashFlagBeta;
-    }
 
     // store hash entry with the score equal to alpha
-    writeHashEntry(bestScore, bestMove, depth, hashFlag, position);
+    writeHashEntry(alpha, bestMove, depth, hashFlag, position);
 
     // node (move) fails low
     return bestScore;
