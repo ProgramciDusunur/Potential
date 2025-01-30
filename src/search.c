@@ -765,7 +765,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         if (score >= beta)
 
             // node (move) fails high
-            return beta;
+            return score;
     }
 
 
