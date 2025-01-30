@@ -762,7 +762,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         if (score >= beta)
 
             // node (move) fails high
-            return beta;
+            return score;
     }
 
 
@@ -792,7 +792,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     sort_moves(moveList, bestMove, position);
 
     int bestScore = -infinity;
-    score = -infinity;
 
     // number of moves searched in a move list
     int moves_searched = 0;
