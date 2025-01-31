@@ -124,7 +124,7 @@ int scoreMove(int move, board* position) {
 }
 
 
-void sort_moves(moves *moveList, board* position) {
+void sort_moves(moves *moveList, int tt_move, board* position) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -135,9 +135,9 @@ void sort_moves(moves *moveList, board* position) {
         int current_score;
 
         // if hash move available
-        /*if (bestMove == current_move)
+        if (tt_move == current_move)
             current_score = 2000000000;
-        else*/
+        else
         current_score = scoreMove(current_move, position);
 
         // Find the correct position to insert the current move
@@ -522,7 +522,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
 
 
-
     // create move list instance
     moves moveList[1], badQuiets[1];
     badQuiets->count = 0;
@@ -536,7 +535,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         enable_pv_scoring(moveList, position);
 
     // sort moves
-    sort_moves(moveList, position);
+    sort_moves(moveList, tt_move, position);
 
     // number of moves searched in a move list
     //int moves_searched = 0;
