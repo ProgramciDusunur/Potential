@@ -18,16 +18,16 @@
 
 
 enum {
-    maxHistory = 16000
+    maxQuietHistory = 16384
 };
 
 extern int historyMoves[64][64];
 
 
 
-int scaledBonus(int score, int bonus);
-void updateHistory(int bestMove, int depth);
-void clearHistory();
+int scaledBonus(int score, int bonus, int gravity);
+void updateQuietMoveHistory(int bestMove, int depth, moves *badQuiets);
+void clearHistory(void);
 
 
 #endif //POTENTIAL_HISTORY_H
