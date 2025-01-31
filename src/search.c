@@ -113,7 +113,6 @@ int scoreMove(int move, board* position) {
 
         // score quiet move
     else {
-
         /*// score 1st killer move
         if (position->killerMoves[position->ply][0] == move)
             return 900000000;
