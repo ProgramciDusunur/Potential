@@ -15,10 +15,17 @@
 #include "move.h"
 #include <stdio.h>
 #include <stdbool.h>
+#include "utils.h"
 
 
 enum {
-    maxQuietHistory = 16384
+    maxQuietHistory = 16384,
+    QUIET_HISTORY_BONUS_MIN = 1200,
+    QUIET_HISTORY_BONUS_MAX = 1300,
+    QUIET_HISTORY_MALUS_MIN = -1300,
+    QUIET_HISTORY_MALUS_MAX = -1200
+
+
 };
 
 extern int historyMoves[64][64];
