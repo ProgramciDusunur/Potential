@@ -37,6 +37,8 @@ void printMove(int move);
 int getLmrReduction(int depth, int moveNumber);
 void clearCounterMoves(void);
 int quiescence(int alpha, int beta, board* position, time* time);
+void quiescence_sort_moves(moves *moveList, board* position);
+int quiescenceScoreMove(int move, board* position);
 int negamax(int alpha, int beta, int depth, board* position, time* time);
 void searchPosition(int depth, board* position, bool benchmark, time* time);
 
