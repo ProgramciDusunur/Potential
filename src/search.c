@@ -410,8 +410,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
                                     getLS1BIndex(position->bitboards[k]),
                                     position->side ^ 1, position);
 
-    // increase search depth if the king has been exposed into a check
-    if (in_check) depth++;
 
     // legal moves counter
     int legal_moves = 0;
