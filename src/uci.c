@@ -368,8 +368,8 @@ void uciProtocol(int argc, char *argv[]) {
     printf("Potential by ProgramciDusunur\n");
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
-        printf("bench running..");
-        benchmark(6, &position, &time);
+        printf("bench running..\n");
+        benchmark(7, &position, &time);
         return;
     }
 
@@ -484,7 +484,7 @@ void uciProtocol(int argc, char *argv[]) {
             printf("uciok\n");
         }
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(6, &position, &time);
+            benchmark(7, &position, &time);
         }
     }
 }

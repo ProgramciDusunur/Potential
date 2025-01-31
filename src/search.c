@@ -775,7 +775,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         // find best move within a given position
         score = negamax(alpha, beta, current_depth, position, time);
 
-        /*if (score <= alpha || score >= beta) {
+        if (score <= alpha || score >= beta) {
             alpha = -infinity;
             beta = infinity;
             current_depth -= 1;
@@ -783,7 +783,8 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         }
 
         alpha = score - 50;
-        beta = score + 50;*/
+        beta = score + 50;
+
 
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
