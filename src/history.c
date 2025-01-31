@@ -14,16 +14,13 @@ void updateQuietMoveHistory(int bestMove, int depth, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int bonus = 16 * depth * depth + 32 * depth + 16;
-    int clampedBonus =
-            clamp(bonus, -QUIET_HISTORY_BONUS_MIN, QUIET_HISTORY_BONUS_MAX);
-    int clampedMalus =
-            clamp(bonus, -QUIET_HISTORY_MALUS_MIN, QUIET_HISTORY_MALUS_MAX);
+    int bonus = myMIN(16 * depth * depth + 32 * depth + 16, 1200);
+
 
 
     int score = historyMoves[from][to];
 
-    historyMoves[from][to] += scaledBonus(score, clampedBonus, maxQuietHistory);
+    historyMoves[from][to] += scaledBonus(score, bonus, maxQuietHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
@@ -33,7 +30,7 @@ void updateQuietMoveHistory(int bestMove, int depth, moves *badQuiets) {
 
         if (badQuiets->moves[index] == bestMove) continue;
 
-        historyMoves[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, clampedMalus, maxQuietHistory);
+        historyMoves[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
     }
 }
 
