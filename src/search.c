@@ -331,7 +331,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     //int legal_moves = 0;
 
 
-
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
 
