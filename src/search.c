@@ -521,6 +521,56 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     }*/
 
 
+    // null move pruning
+    if (depth >= nullMoveDepth && in_check == 0 && !rootNode) {
+        struct copyposition copyPosition;
+        // preserve board state
+        copyBoard(position, &copyPosition);
+
+        position->ply++;
+
+        // increment repetition index & store hash key
+        position->repetitionIndex++;
+        position->repetitionTable[position->repetitionIndex] = position->hashKey;
+
+        // hash enpassant if available
+        if (position->enpassant != no_sq) { position->hashKey ^= enpassantKeys[position->enpassant]; }
+
+        // reset enpassant capture square
+        position->enpassant = no_sq;
+
+        // switch the side, literally giving opponent an extra move to make
+        position->side ^= 1;
+
+        // hash the side
+        position->hashKey ^= sideKey;
+
+        int R = 3;
+
+        /* search moves with reduced depth to find beta cutoffs
+           depth - R where R is a reduction limit */
+        score = -negamax(-beta, -beta + 1, depth - R, position, time);
+
+        // decrement ply
+        position->ply--;
+
+        // decrement repetition index
+        position->repetitionIndex--;
+
+        // restore board state
+        takeBack(position, &copyPosition);
+
+
+        if (time->stopped == 1) return 0;
+
+        // fail-hard beta cutoff
+        if (score >= beta)
+
+            // node (move) fails high
+            return score;
+    }
+
+
 
     // create move list instance
     moves moveList[1], badQuiets[1];
