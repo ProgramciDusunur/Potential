@@ -786,6 +786,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         alpha = score - 50;
         beta = score + 50;
 
+
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
 
