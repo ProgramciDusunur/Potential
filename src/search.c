@@ -542,7 +542,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
 
 
-
         // do normal alpha beta search
         score = -negamax(-beta, -alpha, depth - 1, position, time);
 
