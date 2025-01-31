@@ -355,6 +355,10 @@ int quiescence(int alpha, int beta, board* position, int negamaxScore, time* tim
 
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, board* position, time* time) {
+    // init PV length
+    position->pvLength[position->ply] = position->ply;
+
+
     // variable to store current move's score (from the static evaluation perspective)
     int score = 0;
 
@@ -388,8 +392,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         // we just return the score for this move
         return score;
     }*/
-    // init PV length
-    position->pvLength[position->ply] = position->ply;
 
     // recursion escapre condition
     if (depth == 0)
