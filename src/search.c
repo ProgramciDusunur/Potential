@@ -414,11 +414,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     // variable to store current move's score (from the static evaluation perspective)
     int score = 0;
 
-    // best move (to store in TT)
-    int bestMove = 0;
 
-    // define hash flag
-    //int hashFlag = hashFlagAlpha;
+
+
 
     if ((searchNodes & 2047) == 0) {
         communicate(time);
@@ -430,20 +428,28 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     int pvNode = beta - alpha > 1;
 
-    //int rootNode = position->ply == 0;
+    int rootNode = position->ply == 0;
 
-    //int ttBound = readHashFlag(position);
-
-    //bool improving;
-
-    //int pastStack;
+    int bestMove = 0;
+    int tt_move = 0;
+    int16_t tt_score = 0;
+    uint8_t tt_hit = 0;
+    uint8_t tt_depth = 0;
+    uint8_t tt_flag = hashFlagExact;
 
     // read hash entry
-    /*if (position->ply && (score = readHashEntry(alpha, beta, &bestMove, depth, position)) != noHashEntry && pvNode == 0) {
-        // if the move has already been searched (hence has a value)
-        // we just return the score for this move
-        return score;
-    }*/
+    if (!rootNode &&
+        (tt_hit =
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag)) &&
+        !pvNode) {
+        if (tt_depth >= depth) {
+            if ((tt_flag == hashFlagExact) ||
+                ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
+                ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
+                return tt_score;
+            }
+        }
+    }
 
     // recursion escapre condition
     if (depth == 0)
@@ -539,6 +545,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     int bestScore = -infinity;
 
+    const int originalAlpha = alpha;
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
@@ -664,8 +671,16 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             // return stalemate score
             return 0;
     }
+
+    uint8_t hashFlag = hashFlagExact;
+    if (alpha >= beta) {
+        hashFlag = hashFlagAlpha;
+    } else if (alpha <= originalAlpha) {
+        hashFlag = hashFlagBeta;
+    }
+
     // store hash entry with the score equal to alpha
-    //writeHashEntry(alpha, bestMove, depth, hashFlag, position);
+    writeHashEntry(bestScore, bestMove, depth, hashFlag, position);
 
 
     // node (move) fails low

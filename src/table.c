@@ -69,7 +69,8 @@ void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* pos
 }
 
 // read hash entry data
-int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position) {
+int readHashEntry(board *position, int *move, int16_t *tt_score,
+                    uint8_t *tt_depth, uint8_t *tt_flag) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
     tt *hashEntry = &hashTable[position->hashKey % hash_entries];
@@ -77,50 +78,28 @@ int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position
     // make sure we're dealing with the exact position we need
     if (hashEntry->hashKey == position->hashKey) {
 
-        // make sure that we watch the exact depth our search is now at
-        if (hashEntry->depth >= depth) {
+        // extract stored score from TT entry
+        int score = hashEntry->score;
 
-            // extract stored score from TT entry
-            int score = hashEntry->score;
+        if (score < -mateScore)
+            score += position->ply;
+        if (score > mateScore)
+            score -= position->ply;
 
-            // retrieve score independent from the actual path
-            // from root node (position) to current node (position)
-            if (score < -mateScore) score -= position->ply;
-            if (score > mateScore) score += position->ply;
+        *move = hashEntry->bestMove;
+        *tt_score = score;
+        *tt_depth = hashEntry->depth;
+        *tt_flag = hashEntry->flag;
 
-
-            // match the exact (PV node) score
-            if (hashEntry->flag == hashFlagExact) {
-                // return exact (PV node) score
-                return score;
-            }
-            // match alpha (fail-low node) score
-            if ((hashEntry->flag == hashFlagAlpha) && (score <= alpha)) {
-                // return alpha (fail-low node) score
-                return alpha;
-            }
-            if ((hashEntry->flag == hashFlagBeta) && (score >= beta)) {
-                // return beta (fail-high node) score
-                return beta;
-            }
-        }
-        // store best move
-        *bestMove = hashEntry->bestMove;
+        return 1;
 
     }
     // if hash entry doesn't exist
-    return noHashEntry;
-}
-int readHashFlag(board* position) {
-    tt *hashEntry = &hashTable[position->hashKey % hash_entries];
-    if (hashEntry->hashKey == position->hashKey && hashEntry->flag > hashFlagNone) {
-        return 1;
-    }
-
-    return hashFlagNone;
+    return 0;
 }
 
-void clearHashTable() {
+
+void clearHashTable(void) {
     // init hash table entry pointer
     tt *hash_entry;
 
@@ -179,7 +158,7 @@ void init_hash_table(int mb) {
 }
 
 // init random hash keys
-void initRandomKeys() {
+void initRandomKeys(void) {
     // update pseudo random number state
     state = 1804289383;
     // loop over piece codes
