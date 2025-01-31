@@ -12,6 +12,7 @@
 #include "board_constants.h"
 #include <stdlib.h>
 #include "magic.h"
+#include <stdint.h>
 
 // no hash entry found constant
 #define noHashEntry 100000
@@ -30,11 +31,11 @@ extern tt *hashTable;
 
 U64 generateHashKey(board* position);
 void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position);
-int readHashEntry(int alpha, int beta, int *bestMove, int depth, board* position);
-int readHashFlag(board* position);
-void clearHashTable();
+int readHashEntry(board *position, int *move, int16_t *tt_score,
+                  uint8_t *tt_depth, uint8_t *tt_flag);
+void clearHashTable(void);
 void init_hash_table(int mb);
-void initRandomKeys();
+void initRandomKeys(void);
 
 
 
