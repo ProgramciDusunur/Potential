@@ -571,7 +571,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     }
 
 
-
     // create move list instance
     moves moveList[1], badQuiets[1];
     badQuiets->count = 0;
