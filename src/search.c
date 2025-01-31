@@ -61,13 +61,13 @@ void initializeLMRTable(void) {
 // score moves
 int scoreMove(int move, board* position) {
     // make sure we are dealing with PV move
-    /*if (position->scorePv && position->pvTable[0][position->ply] == move) {
+    if (position->scorePv && position->pvTable[0][position->ply] == move) {
         // disable score PV flag
         position->scorePv = 0;
 
         // give PV move the highest score to search it first
         return 1500000000;
-    }*/
+    }
 
     // score capture move
     if (getMoveCapture(move)) {
@@ -100,14 +100,7 @@ int scoreMove(int move, board* position) {
 
         // score move by MVV LVA lookup [source piece][target piece]
         return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
-        /*int seeScore = see(position, move);
-        if (seeScore > 0) {
-            return 15000;
-        } else if (seeScore == 0) {
-            return 14000;
-        } else {
-            return -10000;
-        }*/
+
 
     }
 
