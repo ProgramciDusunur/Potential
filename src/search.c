@@ -322,14 +322,13 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     moves moveList[1];
 
     // generate moves
-    moveGenerator(moveList, position);
+    noisyGenerator(moveList, position);
 
     // sort moves
     quiescence_sort_moves(moveList, position);
 
     // legal moves counter
     //int legal_moves = 0;
-
 
 
     // loop over moves within a movelist
