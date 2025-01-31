@@ -535,7 +535,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         enable_pv_scoring(moveList, position);
 
     // sort moves
-    sort_moves(moveList, tt_move, position);
+    sort_moves(moveList, bestMove, position);
 
     // number of moves searched in a move list
     //int moves_searched = 0;
@@ -551,10 +551,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         bool isQuiet = getMoveCapture(currentMove) == 0;
 
 
-        /*int seeScore = see(position, moveList->moves[count]);
-        if (in_check == 0 && seeScore < -17 * depth * depth) {
-            continue;
-        }*/
+
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
