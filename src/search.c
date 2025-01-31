@@ -616,7 +616,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         position->repetitionIndex++;
         position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
-
         // make sure to make only legal moves
         if (makeMove(moveList->moves[count], allMoves, position) == 0) {
             // decrement ply
