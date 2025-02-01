@@ -450,6 +450,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         }
     }
 
+
     // recursion escapre condition
     if (depth == 0)
         // run quiescence search
