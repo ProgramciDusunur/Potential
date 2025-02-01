@@ -503,13 +503,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     else
         improving = true;*/
 
-    //printf("static eval calculated %d\n", position->staticEval[position->ply]);
 
     bool canPrune = in_check == 0 && pvNode == 0;
 
-    // evaluation pruning / static null move pruning
     // reverse futility pruning
-    if (depth <= 2 && !pvNode && !in_check && static_eval - 82 * depth >= beta)
+    if (depth <= 5 && !pvNode && !in_check && static_eval - 82 * depth >= beta)
         return static_eval;
 
 
