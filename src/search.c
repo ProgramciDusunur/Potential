@@ -508,7 +508,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     //int canPrune = in_check == 0 && pvNode == 0;
 
 
-    // evaluation pruning / static null move pruning
     // reverse futility pruning
     if (depth <= 2 && !pvNode && !in_check && static_eval - 82 * depth >= beta)
         return static_eval;
@@ -646,10 +645,24 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             score = -negamax(-beta, -alpha, depth - 1, position, time);
         } else {
             // condition to consider LMR
+            int lmrReduction = 2;
+
+            /* All Moves */
+            if (!pvNode) {
+                lmrReduction += 1;
+            }
+
+            if (isQuiet) {
+
+            } else {
+
+            }
+
+
             if(moves_searched >= lmr_full_depth_moves &&
                depth >= lmr_reduction_limit) {
                 // search current move with reduced depth:
-                score = -negamax(-alpha - 1, -alpha, depth - 2, position, time);
+                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time);
             } else {
                 // hack to ensure that full-depth search is done
                 score = alpha + 1;
