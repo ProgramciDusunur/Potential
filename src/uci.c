@@ -369,10 +369,9 @@ void uciProtocol(int argc, char *argv[]) {
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..\n");
-        benchmark(9, &position, &time);
+        benchmark(10, &position, &time);
         return;
     }
-
 
     // main loop
     while (1)
@@ -485,7 +484,7 @@ void uciProtocol(int argc, char *argv[]) {
             printf("uciok\n");
         }
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(9, &position, &time);
+            benchmark(10, &position, &time);
         }
     }
 }

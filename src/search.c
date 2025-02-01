@@ -605,6 +605,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
         if (!rootNode && isQuiet && isNotMated) {
 
+            int lmpBase = 4;
+            int lmpMultiplier = 3;
+            int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth);
+
+            if (legal_moves>= lmpThreshold) {
+                skipQuiet = 1;
+            }
+
             if (canPrune && depth <= 2 && static_eval + 82 * depth <= alpha) {
                 skipQuiet = 1;
             }
