@@ -648,11 +648,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             int lmrReduction = 2;
 
             /* All Moves */
-            if (!pvNode) {
-                lmrReduction += 1;
-            }
+
 
             if (isQuiet) {
+
+                // Reduce More
+                if (!pvNode) {
+                    lmrReduction += 1;
+                }
 
             } else {
 
