@@ -505,7 +505,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     //printf("static eval calculated %d\n", position->staticEval[position->ply]);
 
-    //int canPrune = in_check == 0 && pvNode == 0;
+    bool canPrune = in_check == 0 && pvNode == 0;
 
 
     // evaluation pruning / static null move pruning
@@ -585,6 +585,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     int bestScore = -infinity;
 
+    bool skipQuiet = false;
+
     const int originalAlpha = alpha;
 
     // loop over moves within a movelist
@@ -594,10 +596,21 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         bool isQuiet = getMoveCapture(currentMove) == 0;
 
 
-        /*int seeScore = see(position, moveList->moves[count]);
-        if (in_check == 0 && seeScore < -17 * depth * depth) {
+        if (skipQuiet && isQuiet) {
+            skipQuiet = 0;
             continue;
-        }*/
+        }
+
+        bool isNotMated = alpha > -mateScore + maxPly;
+
+        if (!rootNode && isQuiet && isNotMated) {
+
+            if (canPrune && depth <= 2 && static_eval + 82 * depth <= alpha) {
+                skipQuiet = 1;
+            }
+
+        }
+
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
