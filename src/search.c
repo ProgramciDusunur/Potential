@@ -455,7 +455,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         return quiescence(alpha, beta, position, time);
 
     // Internal Iterative Reductions
-    if (pvNode && depth >= 4 && !tt_move) {
+    if (pvNode && depth >= 8 && !tt_move) {
         depth--;
     }
 
