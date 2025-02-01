@@ -373,7 +373,6 @@ void uciProtocol(int argc, char *argv[]) {
         return;
     }
 
-
     // main loop
     while (1)
     {
