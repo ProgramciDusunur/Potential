@@ -510,7 +510,6 @@ int evaluate(board* position) {
                         }
 
                     }*/
-
                     // on isolated pawnd
                     /*if ((bitboards[p] & isolated_masks[square]) == 0)
                         // give an isolated pawn penalty
