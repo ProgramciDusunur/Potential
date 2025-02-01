@@ -588,7 +588,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     sort_moves(moveList, tt_move, position);
 
     // number of moves searched in a move list
-    //int moves_searched = 0;
+    int moves_searched = 0;
 
     int bestScore = -infinity;
 
@@ -647,8 +647,42 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
 
 
-        // do normal alpha beta search
-        score = -negamax(-beta, -alpha, depth - 1, position, time);
+        // full-depth search
+        if (moves_searched == 0) {
+            // do normal alpha beta search
+            score = -negamax(-beta, -alpha, depth - 1, position, time);
+        } else {
+            // condition to consider LMR
+            if(moves_searched >= lmr_full_depth_moves &&
+               depth >= lmr_reduction_limit) {
+                // search current move with reduced depth:
+                score = -negamax(-alpha - 1, -alpha, depth - 2, position, time);
+            } else {
+                // hack to ensure that full-depth search is done
+                score = alpha + 1;
+            }
+
+
+            // principle variation search PVS
+            if (score > alpha) {
+                /* Once you've found a move with a score that is between alpha and beta,
+                   the rest of the moves are searched with the goal of proving that they are all bad.
+                   It's possible to do this a bit faster than a search that worries that one
+                   of the remaining moves might be good. */
+                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time);
+
+                /* If the algorithm finds out that it was wrong, and that one of the
+                   subsequent moves was better than the first PV move, it has to search again,
+                   in the normal alpha-beta manner.  This happens sometimes, and it's a waste of time,
+                   but generally not often enough to counteract the savings gained from doing the
+                   "bad move proof" search referred to earlier. */
+                if((score > alpha) && (score < beta))
+                    /* re-search the move that has failed to be proved to be bad
+                       with normal alpha beta score bounds*/
+                    score = -negamax(-beta, -alpha, depth - 1, position, time);
+            }
+
+        }
 
 
         // decrement ply
@@ -663,7 +697,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         if (time->stopped == 1) return 0;
 
         // increment the counter of moves searched so far
-        //moves_searched++;
+        moves_searched++;
 
 
         // found a better move
