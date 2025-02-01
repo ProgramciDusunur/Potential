@@ -459,7 +459,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         depth--;
     }
 
-
     // is king in check
     int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
                                     getLS1BIndex(position->bitboards[k]),
