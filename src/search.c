@@ -507,7 +507,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     bool canPrune = in_check == 0 && pvNode == 0;
 
-
     // evaluation pruning / static null move pruning
     // reverse futility pruning
     if (depth <= 2 && !pvNode && !in_check && static_eval - 82 * depth >= beta)
@@ -515,7 +514,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
 
     // null move pruning
-    if (depth >= nullMoveDepth && in_check == 0 && !rootNode) {
+    if (depth >= nullMoveDepth && in_check == 0 && !rootNode && static_eval >= beta) {
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
