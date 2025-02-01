@@ -439,7 +439,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     // read hash entry
     if (!rootNode &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag)) &&
+                 !pvNode) {
         if (tt_depth >= depth) {
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
