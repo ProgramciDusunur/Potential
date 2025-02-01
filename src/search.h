@@ -15,6 +15,7 @@
 #include "evaluation.h"
 #include "uci.h"
 #include <stdint.h>
+#include "utils.h"
 
 #define maxPly 64
 
@@ -30,7 +31,7 @@ extern int counterMoves[2][maxPly][maxPly];
 
 
 int isRepetition(board* position);
-void initializeLMRTable();
+void initializeLMRTable(void);
 int scoreMove(int move, board* position);
 void sort_moves(moves *moveList, int tt_move, board* position);
 void enable_pv_scoring(moves *moveList, board* position);

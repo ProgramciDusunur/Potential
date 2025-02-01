@@ -39,10 +39,16 @@ int isRepetition(board* position) {
     return 0;
 }
 
+// [depth][moveNumber]
 void initializeLMRTable(void) {
-    for (int i = 1; i < maxPly; ++i) {
-        for (int j = 1; j < maxPly; ++j) {
-            lmrTable[i][j] = round(1.0 + log(i) * log(j) * 0.5);
+    for (int depth = 1; depth < maxPly; ++depth) {
+        for (int ply = 1; ply < maxPly; ++ply) {
+            if (ply == 0 || depth == 0) {
+                lmrTable[depth][ply] = 0;
+                lmrTable[depth][ply] = 0;
+                continue;
+            }
+            lmrTable[depth][ply] = round(0.75 + log(depth) * log(ply) * 0.375);
         }
     }
 }
@@ -259,7 +265,7 @@ void printMove(int move) {
 
 
 int getLmrReduction(int depth, int moveNumber) {
-    int reduction = lmrTable[depth][moveNumber];
+    int reduction = lmrTable[myMIN(63, depth)][myMIN(63, moveNumber)];
     return reduction;
 }
 
@@ -662,11 +668,15 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, depth - 1, position, time);
         } else {
+            int lmrReduction = getLmrReduction(depth, legal_moves);
+
+
+
             // condition to consider LMR
             if(moves_searched >= lmr_full_depth_moves &&
                depth >= lmr_reduction_limit) {
                 // search current move with reduced depth:
-                score = -negamax(-alpha - 1, -alpha, depth - 2, position, time);
+                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time);
             } else {
                 // hack to ensure that full-depth search is done
                 score = alpha + 1;
