@@ -654,7 +654,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
                 uint8_t lmrNonPvSubtracter = depth / 10 ? 0 : 1;
                 // Reduce More
-                if (!pvNode && quietMoves >= (4 / 2 - (lmrNonPvSubtracter))) {
+                if (!pvNode && quietMoves >= (6 / 2 - (lmrNonPvSubtracter))) {
                     lmrReduction += 1;
                 }
 
