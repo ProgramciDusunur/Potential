@@ -17,10 +17,10 @@
 // no hash entry found constant
 #define noHashEntry 100000
 
-#define hashFlagNone (-1)
-#define hashFlagExact 0
-#define hashFlagAlpha 1
-#define hashFlagBeta  2
+#define hashFlagNone 0
+#define hashFlagExact 1
+#define hashFlagAlpha 2
+#define hashFlagBeta  3
 
 
 // random side key
