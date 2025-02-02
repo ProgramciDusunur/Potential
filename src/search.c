@@ -427,6 +427,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         hashFlag = hashFlagBeta;
     }
 
+
     // store hash entry with the score equal to alpha
     writeHashEntry(bestScore, bestMove, 0, hashFlag, position);
 
