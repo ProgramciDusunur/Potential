@@ -301,16 +301,25 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // best move (to store in TT)
     //int bestMove = 0;
 
-    // define hash flag
-    //int hashFlag = hashFlagAlpha;
 
+
+    int bestMove = 0;
+    int tt_move = 0;
+    int16_t tt_score = 0;
+    uint8_t tt_hit = 0;
+    uint8_t tt_depth = 0;
+    uint8_t tt_flag = hashFlagExact;
 
     // read hash entry
-    /*if (position->ply && (negamaxScore = readHashEntry(alpha, beta, &bestMove, 0, position)) != noHashEntry && pvNode == 0) {
-        // if the move has already been searched (hence has a value)
-        // we just return the score for this move
-        return negamaxScore;
-    }*/
+    if (position->ply &&
+        (tt_hit =
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
+        if ((tt_flag == hashFlagExact) ||
+            ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
+            ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
+            return tt_score;
+        }
+    }
 
     // evaluate position
     int evaluation = evaluate(position);
@@ -411,7 +420,17 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         }
     }
 
-    //writeHashEntry(alpha, bestMove, 0, hashFlag, position);
+    uint8_t hashFlag = hashFlagNone;
+    if (alpha >= beta) {
+        hashFlag = hashFlagAlpha;
+    } else {
+        hashFlag = hashFlagBeta;
+    }
+
+
+    // store hash entry with the score equal to alpha
+    writeHashEntry(bestScore, bestMove, 0, hashFlag, position);
+
     // node (move) fails low
     return bestScore;
 }
