@@ -711,7 +711,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             /* All Moves */
 
             // Reduce More
-
             if (cutNode) {
                 lmrReduction += 1;
             }
