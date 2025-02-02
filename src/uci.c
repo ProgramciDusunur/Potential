@@ -211,7 +211,7 @@ void goCommand(char *command, board* position, time* time) {
 
         int maxTime = time->time;
 
-        time->hardLimit = time->starttime + (maxTime * 0.6) - 50;
+        time->hardLimit = time->starttime + (maxTime * 0.7) - 50;
 
         time->softLimit = time->starttime + (timeThisMove) - 50;
     } else {
