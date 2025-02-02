@@ -6,6 +6,8 @@
 #ifndef POTENTIAL_STRUCTS_H
 #define POTENTIAL_STRUCTS_H
 
+#include <stdint.h>
+
 #ifndef U64
 #define U64 unsigned long long
 #endif
@@ -83,17 +85,17 @@ typedef struct {
     int movetime;
 
     // UCI "time" command holder (ms)
-    int time;
+    int64_t time;
 
     // UCI "inc" command's time increment holder
-    int inc;
+    uint32_t inc;
 
     // UCI "starttime" command time holder
     int starttime;
 
-    int softLimit;
+    int64_t softLimit;
 
-    int hardLimit;
+    int64_t hardLimit;
 
     // UCI "stoptime" command time holder
     int stoptime;

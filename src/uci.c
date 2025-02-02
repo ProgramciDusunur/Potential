@@ -204,9 +204,9 @@ void goCommand(char *command, board* position, time* time) {
         // flag we're playing with time control
         time->timeset = 1;
 
-        int timeThisMove = (time->time / time->movestogo) + time->inc;
+        int64_t timeThisMove = (time->time / time->movestogo) + time->inc;
 
-        int maxTime = time->time;
+        int64_t maxTime = time->time;
 
         time->hardLimit = time->starttime + (maxTime * 0.7) - 50;
 
@@ -221,7 +221,7 @@ void goCommand(char *command, board* position, time* time) {
         depth = 64;
 
     // print debug info
-    printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
+    printf("time:%lld start:%d stop:%d depth:%d timeset:%d\n",
            time->time, time->starttime, time->stoptime, depth, time->timeset);
 
     // search position
