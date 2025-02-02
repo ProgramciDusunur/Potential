@@ -199,9 +199,6 @@ void goCommand(char *command, board* position, time* time) {
     // init start time
     time->starttime = getTimeMiliSecond();
 
-    // init search depth
-    //depth = depth;
-
     // if time control is available
     if (time->time != -1) {
         // flag we're playing with time control
