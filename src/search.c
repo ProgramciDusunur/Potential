@@ -800,7 +800,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                         updateQuietMoveHistory(bestMove, depth, badQuiets);
                     }
 
-
                     // node (move) fails high
                     break;
                 }
