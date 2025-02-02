@@ -680,6 +680,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         } else {
             int lmrReduction = getLmrReduction(depth, legal_moves);
 
+            /* All Moves */
+
+            // Reduce Less
+
+            if (in_check) {
+                lmrReduction -= 1;
+            }
+
             if (isQuiet) {
 
                 // Reduce More
