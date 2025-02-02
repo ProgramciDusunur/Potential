@@ -474,19 +474,19 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         beta = myMIN(beta, mateValue - (int)position->ply - 1);
         if (alpha >= beta)
             return alpha;
+    }
 
-        // read hash entry
-        if ((tt_hit =
-                readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
-            if (tt_depth >= depth) {
-                if ((tt_flag == hashFlagExact) ||
-                    ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
-                    ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
-                    return tt_score;
-                }
+    // read hash entry
+    if (!rootNode &&
+        (tt_hit =
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
+        if (tt_depth >= depth) {
+            if ((tt_flag == hashFlagExact) ||
+                ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
+                ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
+                return tt_score;
             }
         }
-
     }
 
 
