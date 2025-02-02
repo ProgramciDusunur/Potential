@@ -429,7 +429,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
 
 
-
     if ((searchNodes & 2047) == 0) {
         communicate(time);
     }
