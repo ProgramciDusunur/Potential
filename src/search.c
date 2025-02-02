@@ -113,12 +113,12 @@ int scoreMove(int move, board* position) {
         // score quiet move
     else {
 
-        /*// score 1st killer move
+        // score 1st killer move
         if (position->killerMoves[position->ply][0] == move)
             return 900000000;
 
             // score 2nd killer move
-        else if (position->killerMoves[position->ply][1] == move)
+        /*else if (position->killerMoves[position->ply][1] == move)
             return 800000000;
         else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
@@ -772,6 +772,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
                 if (score >= beta) {
                     if (isQuiet) {
                         updateQuietMoveHistory(bestMove, depth, badQuiets);
+
+                        position->killerMoves[position->ply][0] = bestMove;
                     }
 
 
