@@ -98,7 +98,6 @@ int scoreMove(int move, board* position) {
         }
     }
 
-
     // score capture move
     if (getMoveCapture(move)) {
         // init target piece
