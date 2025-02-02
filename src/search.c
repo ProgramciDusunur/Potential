@@ -109,7 +109,6 @@ int scoreMove(int move, board* position) {
 
 
     }
-
         // score quiet move
     else {
 
