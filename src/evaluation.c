@@ -421,10 +421,10 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][ROOK][square];
 
-                    /* semi open file
-                    if ((bitboards[P] & file_masks[square]) == 0)
+                    //semi open file
+                    if ((position->bitboards[P] & fileMasks[square]) == 0)
                         // add semi open file bonus
-                        score += semi_open_file_score;*/
+                        score += semi_open_file_score;
 
                     // open file
                     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
@@ -576,10 +576,10 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][ROOK][mirrorScore[square]];
 
-                    /* semi open file
-                    if ((bitboards[p] & file_masks[square]) == 0)
+                    //semi open file
+                    if ((position->bitboards[p] & fileMasks[square]) == 0)
                         // add semi open file bonus
-                        score -= semi_open_file_score;*/
+                        score -= semi_open_file_score;
 
                     // open file
                     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
