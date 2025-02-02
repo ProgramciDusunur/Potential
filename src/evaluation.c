@@ -622,7 +622,6 @@ int evaluate(board* position) {
                             score -= pawnHoleBonus[square] + pawnHoleDefenderPawnsBonus;
                         }
 
-
                         if (game_phase == endgame) {
                             score -= knightOutpost[endgame][square];
                         } else {
