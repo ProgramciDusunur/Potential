@@ -415,6 +415,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         }
     }
 
+
     if (legal_moves == 0) {
         if (in_check) {
             return -mateScore + position->ply;
