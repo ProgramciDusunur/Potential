@@ -875,7 +875,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             time->stopped = 1;
         }
 
-        int window = 18;
+        int window = 9;
 
         while (true) {
 
@@ -907,7 +907,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             } else {
                 break;
             }
-            window *= 1.6f;
+            window *= 1.8f;
 
         }
 
