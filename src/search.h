@@ -37,6 +37,7 @@ void sort_moves(moves *moveList, int tt_move, board* position);
 void enable_pv_scoring(moves *moveList, board* position);
 void printMove(int move);
 int getLmrReduction(int depth, int moveNumber);
+uint8_t justPawns(board *pos);
 void clearCounterMoves(void);
 int quiescence(int alpha, int beta, board* position, time* time);
 void quiescence_sort_moves(moves *moveList, board* position);
