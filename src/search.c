@@ -463,7 +463,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     }
 
     // recursion escapre condition
-    if (depth == 0)
+    if (depth <= 0)
         // run quiescence search
         return quiescence(alpha, beta, position, time);
 
@@ -535,7 +535,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         // hash the side
         position->hashKey ^= sideKey;
 
-        int R = 3;
+        int R = 3 + depth / 3;
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
@@ -567,7 +567,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             return razoringScore;
         }
     }
-
 
     // create move list instance
     moves moveList[1], badQuiets[1];
