@@ -614,6 +614,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             continue;
         }
 
+
         bool isNotMated = alpha > -mateScore + maxPly;
 
         if (!rootNode && isQuiet && isNotMated) {
