@@ -656,6 +656,7 @@ int evaluate(board* position) {
     return (position->side == white) ? score + tempo : -(score - tempo);
 }
 
+
 void clearStaticEvaluationHistory(board* position) {
     for (int i = 0;i < 64;i++) {
         position->staticEval[i] = noEval;
