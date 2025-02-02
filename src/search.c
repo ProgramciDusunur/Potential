@@ -471,15 +471,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
                                     position->side ^ 1, position);
 
 
-    // legal moves counter
-    int legal_moves = 0;
-
-    // quiet move counter
-    //int quietMoves = 0;
-
-    // capture move counter
-    //int captureMoves = 0;
-
     // get static evaluation score
     int static_eval = evaluate(position);
 
@@ -590,6 +581,15 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
 
     bool skipQuiet = false;
 
+    // legal moves counter
+    int legal_moves = 0;
+
+    // quiet move counter
+    int quietMoves = 0;
+
+    // capture move counter
+    //int captureMoves = 0;
+
     const int originalAlpha = alpha;
 
     // loop over moves within a movelist
@@ -655,7 +655,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         legal_moves++;
 
         if (isQuiet) {
-            //quietMoves++;
+            quietMoves++;
         } else {
             //captureMoves++;
         }
@@ -670,6 +670,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
         } else {
             int lmrReduction = getLmrReduction(depth, legal_moves);
 
+            if (isQuiet) {
+
+                // Reduce More
+                if (!pvNode && quietMoves >= 4) {
+                    lmrReduction += 1;
+                }
+
+            }
 
 
             // condition to consider LMR
