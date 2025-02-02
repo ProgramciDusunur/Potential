@@ -207,11 +207,15 @@ void goCommand(char *command, board* position, time* time) {
         // flag we're playing with time control
         time->timeset = 1;
 
-        // set up timing
-        time->time /= time->movestogo;
+        int timeThisMove = (time->time / time->movestogo) + time->inc;
 
-        // init stoptime
-        time->stoptime = time->starttime + time->time + (time->inc/2);
+        int maxTime = time->time;
+
+        time->hardLimit = time->starttime + (maxTime * 0.6) - 50;
+
+        time->softLimit = time->starttime + (timeThisMove) - 50;
+    } else {
+        time->timeset = 0;
     }
 
     // if depth is not available
@@ -335,7 +339,7 @@ void read_input(time* time) {
 
 void communicate(time* time) {
     // if time is up break here
-    if (time->timeset == 1 && getTimeMiliSecond() > time->stoptime) {
+    if (time->timeset == 1 && getTimeMiliSecond() > time->hardLimit) {
         // tell engine to stop calculating
         time->stopped = 1;
     }

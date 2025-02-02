@@ -843,6 +843,11 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         }
 
         int startTime = getTimeMiliSecond();
+
+        if (time->timeset && startTime >= time->softLimit) {
+            time->stopped = 1;
+        }
+
         position->followPv = 1;
         // find best move within a given position
         score = negamax(alpha, beta, current_depth, position, time);

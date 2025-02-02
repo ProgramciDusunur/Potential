@@ -91,6 +91,10 @@ typedef struct {
     // UCI "starttime" command time holder
     int starttime;
 
+    int softLimit;
+
+    int hardLimit;
+
     // UCI "stoptime" command time holder
     int stoptime;
 
