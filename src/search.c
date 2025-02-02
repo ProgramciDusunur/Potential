@@ -907,6 +907,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             } else {
                 break;
             }
+
             window *= 1.8f;
 
         }
