@@ -468,6 +468,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
 
+    if (!rootNode) {
+        // Mate distance pruning
+        alpha = myMAX(alpha, -mateValue + (int)position->ply);
+        beta = myMIN(beta, mateValue - (int)position->ply - 1);
+        if (alpha >= beta)
+            return alpha;
+    }
+
     // read hash entry
     if (!rootNode &&
         (tt_hit =
@@ -480,6 +488,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time) {
             }
         }
     }
+
 
     // recursion escapre condition
     if (depth <= 0)
