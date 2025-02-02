@@ -330,6 +330,10 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         alpha = evaluation;
     }
 
+    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
+                                    getLS1BIndex(position->bitboards[k]),
+                                    position->side ^ 1, position);
+
     // create move list instance
     moves moveList[1];
 
@@ -340,7 +344,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     quiescence_sort_moves(moveList, position);
 
     // legal moves counter
-    //int legal_moves = 0;
+    int legal_moves = 0;
 
 
     // loop over moves within a movelist
@@ -373,7 +377,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             continue;
         }
 
-        //legal_moves++;
+        legal_moves++;
 
         // increment nodes count
         searchNodes++;
@@ -409,6 +413,14 @@ int quiescence(int alpha, int beta, board* position, time* time) {
                 break;
             }
         }
+    }
+
+    if (legal_moves == 0) {
+        if (in_check) {
+            return -mateScore + position->ply;
+        }
+        return evaluation;
+
     }
 
     //writeHashEntry(alpha, bestMove, 0, hashFlag, position);
