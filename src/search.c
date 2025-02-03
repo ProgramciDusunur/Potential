@@ -654,7 +654,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 skipQuiet = 1;
             }
 
-            if (canPrune && depth <= 2 && static_eval + 82 * depth <= alpha) {
+            if (canPrune && depth <= 4 && static_eval + 82 * depth <= alpha) {
                 skipQuiet = 1;
             }
         }
@@ -875,9 +875,17 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             time->stopped = 1;
         }
 
-        int window = 18;
+        int window = 9;
 
         while (true) {
+
+            if (time->timeset && startTime >= time->softLimit) {
+                time->stopped = 1;
+            }
+
+            if (time->stopped == 1) {
+                break;
+            }
 
             if (current_depth >= 4) {
                 alpha = myMAX(-infinity, score - window);
@@ -907,10 +915,9 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             } else {
                 break;
             }
-            window *= 1.6f;
+            window *= 1.8f;
 
         }
-
 
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
