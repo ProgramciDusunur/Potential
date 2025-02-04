@@ -115,7 +115,8 @@ int scoreMove(int move, board* position) {
         else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
 
-        return historyMoves[getMoveSource(move)][getMoveTarget(move)];
+        return quietHistory[getMoveSource(move)][getMoveTarget(move)] +
+                (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
 
     }
     return 0;
@@ -947,8 +948,12 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     if (isQuiet) {
                         // store killer moves
                         position->killerMoves[position->ply][0] = bestMove;
-
                         updateQuietMoveHistory(bestMove, depth, badQuiets);
+
+                        if (rootNode) {
+                            updateRootHistory(position, bestMove, depth, badQuiets);
+                        }
+
                     }
 
                     // node (move) fails high
@@ -1002,7 +1007,8 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     position->scorePv = 0;
 
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
-    memset(historyMoves, 0, sizeof(historyMoves));
+    memset(quietHistory, 0, sizeof(quietHistory));
+    memset(rootHistory, 0, sizeof(rootHistory));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
