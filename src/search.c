@@ -97,7 +97,7 @@ int scoreMove(int move, board* position) {
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[getMovePiece(move)][target_piece];
 
-        captureScore += captureMoveHistory[position->side][getMoveSource(move)][getMoveTarget(move)];
+        captureScore += captureMoveHistory[position->side][getMoveSource(move)][getMoveTarget(move)] / 2;
 
         captureScore += SEE(position, move, SEE_MOVE_ORDER_THRESHOLD) ? 1000000000 : -1000000;
 
