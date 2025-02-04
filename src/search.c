@@ -641,10 +641,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // run quiescence search
         return quiescence(alpha, beta, position, time);
 
-    // Internal Iterative Reductions
-    if ((pvNode || cutNode) && depth >= 8 && !tt_move) {
-        depth--;
-    }
 
     // is king in check
     int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
@@ -673,6 +669,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         improving = position->staticEval[position->ply] > position->staticEval[pastStack];
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
         position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, (-1.0)), 1.0);
+    }
+
+    // Internal Iterative Reductions
+    if ((pvNode || cutNode || !improving) && depth >= 8 && !tt_move) {
+        depth--;
     }
 
     bool canPrune = in_check == 0 && pvNode == 0;
