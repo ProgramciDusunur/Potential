@@ -835,7 +835,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     return bestScore;
 }
 
-
 // search position for the best move
 void searchPosition(int depth, board* position, bool benchmark, time* time) {
     // define best score variable
