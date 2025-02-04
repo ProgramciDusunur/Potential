@@ -677,11 +677,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     bool canPrune = in_check == 0 && pvNode == 0;
 
-    int8_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
+    uint16_t  rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
 
-    int8_t improvingFactor = position->improvingRate[position->ply] * (0.0125 * depth);
+    uint16_t  improvingFactor = position->improvingRate[position->ply] * (0.75 * depth);
 
-    int8_t rfpThreshold = rfpMargin + improvingFactor;
+    uint16_t  rfpThreshold = rfpMargin + improvingFactor;
 
     // reverse futility pruning
     if (depth <= 5 && !pvNode && !in_check && static_eval - rfpThreshold >= beta)
