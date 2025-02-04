@@ -77,8 +77,6 @@ void benchmark(int depth, board* position, time* time) {
         //clear static eval history
         clearStaticEvaluationHistory(position);
 
-        memset(position->mailbox, 0, sizeof(position->mailbox));
-
         totalNodes += searchNodes;
         //printf("position: %s\n", benchmarkfens[i]);
     }
