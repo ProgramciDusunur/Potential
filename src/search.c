@@ -75,6 +75,30 @@ int scoreMove(int move, board* position) {
         return 1500000000;
     }
 
+
+    int isPromotionMove = getMovePromoted(move);
+    // score promotion move
+    if (isPromotionMove) {
+        switch (isPromotionMove) {
+            case q:
+            case Q:
+                return 1000000000;
+                break;
+            case n:
+            case N:
+                return 800000000;
+                break;
+            case r:
+            case R:
+                return -500000000;
+                break;
+            case b:
+            case B:
+                return -800000000;
+                break;
+        }
+    }
+
     // score capture move
     if (getMoveCapture(move)) {
         // init target piece
@@ -713,6 +737,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 // Reduce More
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1;
+                }
+
+                // Reduce Less
+                if (in_check) {
+                    lmrReduction -= 1;
                 }
 
             }
