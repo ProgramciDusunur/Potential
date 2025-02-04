@@ -36,7 +36,7 @@ enum chessBoard {
 
 // encode pieces
 enum {
-    P, N, B, R, Q, K, p, n, b, r, q, k
+    P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
 };
 // white and black castling
 enum {

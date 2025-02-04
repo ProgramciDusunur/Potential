@@ -5,7 +5,7 @@
 #include "move.h"
 
 // Pawn attack masks pawnAttacks[side][square]
-U64 pawnAtacks[2][64];
+U64 pawnAttacks[2][64];
 // Knight attack masks knightAttacks[square]
 U64 knightAttacks[64];
 // King attack masks kingAttacks[square]
@@ -35,6 +35,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->occupanciesCopy[0] = p->occupancies[0];
     cp->occupanciesCopy[1] = p->occupancies[1];
     cp->occupanciesCopy[2] = p->occupancies[2];
+    memcpy(cp->mailboxCopy, p->mailbox, 64);
     cp->hashKeyCopy = p->hashKey;
     cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
 }
@@ -55,6 +56,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->occupancies[0] = cp->occupanciesCopy[0];
     p->occupancies[1] = cp->occupanciesCopy[1];
     p->occupancies[2] = cp->occupanciesCopy[2];
+    memcpy(p->mailbox, cp->mailboxCopy, 64);
     p->hashKey = cp->hashKeyCopy;
     p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
 }
@@ -104,11 +106,23 @@ U64 getQueenAttacks(int square, U64 occupancy) {
     return queenAttacks;
 }
 
+U64 getPawnAttacks(uint8_t side, int square) {
+    return pawnAttacks[side][square];
+}
+
+U64 getKnightAttacks(int square) {
+    return knightAttacks[square];
+}
+
+U64 getKingAttacks(int square) {
+    return kingAttacks[square];
+}
+
 int isSquareAttacked(int square, int whichSide, board* position) {
-    if ((whichSide == white) && (pawnAtacks[black][square] & position->bitboards[P])) {
+    if ((whichSide == white) && (pawnAttacks[black][square] & position->bitboards[P])) {
         return 1;
     }
-    if ((whichSide == black) && (pawnAtacks[white][square] & position->bitboards[p])) {
+    if ((whichSide == black) && (pawnAttacks[white][square] & position->bitboards[p])) {
         return 1;
     }
     if (knightAttacks[square] & ((whichSide == white) ? position->bitboards[N] : position->bitboards[n])) {
@@ -150,16 +164,10 @@ int makeMove(int move, int moveFlag, board* position) {
     int enpass = getMoveEnpassant(move);
     int castling = getMoveCastling(move);
 
-    // move piece
-    popBit(position->bitboards[piece], sourceSquare);
-    setBit(position->bitboards[piece], targetSquare);
-
-    // hash piece
-    position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
-    position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
 
     // handling capture moves
     if (capture) {
+
         int startPiece, endPiece;
         if (position->side == white) {
             startPiece = p;
@@ -179,6 +187,44 @@ int makeMove(int move, int moveFlag, board* position) {
             }
         }
     }
+
+    // handle enpassant captures
+    if (enpass) {
+        // erase the pawn depending on side to move
+        (position->side == white) ? popBit(position->bitboards[p], targetSquare + 8) :
+        popBit(position->bitboards[P], targetSquare - 8);
+
+        // white to move
+        if (position->side == white) {
+            // remove captured pawn
+            popBit(position->bitboards[p], targetSquare + 8);
+            position->mailbox[targetSquare + 8] = 64;
+
+            // remove pawn from hash key
+            position->hashKey ^= pieceKeys[p][targetSquare + 8];
+        }
+
+            // black to move
+        else {
+            // remove captured pawn
+            popBit(position->bitboards[P], targetSquare - 8);
+            position->mailbox[targetSquare - 8] = 64;
+
+            // remove pawn from hash key
+            position->hashKey ^= pieceKeys[P][targetSquare - 8];
+        }
+    }
+
+    // move piece
+    popBit(position->bitboards[piece], sourceSquare);
+    setBit(position->bitboards[piece], targetSquare);
+    position->mailbox[sourceSquare] = 64;
+    position->mailbox[targetSquare] = piece;
+
+    // hash piece
+    position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
+    position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
+
     // handle pawn promotions
     if (promotedPiece) {
         // white to move
@@ -201,35 +247,12 @@ int makeMove(int move, int moveFlag, board* position) {
 
         // set up promoted piece on chess board
         setBit(position->bitboards[promotedPiece], targetSquare);
+        position->mailbox[targetSquare] = promotedPiece;
 
         // add promoted piece into the hash key
         position->hashKey ^= pieceKeys[promotedPiece][targetSquare];
     }
 
-    // handle enpassant captures
-    if (enpass) {
-        // erase the pawn depending on side to move
-        (position->side == white) ? popBit(position->bitboards[p], targetSquare + 8) :
-        popBit(position->bitboards[P], targetSquare - 8);
-
-        // white to move
-        if (position->side == white) {
-            // remove captured pawn
-            popBit(position->bitboards[p], targetSquare + 8);
-
-            // remove pawn from hash key
-            position->hashKey ^= pieceKeys[p][targetSquare + 8];
-        }
-
-            // black to move
-        else {
-            // remove captured pawn
-            popBit(position->bitboards[P], targetSquare - 8);
-
-            // remove pawn from hash key
-            position->hashKey ^= pieceKeys[P][targetSquare - 8];
-        }
-    }
 
     // hash enpassant if available (remove enpassant square from hash key )
     if (position->enpassant != no_sq) position->hashKey ^= enpassantKeys[position->enpassant];
@@ -266,6 +289,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 // move H rook
                 popBit(position->bitboards[R], h1);
                 setBit(position->bitboards[R], f1);
+                position->mailbox[h1] = 64;
+                position->mailbox[f1] = R;
 
                 // hash rook
                 position->hashKey ^= pieceKeys[R][h1];  // remove rook from h1 from hash key
@@ -277,6 +302,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 // move A rook
                 popBit(position->bitboards[R], a1);
                 setBit(position->bitboards[R], d1);
+                position->mailbox[a1] = 64;
+                position->mailbox[d1] = R;
 
                 // hash rook
                 position->hashKey ^= pieceKeys[R][a1];  // remove rook from a1 from hash key
@@ -288,6 +315,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 // move H rook
                 popBit(position->bitboards[r], h8);
                 setBit(position->bitboards[r], f8);
+                position->mailbox[h8] = 64;
+                position->mailbox[f8] = r;
 
                 // hash rook
                 position->hashKey ^= pieceKeys[r][h8];  // remove rook from h8 from hash key
@@ -299,6 +328,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 // move A rook
                 popBit(position->bitboards[r], a8);
                 setBit(position->bitboards[r], d8);
+                position->mailbox[a8] = 64;
+                position->mailbox[d8] = r;
 
                 // hash rook
                 position->hashKey ^= pieceKeys[r][a8];  // remove rook from a8 from hash key
@@ -353,9 +384,6 @@ int makeMove(int move, int moveFlag, board* position) {
         return 0;
     }
     return 1;
-
-
-
 }
 
 
@@ -382,7 +410,7 @@ void noisyGenerator(moves *moveList, board* position) {
                     // init target square
                     target_square = source_square - 8;
                     // init pawn attacks bitboard
-                    attacks = pawnAtacks[position->side][source_square] & position->occupancies[black];
+                    attacks = pawnAttacks[position->side][source_square] & position->occupancies[black];
                     // generate pawn captures
                     while (attacks) {
                         // init target square
@@ -402,7 +430,7 @@ void noisyGenerator(moves *moveList, board* position) {
                     // generate enpassant captures
                     if (position->enpassant != no_sq) {
                         // lookup pawn attacks and bitwise AND with enpassant square (bit)
-                        U64 enpassant_attacks = pawnAtacks[position->side][source_square] & (1ULL << position->enpassant);
+                        U64 enpassant_attacks = pawnAttacks[position->side][source_square] & (1ULL << position->enpassant);
                         // make sure enpassant capture available
                         if (enpassant_attacks) {
                             // init enpassant capture target square
@@ -426,7 +454,7 @@ void noisyGenerator(moves *moveList, board* position) {
                     // init target square
                     target_square = source_square + 8;
                     // init pawn attacks bitboard
-                    attacks = pawnAtacks[position->side][source_square] & position->occupancies[white];
+                    attacks = pawnAttacks[position->side][source_square] & position->occupancies[white];
                     // generate pawn captures
                     while (attacks) {
                         // init target square
@@ -446,7 +474,7 @@ void noisyGenerator(moves *moveList, board* position) {
                     // generate enpassant captures
                     if (position->enpassant != no_sq) {
                         // lookup pawn attacks and bitwise AND with enpassant square (bit)
-                        U64 enpassant_attacks = pawnAtacks[position->side][source_square] & (1ULL << position->enpassant);
+                        U64 enpassant_attacks = pawnAttacks[position->side][source_square] & (1ULL << position->enpassant);
                         // make sure enpassant capture available
                         if (enpassant_attacks) {
                             // init enpassant capture target square
@@ -627,7 +655,7 @@ void moveGenerator(moves *moveList, board* position) {
                     }
 
                     // init pawn attacks bitboard
-                    attacks = pawnAtacks[position->side][source_square] & position->occupancies[black];
+                    attacks = pawnAttacks[position->side][source_square] & position->occupancies[black];
 
                     // generate pawn captures
                     while (attacks) {
@@ -651,7 +679,7 @@ void moveGenerator(moves *moveList, board* position) {
                     // generate enpassant captures
                     if (position->enpassant != no_sq) {
                         // lookup pawn attacks and bitwise AND with enpassant square (bit)
-                        U64 enpassant_attacks = pawnAtacks[position->side][source_square] & (1ULL << position->enpassant);
+                        U64 enpassant_attacks = pawnAttacks[position->side][source_square] & (1ULL << position->enpassant);
 
                         // make sure enpassant capture available
                         if (enpassant_attacks) {
@@ -723,7 +751,7 @@ void moveGenerator(moves *moveList, board* position) {
                     }
 
                     // init pawn attacks bitboard
-                    attacks = pawnAtacks[position->side][source_square] & position->occupancies[white];
+                    attacks = pawnAttacks[position->side][source_square] & position->occupancies[white];
 
                     // generate pawn captures
                     while (attacks) {
@@ -747,7 +775,7 @@ void moveGenerator(moves *moveList, board* position) {
                     // generate enpassant captures
                     if (position->enpassant != no_sq) {
                         // lookup pawn attacks and bitwise AND with enpassant square (bit)
-                        U64 enpassant_attacks = pawnAtacks[position->side][source_square] & (1ULL << position->enpassant);
+                        U64 enpassant_attacks = pawnAttacks[position->side][source_square] & (1ULL << position->enpassant);
 
                         // make sure enpassant capture available
                         if (enpassant_attacks) {
@@ -1001,8 +1029,8 @@ void initSlidersAttacks(int bishop) {
 void initLeaperAttacks(void) {
     for (int square = 0; square < 64; square++) {
         // init pawn attacks
-        pawnAtacks[white][square] = maskPawnAttacks(white, square);
-        pawnAtacks[black][square] = maskPawnAttacks(black, square);
+        pawnAttacks[white][square] = maskPawnAttacks(white, square);
+        pawnAttacks[black][square] = maskPawnAttacks(black, square);
 
         // init knight attacks
         knightAttacks[square] = maskKnightAttacks(square);
