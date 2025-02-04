@@ -1014,7 +1014,6 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
-    memset(position->mailbox, 0, sizeof(position->mailbox));
     //memset(time, 0, sizeof(*time));
     //memset(counterMoves, 0, sizeof(counterMoves));
 
