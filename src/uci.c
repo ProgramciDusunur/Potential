@@ -240,7 +240,6 @@ void goCommand(char *command, board* position, time* time) {
                 time->starttime + myMIN(baseTime * HARD_LIMIT_MULTIPLIER, time->maxTime);
         time->softLimit =
                 time->starttime + myMIN(baseTime * SOFT_LIMIT_MULTIPLIER, time->maxTime);
-
     } else {
         time->timeset = 0;
     }
