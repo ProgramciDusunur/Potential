@@ -99,6 +99,12 @@ typedef struct {
 
     int hardLimit;
 
+    uint64_t startTime;
+
+    uint32_t baseSoft;
+
+    uint32_t maxTime;
+
     // UCI "stoptime" command time holder
     int stoptime;
 
