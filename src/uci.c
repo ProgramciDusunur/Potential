@@ -72,6 +72,10 @@ void parse_position(char *command, board* position) {
     // init pointer to the current character in the command string
     char *current_char = command;
 
+    for (int i = 0; i < 64; ++i) {
+        position->mailbox[i] = NO_PIECE;
+    }
+
     // parse UCI "startpos" command
     if (strncmp(command, "startpos", 8) == 0)
         // init chess board with start position
@@ -373,7 +377,7 @@ void uciProtocol(int argc, char *argv[]) {
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..\n");
-        benchmark(12, &position, &time);
+        benchmark(14, &position, &time);
         return;
     }
 
@@ -488,7 +492,7 @@ void uciProtocol(int argc, char *argv[]) {
             printf("uciok\n");
         }
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(12, &position, &time);
+            benchmark(14, &position, &time);
         }
     }
 }
