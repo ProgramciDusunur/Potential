@@ -911,7 +911,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         }
 
-
         // decrement ply
         position->ply--;
 
