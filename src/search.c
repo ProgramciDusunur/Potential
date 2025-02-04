@@ -116,8 +116,7 @@ int scoreMove(int move, board* position) {
             return 700000000;*/
 
         return quietHistory[getMoveSource(move)][getMoveTarget(move)] +
-                (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
-
+               (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
     }
     return 0;
 }
