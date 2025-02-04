@@ -102,7 +102,6 @@ int scoreMove(int move, board* position) {
         return captureScore;
 
     }
-
         // score quiet move
     else {
 
