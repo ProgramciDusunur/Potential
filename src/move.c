@@ -198,7 +198,7 @@ int makeMove(int move, int moveFlag, board* position) {
         if (position->side == white) {
             // remove captured pawn
             popBit(position->bitboards[p], targetSquare + 8);
-            position->mailbox[targetSquare + 8] = 64;
+            position->mailbox[targetSquare + 8] = NO_PIECE;
 
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[p][targetSquare + 8];
@@ -208,7 +208,7 @@ int makeMove(int move, int moveFlag, board* position) {
         else {
             // remove captured pawn
             popBit(position->bitboards[P], targetSquare - 8);
-            position->mailbox[targetSquare - 8] = 64;
+            position->mailbox[targetSquare - 8] = NO_PIECE;
 
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[P][targetSquare - 8];
@@ -218,7 +218,7 @@ int makeMove(int move, int moveFlag, board* position) {
     // move piece
     popBit(position->bitboards[piece], sourceSquare);
     setBit(position->bitboards[piece], targetSquare);
-    position->mailbox[sourceSquare] = 64;
+    position->mailbox[sourceSquare] = NO_PIECE;
     position->mailbox[targetSquare] = piece;
 
     // hash piece
@@ -289,7 +289,7 @@ int makeMove(int move, int moveFlag, board* position) {
                 // move H rook
                 popBit(position->bitboards[R], h1);
                 setBit(position->bitboards[R], f1);
-                position->mailbox[h1] = 64;
+                position->mailbox[h1] = NO_PIECE;
                 position->mailbox[f1] = R;
 
                 // hash rook
@@ -302,7 +302,7 @@ int makeMove(int move, int moveFlag, board* position) {
                 // move A rook
                 popBit(position->bitboards[R], a1);
                 setBit(position->bitboards[R], d1);
-                position->mailbox[a1] = 64;
+                position->mailbox[a1] = NO_PIECE;
                 position->mailbox[d1] = R;
 
                 // hash rook
@@ -315,7 +315,7 @@ int makeMove(int move, int moveFlag, board* position) {
                 // move H rook
                 popBit(position->bitboards[r], h8);
                 setBit(position->bitboards[r], f8);
-                position->mailbox[h8] = 64;
+                position->mailbox[h8] = NO_PIECE;
                 position->mailbox[f8] = r;
 
                 // hash rook
@@ -328,7 +328,7 @@ int makeMove(int move, int moveFlag, board* position) {
                 // move A rook
                 popBit(position->bitboards[r], a8);
                 setBit(position->bitboards[r], d8);
-                position->mailbox[a8] = 64;
+                position->mailbox[a8] = NO_PIECE;
                 position->mailbox[d8] = r;
 
                 // hash rook
@@ -352,7 +352,7 @@ int makeMove(int move, int moveFlag, board* position) {
     // reset occupancies
     position->occupancies[white] = 0LL;
     position->occupancies[black] = 0LL,
-            position->occupancies[both] = 0LL;
+    position->occupancies[both] = 0LL;
 
     // loop over white pieces bitboards
     for (int bbPiece = P; bbPiece <= K; bbPiece++) {
