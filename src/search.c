@@ -679,7 +679,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     int8_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
 
-    int8_t improvingFactor = position->improvingRate[position->ply] * (0.75 * depth);
+    int8_t improvingFactor = position->improvingRate[position->ply] * (0.25 * depth);
 
     int8_t rfpThreshold = rfpMargin + improvingFactor;
 
