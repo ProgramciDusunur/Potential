@@ -672,7 +672,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // Internal Iterative Reductions
-    if ((pvNode || cutNode || improving) && depth >= 8 && !tt_move) {
+    if ((pvNode || cutNode || !improving) && depth >= 8 && !tt_move) {
         depth--;
     }
 
