@@ -776,7 +776,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // capture move counter
     //int captureMoves = 0;
 
-
     const int originalAlpha = alpha;
 
     // loop over moves within a movelist
