@@ -4,6 +4,12 @@
 
 #include "uci.h"
 
+double DEF_TIME_MULTIPLIER = 0.054;
+double DEF_INC_MULTIPLIER = 0.85;
+double MAX_TIME_MULTIPLIER = 0.76;
+double HARD_LIMIT_MULTIPLIER = 3.04;
+double SOFT_LIMIT_MULTIPLIER = 0.76;
+
 
 // parse user/GUI move string input (e.g. "e7e8q")
 int parse_move(char *move_string, board* position) {
@@ -62,6 +68,12 @@ int parse_move(char *move_string, board* position) {
 
     // return illegal move
     return 0;
+}
+
+void scaleTime(time* time, uint8_t bestMoveStability) {
+    double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
+    time->softLimit =
+            myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability], time->maxTime + time->starttime);
 }
 
 // parse UCI "position" command
@@ -211,13 +223,24 @@ void goCommand(char *command, board* position, time* time) {
         // flag we're playing with time control
         time->timeset = 1;
 
-        int timeThisMove = (time->time / time->movestogo) + time->inc;
+        // Engine <--> GUI communication safety margin
+        time->time -= myMIN(time->time / 2, 50);
 
-        int maxTime = time->time;
+        int64_t baseTime = 0;
 
-        time->hardLimit = time->starttime + (maxTime * 0.6) - 50;
+        if (time->movestogo > 0) {
+            baseTime = (time->time / time->movestogo) + time->inc;
+        } else {
+            baseTime = time->time * DEF_TIME_MULTIPLIER + time->inc * DEF_INC_MULTIPLIER;
+        }
 
-        time->softLimit = time->starttime + (timeThisMove) - 50;
+        time->maxTime = myMAX(1, time->time * MAX_TIME_MULTIPLIER);
+        time->baseSoft = myMIN(baseTime * SOFT_LIMIT_MULTIPLIER, time->maxTime);
+        time->hardLimit =
+                time->starttime + myMIN(baseTime * HARD_LIMIT_MULTIPLIER, time->maxTime);
+        time->softLimit =
+                time->starttime + myMIN(baseTime * SOFT_LIMIT_MULTIPLIER, time->maxTime);
+
     } else {
         time->timeset = 0;
     }
