@@ -836,12 +836,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             continue;
         }
 
+        position->move[position->ply] = currentMove;
+        position->piece[position->ply] = getMovePiece(currentMove);
+
         // increment nodes count
         searchNodes++;
 
         if (isQuiet) {
-            position->move[position->ply] = currentMove;
-            position->piece[position->ply] = getMovePiece(currentMove);
+
             quietMoves++;
             addMoveToHistoryList(badQuiets, currentMove);
         } else {
