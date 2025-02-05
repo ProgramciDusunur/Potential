@@ -8,9 +8,43 @@
 int quietHistory[64][64];
 // rootHistory[side to move][fromSquare][toSquare]
 int rootHistory[2][64][64];
+// continuationHistory[previousPiece][previousTarget][currentPiece][currentTarget]
+int continuationHistory[12][64][12][64];
 
 int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
+}
+
+int getContinuationHistoryScore(board *position, int offSet, int move) {
+    return continuationHistory[position->piece[position->ply - offSet]]
+                              [getMoveTarget(position->move[position->ply])]
+                              [getMovePiece(move)][getMoveTarget(move)];
+}
+
+void updateContinuationHistory(board *position, int bestMove, int depth, moves *badQuiets) {
+    int previousPiece = position->piece[position->ply];
+    int previousTarget = getMoveTarget(position->move[position->ply]);
+    int currentPiece = getMovePiece(bestMove);
+    int currentTarget = getMoveTarget(bestMove);
+
+
+    int bonus = 16 * depth * depth + 32 * depth + 16;
+    int score = continuationHistory[previousPiece][previousTarget][currentPiece][currentTarget];
+
+    continuationHistory[previousPiece][previousTarget][currentPiece][currentTarget] += scaledBonus(score, bonus, maxQuietHistory);
+
+    for (int index = 0; index < badQuiets->count; index++) {
+        int badQuietPiece = getMovePiece(badQuiets->moves[index]);
+        int badQuietTo = getMoveTarget(badQuiets->moves[index]);
+
+        int badQuietScore =
+                continuationHistory[previousPiece][previousTarget][badQuietPiece][badQuietTo];
+
+        if (badQuiets->moves[index] == bestMove) continue;
+
+        continuationHistory[previousPiece][previousTarget][badQuietPiece][badQuietTo] +=
+                scaledBonus(badQuietScore, -bonus, maxQuietHistory);
+    }
 }
 
 void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiets) {

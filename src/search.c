@@ -116,7 +116,9 @@ int scoreMove(int move, board* position) {
             return 700000000;*/
 
         return quietHistory[getMoveSource(move)][getMoveTarget(move)] +
+               getContinuationHistoryScore(position, 1, move) +
                (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
+
     }
     return 0;
 }
@@ -839,17 +841,18 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         searchNodes++;
 
         if (isQuiet) {
+            position->move[position->ply] = currentMove;
+            position->piece[position->ply] = getMovePiece(currentMove);
+            quietMoves++;
             addMoveToHistoryList(badQuiets, currentMove);
+        } else {
+            //captureMoves++;
         }
 
         // increment legal moves
         legal_moves++;
 
-        if (isQuiet) {
-            quietMoves++;
-        } else {
-            //captureMoves++;
-        }
+
 
 
 
@@ -957,6 +960,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                         // store killer moves
                         position->killerMoves[position->ply][0] = bestMove;
                         updateQuietMoveHistory(bestMove, depth, badQuiets);
+                        updateContinuationHistory(position, bestMove, depth, badQuiets);
 
                         if (rootNode) {
                             updateRootHistory(position, bestMove, depth, badQuiets);
@@ -1020,6 +1024,8 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
+    memset(position->move, 0, sizeof(position->move));
+    memset(position->piece, 0, sizeof(position->piece));
     //memset(time, 0, sizeof(*time));
     //memset(counterMoves, 0, sizeof(counterMoves));
 

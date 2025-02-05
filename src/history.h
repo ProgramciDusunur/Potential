@@ -25,11 +25,15 @@ enum {
 extern int quietHistory[64][64];
 // rootHistory[side to move][fromSquare][toSquare]
 extern int rootHistory[2][64][64];
+// continuationHistory[previousPiece][previousTarget][currentPiece][currentTarget]
+extern int continuationHistory[12][64][12][64];
 
 
 
 int scaledBonus(int score, int bonus, int gravity);
 void updateQuietMoveHistory(int bestMove, int depth, moves *badQuiets);
+void updateContinuationHistory(board *position, int bestMove, int depth, moves *badQuiets);
+int getContinuationHistoryScore(board *position, int offSet, int move);
 void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiets);
 void clearQuietHistory(void);
 
