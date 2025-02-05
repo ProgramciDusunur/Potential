@@ -1103,7 +1103,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             bestMoveStability = 0;
         }
 
-        if (score > averageScore - 15 && score < averageScore + 15) {
+        if (score > averageScore - 20 && score < averageScore + 20) {
             evalStability = myMIN(evalStability + 1, 4);
         } else {
             evalStability = 0;
