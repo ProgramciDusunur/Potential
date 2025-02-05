@@ -42,7 +42,7 @@ void clearCounterMoves(void);
 int SEE(board *pos, int move, int threshold);
 uint64_t all_attackers_to_square(board *pos, uint64_t occupied, int sq);
 int quiescence(int alpha, int beta, board* position, time* time);
-void quiescence_sort_moves(moves *moveList, board* position);
+void quiescence_sort_moves(moves *moveList, int tt_move, board* position);
 int quiescenceScoreMove(int move, board* position);
 int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode);
 void searchPosition(int depth, board* position, bool benchmark, time* time);

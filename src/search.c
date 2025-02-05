@@ -191,7 +191,7 @@ int quiescenceScoreMove(int move, board* position) {
     return 0;
 }
 
-void quiescence_sort_moves(moves *moveList, board* position) {
+void quiescence_sort_moves(moves *moveList, int tt_move, board* position) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -202,9 +202,9 @@ void quiescence_sort_moves(moves *moveList, board* position) {
         int current_score;
 
         // if hash move available
-        /*if (bestMove == current_move)
+        if (tt_move == current_move)
             current_score = 2000000000;
-        else*/
+        else
         current_score = quiescenceScoreMove(current_move, position);
 
         // Find the correct position to insert the current move
@@ -493,7 +493,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     noisyGenerator(moveList, position);
 
     // sort moves
-    quiescence_sort_moves(moveList, position);
+    quiescence_sort_moves(moveList, tt_move, position);
 
     // legal moves counter
     //int legal_moves = 0;
