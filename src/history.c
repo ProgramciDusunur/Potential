@@ -16,7 +16,7 @@ int scaledBonus(int score, int bonus, int gravity) {
 }
 
 int getContinuationHistoryScore(board *position, int offSet, int move) {
-    return position->ply - offSet >= 0 ? continuationHistory[position->piece[position->ply - offSet]]
+    return position->ply >= offSet ? continuationHistory[position->piece[position->ply - offSet]]
                               [getMoveTarget(position->move[position->ply - offSet])]
                               [getMovePiece(move)][getMoveTarget(move)] : 0;
 }
@@ -31,7 +31,7 @@ void updateContinuationHistory(board *position, int bestMove, int depth, moves *
     int bonus = 16 * depth * depth + 32 * depth + 16;
     int score = continuationHistory[previousPiece][previousTarget][currentPiece][currentTarget];
 
-    continuationHistory[previousPiece][previousTarget][currentPiece][currentTarget] += scaledBonus(score, bonus, maxQuietHistory);
+    continuationHistory[previousPiece][previousTarget][currentPiece][currentTarget] += scaledBonus(score, bonus, 8192);
 
     for (int index = 0; index < badQuiets->count; index++) {
         int badQuietPiece = getMovePiece(badQuiets->moves[index]);
