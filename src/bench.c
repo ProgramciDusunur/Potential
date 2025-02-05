@@ -72,7 +72,7 @@ void benchmark(int depth, board* position, time* time) {
         clearHashTable();
 
         //clear history
-        clearHistory();
+        clearQuietHistory();
 
         //clear static eval history
         clearStaticEvaluationHistory(position);

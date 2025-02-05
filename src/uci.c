@@ -439,7 +439,7 @@ void uciProtocol(int argc, char *argv[]) {
             clearHashTable();
 
             //clear history
-            clearHistory();
+            clearQuietHistory();
 
             //clear static eval history
             clearStaticEvaluationHistory(&position);
@@ -457,7 +457,7 @@ void uciProtocol(int argc, char *argv[]) {
             clearHashTable();
 
             //clear history
-            clearHistory();
+            clearQuietHistory();
 
             //clear static eval history
             clearStaticEvaluationHistory(&position);
@@ -474,7 +474,7 @@ void uciProtocol(int argc, char *argv[]) {
             clearHashTable();
 
             //clear history
-            clearHistory();
+            clearQuietHistory();
 
             //clear static eval history
             clearStaticEvaluationHistory(&position);
