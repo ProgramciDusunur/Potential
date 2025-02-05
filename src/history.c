@@ -34,6 +34,7 @@ void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiet
     }
 }
 
+
 void updateQuietMoveHistory(int bestMove, int depth, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
