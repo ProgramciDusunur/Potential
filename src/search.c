@@ -97,6 +97,8 @@ int scoreMove(int move, board* position) {
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[getMovePiece(move)][target_piece];
 
+        captureScore += captureHistory[position->side][getMoveSource(move)][getMoveTarget(move)];
+
         captureScore += SEE(position, move, SEE_MOVE_ORDER_THRESHOLD) ? 1000000000 : -1000000;
 
         return captureScore;
@@ -744,8 +746,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // create move list instance
-    moves moveList[1], badQuiets[1];
+    moves moveList[1], badQuiets[1], noisyMoves[1];
     badQuiets->count = 0;
+    noisyMoves->count = 0;
 
     // generate moves
     moveGenerator(moveList, position);
@@ -839,17 +842,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         searchNodes++;
 
         if (isQuiet) {
+            quietMoves++;
             addMoveToHistoryList(badQuiets, currentMove);
+        } else {
+            addMoveToHistoryList(noisyMoves, currentMove);
         }
 
         // increment legal moves
         legal_moves++;
-
-        if (isQuiet) {
-            quietMoves++;
-        } else {
-            //captureMoves++;
-        }
 
 
 
@@ -962,6 +962,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                             updateRootHistory(position, bestMove, depth, badQuiets);
                         }
 
+                    } else {
+                        updateCaptureHistory(position, bestMove, depth, noisyMoves);
                     }
 
                     // node (move) fails high
@@ -1017,6 +1019,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
     memset(quietHistory, 0, sizeof(quietHistory));
     memset(rootHistory, 0, sizeof(rootHistory));
+    memset(captureHistory, 0, sizeof(captureHistory));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
