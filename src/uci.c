@@ -70,10 +70,11 @@ int parse_move(char *move_string, board* position) {
     return 0;
 }
 
-void scaleTime(time* time, uint8_t bestMoveStability) {
+void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability) {
     double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
+    double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
     time->softLimit =
-            myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability], time->maxTime + time->starttime);
+            myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * evalScale[evalStability], time->maxTime + time->starttime);
 }
 
 // parse UCI "position" command
@@ -399,7 +400,7 @@ void uciProtocol(int argc, char *argv[]) {
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..\n");
-        benchmark(14, &position, &time);
+        benchmark(16, &position, &time);
         return;
     }
 
@@ -514,7 +515,7 @@ void uciProtocol(int argc, char *argv[]) {
             printf("uciok\n");
         }
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(14, &position, &time);
+            benchmark(16, &position, &time);
         }
     }
 }

@@ -869,6 +869,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 lmrReduction += 1;
             }
 
+            if (cutNode) {
+                lmrReduction += 1;
+            }
+
 
             if (isQuiet) {
 
@@ -1031,6 +1035,8 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
     int previousBestMove = 0;
     uint8_t bestMoveStability = 0;
+    int averageScore = noEval;
+    uint8_t evalStability = 0;
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
@@ -1088,14 +1094,23 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
         }
 
+        averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
+
         if (position->pvTable[0][0] == previousBestMove) {
             bestMoveStability = myMIN(bestMoveStability + 1, 4);
         } else {
             previousBestMove = position->pvTable[0][0];
             bestMoveStability = 0;
         }
+
+        if (score > averageScore - 20 && score < averageScore + 20) {
+            evalStability = myMIN(evalStability + 1, 4);
+        } else {
+            evalStability = 0;
+        }
+
         if (time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability);
+            scaleTime(time, bestMoveStability, evalStability);
         }
 
         int endTime = getTimeMiliSecond();
