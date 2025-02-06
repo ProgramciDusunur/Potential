@@ -285,6 +285,7 @@ void updatePawnCorrectionHistory(board *position, const int depth, const int dif
     const int newWeight = myMIN(depth + 1, 16);
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
+    pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE] = entry;
 }
 
 int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
