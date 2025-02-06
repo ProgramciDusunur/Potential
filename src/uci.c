@@ -241,6 +241,7 @@ void goCommand(char *command, board* position, time* time) {
                 time->starttime + myMIN(baseTime * 3.04, max_time);
         time->softLimit = time->starttime + myMIN(baseTime * 0.76, max_time);
 
+
         // flag we're playing with time control
         time->timeset = 1;
     } else {
