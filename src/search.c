@@ -877,6 +877,12 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     lmrReduction += 1;
                 }
 
+                // Reduce Less
+                if (in_check) {
+                    lmrReduction -= 1;
+                }
+
+
             }
 
 
