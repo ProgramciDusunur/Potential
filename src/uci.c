@@ -227,7 +227,7 @@ void goCommand(char *command, board* position, time* time) {
 
         int64_t baseTime = 0;
 
-        if (time->movestogo > 0) {
+        if (time->movestogo != 0) {
             baseTime = (time->time / time->movestogo) + time->inc;
         } else {
             baseTime = time->time * DEF_TIME_MULTIPLIER + time->inc * DEF_INC_MULTIPLIER;
