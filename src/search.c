@@ -1016,6 +1016,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         hashFlag = hashFlagBeta;
     }
 
+
     if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
     !(hashFlag == hashFlagAlpha && bestScore <= static_eval) && !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
         updatePawnCorrectionHistory(position, depth, bestScore - static_eval);
