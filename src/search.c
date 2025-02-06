@@ -279,7 +279,7 @@ void clearCounterMoves(void) {
 }
 
 void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
-    U64 pawnKey = generateHashKey(position);
+    U64 pawnKey = generatePawnKey(position);
     int entry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = myMIN(depth + 1, 16);
@@ -288,9 +288,9 @@ void updatePawnCorrectionHistory(board *position, const int depth, const int dif
 }
 
 int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
-    U64 pawnKey = generateHashKey(position);
+    U64 pawnKey = generatePawnKey(position);
     int entry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
-    int mateFound = 49000 - maxPly;
+    int mateFound = mateValue - maxPly;
     return clamp(rawEval + entry / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
 }
 
@@ -493,6 +493,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     // evaluate position
     int evaluation = evaluate(position);
+
+    evaluation = adjustEvalWithCorrectionHistory(position, evaluation);
 
     int bestScore = evaluation;
 
@@ -1016,9 +1018,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         hashFlag = hashFlagBeta;
     }
 
-
     if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
-    !(hashFlag == hashFlagAlpha && bestScore <= static_eval) && !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
+    !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
+    !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
         updatePawnCorrectionHistory(position, depth, bestScore - static_eval);
     }
 
@@ -1048,6 +1050,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
     memset(quietHistory, 0, sizeof(quietHistory));
     memset(rootHistory, 0, sizeof(rootHistory));
+    memset(pawnCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
