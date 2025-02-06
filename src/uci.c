@@ -215,31 +215,34 @@ void goCommand(char *command, board* position, time* time) {
     // init start time
     time->starttime = getTimeMiliSecond();
 
-    // init search depth
-    //depth = depth;
-
     // if time control is available
     if (time->time != -1) {
-        // flag we're playing with time control
-        time->timeset = 1;
+        if (time->time < 0) {
+            // Some GUI apps can send us negative time. Fix this by assuming we have time
+            time->time = 1000;
+        }
 
         // Engine <--> GUI communication safety margin
-        time->time -= myMIN(time->time / 2, 50);
+        time->time -= 50;
 
         int64_t baseTime = 0;
 
-        if (time->movestogo > 0) {
+        if (time->movestogo != 0) {
             baseTime = (time->time / time->movestogo) + time->inc;
         } else {
             baseTime = time->time * DEF_TIME_MULTIPLIER + time->inc * DEF_INC_MULTIPLIER;
+            baseTime = time->time * 0.054 + time->inc * 0.85;
         }
 
-        time->maxTime = myMAX(1, time->time * MAX_TIME_MULTIPLIER);
         time->baseSoft = myMIN(baseTime * SOFT_LIMIT_MULTIPLIER, time->maxTime);
+
+        int64_t max_time = time->time * 0.76;
         time->hardLimit =
-                time->starttime + myMIN(baseTime * HARD_LIMIT_MULTIPLIER, time->maxTime);
-        time->softLimit =
-                time->starttime + myMIN(baseTime * SOFT_LIMIT_MULTIPLIER, time->maxTime);
+                time->starttime + myMIN(baseTime * 3.04, max_time);
+        time->softLimit = time->starttime + myMIN(baseTime * 0.76, max_time);
+
+        // flag we're playing with time control
+        time->timeset = 1;
     } else {
         time->timeset = 0;
     }
