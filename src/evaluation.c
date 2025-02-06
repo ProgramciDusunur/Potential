@@ -185,6 +185,53 @@ const int passed_pawn_bonus_endgame[64] = {0, 0, 0, 0, 0, 0, 0, 0,
                                                   -2, 0, 0, 0, 0, 0, -1, -2,
                                                   0, 0, 0, 0, 0, 0, 0, 0};
 
+// Pawn Hole Bonus [square]
+const int pawnHoleBonus[64] = {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 1, 1, 1, 0, 0,
+        0, 0, 1, 2, 2, 1, 0, 0,
+        0, 0, 1, 1, 1, 1, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+// Pawn hole knight check [square]
+const bool pawnHoleSquareCheck[64] = {
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 0,
+        0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+
+// Knight Evaluation
+const int knightOutpost[2][64] = {
+        {   0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 1, 1, 1, 1, 0, 0,
+                0, 1, 3, 3, 3, 3, 1, 0,
+                0, 2, 1, 6, 3, 4, 2, 0,
+                0, 0, 3, 0, 3, 3, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+        },
+        {   0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 1, 0, 3, 0, 0, 0, 0,
+                0, 2, 2, 3, 6, 1, 2, 0,
+                0, 1, 0, 3, 2, 0, 1, 0,
+                0, 0, 1, 0, 1, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0,
+        },
+};
+
 // File and Mobility Scores
 const int semi_open_file_score = 10;
 const int open_file_score = 15;
@@ -206,7 +253,8 @@ const int king_distance_bonus = 2;
 const int opening_phase_score = 6192;
 const int endgame_phase_score = 518;
 
-
+// Passed Can Move Bonus
+const int passedCanMoveBonus = 5;
 
 
 
@@ -356,6 +404,11 @@ int evaluate(board* position) {
                         if (game_phase == endgame) {
                             passedPawnCount += 1;
 
+                            // passed pawn can move bonus
+                            if (!(getBit(position->occupancies[both], (square - 8)))) {
+                                score += passedCanMoveBonus;
+                            }
+
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                             int kingDistance = blackKingDistance - whiteKingDistance;
@@ -381,6 +434,27 @@ int evaluate(board* position) {
 
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][KNIGHT][square];
+
+
+                    // Knight Outpost Bonus
+                    if (!(position->bitboards[p] & (whitePassedMasks[square] & isolatedMasks[square]))) {
+                        // check corners to avoid wrong patterns
+                        bool pawnHoleCheck = pawnHoleSquareCheck[square];
+
+                        // Pawn Hole Bonus
+                        if (pawnHoleCheck && (getBit(position->bitboards[p], (square - 1)) && getBit(position->bitboards[p], (square + 1)) && getBit(position->bitboards[p], (square - 8)))) {
+                            int pawnHoleDefenderPawnsBonus = countBits((getBit(position->bitboards[P], (square + 7))) | (getBit(position->bitboards[P], (square + 9)))) == 2
+                                                             ? 2 : 1;
+                            score += pawnHoleBonus[square] + pawnHoleDefenderPawnsBonus;
+                        }
+
+                        if (game_phase == endgame) {
+                            score += knightOutpost[endgame][square];
+                        } else {
+                            score += knightOutpost[opening][square];
+                        }
+                    }
+
 
                     break;
 
@@ -514,6 +588,11 @@ int evaluate(board* position) {
                         if (game_phase == endgame) {
                             passedPawnCount -= 1;
 
+                            // passed pawn can move bonus
+                            if (!(getBit(position->occupancies[both], (square + 8)))) {
+                                score -= passedCanMoveBonus;
+                            }
+
                             int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
                             int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
                             int kingDistance = whiteKingDistance - blackKingDistance;
@@ -522,7 +601,6 @@ int evaluate(board* position) {
                         }
                         score -= passed_pawn_bonus_middle[mirrorScore[square]];
                     }
-
 
                     break;
 
@@ -538,6 +616,27 @@ int evaluate(board* position) {
 
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][KNIGHT][mirrorScore[square]];
+
+                    // Knight Outpost Bonus
+                    if (!(position->bitboards[P] & (blackPassedMasks[square] & isolatedMasks[square]))) {
+
+
+                        // check corners to avoid wrong patterns
+                        bool pawnHoleCheck = pawnHoleSquareCheck[square];
+
+                        // Pawn Hole Bonus
+                        if (pawnHoleCheck && (getBit(position->bitboards[P], (square - 1)) && getBit(position->bitboards[P], (square + 1)) && getBit(position->bitboards[P], (square + 8)))) {
+                            int pawnHoleDefenderPawnsBonus = countBits((getBit(position->bitboards[p], (square - 7))) | (getBit(position->bitboards[p], (square - 9)))) == 2
+                                                             ? 2 : 1;
+                            score -= pawnHoleBonus[square] + pawnHoleDefenderPawnsBonus;
+                        }
+
+                        if (game_phase == endgame) {
+                            score -= knightOutpost[endgame][square];
+                        } else {
+                            score -= knightOutpost[opening][square];
+                        }
+                    }
 
                     break;
 
