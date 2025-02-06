@@ -712,6 +712,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         int R = 3 + depth / 3 + myMIN((static_eval - beta) / 400, 3);
 
+
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
         score = -negamax(-beta, -beta + 1, depth - R, position, time, !cutNode);
