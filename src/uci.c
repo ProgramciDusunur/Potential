@@ -4,11 +4,12 @@
 
 #include "uci.h"
 
-double DEF_TIME_MULTIPLIER = 0.054;
-double DEF_INC_MULTIPLIER = 0.85;
+double DEF_TIME_MULTIPLIER = 0.050;
+double DEF_INC_MULTIPLIER = 0.80;
 double MAX_TIME_MULTIPLIER = 0.76;
 double HARD_LIMIT_MULTIPLIER = 3.04;
 double SOFT_LIMIT_MULTIPLIER = 0.76;
+
 
 // parse user/GUI move string input (e.g. "e7e8q")
 int parse_move(char *move_string, board* position) {
@@ -227,7 +228,7 @@ void goCommand(char *command, board* position, time* time) {
 
         int64_t baseTime = 0;
 
-        if (time->movestogo != 0) {
+        if (time->movestogo > 0) {
             baseTime = (time->time / time->movestogo) + time->inc;
         } else {
             baseTime = time->time * DEF_TIME_MULTIPLIER + time->inc * DEF_INC_MULTIPLIER;
