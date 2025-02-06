@@ -24,6 +24,13 @@ int counterMoves[2][maxPly][maxPly];
 
 const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
 
+int CORRHIST_WEIGHT_SCALE = 256;
+int CORRHIST_GRAIN = 256;
+int CORRHIST_SIZE = 16384;
+int CORRHIST_MAX = 16384;
+
+int pawnCorrectionHistory[2][16384];
+
 
 
 
@@ -269,6 +276,22 @@ void clearCounterMoves(void) {
             }
         }
     }
+}
+
+void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
+    U64 pawnKey = generateHashKey(position);
+    int entry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = myMIN(depth + 1, 16);
+    entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+    entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
+}
+
+int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
+    U64 pawnKey = generateHashKey(position);
+    int entry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
+    int mateFound = 49000 - maxPly;
+    return clamp(rawEval + entry / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
 }
 
 uint8_t justPawns(board *pos) {
@@ -649,7 +672,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // get static evaluation score
-    int static_eval = evaluate(position);
+    int raw_eval = evaluate(position);
+
+    int static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
 
     bool improving = false;
 
@@ -989,6 +1014,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         hashFlag = hashFlagAlpha;
     } else if (alpha <= originalAlpha) {
         hashFlag = hashFlagBeta;
+    }
+
+    if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
+    !(hashFlag == hashFlagAlpha && bestScore <= static_eval) && !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
+        updatePawnCorrectionHistory(position, depth, bestScore - static_eval);
     }
 
     // store hash entry with the score equal to alpha
