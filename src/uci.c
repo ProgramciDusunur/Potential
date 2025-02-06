@@ -75,7 +75,6 @@ void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability) {
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * evalScale[evalStability], time->maxTime + time->starttime);
-
 }
 
 // parse UCI "position" command
