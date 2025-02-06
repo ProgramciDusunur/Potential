@@ -231,15 +231,14 @@ void goCommand(char *command, board* position, time* time) {
             baseTime = (time->time / time->movestogo) + time->inc;
         } else {
             baseTime = time->time * DEF_TIME_MULTIPLIER + time->inc * DEF_INC_MULTIPLIER;
-            baseTime = time->time * 0.054 + time->inc * 0.85;
         }
 
         time->baseSoft = myMIN(baseTime * SOFT_LIMIT_MULTIPLIER, time->maxTime);
 
-        int64_t max_time = time->time * 0.76;
+        time->maxTime = time->time * SOFT_LIMIT_MULTIPLIER;
         time->hardLimit =
-                time->starttime + myMIN(baseTime * 3.04, max_time);
-        time->softLimit = time->starttime + myMIN(baseTime * 0.76, max_time);
+                time->starttime + myMIN(baseTime * HARD_LIMIT_MULTIPLIER, time->maxTime);
+        time->softLimit = time->starttime + myMIN(baseTime * SOFT_LIMIT_MULTIPLIER, time->maxTime);
 
 
         // flag we're playing with time control
