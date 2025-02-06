@@ -20,7 +20,7 @@ void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiet
     int bonus = 16 * depth * depth + 32 * depth + 16;
     int score = rootHistory[position->side][from][to];
 
-    quietHistory[from][to] += scaledBonus(score, bonus, maxQuietHistory);
+    rootHistory[position->side][from][to] += scaledBonus(score, bonus, maxQuietHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
@@ -33,6 +33,7 @@ void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiet
         rootHistory[position->side][badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
     }
 }
+
 
 void updateQuietMoveHistory(int bestMove, int depth, moves *badQuiets) {
     int from = getMoveSource(bestMove);
