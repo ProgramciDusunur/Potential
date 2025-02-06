@@ -10,7 +10,6 @@ double MAX_TIME_MULTIPLIER = 0.76;
 double HARD_LIMIT_MULTIPLIER = 3.04;
 double SOFT_LIMIT_MULTIPLIER = 0.76;
 
-
 // parse user/GUI move string input (e.g. "e7e8q")
 int parse_move(char *move_string, board* position) {
     // create move list instance
