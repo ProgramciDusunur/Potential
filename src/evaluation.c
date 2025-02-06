@@ -534,7 +534,6 @@ int evaluate(board* position) {
                         score -= passed_pawn_bonus_middle[mirrorScore[square]];
                     }
 
-
                     break;
 
                     // evaluate black knights
