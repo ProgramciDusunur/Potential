@@ -72,6 +72,7 @@ int mvvLva[12][12] = {
 };
 
 int minorPieces[6] = {B, b, N, n, K, k};
+int majorPieces[4] = {R, r, Q, q};
 
 
 const U64 notHFile = 9187201950435737471ULL;

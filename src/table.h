@@ -35,6 +35,7 @@ int readHashEntry(board *position, int *move, int16_t *tt_score,
                   uint8_t *tt_depth, uint8_t *tt_flag);
 U64 generatePawnKey(board* position);
 U64 generateMinorKey(board *position);
+U64 generateMajorKey(board *position);
 void clearHashTable(void);
 void init_hash_table(int mb);
 void initRandomKeys(void);
