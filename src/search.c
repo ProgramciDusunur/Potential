@@ -303,7 +303,7 @@ int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
     U64 pawnKey = generatePawnKey(position);
     U64 minorKey = generateMinorKey(position);
     int pawnEntry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
-    int minorEntry = pawnCorrectionHistory[position->side][minorKey % CORRHIST_SIZE];
+    int minorEntry = minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE];
     int mateFound = mateValue - maxPly;
     int adjust = pawnEntry + minorEntry;
     return clamp(rawEval + adjust / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
