@@ -1111,6 +1111,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(rootHistory, 0, sizeof(rootHistory));
     memset(pawnCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
     memset(minorCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
+    memset(nonPawnCorrectionHistory, 0, sizeof(nonPawnCorrectionHistory));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
