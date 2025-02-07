@@ -707,6 +707,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         pastStack = position->ply - 4;
     }
 
+
     if (pastStack > -1 && !in_check) {
         improving = position->staticEval[position->ply] > position->staticEval[pastStack];
         const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
