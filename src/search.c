@@ -196,7 +196,6 @@ int quiescenceScoreMove(int move, board* position) {
         // score move by MVV LVA lookup [source piece][target piece]
         return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
     }
-
     return 0;
 }
 
