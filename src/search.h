@@ -23,11 +23,16 @@ extern int lmr_full_depth_moves;
 extern int lmr_reduction_limit;
 extern int lateMovePruningBaseReduction;
 extern int nullMoveDepth;
+extern int CORRHIST_WEIGHT_SCALE;
+extern int CORRHIST_GRAIN;
+extern int CORRHIST_SIZE;
+extern int CORRHIST_MAX;
 
 extern U64 searchNodes;
 
 extern int lmrTable[maxPly][maxPly];
 extern int counterMoves[2][maxPly][maxPly];
+extern int pawnCorrectionHistory[2][16384];
 
 
 int isRepetition(board* position);

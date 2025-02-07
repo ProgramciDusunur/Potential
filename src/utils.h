@@ -7,5 +7,6 @@
 
 int myMAX(int x, int y);
 int myMIN(int x, int y);
+int clamp(int d, int min, int max);
 
 #endif //POTENTIAL_UTILS_H

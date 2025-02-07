@@ -50,6 +50,32 @@ U64 generateHashKey(board* position) {
     return finalKey;
 }
 
+U64 generatePawnKey(board* position) {
+
+    uint64_t final_key = 0ULL;
+    uint64_t bitboard;
+
+    bitboard = position->bitboards[P];
+
+    while (bitboard) {
+        int square = getLS1BIndex(bitboard);
+
+        final_key ^= pieceKeys[P][square];
+        popBit(bitboard, square);
+    }
+
+    bitboard = position->bitboards[p];
+
+    while (bitboard) {
+        int square = getLS1BIndex(bitboard);
+
+        final_key ^= pieceKeys[P][square];
+        popBit(bitboard, square);
+    }
+    return final_key;
+
+}
+
 void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available

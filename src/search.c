@@ -24,6 +24,13 @@ int counterMoves[2][maxPly][maxPly];
 
 const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
 
+int CORRHIST_WEIGHT_SCALE = 256;
+int CORRHIST_GRAIN = 256;
+int CORRHIST_SIZE = 16384;
+int CORRHIST_MAX = 16384;
+
+int pawnCorrectionHistory[2][16384];
+
 
 
 
@@ -271,6 +278,23 @@ void clearCounterMoves(void) {
     }
 }
 
+void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
+    U64 pawnKey = generatePawnKey(position);
+    int entry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = myMIN(depth + 1, 16);
+    entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+    entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
+    pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE] = entry;
+}
+
+int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
+    U64 pawnKey = generatePawnKey(position);
+    int entry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
+    int mateFound = mateValue - maxPly;
+    return clamp(rawEval + entry / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
+}
+
 uint8_t justPawns(board *pos) {
     return !((pos->bitboards[N] | pos->bitboards[n] | pos->bitboards[B] |
               pos->bitboards[b] | pos->bitboards[R] | pos->bitboards[r] |
@@ -471,6 +495,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // evaluate position
     int evaluation = evaluate(position);
 
+    evaluation = adjustEvalWithCorrectionHistory(position, evaluation);
+
     int bestScore = evaluation;
 
     // fail-hard beta cutoff
@@ -649,7 +675,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // get static evaluation score
-    int static_eval = evaluate(position);
+    int raw_eval = evaluate(position);
+
+    int static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
 
     bool improving = false;
 
@@ -991,6 +1019,12 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         hashFlag = hashFlagBeta;
     }
 
+    if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
+    !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
+    !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
+        updatePawnCorrectionHistory(position, depth, bestScore - static_eval);
+    }
+
     // store hash entry with the score equal to alpha
     writeHashEntry(bestScore, bestMove, depth, hashFlag, position);
 
@@ -1017,6 +1051,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
     memset(quietHistory, 0, sizeof(quietHistory));
     memset(rootHistory, 0, sizeof(rootHistory));
+    memset(pawnCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
