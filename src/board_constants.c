@@ -71,6 +71,8 @@ int mvvLva[12][12] = {
         {100, 200, 300, 400, 500, 600, 100, 200, 300, 400, 500, 600}
 };
 
+int minorPieces[6] = {B, b, N, n, K, k};
+
 
 const U64 notHFile = 9187201950435737471ULL;
 const U64 notAFile = 18374403900871474942ULL;

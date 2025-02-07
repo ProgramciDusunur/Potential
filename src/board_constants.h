@@ -38,6 +38,7 @@ enum chessBoard {
 enum {
     P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
 };
+
 // white and black castling
 enum {
     wk = 1, wq = 2, bk = 4, bq = 8
@@ -57,6 +58,7 @@ extern char asciiPieces[12];
 extern char promotedPieces[];
 extern char *unicodePieces[12];
 extern int charPieces[];
+extern int minorPieces[6];
 extern int mvvLva[12][12];
 extern const U64 notHFile;
 extern const U64 notAFile;

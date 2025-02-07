@@ -30,6 +30,7 @@ int CORRHIST_SIZE = 16384;
 int CORRHIST_MAX = 16384;
 
 int pawnCorrectionHistory[2][16384];
+int minorCorrectionHistory[2][16384];
 
 
 
@@ -288,11 +289,24 @@ void updatePawnCorrectionHistory(board *position, const int depth, const int dif
     pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE] = entry;
 }
 
+void updateMinorCorrectionHistory(board *position, const int depth, const int diff) {
+    U64 minorKey = generateMinorKey(position);
+    int entry = minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE];
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = myMIN(depth + 1, 16);
+    entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+    entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
+    minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE] = entry;
+}
+
 int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
     U64 pawnKey = generatePawnKey(position);
-    int entry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
+    U64 minorKey = generateMinorKey(position);
+    int pawnEntry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
+    int minorEntry = minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE];
     int mateFound = mateValue - maxPly;
-    return clamp(rawEval + entry / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
+    int adjust = pawnEntry + minorEntry;
+    return clamp(rawEval + adjust / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
 }
 
 uint8_t justPawns(board *pos) {
@@ -1023,6 +1037,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
     !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
         updatePawnCorrectionHistory(position, depth, bestScore - static_eval);
+        updateMinorCorrectionHistory(position, depth, bestScore - static_eval);
     }
 
     // store hash entry with the score equal to alpha
@@ -1052,6 +1067,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(quietHistory, 0, sizeof(quietHistory));
     memset(rootHistory, 0, sizeof(rootHistory));
     memset(pawnCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
+    memset(minorCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
