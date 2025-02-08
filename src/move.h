@@ -12,6 +12,7 @@
 #include "mask.h"
 #include "magic.h"
 #include "table.h"
+#include <stdbool.h>
 
 // encode move
 #define encodeMove(source, target, piece, promoted, capture, double, enpassant, castling) \
@@ -70,7 +71,7 @@ int makeMove(int move, int moveFlag, board* position);
 void moveGenerator(moves *moveList, board* position);
 void noisyGenerator(moves *moveList, board* position);
 void initSlidersAttacks(int bishop);
-void initLeaperAttacks();
+void initLeaperAttacks(void);
 void addMoveToHistoryList(moves* list, int move);
 
 #endif //POTENTIAL_MOVE_H

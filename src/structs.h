@@ -41,6 +41,8 @@ typedef struct {
 
     //int depth;
     U64 hashKey;
+    U64 pawnKey;
+    U64 minorKey;
 
     int gamePhase;
 } board;

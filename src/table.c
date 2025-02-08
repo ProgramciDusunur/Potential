@@ -98,6 +98,14 @@ U64 generateMinorKey(board *position) {
     return final_key;
 }
 
+U64 removePieceFromHashKey(U64 key, int piece, int sourceSquare) {
+    return key ^= pieceKeys[piece][sourceSquare];
+}
+
+U64 addPieceToHashKey(U64 key, int piece, int targetSquare) {
+    return key ^= pieceKeys[piece][targetSquare];
+}
+
 void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available

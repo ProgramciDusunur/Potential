@@ -143,6 +143,13 @@ int isSquareAttacked(int square, int whichSide, board* position) {
     return 0;
 }
 
+bool isMinorPiece(uint8_t piece) {
+    if (piece == K || piece == k || piece == B || piece == b || piece == N || piece == n) {
+        return true;
+    }
+    return false;
+}
+
 // make move on chess board
 int makeMove(int move, int moveFlag, board* position) {
     int isLegalCapture = getMoveCapture(move);
@@ -182,7 +189,7 @@ int makeMove(int move, int moveFlag, board* position) {
                 popBit(position->bitboards[bbPiece], targetSquare);
 
                 // remove the piece from hash key
-                position->hashKey ^= pieceKeys[bbPiece][targetSquare];
+                position->hashKey = removePieceFromHashKey(position->hashKey, bbPiece, targetSquare);
                 break;
             }
         }
@@ -201,7 +208,7 @@ int makeMove(int move, int moveFlag, board* position) {
             position->mailbox[targetSquare + 8] = NO_PIECE;
 
             // remove pawn from hash key
-            position->hashKey ^= pieceKeys[p][targetSquare + 8];
+            position->hashKey = removePieceFromHashKey(position->hashKey, p, targetSquare + 8);
         }
 
             // black to move
@@ -211,7 +218,7 @@ int makeMove(int move, int moveFlag, board* position) {
             position->mailbox[targetSquare - 8] = NO_PIECE;
 
             // remove pawn from hash key
-            position->hashKey ^= pieceKeys[P][targetSquare - 8];
+            position->hashKey = removePieceFromHashKey(position->hashKey, P, targetSquare - 8);
         }
     }
 
@@ -222,8 +229,8 @@ int makeMove(int move, int moveFlag, board* position) {
     position->mailbox[targetSquare] = piece;
 
     // hash piece
-    position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
-    position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
+    position->hashKey = removePieceFromHashKey(position->hashKey, piece, sourceSquare); // remove piece from source square in hash key
+    position->hashKey = addPieceToHashKey(position->hashKey, piece, targetSquare); // set piece to the target square in hash key
 
     // handle pawn promotions
     if (promotedPiece) {
@@ -233,7 +240,7 @@ int makeMove(int move, int moveFlag, board* position) {
             popBit(position->bitboards[P], targetSquare);
 
             // remove pawn from hash key
-            position->hashKey ^= pieceKeys[P][targetSquare];
+            position->hashKey = removePieceFromHashKey(position->hashKey, P, targetSquare);
         }
 
             // black to move
@@ -242,7 +249,7 @@ int makeMove(int move, int moveFlag, board* position) {
             popBit(position->bitboards[p], targetSquare);
 
             // remove pawn from hash key
-            position->hashKey ^= pieceKeys[p][targetSquare];
+            position->hashKey = removePieceFromHashKey(position->hashKey, p, targetSquare);
         }
 
         // set up promoted piece on chess board
@@ -250,7 +257,7 @@ int makeMove(int move, int moveFlag, board* position) {
         position->mailbox[targetSquare] = promotedPiece;
 
         // add promoted piece into the hash key
-        position->hashKey ^= pieceKeys[promotedPiece][targetSquare];
+        position->hashKey = addPieceToHashKey(position->hashKey, promotedPiece, targetSquare);
     }
 
 
@@ -262,6 +269,8 @@ int makeMove(int move, int moveFlag, board* position) {
 
     // handle double pawn push
     if (doublePush) {
+
+
         // white to move
         if (position->side == white) {
             // set enpassant square
@@ -292,9 +301,14 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->mailbox[h1] = NO_PIECE;
                 position->mailbox[f1] = R;
 
-                // hash rook
-                position->hashKey ^= pieceKeys[R][h1];  // remove rook from h1 from hash key
-                position->hashKey ^= pieceKeys[R][f1];  // put rook on f1 into a hash key
+                /* hash rook */
+
+                // remove rook from h1 from hash key
+                position->hashKey = removePieceFromHashKey(position->hashKey, R, h1);
+
+                // put rook on f1 into a hash key
+                position->hashKey = addPieceToHashKey(position->hashKey, R, f1);
+
                 break;
 
                 // white castles queen side
@@ -305,7 +319,7 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->mailbox[a1] = NO_PIECE;
                 position->mailbox[d1] = R;
 
-                // hash rook
+                /* hash rook */
                 position->hashKey ^= pieceKeys[R][a1];  // remove rook from a1 from hash key
                 position->hashKey ^= pieceKeys[R][d1];  // put rook on d1 into a hash key
                 break;
@@ -318,7 +332,7 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->mailbox[h8] = NO_PIECE;
                 position->mailbox[f8] = r;
 
-                // hash rook
+                /* hash rook */
                 position->hashKey ^= pieceKeys[r][h8];  // remove rook from h8 from hash key
                 position->hashKey ^= pieceKeys[r][f8];  // put rook on f8 into a hash key
                 break;
@@ -375,6 +389,7 @@ int makeMove(int move, int moveFlag, board* position) {
     position->hashKey ^= sideKey;
 
     generateHashKey(position);
+
 
     // make sure that king has not been exposed into a check
     if (isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[k]) : getLS1BIndex(position->bitboards[K]), position->side, position)) {
