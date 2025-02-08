@@ -1129,7 +1129,6 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             }
             if (score <= alpha) {
                 beta  = (alpha + beta) / 2;
-
                 alpha = myMAX(-infinity, alpha - window);
             }
 
