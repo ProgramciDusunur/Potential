@@ -542,6 +542,17 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
 
+        // Futility Pruning
+        int futilityMargin = evaluation + 164;
+
+        // If static eval + value of piece we are going to capture is
+        // much lower than alpha, we can prune this move.
+        if (futilityMargin <= alpha)
+        {
+            bestScore = myMIN(bestScore, futilityMargin);
+            continue;
+        }
+
         if (!SEE(position, moveList->moves[count], QS_SEE_THRESHOLD)) {
             continue;
         }
