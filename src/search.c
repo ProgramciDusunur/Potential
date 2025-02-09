@@ -830,6 +830,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             continue;
         }
 
+        int baseLmrReduction = getLmrReduction(depth, legal_moves);
+
 
         bool isNotMated = alpha > -mateScore + maxPly;
 
@@ -843,9 +845,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 skipQuiet = 1;
             }
 
-            if (canPrune && depth <= 4 && static_eval + 82 * depth <= alpha) {
+            if (canPrune && depth <= baseLmrReduction && static_eval + 82 * depth <= alpha) {
                 skipQuiet = 1;
             }
+
         }
 
         // SEE PVS Pruning
@@ -901,8 +904,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, depth - 1, position, time, false);
         } else {
-            int lmrReduction = getLmrReduction(depth, legal_moves);
-
+            int lmrReduction = baseLmrReduction;
             /* All Moves */
 
 
