@@ -537,15 +537,20 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     if (in_check) {
         // generate moves
         moveGenerator(moveList, position);
+
+        // sort moves
+        sort_moves(moveList, tt_move, position);
     } else {
         // generate moves
-        noisyGenerator(moveList, position);
+       noisyGenerator(moveList, position);
+
+        // sort moves
+        quiescence_sort_moves(moveList, position);
     }
 
 
 
-    // sort moves
-    quiescence_sort_moves(moveList, position);
+
 
     // legal moves counter
     int legal_moves = 0;
@@ -620,7 +625,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     if (legal_moves == 0) {
         // king is in check
-        if (in_check)
+        if (bestScore > -mateValue + position->ply && in_check)
             // return mating score (assuming closest distance to mating position)
             return -mateValue + position->ply;
 
