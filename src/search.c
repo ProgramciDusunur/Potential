@@ -919,6 +919,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     lmrReduction += 1;
                 }
 
+            } else {
+                // Reduce More
+                if (!getMoveCapture(tt_move)) {
+                    lmrReduction += 1;
+                }
             }
 
 
