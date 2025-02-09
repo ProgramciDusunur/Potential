@@ -543,7 +543,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     for (int count = 0; count < moveList->count; count++) {
 
         // Futility Pruning
-        int futilityMargin = evaluation + 820;
+        int futilityMargin = evaluation + 984;
 
         // If static eval + value of piece we are going to capture is
         // much lower than alpha, we can prune this move.
