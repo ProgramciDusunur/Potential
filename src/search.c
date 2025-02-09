@@ -529,8 +529,15 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // create move list instance
     moves moveList[1];
 
-    // generate moves
-    noisyGenerator(moveList, position);
+    if (position->inCheck) {
+        // generate moves
+        moveGenerator(moveList, position);
+    } else {
+        // generate moves
+        noisyGenerator(moveList, position);
+    }
+
+
 
     // sort moves
     quiescence_sort_moves(moveList, position);
@@ -557,7 +564,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
         // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], onlyCaptures, position) == 0) {
+        if (makeMove(moveList->moves[count], allMoves, position) == 0) {
             // decrement ply
             position->ply--;
 
@@ -675,6 +682,12 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         }
     }
 
+    // is king in check
+    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
+                                    getLS1BIndex(position->bitboards[k]),
+                                    position->side ^ 1, position);
+
+    position->inCheck = in_check;
 
     // recursion escapre condition
     if (depth <= 0)
@@ -682,10 +695,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         return quiescence(alpha, beta, position, time);
 
 
-    // is king in check
-    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
-                                    getLS1BIndex(position->bitboards[k]),
-                                    position->side ^ 1, position);
+
 
 
     // get static evaluation score
