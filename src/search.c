@@ -526,16 +526,22 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         alpha = evaluation;
     }
 
+    // is king in check
+    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
+                                    getLS1BIndex(position->bitboards[k]),
+                                    position->side ^ 1, position);
+
     // create move list instance
     moves moveList[1];
 
-    if (position->inCheck) {
+    if (in_check) {
         // generate moves
         moveGenerator(moveList, position);
     } else {
         // generate moves
         noisyGenerator(moveList, position);
     }
+
 
 
     // sort moves
@@ -681,17 +687,19 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         }
     }
 
+
+    // recursion escapre condition
+    if (depth <= 0)
+        // run quiescence search
+        return quiescence(alpha, beta, position, time);
+
+
     // is king in check
     int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
                                     getLS1BIndex(position->bitboards[k]),
                                     position->side ^ 1, position);
 
     position->inCheck = in_check;
-
-    // recursion escapre condition
-    if (depth <= 0)
-        // run quiescence search
-        return quiescence(alpha, beta, position, time);
 
 
 
