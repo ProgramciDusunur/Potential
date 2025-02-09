@@ -832,6 +832,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         int baseLmrReduction = getLmrReduction(depth, legal_moves);
 
+
         bool isNotMated = alpha > -mateScore + maxPly;
 
         if (!rootNode && isQuiet && isNotMated) {
@@ -844,10 +845,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 skipQuiet = 1;
             }
 
-            if (canPrune && depth <= baseLmrReduction && static_eval + 82 * depth <= alpha) {
+            if (canPrune && depth <= 4 && static_eval + 82 * baseLmrReduction <= alpha) {
                 skipQuiet = 1;
             }
-
         }
 
         // SEE PVS Pruning
