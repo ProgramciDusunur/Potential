@@ -726,6 +726,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     if (depth <= 6 && !pvNode && !in_check && static_eval - rfpMargin >= beta)
         return static_eval;
 
+
     // null move pruning
     if (depth >= nullMoveDepth && in_check == 0 && !rootNode &&
             static_eval >= beta &&
