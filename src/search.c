@@ -1037,7 +1037,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
     !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
 
-        int diff = bestScore - (pastStack > -1 ? (position->staticEval[position->ply - pastStack] + static_eval) / 2 : static_eval);
+        int diff = bestScore - (pastStack > -1 ? (position->staticEval[position->ply - 1] + static_eval) / 2 : static_eval);
 
         updatePawnCorrectionHistory(position, depth, diff);
         updateMinorCorrectionHistory(position, depth, diff);
