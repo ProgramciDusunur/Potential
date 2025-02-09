@@ -919,6 +919,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     lmrReduction += 1;
                 }
 
+                // Reduce Less
+                if (position->killerMoves[position->ply][0] == currentMove) {
+                    lmrReduction -= 1;
+                }
+
             }
 
 
