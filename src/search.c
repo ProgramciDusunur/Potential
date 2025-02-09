@@ -718,12 +718,13 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         depth--;
     }
 
+
     bool canPrune = in_check == 0 && pvNode == 0;
 
     uint16_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
 
     // reverse futility pruning
-    if (depth <= 5 && !pvNode && !in_check && static_eval - rfpMargin >= beta)
+    if (depth <= 6 && !pvNode && !in_check && static_eval - rfpMargin >= beta)
         return static_eval;
 
     // null move pruning
@@ -778,7 +779,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // razoring
-    if (canPrune && depth <= 3 && static_eval + 200 * depth < alpha) {
+    if (canPrune && depth <= 5 && static_eval + 200 * depth < alpha) {
         int razoringScore = quiescence(alpha, beta, position, time);
         if (razoringScore <= alpha) {
             return razoringScore;
