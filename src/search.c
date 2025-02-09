@@ -840,11 +840,13 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
 
             if (legal_moves>= lmpThreshold) {
-                skipQuiet = 1;
+                //skipQuiet = 1;
+                continue;
             }
 
             if (canPrune && depth <= 4 && static_eval + 82 * depth <= alpha) {
-                skipQuiet = 1;
+                //skipQuiet = 1;
+                continue;
             }
         }
 
