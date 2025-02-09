@@ -805,8 +805,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     int bestScore = -infinity;
 
-    bool skipQuiet = false;
-
     // legal moves counter
     int legal_moves = 0;
 
@@ -825,11 +823,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         bool isQuiet = getMoveCapture(currentMove) == 0;
 
 
-        if (skipQuiet && isQuiet) {
-            skipQuiet = 0;
-            continue;
-        }
-
 
         bool isNotMated = alpha > -mateScore + maxPly;
 
@@ -840,12 +833,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
 
             if (legal_moves>= lmpThreshold) {
-                //skipQuiet = 1;
                 continue;
             }
 
             if (canPrune && depth <= 4 && static_eval + 82 * depth <= alpha) {
-                //skipQuiet = 1;
                 continue;
             }
         }
