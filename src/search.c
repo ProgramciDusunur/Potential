@@ -538,7 +538,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     }
 
 
-
     // sort moves
     quiescence_sort_moves(moveList, position);
 
