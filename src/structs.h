@@ -6,6 +6,7 @@
 #ifndef POTENTIAL_STRUCTS_H
 #define POTENTIAL_STRUCTS_H
 
+#include <stdbool.h>
 #include "stdint.h"
 
 #ifndef U64
@@ -38,6 +39,8 @@ typedef struct {
 
     int followPv;
     int scorePv;
+
+    bool inCheck;
 
     //int depth;
     U64 hashKey;
