@@ -384,7 +384,6 @@ int makeMove(int move, int moveFlag, board* position) {
     return 1;
 }
 
-
 // generate all captures and promotions
 void noisyGenerator(moves *moveList, board* position) {
     // init move count
