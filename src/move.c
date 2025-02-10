@@ -298,6 +298,7 @@ int makeMove(int move, int moveFlag, board* position) {
                 // move H rook
                 popBit(position->bitboards[R], h1);
                 setBit(position->bitboards[R], f1);
+
                 position->mailbox[h1] = NO_PIECE;
                 position->mailbox[f1] = R;
 
@@ -316,12 +317,17 @@ int makeMove(int move, int moveFlag, board* position) {
                 // move A rook
                 popBit(position->bitboards[R], a1);
                 setBit(position->bitboards[R], d1);
+
                 position->mailbox[a1] = NO_PIECE;
                 position->mailbox[d1] = R;
 
                 /* hash rook */
-                position->hashKey ^= pieceKeys[R][a1];  // remove rook from a1 from hash key
-                position->hashKey ^= pieceKeys[R][d1];  // put rook on d1 into a hash key
+
+                // remove rook from a1 from hash key
+                position->hashKey = removePieceFromHashKey(position->hashKey, R, a1);
+
+                // put rook on d1 into a hash key
+                position->hashKey = addPieceToHashKey(position->hashKey, R, d1);
                 break;
 
                 // black castles king side
@@ -329,12 +335,17 @@ int makeMove(int move, int moveFlag, board* position) {
                 // move H rook
                 popBit(position->bitboards[r], h8);
                 setBit(position->bitboards[r], f8);
+
                 position->mailbox[h8] = NO_PIECE;
                 position->mailbox[f8] = r;
 
                 /* hash rook */
-                position->hashKey ^= pieceKeys[r][h8];  // remove rook from h8 from hash key
-                position->hashKey ^= pieceKeys[r][f8];  // put rook on f8 into a hash key
+
+                // remove rook from h8 from hash key
+                position->hashKey = removePieceFromHashKey(position->hashKey, r, h8);
+
+                // put rook on f8 into a hash key
+                position->hashKey = addPieceToHashKey(position->hashKey, r, f8);
                 break;
 
                 // black castles queen side
@@ -342,12 +353,17 @@ int makeMove(int move, int moveFlag, board* position) {
                 // move A rook
                 popBit(position->bitboards[r], a8);
                 setBit(position->bitboards[r], d8);
+
                 position->mailbox[a8] = NO_PIECE;
                 position->mailbox[d8] = r;
 
-                // hash rook
-                position->hashKey ^= pieceKeys[r][a8];  // remove rook from a8 from hash key
-                position->hashKey ^= pieceKeys[r][d8];  // put rook on d8 into a hash key
+                /* hash rook */
+
+                // remove rook from a8 from hash key
+                position->hashKey = removePieceFromHashKey(position->hashKey, r, a8);
+
+                // put rook on d8 into a hash key
+                position->hashKey = addPieceToHashKey(position->hashKey, r, d8);
                 break;
         }
     }
