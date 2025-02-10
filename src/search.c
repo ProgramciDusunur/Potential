@@ -928,7 +928,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 }
 
                 // if we have a good history score reduce less otherwise reduce more
-                lmrReduction -= moveHistory / 10240;
+                lmrReduction -= moveHistory / 8192;
 
             }
 
