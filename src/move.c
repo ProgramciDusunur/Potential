@@ -374,8 +374,6 @@ int makeMove(int move, int moveFlag, board* position) {
     // hash side
     position->hashKey ^= sideKey;
 
-    generateHashKey(position);
-
     // make sure that king has not been exposed into a check
     if (isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[k]) : getLS1BIndex(position->bitboards[K]), position->side, position)) {
         // take move back
