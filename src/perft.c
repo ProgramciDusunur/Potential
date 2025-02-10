@@ -41,6 +41,9 @@ void perftRoot(int depth, board* position) {
             // skip to the next move
             continue;
         }
+        if (position->minorKey != generateMinorKey(position)) {
+            pBoard(position);
+        }
         // call perft driver recursively
         perftChild(depth - 1, position);
         printf("%s%s%c %llu \n", squareToCoordinates[getMoveSource(moveList->moves[moveCount])],

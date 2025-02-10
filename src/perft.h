@@ -9,6 +9,7 @@
 
 #include "structs.h"
 #include "move.h"
+#include "fen.h"
 
 extern U64 perftNodes;
 extern U64 variant;

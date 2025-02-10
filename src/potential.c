@@ -65,12 +65,12 @@ void initAll() {
 
 int main(int argc, char* argv[]) {
     initAll();
-    int debug = 0;
+    int debug = 1;
     if (debug) {
         board position;
         parseFEN(startPosition, &position);
 
-        perftRoot(6, &position);
+        perftRoot(1, &position);
         printf("Nodes: %llu", perftNodes);
     } else {
         uciProtocol(argc, argv);

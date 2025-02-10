@@ -67,6 +67,7 @@ U64 getKingAttacks(int square);
 U64 getPawnAttacks(uint8_t side, int square);
 U64 getKnightAttacks(int square);
 int isSquareAttacked(int square, int whichSide, board* position);
+bool isMinorPiece(int piece);
 int makeMove(int move, int moveFlag, board* position);
 void moveGenerator(moves *moveList, board* position);
 void noisyGenerator(moves *moveList, board* position);

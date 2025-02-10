@@ -133,5 +133,7 @@ void pBoard(board* position) {
            (position->castle & bq) ? 'q' : '-');
 
     // print hash key
-    printf("    Hash key:  %llx\n\n", position->hashKey);
+    printf("    Hash  key:  %llx\n\n", position->hashKey);
+    printf("    Pawn  key:  %llx\n\n", position->pawnKey);
+    printf("    Minor key:  %llx\n\n", position->minorKey);
 }
