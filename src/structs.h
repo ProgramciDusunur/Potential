@@ -46,7 +46,6 @@ typedef struct {
 } board;
 
 
-
 // transposition table data structure
 typedef struct {
     U64 hashKey;         // "almost" unique chess position identifier
