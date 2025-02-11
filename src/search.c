@@ -38,18 +38,18 @@ int minorCorrectionHistory[2][16384];
 
 
 // position repetition detection
-int isRepetition(board* position) {
+bool isRepetition(board* position) {
     // loop over repetition indicies range
     for (int index = 0; index < position->repetitionIndex; index++) {
         // if we found the hash key same with a current
         if (position->repetitionTable[index] == position->hashKey) {
             // we found a repetition
-            return 1;
+            return true;
         }
     }
 
     // if no repetition found
-    return 0;
+    return false;
 }
 
 // [depth][moveNumber]
@@ -468,7 +468,36 @@ int SEE(board *pos, int move, int threshold) {
 }
 
 
+uint8_t isMaterialDraw(board *pos) {
+    uint8_t piece_count = __builtin_popcountll(pos->occupancies[both]);
 
+    // K v K
+    if (piece_count == 2) {
+        return 1;
+    }
+    // Initialize knight and bishop count only after we check that piece count is
+    // higher then 2 as there cannot be a knight or bishop with 2 pieces on the
+    // board
+    uint8_t knight_count =
+            __builtin_popcountll(pos->bitboards[n] | pos->bitboards[N]);
+    // KN v K || KB v K
+    if (piece_count == 3 &&
+        (knight_count == 1 ||
+         __builtin_popcountll(pos->bitboards[b] | pos->bitboards[B]) == 1)) {
+        return 1;
+    } else if (piece_count == 4) {
+        // KNN v K || KN v KN
+        if (knight_count == 2) {
+            return 1;
+        }
+            // KB v KB
+        else if (__builtin_popcountll(pos->bitboards[b]) == 1 &&
+                 __builtin_popcountll(pos->bitboards[B]) == 1) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 
 // quiescence search
@@ -639,7 +668,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         communicate(time);
     }
 
-    if (position->ply && isRepetition(position)) {
+    if (position->ply && (isRepetition(position) ||isMaterialDraw(position))) {
         return 0;
     }
 
