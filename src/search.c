@@ -477,7 +477,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         communicate(time);
     }
 
-    int score = 0;
+    int score = 0, bestScore = 0;
 
     //int pvNode = beta - alpha > 1;
 
@@ -485,7 +485,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     // best move (to store in TT)
     //int bestMove = 0;
-
 
 
     int bestMove = 0;
@@ -511,7 +510,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     evaluation = adjustEvalWithCorrectionHistory(position, evaluation);
 
-    int bestScore = evaluation;
+    score = bestScore = tt_hit ? tt_score : evaluation;
 
     // fail-hard beta cutoff
     if (evaluation >= beta) {
