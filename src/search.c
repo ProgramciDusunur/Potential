@@ -666,9 +666,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         communicate(time);
     }
 
-    if (position->ply && isRepetition(position)) {
-        return 0;
-    }
 
     int pvNode = beta - alpha > 1;
 
@@ -682,6 +679,12 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     uint8_t tt_flag = hashFlagExact;
 
     if (!rootNode) {
+
+        if (isRepetition(position) || isMaterialDraw(position)) {
+            return 0;
+        }
+
+
         // Mate distance pruning
         alpha = myMAX(alpha, -mateValue + (int)position->ply);
         beta = myMIN(beta, mateValue - (int)position->ply - 1);
