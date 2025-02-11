@@ -499,7 +499,6 @@ uint8_t isMaterialDraw(board *pos) {
     return 0;
 }
 
-
 // quiescence search
 int quiescence(int alpha, int beta, board* position, time* time) {
     if ((searchNodes & 2047) == 0) {
