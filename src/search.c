@@ -686,6 +686,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                                     getLS1BIndex(position->bitboards[k]),
                                     position->side ^ 1, position);
 
+    position->inCheck = in_check;
+
 
     // get static evaluation score
     int raw_eval = evaluate(position);
@@ -925,6 +927,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 if (!pvNode && quietMoves >= 4) {
                     lmrReduction += 1;
                 }
+
+                // if we have a good history score reduce less otherwise reduce more
+                lmrReduction -= moveHistory / 8192;
 
             }
 
