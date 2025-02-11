@@ -5,7 +5,6 @@
 #ifndef POTENTIAL_VALUES_H
 #define POTENTIAL_VALUES_H
 
-
 #pragma once
 
 /*  these are the score bounds for the range of the mating scores
