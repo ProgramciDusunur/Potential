@@ -12,9 +12,9 @@
                                         Score layot
     [-infinity, mateValue ... mateScore ... score ... mateScore ... mateValue, infinity]
  */
-#define infinity  50000
-#define mateValue 49000
-#define mateScore 48000
+#define infinity  32000
+#define mateValue 31000
+#define mateScore 30000
 #define noEval 200000
 
 

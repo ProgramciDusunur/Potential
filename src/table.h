@@ -9,7 +9,7 @@
 
 #include "bit_manipulation.h"
 #include "structs.h"
-#include "board_constants.h"
+#include "values.h"
 #include <stdlib.h>
 #include "magic.h"
 #include <stdint.h>

@@ -13,15 +13,6 @@
 #endif
 
 
-/*  these are the score bounds for the range of the mating scores
-                                        Score layot
-    [-infinity, mateValue ... mateScore ... score ... mateScore ... mateValue, infinity]
- */
-#define infinity  50000
-#define mateValue 49000
-#define mateScore 48000
-
-
 enum chessBoard {
     a8, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
