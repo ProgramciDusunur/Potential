@@ -764,7 +764,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         return static_eval;
 
     // null move pruning
-    if (depth >= nullMoveDepth && in_check == 0 && !rootNode &&
+    if (!position->isSingularSearchMove &&
+        depth >= nullMoveDepth && in_check == 0 && !rootNode &&
             static_eval >= beta &&
             !justPawns(position)) {
         struct copyposition copyPosition;
@@ -1097,7 +1098,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // king is not in check
         else
             // return stalemate score
-            return 0;
+            return position->isSingularSearchMove ? alpha : 0;
     }
 
     uint8_t hashFlag = hashFlagExact;
