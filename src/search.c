@@ -656,7 +656,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // variable to store current move's score (from the static evaluation perspective)
-    int score = 0;
+    int score = 0, static_eval = -infinity;
 
 
 
@@ -721,9 +721,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // get static evaluation score
     int raw_eval = evaluate(position);
 
-
-    int static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
-
+    if (!position->isSingularSearchMove) {
+        static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
+    }
 
 
 
@@ -767,8 +767,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         return static_eval;
 
     // null move pruning
-    if (!position->isSingularSearchMove &&
-        depth >= nullMoveDepth && in_check == 0 && !rootNode &&
+    if (depth >= nullMoveDepth && in_check == 0 && !rootNode &&
             static_eval >= beta &&
             !justPawns(position)) {
         struct copyposition copyPosition;
