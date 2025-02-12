@@ -656,7 +656,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // variable to store current move's score (from the static evaluation perspective)
-    int score = 0, static_eval = -infinity;
+    int score = 0;
 
 
 
@@ -721,9 +721,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // get static evaluation score
     int raw_eval = evaluate(position);
 
-    if (!position->isSingularSearchMove) {
-        static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
-    }
+
+    int static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
+
 
 
 
