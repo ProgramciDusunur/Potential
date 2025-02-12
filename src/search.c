@@ -819,7 +819,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // razoring
-    if (canPrune && depth <= 3 && static_eval + 200 * depth < alpha) {
+    if (!position->isSingularSearchMove &&
+        canPrune && depth <= 3 && static_eval + 200 * depth < alpha) {
         int razoringScore = quiescence(alpha, beta, position, time);
         if (razoringScore <= alpha) {
             return razoringScore;
