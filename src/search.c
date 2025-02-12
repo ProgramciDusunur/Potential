@@ -507,7 +507,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     int score = 0, bestScore = 0;
 
-    //int pvNode = beta - alpha > 1;
+    int pvNode = beta - alpha > 1;
 
     //int rootNode = position->ply == 0;
 
