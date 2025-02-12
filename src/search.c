@@ -525,7 +525,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // read hash entry
     if (position->ply &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag)) &&
+                 !pvNode) {
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
@@ -695,7 +696,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // read hash entry
     if (!rootNode &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag)) &&
+                 !pvNode) {
         if (tt_depth >= depth) {
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
