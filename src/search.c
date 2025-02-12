@@ -750,7 +750,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // Internal Iterative Reductions
-    if ((pvNode || cutNode || !improving) && depth >= 8 && !tt_move) {
+    if (!position->isSingularSearchMove &&
+        (pvNode || cutNode || !improving) && depth >= 8 && !tt_move) {
         depth--;
     }
 
@@ -764,8 +765,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         return static_eval;
 
     // null move pruning
-    if (!position->isSingularSearchMove &&
-        depth >= nullMoveDepth && in_check == 0 && !rootNode &&
+    if (depth >= nullMoveDepth && in_check == 0 && !rootNode &&
             static_eval >= beta &&
             !justPawns(position)) {
         struct copyposition copyPosition;
@@ -975,7 +975,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, depth - 1, position, time, false);
         } else {
-            const int newDepth = depth + extensions - 1;
             int lmrReduction = getLmrReduction(depth, legal_moves);
 
             /* All Moves */
@@ -1014,7 +1013,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, newDepth, position, time, false);
+                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time, false);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
@@ -1024,7 +1023,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 if((score > alpha) && (score < beta))
                     /* re-search the move that has failed to be proved to be bad
                        with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, newDepth, position, time, false);
+                    score = -negamax(-beta, -alpha, depth - 1, position, time, false);
             }
 
         }
@@ -1098,7 +1097,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // king is not in check
         else
             // return stalemate score
-            return position->isSingularSearchMove ? alpha : 0;
+            return 0;
     }
 
     uint8_t hashFlag = hashFlagExact;
