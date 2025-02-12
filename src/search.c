@@ -977,9 +977,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // full-depth search
         if (moves_searched == 0) {
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, new_depth, position, time, false);
+            score = -negamax(-beta, -alpha, depth - 1, position, time, false);
         } else {
-            int lmrReduction = getLmrReduction(depth, legal_moves);
+            int lmrReduction = getLmrReduction(depth, legal_moves) + extensions;
 
             /* All Moves */
 
