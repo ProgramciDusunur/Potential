@@ -656,7 +656,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // variable to store current move's score (from the static evaluation perspective)
-    int score = 0, static_eval = -infinity;
+    int score = 0;
 
 
 
@@ -721,14 +721,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // get static evaluation score
     int raw_eval = evaluate(position);
 
-    if (!position->isSingularSearchMove) {
-        static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
-    }
 
-
-
-
-
+    int static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
 
 
     bool improving = false;
@@ -908,29 +902,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         if (depth <= 10 && legal_moves > 0 && !SEE(position, currentMove, seeThreshold))
             continue;
 
-        int extensions = 0;
-
-        // Singular Extensions
-        // A rather simple idea that if our TT move is accurate we run a reduced
-        // search to see if we can beat this score. If not we extend the TT move
-        // search
-        if (!rootNode && depth >= 7 && currentMove == tt_move && !position->isSingularSearchMove &&
-            tt_depth >= depth - 3 && tt_flag != hashFlagAlpha &&
-            abs(tt_score) < mateScore) {
-            const int singularBeta = tt_score - depth;
-            const int singularDepth = (depth - 1) / 2;
-
-            position->isSingularSearchMove = currentMove;
-
-            const int singularScore =
-                    negamax(singularBeta - 1, singularBeta, singularDepth, position, time, cutNode);
-
-            position->isSingularSearchMove = 0;
-
-            if (singularScore < singularBeta) {
-                extensions++;
-            }
-        }
 
         struct copyposition copyPosition;
         // preserve board state
@@ -953,6 +924,30 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
             // skip to next move
             continue;
+        }
+
+        int extensions = 0;
+
+        // Singular Extensions
+        // A rather simple idea that if our TT move is accurate we run a reduced
+        // search to see if we can beat this score. If not we extend the TT move
+        // search
+        if (!rootNode && depth >= 7 && currentMove == tt_move && !position->isSingularSearchMove &&
+            tt_depth >= depth - 3 && tt_flag != hashFlagAlpha &&
+            abs(tt_score) < mateScore) {
+            const int singularBeta = tt_score - depth * 2;
+            const int singularDepth = (depth - 1) / 2;
+
+            position->isSingularSearchMove = currentMove;
+
+            const int singularScore =
+                    negamax(singularBeta - 1, singularBeta, singularDepth, position, time, cutNode);
+
+            position->isSingularSearchMove = 0;
+
+            if (singularScore < singularBeta) {
+                extensions++;
+            }
         }
 
         // increment nodes count
