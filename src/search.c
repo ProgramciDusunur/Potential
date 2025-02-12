@@ -656,7 +656,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // variable to store current move's score (from the static evaluation perspective)
-    int score = 0;
+    int score = 0, static_eval = -infinity;
 
 
 
@@ -721,7 +721,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // get static evaluation score
     int raw_eval = evaluate(position);
 
-    int static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
+    if (!position->isSingularSearchMove) {
+        static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
+    }
+
 
 
 
@@ -750,8 +753,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // Internal Iterative Reductions
-    if (!position->isSingularSearchMove &&
-        (pvNode || cutNode || !improving) && depth >= 8 && !tt_move) {
+    if ((pvNode || cutNode || !improving) && depth >= 8 && !tt_move) {
         depth--;
     }
 
@@ -968,12 +970,12 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         }
 
 
-
+        const int new_depth = depth + extensions - 1;
 
         // full-depth search
         if (moves_searched == 0) {
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, depth - 1, position, time, false);
+            score = -negamax(-beta, -alpha, new_depth, position, time, false);
         } else {
             int lmrReduction = getLmrReduction(depth, legal_moves);
 
@@ -1013,7 +1015,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time, false);
+                score = -negamax(-alpha - 1, -alpha, new_depth, position, time, false);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
@@ -1023,7 +1025,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 if((score > alpha) && (score < beta))
                     /* re-search the move that has failed to be proved to be bad
                        with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, depth - 1, position, time, false);
+                    score = -negamax(-beta, -alpha, new_depth, position, time, false);
             }
 
         }
