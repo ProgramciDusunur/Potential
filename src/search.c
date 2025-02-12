@@ -743,7 +743,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, (-1.0)), 1.0);
     }
 
-
     // Internal Iterative Reductions
     if ((pvNode || cutNode || !improving) && depth >= 8 && !tt_move) {
         depth -= 1 + cutNode;
