@@ -753,7 +753,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // Internal Iterative Reductions
-    if ((pvNode || cutNode || !improving) && depth >= 8 && !tt_move) {
+    if (!position->isSingularSearchMove &&
+        (pvNode || cutNode || !improving) && depth >= 8 && !tt_move) {
         depth--;
     }
 
@@ -1101,7 +1102,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // king is not in check
         else
             // return stalemate score
-            return position->isSingularSearchMove ? alpha : 0;
+            return 0;
     }
 
     uint8_t hashFlag = hashFlagExact;
