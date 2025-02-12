@@ -656,7 +656,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // variable to store current move's score (from the static evaluation perspective)
-    int score = 0;
+    int score = 0, raw_eval = -infinity, static_eval = -infinity;
 
 
 
@@ -693,7 +693,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // read hash entry
-    if (!rootNode &&
+    if (!position->isSingularSearchMove && !rootNode &&
         (tt_hit =
                  readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
         if (tt_depth >= depth) {
@@ -718,10 +718,12 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                                     position->side ^ 1, position);
 
 
-    // get static evaluation score
-    int raw_eval = evaluate(position);
+    if (!position->isSingularSearchMove) {
+        // get static evaluation score
+        raw_eval = evaluate(position);
 
-    int static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
+        static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
+    }
 
     bool improving = false;
 
@@ -753,7 +755,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     uint16_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
 
     // reverse futility pruning
-    if (depth <= 5 && !pvNode && !in_check && static_eval - rfpMargin >= beta)
+    if (!position->isSingularSearchMove &&
+        depth <= 5 && !pvNode && !in_check && static_eval - rfpMargin >= beta)
         return static_eval;
 
     // null move pruning
@@ -852,6 +855,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     for (int count = 0; count < moveList->count; count++) {
         int currentMove = moveList->moves[count];
 
+        if (currentMove == position->isSingularSearchMove) {
+            continue;
+        }
+
         bool isQuiet = getMoveCapture(currentMove) == 0;
 
 
@@ -891,6 +898,30 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 isQuiet ? -67 * depth : -32 * depth * depth;
         if (depth <= 10 && legal_moves > 0 && !SEE(position, currentMove, seeThreshold))
             continue;
+
+        int extensions = 0;
+
+        // Singular Extensions
+        // A rather simple idea that if our TT move is accurate we run a reduced
+        // search to see if we can beat this score. If not we extend the TT move
+        // search
+        if (!rootNode && depth >= 7 && currentMove == tt_move && !position->isSingularSearchMove &&
+            tt_depth >= depth - 3 && tt_flag != hashFlagAlpha &&
+            abs(tt_score) < mateScore) {
+            const int singularBeta = tt_score - depth;
+            const int singularDepth = (depth - 1) / 2;
+
+            position->isSingularSearchMove = currentMove;
+
+            const int16_t singularScore =
+                    negamax(singularBeta - 1, singularBeta, singularDepth, position, time, cutNode);
+
+            position->isSingularSearchMove = 0;
+
+            if (singularScore < singularBeta) {
+                extensions++;
+            }
+        }
 
         struct copyposition copyPosition;
         // preserve board state
@@ -939,6 +970,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, depth - 1, position, time, false);
         } else {
+            const int newDepth = depth + extensions - 1;
             int lmrReduction = getLmrReduction(depth, legal_moves);
 
             /* All Moves */
@@ -977,7 +1009,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time, false);
+                score = -negamax(-alpha - 1, -alpha, newDepth, position, time, false);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
@@ -987,7 +1019,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 if((score > alpha) && (score < beta))
                     /* re-search the move that has failed to be proved to be bad
                        with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, depth - 1, position, time, false);
+                    score = -negamax(-beta, -alpha, newDepth, position, time, false);
             }
 
         }
@@ -1071,15 +1103,19 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         hashFlag = hashFlagBeta;
     }
 
-    if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
+    if (!position->isSingularSearchMove && !in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
     !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
     !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
         updatePawnCorrectionHistory(position, depth, bestScore - static_eval);
         updateMinorCorrectionHistory(position, depth, bestScore - static_eval);
     }
 
-    // store hash entry with the score equal to alpha
-    writeHashEntry(bestScore, bestMove, depth, hashFlag, position);
+    if (!position->isSingularSearchMove) {
+        // store hash entry with the score equal to alpha
+        writeHashEntry(bestScore, bestMove, depth, hashFlag, position);
+    }
+
+
 
 
     // node (move) fails low
