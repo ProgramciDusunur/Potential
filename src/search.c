@@ -468,8 +468,36 @@ int SEE(board *pos, int move, int threshold) {
 }
 
 
+uint8_t isMaterialDraw(board *pos) {
+    uint8_t piece_count = countBits(pos->occupancies[both]);
 
-
+    // K v K
+    if (piece_count == 2) {
+        return 1;
+    }
+    // Initialize knight and bishop count only after we check that piece count is
+    // higher then 2 as there cannot be a knight or bishop with 2 pieces on the
+    // board
+    uint8_t knight_count =
+            countBits(pos->bitboards[n] | pos->bitboards[N]);
+    // KN v K || KB v K
+    if (piece_count == 3 &&
+        (knight_count == 1 ||
+                countBits(pos->bitboards[b] | pos->bitboards[B]) == 1)) {
+        return 1;
+    } else if (piece_count == 4) {
+        // KNN v K || KN v KN
+        if (knight_count == 2) {
+            return 1;
+        }
+            // KB v KB
+        else if (countBits(pos->bitboards[b]) == 1 &&
+                countBits(pos->bitboards[B]) == 1) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 // quiescence search
 int quiescence(int alpha, int beta, board* position, time* time) {
@@ -638,9 +666,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         communicate(time);
     }
 
-    if (position->ply && isRepetition(position)) {
-        return 0;
-    }
 
     int pvNode = beta - alpha > 1;
 
@@ -654,6 +679,12 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     uint8_t tt_flag = hashFlagExact;
 
     if (!rootNode) {
+
+        if (isRepetition(position) || isMaterialDraw(position)) {
+            return 0;
+        }
+
+
         // Mate distance pruning
         alpha = myMAX(alpha, -mateValue + (int)position->ply);
         beta = myMIN(beta, mateValue - (int)position->ply - 1);

@@ -36,6 +36,7 @@ extern int pawnCorrectionHistory[2][16384];
 extern int minorCorrectionHistory[2][16384];
 
 int isRepetition(board* position);
+uint8_t isMaterialDraw(board *pos);
 void initializeLMRTable(void);
 int scoreMove(int move, board* position);
 void sort_moves(moves *moveList, int tt_move, board* position);
