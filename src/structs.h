@@ -6,6 +6,7 @@
 #ifndef POTENTIAL_STRUCTS_H
 #define POTENTIAL_STRUCTS_H
 
+#include <stdbool.h>
 #include "stdint.h"
 
 #ifndef U64
@@ -35,7 +36,7 @@ typedef struct {
 
     double improvingRate[maxPly];
 
-    int isSingularSearchMove;
+    int isSingularMove[maxPly];
 
     int followPv;
     int scorePv;
