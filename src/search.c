@@ -762,8 +762,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         return static_eval;
 
     // null move pruning
-    if (!pos->isSingularMove[pos->ply] &&
-        depth >= nullMoveDepth && in_check == 0 && !rootNode &&
+    if (depth >= nullMoveDepth && in_check == 0 && !rootNode &&
             static_eval >= beta &&
         !justPawns(pos)) {
         struct copyposition copyPosition;
@@ -936,7 +935,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (!rootNode && depth >= 7 && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
             tt_depth >= depth - 3 && tt_flag != hashFlagAlpha &&
             abs(tt_score) < mateScore) {
-            const int singularBeta = tt_score - depth * 6;
+            const int singularBeta = tt_score - depth * 2;
             const int singularDepth = (depth - 1) / 2;
 
 
