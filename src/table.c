@@ -8,6 +8,8 @@ U64 sideKey;
 U64 hash_entries = 0;
 tt *hashTable = NULL;
 
+__extension__ typedef unsigned __int128 uint128_t;
+
 
 // generate "almost" unique position ID aka hash key from scratch
 U64 generateHashKey(board* position) {
@@ -98,10 +100,18 @@ U64 generateMinorKey(board *position) {
     return final_key;
 }
 
+uint64_t get_hash_index(uint64_t hash) {
+    return ((uint128_t)hash * (uint128_t)hash_entries) >> 64;
+}
+
+uint32_t get_hash_low_bits(uint64_t hash) {
+    return (uint32_t)hash;
+}
+
 void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[position->hashKey % hash_entries];
+    tt *hashEntry = &hashTable[get_hash_index(position->hashKey)];
 
     // store score independent from the actual path
     // from root node (position) to current node (position)
@@ -109,7 +119,7 @@ void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* pos
     if (score > mateScore) score += position->ply;
 
 
-    hashEntry->hashKey = position->hashKey;
+    hashEntry->hashKey = get_hash_low_bits(position->hashKey);
     hashEntry->score = score;
     hashEntry->flag = hashFlag;
     hashEntry->depth = depth;
@@ -121,13 +131,13 @@ int readHashEntry(board *position, int *move, int16_t *tt_score,
                     uint8_t *tt_depth, uint8_t *tt_flag) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[position->hashKey % hash_entries];
+    tt *hashEntry = &hashTable[get_hash_index(position->hashKey)];
 
     // make sure we're dealing with the exact position we need
-    if (hashEntry->hashKey == position->hashKey) {
+    if (hashEntry->hashKey == get_hash_low_bits(position->hashKey)) {
 
         // extract stored score from TT entry
-        int score = hashEntry->score;
+        int16_t score = hashEntry->score;
 
         if (score < -mateScore)
             score += position->ply;
