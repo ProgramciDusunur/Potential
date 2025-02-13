@@ -904,29 +904,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             continue;
 
 
-        struct copyposition copyPosition;
-        // preserve board state
-        copyBoard(pos, &copyPosition);
-
-        // increment ply
-        pos->ply++;
-
-        // increment repetition index & store hash key
-        pos->repetitionIndex++;
-        pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
-
-        // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
-            // decrement ply
-            pos->ply--;
-
-            // decrement repetition index
-            pos->repetitionIndex--;
-
-            // skip to next move
-            continue;
-        }
-
         int extensions = 0;
 
         // Singular Extensions
@@ -950,6 +927,31 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 extensions++;
             }
         }
+
+
+        struct copyposition copyPosition;
+        // preserve board state
+        copyBoard(pos, &copyPosition);
+
+        // increment ply
+        pos->ply++;
+
+        // increment repetition index & store hash key
+        pos->repetitionIndex++;
+        pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
+
+        // make sure to make only legal moves
+        if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
+            // decrement ply
+            pos->ply--;
+
+            // decrement repetition index
+            pos->repetitionIndex--;
+
+            // skip to next move
+            continue;
+        }
+
 
         // increment nodes count
         searchNodes++;
