@@ -943,8 +943,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // decrement ply
             pos->ply--;
 
-            // take move back
-            takeBack(pos, &copyPosition);
+            copyBoard(pos, &copyPosition);
+
+            if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
+                continue;
+            }
 
             pos->isSingularMove[pos->ply] = currentMove;
 
@@ -953,7 +956,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             pos->isSingularMove[pos->ply] = 0;
 
-            makeMove(moveList->moves[count], allMoves, pos);
 
             pos->ply++;
 
