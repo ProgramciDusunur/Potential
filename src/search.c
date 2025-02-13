@@ -743,9 +743,14 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, (-1.0)), 1.0);
     }
 
+    bool moreSafeCutNodeReduction;
+    if (position->nmpNode && depth >= 3) {
+        moreSafeCutNodeReduction = true;
+    }
+
     // Internal Iterative Reductions
     if ((pvNode || cutNode || !improving) && depth >= 8 && !tt_move) {
-        depth--;
+        depth -= 1 + (cutNode && !moreSafeCutNodeReduction);
     }
 
     bool canPrune = in_check == 0 && pvNode == 0;
@@ -784,9 +789,13 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         int R = 3 + depth / 3;
 
+        position->nmpNode = true;
+
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
         score = -negamax(-beta, -beta + 1, depth - R, position, time, !cutNode);
+
+        position->nmpNode = false;
 
         // decrement ply
         position->ply--;

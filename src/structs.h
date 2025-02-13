@@ -6,6 +6,7 @@
 #ifndef POTENTIAL_STRUCTS_H
 #define POTENTIAL_STRUCTS_H
 
+#include <stdbool.h>
 #include "stdint.h"
 
 #ifndef U64
@@ -35,6 +36,8 @@ typedef struct {
 
     double improvingRate[maxPly];
 
+    // null move pruning node
+    bool nmpNode;
 
     int followPv;
     int scorePv;
