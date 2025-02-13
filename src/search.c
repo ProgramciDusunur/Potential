@@ -985,7 +985,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // full-depth search
         if (moves_searched == 0) {
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, depth - 1, pos, time, false);
+            score = -negamax(-beta, -alpha, new_depth, pos, time, false);
         } else {
             int lmrReduction = getLmrReduction(depth, legal_moves) + extensions;
 
@@ -1109,7 +1109,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // king is not in check
         else
             // return stalemate score
-            return pos->isSingularMove[pos->ply] ? alpha : 0;
+            return 0;
     }
 
     uint8_t hashFlag = hashFlagExact;
