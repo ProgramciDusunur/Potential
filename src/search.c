@@ -951,10 +951,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             const int singularScore =
                     negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, cutNode);
 
+            pos->isSingularMove[pos->ply] = 0;
 
             pos->ply++;
-
-            pos->isSingularMove[pos->ply] = 0;
 
 
             if (singularScore < singularBeta) {
