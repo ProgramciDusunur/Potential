@@ -953,6 +953,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             pos->isSingularMove[pos->ply] = 0;
 
+            if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
+                continue;
+            }
+
             pos->ply++;
 
 
