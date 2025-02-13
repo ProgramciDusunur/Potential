@@ -985,7 +985,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // full-depth search
         if (moves_searched == 0) {
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, new_depth, pos, time, false);
+            score = -negamax(-beta, -alpha, depth - 1, pos, time, false);
         } else {
             int lmrReduction = getLmrReduction(depth, legal_moves);
 
