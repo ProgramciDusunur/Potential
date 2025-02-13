@@ -108,6 +108,7 @@ uint32_t get_hash_low_bits(uint64_t hash) {
     return (uint32_t)hash;
 }
 
+
 void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
