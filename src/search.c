@@ -762,7 +762,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         return static_eval;
 
     // null move pruning
-    if (depth >= nullMoveDepth && in_check == 0 && !rootNode &&
+    if (!pos->isSingularMove[pos->ply] &&
+        depth >= nullMoveDepth && in_check == 0 && !rootNode &&
             static_eval >= beta &&
         !justPawns(pos)) {
         struct copyposition copyPosition;
@@ -932,7 +933,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // A rather simple idea that if our TT move is accurate we run a reduced
         // search to see if we can beat this score. If not we extend the TT move
         // search
-        if (!rootNode && depth >= 7 && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
+        if (!rootNode && depth >= 6 && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
             tt_depth >= depth - 3 && tt_flag != hashFlagAlpha &&
             abs(tt_score) < mateScore) {
             const int singularBeta = tt_score - depth * 2;
