@@ -814,7 +814,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     }
 
     // razoring
-    if (canPrune && depth <= 3 && static_eval + 200 * depth < alpha) {
+    if (!pos->isSingularMove[pos->ply] &&
+        canPrune && depth <= 3 && static_eval + 200 * depth < alpha) {
         int razoringScore = quiescence(alpha, beta, pos, time);
         if (razoringScore <= alpha) {
             return razoringScore;
@@ -1108,7 +1109,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // king is not in check
         else
             // return stalemate score
-            return 0;
+            return pos->isSingularMove[pos->ply] ? alpha : 0;
     }
 
     uint8_t hashFlag = hashFlagExact;
