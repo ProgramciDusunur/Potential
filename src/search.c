@@ -886,7 +886,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             }
         }
 
-
         // SEE PVS Pruning
         int seeThreshold =
                 isQuiet ? -67 * depth : -32 * depth * depth;
