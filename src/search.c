@@ -881,10 +881,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             }
 
             // Quiet History Pruning
-            if (canPrune && depth <= 2 && moveHistory < depth * -2048) {
+            if (canPrune && depth <= 4 && moveHistory < depth * -2048) {
                 break;
             }
         }
+
 
         // SEE PVS Pruning
         int seeThreshold =
