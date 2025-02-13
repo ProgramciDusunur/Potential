@@ -943,8 +943,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // decrement ply
             pos->ply--;
 
-            // decrement repetition index
-            pos->repetitionIndex--;
 
             // take move back
             takeBack(pos, &copyPosition);
@@ -959,9 +957,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // increment ply
             pos->ply++;
 
-            // increment repetition index & store hash key
-            pos->repetitionIndex++;
-            pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
             pos->isSingularMove[pos->ply] = 0;
 
