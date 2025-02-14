@@ -718,10 +718,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                                     position->side ^ 1, position);
 
 
+
     // get static evaluation score
     int raw_eval = evaluate(position);
 
-    int static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
+    int static_eval = tt_hit ? tt_score : adjustEvalWithCorrectionHistory(position, raw_eval);
 
     bool improving = false;
 
