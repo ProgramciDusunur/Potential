@@ -719,7 +719,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                                     getLS1BIndex(position->bitboards[k]),
                                     position->side ^ 1, position);
 
-
     // get static evaluation score
     int raw_eval = tt_hit ? tt_score : evaluate(position);
 
