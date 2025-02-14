@@ -37,9 +37,10 @@ extern int minorCorrectionHistory[2][16384];
 
 int isRepetition(board* position);
 uint8_t isMaterialDraw(board *pos);
+uint64_t get_attacked_squares(int side, board *position, uint64_t occupancy);
 void initializeLMRTable(void);
-int scoreMove(int move, board* position);
-void sort_moves(moves *moveList, int tt_move, board* position);
+int scoreMove(int move, board* position, uint64_t threats);
+void sort_moves(moves *moveList, int tt_move, board* position, uint64_t threats);
 void enable_pv_scoring(moves *moveList, board* position);
 void printMove(int move);
 int getLmrReduction(int depth, int moveNumber);

@@ -78,7 +78,7 @@ void initializeLMRTable(void) {
 */
 
 // score moves
-int scoreMove(int move, board* position) {
+int scoreMove(int move, board* position, uint64_t threats) {
     // make sure we are dealing with PV move
     if (position->scorePv && position->pvTable[0][position->ply] == move) {
         // disable score PV flag
@@ -123,14 +123,17 @@ int scoreMove(int move, board* position) {
         else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
 
-        return quietHistory[getMoveSource(move)][getMoveTarget(move)] +
+        bool threatFrom = getBit(threats, getMoveSource(move));
+        bool threatTo = getBit(threats, getMoveTarget(move));
+        return quietHistory[getMoveSource(move)][getMoveTarget(move)]
+                           [threatFrom][threatTo] +
                (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
     }
     return 0;
 }
 
 
-void sort_moves(moves *moveList, int tt_move, board* position) {
+void sort_moves(moves *moveList, int tt_move, board* position, uint64_t threats) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -144,7 +147,7 @@ void sort_moves(moves *moveList, int tt_move, board* position) {
         if (tt_move == current_move)
             current_score = 2000000000;
         else
-        current_score = scoreMove(current_move, position);
+        current_score = scoreMove(current_move, position, threats);
 
         // Find the correct position to insert the current move
         int insert_pos = sorted_count;
@@ -499,6 +502,80 @@ uint8_t isMaterialDraw(board *pos) {
     return 0;
 }
 
+uint64_t get_attacked_squares(int side, board *position, uint64_t occupancy) {
+    uint64_t attack_map = 0;
+    uint64_t bb;
+
+    uint64_t kingBB;
+    uint64_t knightBB;
+    uint64_t bishopBB;
+    uint64_t rookBB;
+    uint64_t queenBB;
+    uint64_t pawnBB;
+    // Precompute piece bitboards for the given side
+    if (side == white) {
+        kingBB = position->bitboards[K];
+        knightBB = position->bitboards[N];
+        bishopBB = position->bitboards[B];
+        rookBB = position->bitboards[R];
+        queenBB = position->bitboards[Q];
+        pawnBB = position->bitboards[P];
+
+    }
+    else {
+        kingBB = position->bitboards[k];
+        knightBB = position->bitboards[n];
+        bishopBB = position->bitboards[b];
+        rookBB = position->bitboards[r];
+        queenBB = position->bitboards[q];
+        pawnBB = position->bitboards[p];
+    }
+
+    // Process King
+    attack_map |= kingAttacks[getLS1BIndex(kingBB)];
+
+    // Process Knights
+    for (bb = knightBB; bb != 0;) {
+        int loc = getLS1BIndex(bb);
+        attack_map |= knightAttacks[loc];
+        popBit(bb, loc);
+    }
+
+
+    // Process Bishops
+    for (bb = bishopBB; bb != 0;) {
+        int loc = getLS1BIndex(bb);
+        attack_map |= getBishopAttacks(loc, occupancy);
+        popBit(bb, loc);
+
+    }
+
+    // Process Rooks
+    for (bb = rookBB; bb != 0;) {
+        int loc = getLS1BIndex(bb);
+        attack_map |= getRookAttacks(loc, occupancy);
+        popBit(bb, loc);
+    }
+
+    // Process Queens
+    for (bb = queenBB; bb != 0;) {
+        int loc = getLS1BIndex(bb);
+        attack_map |= getQueenAttacks(loc, occupancy);
+        popBit(bb, loc);
+    }
+
+    // Process Pawns
+    for (bb = pawnBB; bb != 0;) {
+        int loc = getLS1BIndex(bb);
+        attack_map |= pawnAttacks[side][loc];
+        popBit(bb, loc);
+    }
+
+    return attack_map;
+}
+
+
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, time* time) {
     if ((searchNodes & 2047) == 0) {
@@ -827,8 +904,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // enable PV move scoring
         enable_pv_scoring(moveList, position);
 
+    uint64_t threats = get_attacked_squares(position->side, position, position->occupancies[both]);
+
     // sort moves
-    sort_moves(moveList, tt_move, position);
+    sort_moves(moveList, tt_move, position, threats);
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -860,9 +939,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             continue;
         }
 
+        bool threatFrom = getBit(threats, getMoveSource(currentMove));
+        bool threatTo = getBit(threats, getMoveTarget(currentMove));
 
-
-        int moveHistory = quietHistory[getMoveSource(currentMove)][getMoveTarget(currentMove)];
+        int moveHistory = quietHistory[getMoveSource(currentMove)][getMoveTarget(currentMove)]
+                                      [threatFrom][threatTo];
 
         bool isNotMated = alpha > -mateScore + maxPly;
 
@@ -1036,7 +1117,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                     if (isQuiet) {
                         // store killer moves
                         position->killerMoves[position->ply][0] = bestMove;
-                        updateQuietMoveHistory(bestMove, depth, badQuiets);
+                        updateQuietMoveHistory(bestMove, depth, badQuiets, threats);
 
                         if (rootNode) {
                             updateRootHistory(position, bestMove, depth, badQuiets);

@@ -5,7 +5,7 @@
 #include "history.h"
 
 // quietHistory[fromSquare][toSquare]
-int quietHistory[64][64];
+int quietHistory[64][64][2][2];
 // rootHistory[side to move][fromSquare][toSquare]
 int rootHistory[2][64][64];
 
@@ -34,31 +34,34 @@ void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiet
     }
 }
 
-void updateQuietMoveHistory(int bestMove, int depth, moves *badQuiets) {
+void updateQuietMoveHistory(int bestMove, int depth, moves *badQuiets, uint64_t threats) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
     int bonus = 16 * depth * depth + 32 * depth + 16;
-    int score = quietHistory[from][to];
+    bool threatFrom = getBit(threats, from);
+    bool threatTo = getBit(threats, to);
+    int score = quietHistory[from][to][threatFrom][threatTo];
 
-    quietHistory[from][to] += scaledBonus(score, bonus, maxQuietHistory);
+    quietHistory[from][to][threatFrom][threatTo] +=
+            scaledBonus(score, bonus, maxQuietHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
+        bool badThreatFrom = getBit(threats, badQuietFrom);
+        bool badThreatTo = getBit(threats, badQuietTo);
 
-        int badQuietScore = quietHistory[badQuietFrom][badQuietTo];
+        int badQuietScore =
+                quietHistory[badQuietFrom][badQuietTo][badThreatFrom][badThreatTo];
 
         if (badQuiets->moves[index] == bestMove) continue;
 
-        quietHistory[badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
+        quietHistory[badQuietFrom][badQuietTo][badQuietFrom][badQuietTo] +=
+                scaledBonus(badQuietScore, -bonus, maxQuietHistory);
     }
 }
 
 void clearQuietHistory(void) {
-    for (int i = 0; i < 64; i++) {
-        for (int j = 0; j < 64; j++) {
-            quietHistory[i][j] = 0;
-        }
-    }
+    memset(quietHistory, 0, sizeof(quietHistory));;
 }

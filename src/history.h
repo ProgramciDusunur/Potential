@@ -21,15 +21,15 @@ enum {
     maxQuietHistory = 16384
 };
 
-// quietHistory[fromSquare][toSquare]
-extern int quietHistory[64][64];
+// quietHistory[fromSquare][toSquare][threatFrom][threatTo]
+extern int quietHistory[64][64][2][2];
 // rootHistory[side to move][fromSquare][toSquare]
 extern int rootHistory[2][64][64];
 
 
 
 int scaledBonus(int score, int bonus, int gravity);
-void updateQuietMoveHistory(int bestMove, int depth, moves *badQuiets);
+void updateQuietMoveHistory(int bestMove, int depth, moves *badQuiets, uint64_t threats);
 void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiets);
 void clearQuietHistory(void);
 

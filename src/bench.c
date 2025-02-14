@@ -66,13 +66,12 @@ void benchmark(int depth, board* position, time* time) {
 
     int benchStartTime = getTimeMiliSecond();
     for (int i = 0;i < 52;i++) {
+
         parseFEN(benchmarkfens[i], position);
+
         searchPosition(depth, position, true, time);
         // clear hash table
         clearHashTable();
-
-        //clear history
-        clearQuietHistory();
 
         //clear static eval history
         clearStaticEvaluationHistory(position);
