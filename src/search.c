@@ -280,7 +280,7 @@ void clearCounterMoves(void) {
 }
 
 void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
-    U64 pawnKey = generatePawnKey(position);
+    U64 pawnKey = position->pawnKey;
 
     int entry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
 
@@ -294,7 +294,7 @@ void updatePawnCorrectionHistory(board *position, const int depth, const int dif
 }
 
 void updateMinorCorrectionHistory(board *position, const int depth, const int diff) {
-    U64 minorKey = generateMinorKey(position);
+    U64 minorKey = position->minorKey;
 
     int entry = minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE];
 
@@ -308,8 +308,9 @@ void updateMinorCorrectionHistory(board *position, const int depth, const int di
 }
 
 int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
-    U64 pawnKey = generatePawnKey(position);
-    U64 minorKey = generateMinorKey(position);
+    U64 pawnKey = position->pawnKey;
+
+    U64 minorKey = position->minorKey;
 
     int pawnEntry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
     int minorEntry = minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE];
