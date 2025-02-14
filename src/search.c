@@ -718,7 +718,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                                     position->side ^ 1, position);
 
 
-
     // get static evaluation score
     int raw_eval = evaluate(position);
 
