@@ -2,6 +2,7 @@
 // Created by erena on 13.09.2024.
 //
 
+#include <stdbool.h>
 #include "move.h"
 
 // Pawn attack masks pawnAttacks[side][square]
@@ -143,6 +144,13 @@ int isSquareAttacked(int square, int whichSide, board* position) {
     return 0;
 }
 
+bool isMinor (int piece) {
+    if (piece == K || piece == k || piece == B || piece == b || piece == N || piece == n) {
+        return true;
+    }
+    return false;
+}
+
 // make move on chess board
 int makeMove(int move, int moveFlag, board* position) {
     int isLegalCapture = getMoveCapture(move);
@@ -181,6 +189,12 @@ int makeMove(int move, int moveFlag, board* position) {
                 // remove it from corresponding bitboard
                 popBit(position->bitboards[bbPiece], targetSquare);
 
+                if (bbPiece == P || bbPiece == p) {
+                    position->pawnKey ^= pieceKeys[bbPiece][targetSquare];
+                } else if (isMinor(bbPiece)) {
+                    position->minorKey ^= pieceKeys[bbPiece][targetSquare];
+                }
+
                 // remove the piece from hash key
                 position->hashKey ^= pieceKeys[bbPiece][targetSquare];
                 break;
@@ -202,6 +216,7 @@ int makeMove(int move, int moveFlag, board* position) {
 
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[p][targetSquare + 8];
+            position->pawnKey ^= pieceKeys[p][targetSquare + 8];
         }
 
             // black to move
@@ -212,6 +227,7 @@ int makeMove(int move, int moveFlag, board* position) {
 
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[P][targetSquare - 8];
+            position->pawnKey ^= pieceKeys[P][targetSquare - 8];
         }
     }
 
@@ -225,6 +241,15 @@ int makeMove(int move, int moveFlag, board* position) {
     position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
     position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
 
+    if (piece == P || piece == p) {
+        position->pawnKey ^= pieceKeys[piece][sourceSquare];
+        position->pawnKey ^= pieceKeys[piece][targetSquare];
+    }
+    if (isMinor(piece)) {
+        position->minorKey ^= pieceKeys[piece][sourceSquare];
+        position->minorKey ^= pieceKeys[piece][targetSquare];
+    }
+
     // handle pawn promotions
     if (promotedPiece) {
         // white to move
@@ -234,6 +259,7 @@ int makeMove(int move, int moveFlag, board* position) {
 
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[P][targetSquare];
+            position->pawnKey ^= pieceKeys[P][targetSquare];
         }
 
             // black to move
@@ -243,6 +269,7 @@ int makeMove(int move, int moveFlag, board* position) {
 
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[p][targetSquare];
+            position->pawnKey ^= pieceKeys[p][targetSquare];
         }
 
         // set up promoted piece on chess board
@@ -251,6 +278,10 @@ int makeMove(int move, int moveFlag, board* position) {
 
         // add promoted piece into the hash key
         position->hashKey ^= pieceKeys[promotedPiece][targetSquare];
+
+        if (promotedPiece == N || promotedPiece == n || promotedPiece == B || promotedPiece == b) {
+            position->minorKey ^= pieceKeys[promotedPiece][targetSquare];
+        }
     }
 
 
@@ -352,7 +383,7 @@ int makeMove(int move, int moveFlag, board* position) {
     // reset occupancies
     position->occupancies[white] = 0LL;
     position->occupancies[black] = 0LL,
-    position->occupancies[both] = 0LL;
+            position->occupancies[both] = 0LL;
 
     // loop over white pieces bitboards
     for (int bbPiece = P; bbPiece <= K; bbPiece++) {

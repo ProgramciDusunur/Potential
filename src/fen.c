@@ -93,6 +93,7 @@ void parseFEN(char *fen, board* position) {
 
     // init hash key
     position->hashKey = generateHashKey(position);
+    position->pawnKey = generatePawnKey(position);
 }
 
 void pBoard(board* position) {
