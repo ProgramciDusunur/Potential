@@ -853,7 +853,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         bool isQuiet = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
 
-
         int moveHistory = quietHistory[getMoveSource(currentMove)][getMoveTarget(currentMove)];
 
         bool isNotMated = alpha > -mateScore + maxPly;
