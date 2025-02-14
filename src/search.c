@@ -656,7 +656,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // variable to store current move's score (from the static evaluation perspective)
-    int score = 0;
+    int score, bestScore;
 
 
 
@@ -706,6 +706,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
 
+
+
     // recursion escapre condition
     if (depth <= 0)
         // run quiescence search
@@ -719,7 +721,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
     // get static evaluation score
-    int raw_eval = evaluate(position);
+    int raw_eval = tt_hit ? tt_score : evaluate(position);
 
     int static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
 
@@ -833,7 +835,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // number of moves searched in a move list
     int moves_searched = 0;
 
-    int bestScore = -infinity;
+    bestScore = -infinity;
 
     bool skipQuiet = false;
 
