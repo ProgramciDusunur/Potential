@@ -933,7 +933,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
         bool isQuiet = getMoveCapture(currentMove) == 0;
 
-
         if (skipQuiet && isQuiet) {
             skipQuiet = 0;
             continue;
