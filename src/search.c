@@ -744,7 +744,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // Internal Iterative Reductions
-    if ((pvNode || cutNode || !improving) && depth >= 8 && !tt_move) {
+    if ((pvNode || cutNode) && depth >= 8 && !tt_move) {
         depth--;
     }
 
@@ -870,7 +870,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
             int lmpBase = 4;
             int lmpMultiplier = 3;
-            int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
+            int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth);
 
             if (legal_moves>= lmpThreshold) {
                 skipQuiet = 1;
