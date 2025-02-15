@@ -38,6 +38,8 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->occupanciesCopy[2] = p->occupancies[2];
     memcpy(cp->mailboxCopy, p->mailbox, 64);
     cp->hashKeyCopy = p->hashKey;
+    cp->pawnKeyCopy = p->pawnKey;
+    cp->minorKeyCopy = p->minorKey;
     cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
 }
 
@@ -59,6 +61,8 @@ void takeBack(board *p, struct copyposition *cp) {
     p->occupancies[2] = cp->occupanciesCopy[2];
     memcpy(p->mailbox, cp->mailboxCopy, 64);
     p->hashKey = cp->hashKeyCopy;
+    p->pawnKey = cp->pawnKeyCopy;
+    p->minorKey = cp->minorKeyCopy;
     p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
 }
 
@@ -172,41 +176,55 @@ int makeMove(int move, int moveFlag, board* position) {
     int enpass = getMoveEnpassant(move);
     int castling = getMoveCastling(move);
 
+    // move piece
+    popBit(position->bitboards[piece], sourceSquare);
+    setBit(position->bitboards[piece], targetSquare);
+    position->mailbox[sourceSquare] = NO_PIECE;
+    position->mailbox[targetSquare] = piece;
+
+    // hash piece
+    position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
+    position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
+
+    if (piece == P || piece == p) {
+        position->pawnKey ^= pieceKeys[piece][sourceSquare];
+        position->pawnKey ^= pieceKeys[piece][targetSquare];
+    }
+    if (isMinor(piece)) {
+        position->minorKey ^= pieceKeys[piece][sourceSquare];
+        position->minorKey ^= pieceKeys[piece][targetSquare];
+    }
+
 
     // handling capture moves
     if (capture) {
 
-        int startPiece, endPiece;
-        if (position->side == white) {
-            startPiece = p;
-            endPiece = k;
-        } else {
-            startPiece = P;
-            endPiece = K;
-        }
-        for (int bbPiece = startPiece; bbPiece <= endPiece; bbPiece++) {
-            if (getBit(position->bitboards[bbPiece], targetSquare)) {
-                // remove it from corresponding bitboard
-                popBit(position->bitboards[bbPiece], targetSquare);
+        // loop over bitboards opposite to the current side to move
+        // if there's a piece on the target square
+        uint8_t capturedPiece = position->mailbox[targetSquare];
+        if (capturedPiece != NO_PIECE &&
+            getBit(position->bitboards[capturedPiece], targetSquare)) {
 
-                if (bbPiece == P || bbPiece == p) {
-                    position->pawnKey ^= pieceKeys[bbPiece][targetSquare];
-                } else if (isMinor(bbPiece)) {
-                    position->minorKey ^= pieceKeys[bbPiece][targetSquare];
-                }
+            // remove it from corresponding bitboard
+            popBit(position->bitboards[capturedPiece], targetSquare);
 
-                // remove the piece from hash key
-                position->hashKey ^= pieceKeys[bbPiece][targetSquare];
-                break;
-            }
+            // remove the piece from hash key
+            position->hashKey ^= pieceKeys[capturedPiece][targetSquare];
+
         }
+
+        if (capturedPiece == P || capturedPiece == p) {
+            position->pawnKey ^= pieceKeys[capturedPiece][targetSquare];
+        }
+        if (isMinor(capturedPiece)) {
+            position->minorKey ^= pieceKeys[capturedPiece][targetSquare];
+        }
+
+
     }
 
     // handle enpassant captures
     if (enpass) {
-        // erase the pawn depending on side to move
-        (position->side == white) ? popBit(position->bitboards[p], targetSquare + 8) :
-        popBit(position->bitboards[P], targetSquare - 8);
 
         // white to move
         if (position->side == white) {
@@ -229,25 +247,6 @@ int makeMove(int move, int moveFlag, board* position) {
             position->hashKey ^= pieceKeys[P][targetSquare - 8];
             position->pawnKey ^= pieceKeys[P][targetSquare - 8];
         }
-    }
-
-    // move piece
-    popBit(position->bitboards[piece], sourceSquare);
-    setBit(position->bitboards[piece], targetSquare);
-    position->mailbox[sourceSquare] = NO_PIECE;
-    position->mailbox[targetSquare] = piece;
-
-    // hash piece
-    position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
-    position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
-
-    if (piece == P || piece == p) {
-        position->pawnKey ^= pieceKeys[piece][sourceSquare];
-        position->pawnKey ^= pieceKeys[piece][targetSquare];
-    }
-    if (isMinor(piece)) {
-        position->minorKey ^= pieceKeys[piece][sourceSquare];
-        position->minorKey ^= pieceKeys[piece][targetSquare];
     }
 
     // handle pawn promotions
@@ -293,6 +292,8 @@ int makeMove(int move, int moveFlag, board* position) {
 
     // handle double pawn push
     if (doublePush) {
+
+
         // white to move
         if (position->side == white) {
             // set enpassant square
@@ -412,6 +413,15 @@ int makeMove(int move, int moveFlag, board* position) {
         // return illegal move
         return 0;
     }
+
+    if (position->pawnKey != generatePawnKey(position)) {
+        printf("Wrong Pawn Key: %s%s%c \n", squareToCoordinates[sourceSquare],
+               squareToCoordinates[targetSquare],
+               promotedPieces[promotedPiece]);
+
+
+    }
+
     return 1;
 }
 
