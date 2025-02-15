@@ -1122,7 +1122,6 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // store hash entry with the score equal to alpha
     writeHashEntry(bestScore, bestMove, depth, hashFlag, position);
 
-
     // node (move) fails low
     return bestScore;
 }
