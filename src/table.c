@@ -75,7 +75,6 @@ U64 generatePawnKey(board* position) {
         popBit(bitboard, square);
     }
     return final_key;
-
 }
 
 U64 generateMinorKey(board *position) {
