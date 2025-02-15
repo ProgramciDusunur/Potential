@@ -41,6 +41,8 @@ typedef struct {
 
     //int depth;
     U64 hashKey;
+    U64 pawnKey;
+    U64 minorKey;
 
     int gamePhase;
 } board;
@@ -71,6 +73,8 @@ struct copyposition {
     U64 occupanciesCopy[3];
     uint8_t mailboxCopy[64];
     U64 hashKeyCopy;
+    U64 pawnKeyCopy;
+    U64 minorKeyCopy;
     int sideCopy;
     int enpassantCopy;
     int castleCopy;
