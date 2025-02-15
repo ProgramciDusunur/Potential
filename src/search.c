@@ -313,7 +313,7 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff) 
     U64 blackKey = position->blackNonPawnKey;
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = min(depth + 1, 16);
+    const int newWeight = myMIN(depth + 1, 16);
 
     int whiteEntry = nonPawnCorrectionHistory[white][position->side][whiteKey % CORRHIST_SIZE];
 
