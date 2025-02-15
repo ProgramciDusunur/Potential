@@ -281,31 +281,43 @@ void clearCounterMoves(void) {
 
 void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
     U64 pawnKey = generatePawnKey(position);
+
     int entry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
+
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = myMIN(depth + 1, 16);
+
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
+
     pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE] = entry;
 }
 
 void updateMinorCorrectionHistory(board *position, const int depth, const int diff) {
     U64 minorKey = generateMinorKey(position);
+
     int entry = minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE];
+
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = myMIN(depth + 1, 16);
+
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
+
     minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE] = entry;
 }
 
 int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
     U64 pawnKey = generatePawnKey(position);
     U64 minorKey = generateMinorKey(position);
+
     int pawnEntry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
     int minorEntry = minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE];
+
     int mateFound = mateValue - maxPly;
+
     int adjust = pawnEntry + minorEntry;
+
     return clamp(rawEval + adjust / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
 }
 

@@ -2,6 +2,7 @@
 // Created by erena on 13.09.2024.
 //
 
+#include <stdbool.h>
 #include "move.h"
 
 // Pawn attack masks pawnAttacks[side][square]
@@ -37,6 +38,8 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->occupanciesCopy[2] = p->occupancies[2];
     memcpy(cp->mailboxCopy, p->mailbox, 64);
     cp->hashKeyCopy = p->hashKey;
+    cp->pawnKeyCopy = p->pawnKey;
+    cp->minorKeyCopy = p->minorKey;
     cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
 }
 
@@ -58,6 +61,8 @@ void takeBack(board *p, struct copyposition *cp) {
     p->occupancies[2] = cp->occupanciesCopy[2];
     memcpy(p->mailbox, cp->mailboxCopy, 64);
     p->hashKey = cp->hashKeyCopy;
+    p->pawnKey = cp->pawnKeyCopy;
+    p->minorKey = cp->minorKeyCopy;
     p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
 }
 
@@ -143,6 +148,13 @@ int isSquareAttacked(int square, int whichSide, board* position) {
     return 0;
 }
 
+bool isMinor (int piece) {
+    if (piece == K || piece == k || piece == B || piece == b || piece == N || piece == n) {
+        return true;
+    }
+    return false;
+}
+
 // make move on chess board
 int makeMove(int move, int moveFlag, board* position) {
     int isLegalCapture = getMoveCapture(move);
@@ -164,6 +176,20 @@ int makeMove(int move, int moveFlag, board* position) {
     int enpass = getMoveEnpassant(move);
     int castling = getMoveCastling(move);
 
+    // move piece
+    popBit(position->bitboards[piece], sourceSquare);
+    setBit(position->bitboards[piece], targetSquare);
+    position->mailbox[sourceSquare] = NO_PIECE;
+    position->mailbox[targetSquare] = piece;
+
+    // hash piece
+    position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
+    position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
+
+    if (piece == P || piece == p) {
+        //position->pawnKey ^= pieceKeys[piece][sourceSquare];
+        //position->pawnKey ^= pieceKeys[piece][targetSquare];
+    }
 
     // handling capture moves
     if (capture) {
@@ -183,6 +209,10 @@ int makeMove(int move, int moveFlag, board* position) {
 
                 // remove the piece from hash key
                 position->hashKey ^= pieceKeys[bbPiece][targetSquare];
+
+                if (bbPiece == P || bbPiece ==  p) {
+                    position->pawnKey ^= pieceKeys[bbPiece][targetSquare];
+                }
                 break;
             }
         }
@@ -202,6 +232,7 @@ int makeMove(int move, int moveFlag, board* position) {
 
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[p][targetSquare + 8];
+            position->pawnKey ^= pieceKeys[p][targetSquare + 8];
         }
 
             // black to move
@@ -212,18 +243,11 @@ int makeMove(int move, int moveFlag, board* position) {
 
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[P][targetSquare - 8];
+            position->pawnKey ^= pieceKeys[P][targetSquare - 8];
         }
     }
 
-    // move piece
-    popBit(position->bitboards[piece], sourceSquare);
-    setBit(position->bitboards[piece], targetSquare);
-    position->mailbox[sourceSquare] = NO_PIECE;
-    position->mailbox[targetSquare] = piece;
 
-    // hash piece
-    position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
-    position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
 
     // handle pawn promotions
     if (promotedPiece) {
@@ -234,6 +258,7 @@ int makeMove(int move, int moveFlag, board* position) {
 
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[P][targetSquare];
+            position->pawnKey ^= pieceKeys[P][targetSquare];
         }
 
             // black to move
@@ -243,6 +268,7 @@ int makeMove(int move, int moveFlag, board* position) {
 
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[p][targetSquare];
+            position->pawnKey ^= pieceKeys[p][targetSquare];
         }
 
         // set up promoted piece on chess board
@@ -381,6 +407,14 @@ int makeMove(int move, int moveFlag, board* position) {
         // return illegal move
         return 0;
     }
+
+/*    if (position->pawnKey != generatePawnKey(position)) {
+        printf("Wrong Pawn Key: %s%s%c \n", squareToCoordinates[sourceSquare],
+               squareToCoordinates[targetSquare],
+               promotedPieces[promotedPiece]);
+    }*/
+
+
     return 1;
 }
 

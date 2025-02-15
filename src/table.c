@@ -71,7 +71,7 @@ U64 generatePawnKey(board* position) {
     while (bitboard) {
         int square = getLS1BIndex(bitboard);
 
-        final_key ^= pieceKeys[P][square];
+        final_key ^= pieceKeys[p][square];
         popBit(bitboard, square);
     }
     return final_key;
