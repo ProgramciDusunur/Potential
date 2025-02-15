@@ -43,6 +43,8 @@ typedef struct {
     U64 hashKey;
     U64 pawnKey;
     U64 minorKey;
+    U64 whiteNonPawnKey;
+    U64 blackNonPawnKey;
 
     int gamePhase;
 } board;
@@ -72,9 +74,13 @@ struct copyposition {
     U64 bitboardsCopy[12];
     U64 occupanciesCopy[3];
     uint8_t mailboxCopy[64];
+
     U64 hashKeyCopy;
     U64 pawnKeyCopy;
     U64 minorKeyCopy;
+    U64 whiteNonPawnKeyCopy;
+    U64 blackNonPawnKeyCopy;
+
     int sideCopy;
     int enpassantCopy;
     int castleCopy;

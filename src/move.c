@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include "move.h"
+#include "fen.h"
 
 // Pawn attack masks pawnAttacks[side][square]
 U64 pawnAttacks[2][64];
@@ -40,6 +41,8 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->hashKeyCopy = p->hashKey;
     cp->pawnKeyCopy = p->pawnKey;
     cp->minorKeyCopy = p->minorKey;
+    cp->whiteNonPawnKeyCopy = p->whiteNonPawnKey;
+    cp->blackNonPawnKeyCopy = p->blackNonPawnKey;
     cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
 }
 
@@ -63,6 +66,8 @@ void takeBack(board *p, struct copyposition *cp) {
     p->hashKey = cp->hashKeyCopy;
     p->pawnKey = cp->pawnKeyCopy;
     p->minorKey = cp->minorKeyCopy;
+    p->whiteNonPawnKey = cp->whiteNonPawnKeyCopy;
+    p->blackNonPawnKey = cp->blackNonPawnKeyCopy;
     p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
 }
 
@@ -189,6 +194,15 @@ int makeMove(int move, int moveFlag, board* position) {
     if (piece == P || piece == p) {
         position->pawnKey ^= pieceKeys[piece][sourceSquare];
         position->pawnKey ^= pieceKeys[piece][targetSquare];
+    } else { // non pawn key
+
+        if (position->side == white) {
+            position->whiteNonPawnKey ^= pieceKeys[piece][sourceSquare];
+            position->whiteNonPawnKey ^= pieceKeys[piece][targetSquare];
+        } else {
+            position->blackNonPawnKey ^= pieceKeys[piece][sourceSquare];
+            position->blackNonPawnKey ^= pieceKeys[piece][targetSquare];
+        }
     }
 
     if (isMinor(piece)) {
@@ -217,7 +231,16 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->hashKey ^= pieceKeys[bbPiece][targetSquare];
 
                 if (bbPiece == P || bbPiece ==  p) {
+
                     position->pawnKey ^= pieceKeys[bbPiece][targetSquare];
+
+                } else { // non pawn key
+
+                    if (position->side == white) {
+                        position->blackNonPawnKey ^= pieceKeys[bbPiece][targetSquare];
+                    } else {
+                        position->whiteNonPawnKey ^= pieceKeys[bbPiece][targetSquare];
+                    }
                 }
 
                 if (isMinor(bbPiece)) {
@@ -265,6 +288,7 @@ int makeMove(int move, int moveFlag, board* position) {
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[P][targetSquare];
             position->pawnKey ^= pieceKeys[P][targetSquare];
+            position->whiteNonPawnKey ^= pieceKeys[promotedPiece][targetSquare];
         }
 
             // black to move
@@ -275,6 +299,7 @@ int makeMove(int move, int moveFlag, board* position) {
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[p][targetSquare];
             position->pawnKey ^= pieceKeys[p][targetSquare];
+            position->blackNonPawnKey ^= pieceKeys[promotedPiece][targetSquare];
         }
 
         // set up promoted piece on chess board
@@ -283,6 +308,7 @@ int makeMove(int move, int moveFlag, board* position) {
 
         // add promoted piece into the hash key
         position->hashKey ^= pieceKeys[promotedPiece][targetSquare];
+
 
         if (isMinor(promotedPiece)) {
             position->minorKey ^= pieceKeys[promotedPiece][targetSquare];
@@ -331,6 +357,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 // hash rook
                 position->hashKey ^= pieceKeys[R][h1];  // remove rook from h1 from hash key
                 position->hashKey ^= pieceKeys[R][f1];  // put rook on f1 into a hash key
+                position->whiteNonPawnKey ^= pieceKeys[R][h1];
+                position->whiteNonPawnKey ^= pieceKeys[R][f1];
                 break;
 
                 // white castles queen side
@@ -344,6 +372,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 // hash rook
                 position->hashKey ^= pieceKeys[R][a1];  // remove rook from a1 from hash key
                 position->hashKey ^= pieceKeys[R][d1];  // put rook on d1 into a hash key
+                position->whiteNonPawnKey ^= pieceKeys[R][a1];
+                position->whiteNonPawnKey ^= pieceKeys[R][d1];
                 break;
 
                 // black castles king side
@@ -357,6 +387,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 // hash rook
                 position->hashKey ^= pieceKeys[r][h8];  // remove rook from h8 from hash key
                 position->hashKey ^= pieceKeys[r][f8];  // put rook on f8 into a hash key
+                position->blackNonPawnKey ^= pieceKeys[r][h8];
+                position->blackNonPawnKey ^= pieceKeys[r][f8];
                 break;
 
                 // black castles queen side
@@ -370,6 +402,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 // hash rook
                 position->hashKey ^= pieceKeys[r][a8];  // remove rook from a8 from hash key
                 position->hashKey ^= pieceKeys[r][d8];  // put rook on d8 into a hash key
+                position->blackNonPawnKey ^= pieceKeys[r][a8];
+                position->blackNonPawnKey ^= pieceKeys[r][d8];
                 break;
         }
     }
@@ -429,6 +463,27 @@ int makeMove(int move, int moveFlag, board* position) {
                squareToCoordinates[targetSquare],
                promotedPieces[promotedPiece]);
     }*/
+
+    if (position->whiteNonPawnKey != generate_white_np_hash_key(position)) {
+
+        printf("Wrong White Non Pawn Key: %s%s%c \n", squareToCoordinates[sourceSquare],
+               squareToCoordinates[targetSquare],
+               promotedPieces[promotedPiece]);
+
+        pBoard(position);
+    }
+
+    if (position->blackNonPawnKey != generate_black_np_hash_key(position)) {
+
+        printf("Wrong Black Non Pawn Key: %s%s%c \n", squareToCoordinates[sourceSquare],
+               squareToCoordinates[targetSquare],
+               promotedPieces[promotedPiece]);
+
+        pBoard(position);
+    }
+
+
+
 
 
     return 1;

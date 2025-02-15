@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
         board position;
         parseFEN(startPosition, &position);
 
-        perftRoot(6, &position);
+        perftRoot(7, &position);
         printf("Nodes: %llu", perftNodes);
     } else {
         uciProtocol(argc, argv);
