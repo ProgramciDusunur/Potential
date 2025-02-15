@@ -187,9 +187,15 @@ int makeMove(int move, int moveFlag, board* position) {
     position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
 
     if (piece == P || piece == p) {
-        //position->pawnKey ^= pieceKeys[piece][sourceSquare];
-        //position->pawnKey ^= pieceKeys[piece][targetSquare];
+        position->pawnKey ^= pieceKeys[piece][sourceSquare];
+        position->pawnKey ^= pieceKeys[piece][targetSquare];
     }
+
+    if (isMinor(piece)) {
+        position->minorKey ^= pieceKeys[piece][sourceSquare];
+        position->minorKey ^= pieceKeys[piece][targetSquare];
+    }
+
 
     // handling capture moves
     if (capture) {
@@ -213,6 +219,10 @@ int makeMove(int move, int moveFlag, board* position) {
                 if (bbPiece == P || bbPiece ==  p) {
                     position->pawnKey ^= pieceKeys[bbPiece][targetSquare];
                 }
+
+                if (isMinor(bbPiece)) {
+                    position->minorKey ^= pieceKeys[bbPiece][targetSquare];
+                }
                 break;
             }
         }
@@ -220,10 +230,6 @@ int makeMove(int move, int moveFlag, board* position) {
 
     // handle enpassant captures
     if (enpass) {
-        // erase the pawn depending on side to move
-        (position->side == white) ? popBit(position->bitboards[p], targetSquare + 8) :
-        popBit(position->bitboards[P], targetSquare - 8);
-
         // white to move
         if (position->side == white) {
             // remove captured pawn
@@ -277,6 +283,10 @@ int makeMove(int move, int moveFlag, board* position) {
 
         // add promoted piece into the hash key
         position->hashKey ^= pieceKeys[promotedPiece][targetSquare];
+
+        if (isMinor(promotedPiece)) {
+            position->minorKey ^= pieceKeys[promotedPiece][targetSquare];
+        }
     }
 
 
@@ -408,8 +418,14 @@ int makeMove(int move, int moveFlag, board* position) {
         return 0;
     }
 
-/*    if (position->pawnKey != generatePawnKey(position)) {
+    /*if (position->pawnKey != generatePawnKey(position)) {
         printf("Wrong Pawn Key: %s%s%c \n", squareToCoordinates[sourceSquare],
+               squareToCoordinates[targetSquare],
+               promotedPieces[promotedPiece]);
+    }
+
+    if (position->minorKey != generateMinorKey(position)) {
+        printf("Wrong Minor Key: %s%s%c \n", squareToCoordinates[sourceSquare],
                squareToCoordinates[targetSquare],
                promotedPieces[promotedPiece]);
     }*/

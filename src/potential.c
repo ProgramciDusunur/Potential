@@ -68,12 +68,10 @@ int main(int argc, char* argv[]) {
     int debug = 0;
     if (debug) {
         board position;
-        parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1", &position);
+        parseFEN(startPosition, &position);
 
-        perftRoot(1, &position);
+        perftRoot(6, &position);
         printf("Nodes: %llu", perftNodes);
-        //U64 pawnKey = generatePawnKey(&position);
-        //printBitboard(pawnKey);
     } else {
         uciProtocol(argc, argv);
     }
