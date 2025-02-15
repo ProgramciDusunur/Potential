@@ -485,7 +485,6 @@ int makeMove(int move, int moveFlag, board* position) {
 
 
 
-
     return 1;
 }
 
