@@ -464,7 +464,7 @@ int makeMove(int move, int moveFlag, board* position) {
                promotedPieces[promotedPiece]);
     }*/
 
-    if (position->whiteNonPawnKey != generate_white_np_hash_key(position)) {
+    /*if (position->whiteNonPawnKey != generate_white_np_hash_key(position)) {
 
         printf("Wrong White Non Pawn Key: %s%s%c \n", squareToCoordinates[sourceSquare],
                squareToCoordinates[targetSquare],
@@ -480,7 +480,7 @@ int makeMove(int move, int moveFlag, board* position) {
                promotedPieces[promotedPiece]);
 
         pBoard(position);
-    }
+    }*/
 
 
 
