@@ -1022,9 +1022,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // full-depth search
         if (moves_searched == 0) {
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, depth - 1, pos, time, false);
+            score = -negamax(-beta, -alpha, new_depth, pos, time, false);
         } else {
-            int lmrReduction = getLmrReduction(depth, legal_moves) + extensions;
+            int lmrReduction = getLmrReduction(depth, legal_moves);
 
             /* All Moves */
 
@@ -1062,7 +1062,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, false);
+                score = -negamax(-alpha - 1, -alpha, depth - 1, pos, time, false);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
@@ -1072,7 +1072,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if((score > alpha) && (score < beta))
                     /* re-search the move that has failed to be proved to be bad
                        with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, new_depth, pos, time, false);
+                    score = -negamax(-beta, -alpha, depth - 1, pos, time, false);
             }
 
         }
