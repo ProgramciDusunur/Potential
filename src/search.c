@@ -31,6 +31,7 @@ int CORRHIST_MAX = 16384;
 
 int pawnCorrectionHistory[2][16384];
 int minorCorrectionHistory[2][16384];
+int nonPawnCorrectionHistory[2][2][16384];
 
 
 
@@ -307,6 +308,27 @@ void updateMinorCorrectionHistory(board *position, const int depth, const int di
     minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE] = entry;
 }
 
+void update_non_pawn_corrhist(board *position, const int depth, const int diff) {
+    U64 whiteKey = position->whiteNonPawnKey;
+    U64 blackKey = position->blackNonPawnKey;
+
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = myMIN(depth + 1, 16);
+
+    int whiteEntry = nonPawnCorrectionHistory[white][position->side][whiteKey % CORRHIST_SIZE];
+
+    whiteEntry = (whiteEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+    whiteEntry = clamp(whiteEntry, -CORRHIST_MAX, CORRHIST_MAX);
+
+    int blackEntry = nonPawnCorrectionHistory[black][position->side][blackKey % CORRHIST_SIZE];
+
+    blackEntry = (blackEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+    blackEntry = clamp(blackEntry, -CORRHIST_MAX, CORRHIST_MAX);
+
+    nonPawnCorrectionHistory[white][position->side][whiteKey % CORRHIST_SIZE] = whiteEntry;
+    nonPawnCorrectionHistory[black][position->side][blackKey % CORRHIST_SIZE] = blackEntry;
+}
+
 int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
     U64 pawnKey = position->pawnKey;
     U64 minorKey = position->minorKey;
@@ -314,9 +336,15 @@ int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
     int pawnEntry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
     int minorEntry = minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE];
 
+    U64 whiteNPKey = position->whiteNonPawnKey;
+    int whiteNPEntry = nonPawnCorrectionHistory[white][position->side][whiteNPKey % CORRHIST_SIZE];
+
+    U64 blackNPKey = position->blackNonPawnKey;
+    int blackNPEntry = nonPawnCorrectionHistory[black][position->side][blackNPKey % CORRHIST_SIZE];
+
     int mateFound = mateValue - maxPly;
 
-    int adjust = pawnEntry + minorEntry;
+    int adjust = pawnEntry + minorEntry + whiteNPEntry + blackNPEntry;
 
     return clamp(rawEval + adjust / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
 }
@@ -1088,11 +1116,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
         updatePawnCorrectionHistory(position, depth, bestScore - static_eval);
         updateMinorCorrectionHistory(position, depth, bestScore - static_eval);
+        update_non_pawn_corrhist(position, depth, bestScore - static_eval);
     }
 
     // store hash entry with the score equal to alpha
     writeHashEntry(bestScore, bestMove, depth, hashFlag, position);
-
 
     // node (move) fails low
     return bestScore;
@@ -1118,6 +1146,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(rootHistory, 0, sizeof(rootHistory));
     memset(pawnCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
     memset(minorCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
+    memset(nonPawnCorrectionHistory, 0, sizeof(nonPawnCorrectionHistory));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));

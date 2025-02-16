@@ -72,6 +72,8 @@ int mvvLva[12][12] = {
 };
 
 int minorPieces[6] = {B, b, N, n, K, k};
+int whiteNonPawnPieces[5] = { R, N, B, Q, K };
+int blackNonPawnPieces[5] = {r, n, b, q, k };
 
 
 const U64 notHFile = 9187201950435737471ULL;

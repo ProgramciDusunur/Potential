@@ -100,6 +100,52 @@ U64 generateMinorKey(board *position) {
     return final_key;
 }
 
+// generates white non pawn hashing key
+U64 generate_white_np_hash_key(board *position) {
+    uint64_t final_key = 0ULL;
+    uint64_t bitboard;
+
+
+    for (int i = 0; i < 5; i++) {
+        int piece = whiteNonPawnPieces[i];
+        bitboard = position->bitboards[piece];
+
+        while (bitboard) {
+
+            int square = getLS1BIndex(bitboard);
+
+            final_key ^= pieceKeys[piece][square];
+            popBit(bitboard, square);
+        }
+    }
+
+
+    return final_key;
+}
+
+// generates black non pawn hashing key
+U64 generate_black_np_hash_key(board *position) {
+    uint64_t final_key = 0ULL;
+    uint64_t bitboard;
+
+
+    for (int i = 0; i < 5; i++) {
+        int piece = blackNonPawnPieces[i];
+        bitboard = position->bitboards[piece];
+
+        while (bitboard) {
+
+            int square = getLS1BIndex(bitboard);
+
+            final_key ^= pieceKeys[piece][square];
+            popBit(bitboard, square);
+        }
+    }
+
+
+    return final_key;
+}
+
 uint64_t get_hash_index(uint64_t hash) {
     return ((uint128_t)hash * (uint128_t)hash_entries) >> 64;
 }
