@@ -994,7 +994,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             pos->ply++;
 
-
             if (singularScore < singularBeta) {
 
                 if (!pvNode && score <= singularBeta - 20) {
