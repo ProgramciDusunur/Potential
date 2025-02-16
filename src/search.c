@@ -690,9 +690,9 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode) {
+int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode) {
     // init PV length
-    position->pvLength[position->ply] = position->ply;
+    pos->pvLength[pos->ply] = pos->ply;
 
 
     // variable to store current move's score (from the static evaluation perspective)
@@ -709,7 +709,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     int pvNode = beta - alpha > 1;
 
-    int rootNode = position->ply == 0;
+    int rootNode = pos->ply == 0;
 
     int bestMove = 0;
     int tt_move = 0;
@@ -720,28 +720,30 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
     if (!rootNode) {
 
-        if (isRepetition(position) || isMaterialDraw(position)) {
+        if (isRepetition(pos) || isMaterialDraw(pos)) {
             return 0;
         }
 
 
         // Mate distance pruning
-        alpha = myMAX(alpha, -mateValue + (int)position->ply);
-        beta = myMIN(beta, mateValue - (int)position->ply - 1);
+        alpha = myMAX(alpha, -mateValue + (int)pos->ply);
+        beta = myMIN(beta, mateValue - (int)pos->ply - 1);
         if (alpha >= beta)
             return alpha;
     }
 
     // read hash entry
-    if (!rootNode &&
+    if (!pos->isSingularMove[pos->ply] && !rootNode &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
+                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
         if (tt_depth >= depth) {
+
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
                 ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
                 return tt_score;
             }
+
         }
     }
 
@@ -749,38 +751,38 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // recursion escapre condition
     if (depth <= 0)
         // run quiescence search
-        return quiescence(alpha, beta, position, time);
+        return quiescence(alpha, beta, pos, time);
 
 
     // is king in check
-    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
-                                    getLS1BIndex(position->bitboards[k]),
-                                    position->side ^ 1, position);
+    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
+                                    getLS1BIndex(pos->bitboards[k]),
+                                    pos->side ^ 1, pos);
 
 
     // get static evaluation score
-    int raw_eval = evaluate(position);
+    int raw_eval = evaluate(pos);
 
-    int static_eval = adjustEvalWithCorrectionHistory(position, raw_eval);
+    int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
 
     bool improving = false;
 
     int pastStack = -1;
 
-    position->staticEval[position->ply] = static_eval;
+    pos->staticEval[pos->ply] = static_eval;
 
-    position->improvingRate[position->ply] = 0.0;
+    pos->improvingRate[pos->ply] = 0.0;
 
-    if (position->ply >= 2 && position->staticEval[position->ply-2] != noEval) {
-        pastStack = position->ply - 2;
-    } else if (position->ply >= 4 && position->staticEval[position->ply-4] != noEval) {
-        pastStack = position->ply - 4;
+    if (pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval) {
+        pastStack = pos->ply - 2;
+    } else if (pos->ply >= 4 && pos->staticEval[pos->ply - 4] != noEval) {
+        pastStack = pos->ply - 4;
     }
 
     if (pastStack > -1 && !in_check) {
-        improving = position->staticEval[position->ply] > position->staticEval[pastStack];
-        const double diff = position->staticEval[position->ply] - position->staticEval[pastStack];
-        position->improvingRate[position->ply] = fmin(fmax(position->improvingRate[position->ply] + diff / 50, (-1.0)), 1.0);
+        improving = pos->staticEval[pos->ply] > pos->staticEval[pastStack];
+        const double diff = pos->staticEval[pos->ply] - pos->staticEval[pastStack];
+        pos->improvingRate[pos->ply] = fmin(fmax(pos->improvingRate[pos->ply] + diff / 50, (-1.0)), 1.0);
     }
 
     // Internal Iterative Reductions
@@ -793,49 +795,51 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     uint16_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
 
     // reverse futility pruning
-    if (depth <= 5 && !pvNode && !in_check && static_eval - rfpMargin >= beta)
+    if (!pos->isSingularMove[pos->ply] &&
+        depth <= 5 && !pvNode && !in_check && static_eval - rfpMargin >= beta)
         return static_eval;
 
     // null move pruning
-    if (depth >= nullMoveDepth && in_check == 0 && !rootNode &&
+    if (!pos->isSingularMove[pos->ply] &&
+        depth >= nullMoveDepth && in_check == 0 && !rootNode &&
             static_eval >= beta &&
-            !justPawns(position)) {
+            !justPawns(pos)) {
         struct copyposition copyPosition;
         // preserve board state
-        copyBoard(position, &copyPosition);
+        copyBoard(pos, &copyPosition);
 
-        position->ply++;
+        pos->ply++;
 
         // increment repetition index & store hash key
-        position->repetitionIndex++;
-        position->repetitionTable[position->repetitionIndex] = position->hashKey;
+        pos->repetitionIndex++;
+        pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
         // hash enpassant if available
-        if (position->enpassant != no_sq) { position->hashKey ^= enpassantKeys[position->enpassant]; }
+        if (pos->enpassant != no_sq) { pos->hashKey ^= enpassantKeys[pos->enpassant]; }
 
         // reset enpassant capture square
-        position->enpassant = no_sq;
+        pos->enpassant = no_sq;
 
         // switch the side, literally giving opponent an extra move to make
-        position->side ^= 1;
+        pos->side ^= 1;
 
         // hash the side
-        position->hashKey ^= sideKey;
+        pos->hashKey ^= sideKey;
 
         int R = 3 + depth / 3;
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, depth - R, position, time, !cutNode);
+        score = -negamax(-beta, -beta + 1, depth - R, pos, time, !cutNode);
 
         // decrement ply
-        position->ply--;
+        pos->ply--;
 
         // decrement repetition index
-        position->repetitionIndex--;
+        pos->repetitionIndex--;
 
         // restore board state
-        takeBack(position, &copyPosition);
+        takeBack(pos, &copyPosition);
 
 
         if (time->stopped == 1) return 0;
@@ -848,8 +852,9 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     }
 
     // razoring
-    if (canPrune && depth <= 3 && static_eval + 200 * depth < alpha) {
-        int razoringScore = quiescence(alpha, beta, position, time);
+    if (!pos->isSingularMove[pos->ply] &&
+        canPrune && depth <= 3 && static_eval + 200 * depth < alpha) {
+        int razoringScore = quiescence(alpha, beta, pos, time);
         if (razoringScore <= alpha) {
             return razoringScore;
         }
@@ -860,15 +865,15 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     badQuiets->count = 0;
 
     // generate moves
-    moveGenerator(moveList, position);
+    moveGenerator(moveList, pos);
 
     // if we are now following PV line
-    if (position->followPv)
+    if (pos->followPv)
         // enable PV move scoring
-        enable_pv_scoring(moveList, position);
+        enable_pv_scoring(moveList, pos);
 
     // sort moves
-    sort_moves(moveList, tt_move, position);
+    sort_moves(moveList, tt_move, pos);
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -891,6 +896,10 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
         int currentMove = moveList->moves[count];
+
+        if (currentMove == pos->isSingularMove[pos->ply]) {
+            continue;
+        }
 
         bool isQuiet = getMoveCapture(currentMove) == 0;
 
@@ -929,30 +938,66 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         // SEE PVS Pruning
         int seeThreshold =
                 isQuiet ? -67 * depth : -32 * depth * depth;
-        if (depth <= 10 && legal_moves > 0 && !SEE(position, currentMove, seeThreshold))
+        if (depth <= 10 && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
         struct copyposition copyPosition;
         // preserve board state
-        copyBoard(position, &copyPosition);
+        copyBoard(pos, &copyPosition);
 
         // increment ply
-        position->ply++;
+        pos->ply++;
 
         // increment repetition index & store hash key
-        position->repetitionIndex++;
-        position->repetitionTable[position->repetitionIndex] = position->hashKey;
+        pos->repetitionIndex++;
+        pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
         // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], allMoves, position) == 0) {
+        if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
             // decrement ply
-            position->ply--;
+            pos->ply--;
 
             // decrement repetition index
-            position->repetitionIndex--;
+            pos->repetitionIndex--;
 
             // skip to next move
             continue;
+        }
+
+        int extensions = 0;
+
+        // Singular Extensions
+        // A rather simple idea that if our TT move is accurate we run a reduced
+        // search to see if we can beat this score. If not we extend the TT move
+        // search
+        if (!rootNode && depth >= 7 && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
+            tt_depth >= depth - 3 && tt_flag != hashFlagBeta &&
+            abs(tt_score) < mateScore) {
+            const int singularBeta = tt_score - depth;
+            const int singularDepth = (depth - 1) / 2;
+
+
+            // decrement ply
+            pos->ply--;
+
+            // take move back
+            takeBack(pos, &copyPosition);
+
+            pos->isSingularMove[pos->ply] = currentMove;
+
+            const int singularScore =
+                    negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, cutNode);
+
+            pos->isSingularMove[pos->ply] = 0;
+
+            makeMove(moveList->moves[count], allMoves, pos);
+
+            pos->ply++;
+
+
+            if (singularScore < singularBeta) {
+                extensions++;
+            }
         }
 
         // increment nodes count
@@ -971,13 +1016,13 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             //captureMoves++;
         }
 
-
+        const int new_depth = depth - 1 + extensions;
 
 
         // full-depth search
         if (moves_searched == 0) {
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, depth - 1, position, time, false);
+            score = -negamax(-beta, -alpha, new_depth, pos, time, false);
         } else {
             int lmrReduction = getLmrReduction(depth, legal_moves);
 
@@ -1004,7 +1049,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
             if(moves_searched >= lmr_full_depth_moves &&
                depth >= lmr_reduction_limit) {
                 // search current move with reduced depth:
-                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, position, time, true);
+                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, pos, time, true);
             } else {
                 // hack to ensure that full-depth search is done
                 score = alpha + 1;
@@ -1017,7 +1062,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, depth - 1, position, time, false);
+                score = -negamax(-alpha - 1, -alpha, depth - 1, pos, time, false);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
@@ -1027,19 +1072,20 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 if((score > alpha) && (score < beta))
                     /* re-search the move that has failed to be proved to be bad
                        with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, depth - 1, position, time, false);
+                    score = -negamax(-beta, -alpha, depth - 1, pos, time, false);
             }
 
         }
 
+
         // decrement ply
-        position->ply--;
+        pos->ply--;
 
         // decrement repetition index
-        position->repetitionIndex--;
+        pos->repetitionIndex--;
 
         // take move back
-        takeBack(position, &copyPosition);
+        takeBack(pos, &copyPosition);
 
         if (time->stopped == 1) return 0;
 
@@ -1059,15 +1105,15 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
                 if (pvNode) {
                     // write PV move
-                    position->pvTable[position->ply][position->ply] = currentMove;
+                    pos->pvTable[pos->ply][pos->ply] = currentMove;
 
                     // loop over the next ply
-                    for (int next_ply = position->ply + 1; next_ply < position->pvLength[position->ply + 1]; next_ply++)
+                    for (int next_ply = pos->ply + 1; next_ply < pos->pvLength[pos->ply + 1]; next_ply++)
                         // copy move from deeper ply into a current ply's line
-                        position->pvTable[position->ply][next_ply] = position->pvTable[position->ply + 1][next_ply];
+                        pos->pvTable[pos->ply][next_ply] = pos->pvTable[pos->ply + 1][next_ply];
 
                     // adjust PV length
-                    position->pvLength[position->ply] = position->pvLength[position->ply + 1];
+                    pos->pvLength[pos->ply] = pos->pvLength[pos->ply + 1];
                 }
 
 
@@ -1075,11 +1121,11 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
                 if (score >= beta) {
                     if (isQuiet) {
                         // store killer moves
-                        position->killerMoves[position->ply][0] = bestMove;
+                        pos->killerMoves[pos->ply][0] = bestMove;
                         updateQuietMoveHistory(bestMove, depth, badQuiets);
 
                         if (rootNode) {
-                            updateRootHistory(position, bestMove, depth, badQuiets);
+                            updateRootHistory(pos, bestMove, depth, badQuiets);
                         }
 
                     }
@@ -1095,8 +1141,8 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
     if (legal_moves == 0) {
         // king is in check
         if (in_check)
-            // return mating score (assuming closest distance to mating position)
-            return -mateValue + position->ply;
+            // return mating score (assuming closest distance to mating pos)
+            return -mateValue + pos->ply;
 
             // king is not in check
         else
@@ -1111,16 +1157,18 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
         hashFlag = hashFlagBeta;
     }
 
-    if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
+    if (!pos->isSingularMove[pos->ply] && !in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
     !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
     !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
-        updatePawnCorrectionHistory(position, depth, bestScore - static_eval);
-        updateMinorCorrectionHistory(position, depth, bestScore - static_eval);
-        update_non_pawn_corrhist(position, depth, bestScore - static_eval);
+        updatePawnCorrectionHistory(pos, depth, bestScore - static_eval);
+        updateMinorCorrectionHistory(pos, depth, bestScore - static_eval);
+        update_non_pawn_corrhist(pos, depth, bestScore - static_eval);
+    }
+    if (!pos->isSingularMove[pos->ply]) {
+        // store hash entry with the score equal to alpha
+        writeHashEntry(bestScore, bestMove, depth, hashFlag, pos);
     }
 
-    // store hash entry with the score equal to alpha
-    writeHashEntry(bestScore, bestMove, depth, hashFlag, position);
 
     // node (move) fails low
     return bestScore;
@@ -1168,6 +1216,11 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
         if (time->stopped == 1) {
             break;
+        }
+
+        for (int i = 0; i < maxPly; ++i) {
+            position->isSingularMove[i] = 0;
+            position->staticEval[i] = noEval;
         }
 
         int startTime = getTimeMiliSecond();

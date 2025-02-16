@@ -35,6 +35,7 @@ typedef struct {
 
     double improvingRate[maxPly];
 
+    int isSingularMove[maxPly];
 
     int followPv;
     int scorePv;
