@@ -1031,7 +1031,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         int new_depth = depth - 1 + extensions;
 
-
         // full-depth search
         if (moves_searched == 0) {
             // do normal alpha beta search
