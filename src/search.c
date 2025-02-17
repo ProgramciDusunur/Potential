@@ -600,9 +600,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     noisyGenerator(moveList, position);
 
     // sort moves
-    if (moveList->count > 0) {
-        quiescence_sort_moves(moveList, position);
-    }
+    quiescence_sort_moves(moveList, position);
+
 
 
     // legal moves counter
