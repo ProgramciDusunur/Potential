@@ -1200,6 +1200,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     position->scorePv = 0;
 
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
+    memset(position->mailbox, NO_PIECE, sizeof(position->mailbox));
     memset(quietHistory, 0, sizeof(quietHistory));
     memset(rootHistory, 0, sizeof(rootHistory));
     memset(pawnCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
