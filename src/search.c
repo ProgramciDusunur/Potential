@@ -600,7 +600,10 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     noisyGenerator(moveList, position);
 
     // sort moves
-    quiescence_sort_moves(moveList, position);
+    if (moveList->count > 0) {
+        quiescence_sort_moves(moveList, position);
+    }
+
 
 
 
@@ -1201,7 +1204,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     position->scorePv = 0;
 
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
-    memset(position->mailbox, NO_PIECE, sizeof(position->mailbox));
+    //memset(position->mailbox, NO_PIECE, sizeof(position->mailbox));
     memset(quietHistory, 0, sizeof(quietHistory));
     memset(rootHistory, 0, sizeof(rootHistory));
     memset(pawnCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
