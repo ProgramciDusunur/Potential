@@ -379,6 +379,10 @@ void uciProtocol(int argc, char *argv[]) {
 
     position->ply = 0;
 
+    for (int i = 0; i < 64;i++) {
+        position->mailbox[i] = NO_PIECE;
+    }
+
     clearStaticEvaluationHistory(position);
 
     time *time_ctrl = (time *)malloc(sizeof(time));
