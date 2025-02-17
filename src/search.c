@@ -994,14 +994,19 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             pos->ply++;
 
+            // Singular Extension
             if (singularScore < singularBeta) {
+                extensions++;
 
+                // Double Extension
                 if (!pvNode && score <= singularBeta - 20) {
-                    extensions = 2;
-                } else {
-                    extensions = 1;
+                    extensions++;
                 }
 
+            }
+            // Negative Extension
+            else if (tt_score >= beta) {
+                extensions--;
             }
         }
 
