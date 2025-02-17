@@ -1026,7 +1026,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             //captureMoves++;
         }
 
-        const int new_depth = depth - 1 + extensions;
+        int new_depth = depth - 1 + extensions;
 
 
         // full-depth search
