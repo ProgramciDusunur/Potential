@@ -702,10 +702,6 @@ void noisyGenerator(moves *moveList, board* position) {
             }
         }
     }
-    // if noisy generates can't create any move, then we can't allow the array to start with zero
-    if (moveList->count == 0) {
-        moveList->count = 10;
-    }
 }
 
 
