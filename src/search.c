@@ -724,7 +724,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     uint8_t tt_flag = hashFlagExact;
 
     if (!rootNode) {
-
         if (isRepetition(pos) || isMaterialDraw(pos)) {
             return 0;
         }
