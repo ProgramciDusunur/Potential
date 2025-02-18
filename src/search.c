@@ -946,6 +946,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (depth <= 10 && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
+
         int extensions = 0;
 
         // Singular Extensions
