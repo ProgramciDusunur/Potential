@@ -740,7 +740,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // read hash entry
     if (!pos->isSingularMove[pos->ply] && !rootNode &&
         (tt_hit =
-                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
+                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag)) &&
+                !pvNode) {
         if (tt_depth >= depth) {
 
             if ((tt_flag == hashFlagExact) ||
@@ -751,7 +752,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         }
     }
-
 
     // recursion escapre condition
     if (depth <= 0)
