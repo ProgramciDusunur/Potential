@@ -1009,10 +1009,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
             }
+
             // Negative Extension
             else if (tt_score >= beta) {
-                extensions--;
+                extensions -= 1 + !pvNode;
             }
+
         }
 
         // increment nodes count
