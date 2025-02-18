@@ -12,7 +12,7 @@
 #define U64 unsigned long long
 #endif
 
-#define maxPly 64
+#define maxPly 256
 
 typedef struct {
     U64 bitboards[12];

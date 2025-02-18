@@ -600,7 +600,12 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     noisyGenerator(moveList, position);
 
     // sort moves
-    quiescence_sort_moves(moveList, position);
+    if (moveList->count > 0) {
+        quiescence_sort_moves(moveList, position);
+    }
+
+
+
 
     // legal moves counter
     //int legal_moves = 0;
@@ -1026,8 +1031,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             //captureMoves++;
         }
 
-        const int new_depth = depth - 1 + extensions;
-
+        int new_depth = depth - 1 + extensions;
 
         // full-depth search
         if (moves_searched == 0) {
@@ -1200,6 +1204,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     position->scorePv = 0;
 
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
+    //memset(position->mailbox, NO_PIECE, sizeof(position->mailbox));
     memset(quietHistory, 0, sizeof(quietHistory));
     memset(rootHistory, 0, sizeof(rootHistory));
     memset(pawnCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
