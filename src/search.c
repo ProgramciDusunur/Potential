@@ -1013,6 +1013,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             else if (tt_score >= beta) {
                 extensions--;
             }
+            // Cut Node Extension
+            else if (cutNode) {
+                extensions -= 2;
+            }
         }
 
         // increment nodes count
