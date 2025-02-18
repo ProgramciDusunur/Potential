@@ -1009,11 +1009,26 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
             }
+            // Multicut: Singular search failed high so if singular beta beats our
+            // beta we can assume the main search will also fail high and thus we can
+            // just cutoff here
+            else if (singularBeta >= beta) {
+                // decrement ply
+                pos->ply--;
+
+                // decrement repetition index
+                pos->repetitionIndex--;
+
+                // take move back
+                takeBack(pos, &copyPosition);
+                return singularBeta;
+            }
             // Negative Extension
             else if (tt_score >= beta) {
                 extensions--;
             }
         }
+
 
         // increment nodes count
         searchNodes++;
