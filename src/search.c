@@ -946,6 +946,81 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (depth <= 10 && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
+        int extensions = 0;
+
+        // Singular Extensions
+        // A rather simple idea that if our TT move is accurate we run a reduced
+        // search to see if we can beat this score. If not we extend the TT move
+        // search
+        if (!rootNode && depth >= 7 && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
+            tt_depth >= depth - 3 && tt_flag != hashFlagBeta &&
+            abs(tt_score) < mateScore) {
+            const int singularBeta = tt_score - depth;
+            const int singularDepth = (depth - 1) / 2;
+
+            struct copyposition copyPosition;
+            // preserve board state
+            copyBoard(pos, &copyPosition);
+
+            // increment ply
+            pos->ply++;
+
+            // increment repetition index & store hash key
+            pos->repetitionIndex++;
+            pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
+
+            // make sure to make only legal moves
+            if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
+                // decrement ply
+                pos->ply--;
+
+                // decrement repetition index
+                pos->repetitionIndex--;
+
+                // skip to next move
+                continue;
+            }
+
+            // decrement ply
+            pos->ply--;
+
+            // decrement repetition index
+            pos->repetitionIndex--;
+
+            // take move back
+            takeBack(pos, &copyPosition);
+
+
+            pos->isSingularMove[pos->ply] = currentMove;
+
+            const int singularScore =
+                    negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, cutNode);
+
+            pos->isSingularMove[pos->ply] = 0;
+
+
+            // Singular Extension
+            if (singularScore < singularBeta) {
+                extensions++;
+
+                // Double Extension
+                if (!pvNode && score <= singularBeta - 20) {
+                    extensions++;
+                }
+
+            }
+            // Multicut: Singular search failed high so if singular beta beats our
+            // beta we can assume the main search will also fail high and thus we can
+            // just cutoff here
+            else if (singularBeta >= beta) {
+                return singularBeta;
+            }
+            // Negative Extension
+            else if (tt_score >= beta) {
+                extensions--;
+            }
+        }
+
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(pos, &copyPosition);
@@ -967,52 +1042,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             // skip to next move
             continue;
-        }
-
-        int extensions = 0;
-
-        // Singular Extensions
-        // A rather simple idea that if our TT move is accurate we run a reduced
-        // search to see if we can beat this score. If not we extend the TT move
-        // search
-        if (!rootNode && depth >= 7 && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
-            tt_depth >= depth - 3 && tt_flag != hashFlagBeta &&
-            abs(tt_score) < mateScore) {
-            const int singularBeta = tt_score - depth;
-            const int singularDepth = (depth - 1) / 2;
-
-
-            // decrement ply
-            pos->ply--;
-
-            // take move back
-            takeBack(pos, &copyPosition);
-
-            pos->isSingularMove[pos->ply] = currentMove;
-
-            const int singularScore =
-                    negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, cutNode);
-
-            pos->isSingularMove[pos->ply] = 0;
-
-            makeMove(moveList->moves[count], allMoves, pos);
-
-            pos->ply++;
-
-            // Singular Extension
-            if (singularScore < singularBeta) {
-                extensions++;
-
-                // Double Extension
-                if (!pvNode && score <= singularBeta - 20) {
-                    extensions++;
-                }
-
-            }
-            // Negative Extension
-            else if (tt_score >= beta) {
-                extensions--;
-            }
         }
 
         // increment nodes count
