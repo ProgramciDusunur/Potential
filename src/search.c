@@ -729,7 +729,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             return 0;
         }
 
-
         // Mate distance pruning
         alpha = myMAX(alpha, -mateValue + (int)pos->ply);
         beta = myMIN(beta, mateValue - (int)pos->ply - 1);
@@ -740,7 +739,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // read hash entry
     if (!pos->isSingularMove[pos->ply] && !rootNode &&
         (tt_hit =
-                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
+                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag)) &&
+                !pvNode) {
         if (tt_depth >= depth) {
 
             if ((tt_flag == hashFlagExact) ||
@@ -802,7 +802,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // reverse futility pruning
     if (!pos->isSingularMove[pos->ply] &&
         depth <= 5 && !pvNode && !in_check && static_eval - rfpMargin >= beta)
-        return static_eval;
+        return (static_eval + beta) / 2;
 
     // null move pruning
     if (!pos->isSingularMove[pos->ply] &&
