@@ -1020,6 +1020,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 extensions -= 1 + !pvNode;
             }
 
+            // Improving Extension
             else if (!improving) {
                 extensions -= 1;
             }
