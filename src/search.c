@@ -915,7 +915,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
 
-
         int moveHistory = quietHistory[getMoveSource(currentMove)][getMoveTarget(currentMove)] +
                 (pos->ply == 0 * rootHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)] * 4);
 
