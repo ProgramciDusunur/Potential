@@ -795,6 +795,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         depth -= 1 + (cutNode && !improving);
     }
 
+
     bool canPrune = in_check == 0 && pvNode == 0;
 
     uint16_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
