@@ -18,7 +18,6 @@ void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiet
     int to = getMoveTarget(bestMove);
 
     int bonus = 32 * depth * depth + 64 * depth + 32;
-    printf("Root History Bonus: %d\n", bonus);
     int score = rootHistory[position->side][from][to];
 
     rootHistory[position->side][from][to] += scaledBonus(score, bonus, maxRootHistory);
