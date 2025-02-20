@@ -1137,7 +1137,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     pos->pvLength[pos->ply] = pos->pvLength[pos->ply + 1];
                 }
 
-
                 // fail-hard beta cutoff
                 if (score >= beta) {
                     if (isQuiet) {
