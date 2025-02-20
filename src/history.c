@@ -17,10 +17,11 @@ void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiet
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int bonus = 16 * depth * depth + 32 * depth + 16;
+    int bonus = 32 * depth * depth + 64 * depth + 32;
+    printf("Root History Bonus: %d\n", bonus);
     int score = rootHistory[position->side][from][to];
 
-    rootHistory[position->side][from][to] += scaledBonus(score, bonus, maxQuietHistory);
+    rootHistory[position->side][from][to] += scaledBonus(score, bonus, maxRootHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
