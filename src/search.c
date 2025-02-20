@@ -765,9 +765,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                                     pos->side ^ 1, pos);
 
     // get static evaluation score
-    int raw_eval = evaluate(pos);
+    int raw_eval = tt_hit && tt_flag == hashFlagExact ? tt_score : evaluate(pos);
 
-    int static_eval = tt_hit && tt_flag == hashFlagExact ? tt_score : adjustEvalWithCorrectionHistory(pos, raw_eval);
+    int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
 
     bool improving = false;
 
