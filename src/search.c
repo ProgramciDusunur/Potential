@@ -124,7 +124,7 @@ int scoreMove(int move, board* position) {
         else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
 
-        return quietHistory[getMoveSource(move)][getMoveTarget(move)] +
+        return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)] +
                (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
     }
     return 0;
@@ -916,7 +916,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
 
 
-        int moveHistory = quietHistory[getMoveSource(currentMove)][getMoveTarget(currentMove)];
+        int moveHistory = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
 
         bool isNotMated = alpha > -mateScore + maxPly;
 
@@ -1137,13 +1137,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     pos->pvLength[pos->ply] = pos->pvLength[pos->ply + 1];
                 }
 
-
                 // fail-hard beta cutoff
                 if (score >= beta) {
                     if (isQuiet) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
-                        updateQuietMoveHistory(bestMove, depth, badQuiets);
+                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
 
                         if (rootNode) {
                             updateRootHistory(pos, bestMove, depth, badQuiets);
