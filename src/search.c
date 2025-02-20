@@ -1014,7 +1014,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             }
             // Multicut
-            else if (singularScore >= beta) {
+            else if (singularBeta >= beta) {
                 // decrement ply
                 pos->ply--;
 
@@ -1024,7 +1024,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 // take move back
                 takeBack(pos, &copyPosition);
 
-                return singularScore;
+                return singularBeta;
             }
 
 
