@@ -554,7 +554,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // best move (to store in TT)
     //int bestMove = 0;
 
-
     int bestMove = 0;
     int tt_move = 0;
     int16_t tt_score = 0;
