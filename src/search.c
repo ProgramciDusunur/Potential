@@ -799,7 +799,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     uint16_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
 
-
     // reverse futility pruning
     if (!pos->isSingularMove[pos->ply] &&
         depth <= 6 && !pvNode && !in_check && !tt_hit && static_eval - rfpMargin >= beta)
