@@ -1014,6 +1014,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
             }
+
             // Multicut
             else if (singularBeta >= beta) {
                 // decrement ply
