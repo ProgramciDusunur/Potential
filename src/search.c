@@ -1251,6 +1251,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         }
 
         int window = 9;
+        int aspirationWindowDepth = current_depth;
 
         while (true) {
 
@@ -1269,7 +1270,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
             position->followPv = 1;
             // find best move within a given position
-            score = negamax(alpha, beta, current_depth, position, time, false);
+            score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), position, time, false);
 
 
             if (score == infinity) {
@@ -1282,10 +1283,12 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             }
             if (score <= alpha) {
                 alpha = myMAX(-infinity, alpha - window);
+                aspirationWindowDepth = current_depth;
             }
 
             else if (score >= beta) {
                 beta = myMIN(infinity, beta + window);
+                aspirationWindowDepth = myMAX(aspirationWindowDepth - 1, current_depth - 5);
 
             } else {
                 break;
