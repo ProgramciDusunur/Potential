@@ -40,6 +40,9 @@ typedef struct {
     int followPv;
     int scorePv;
 
+    uint16_t piece[maxPly];
+    int move[maxPly];
+
     //int depth;
     U64 hashKey;
     U64 pawnKey;

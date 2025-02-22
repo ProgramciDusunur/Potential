@@ -35,12 +35,12 @@ void parseFEN(char *fen, board* position) {
                 int offset = *fen - '0';
                 int piece = -1;
 
+                uint8_t bb_piece = position->mailbox[square];
                 // if there is a piece on current square
-                for (int bbPiece = P; bbPiece <= k; bbPiece++) {
-                    if (getBit(position->bitboards[bbPiece], square)) {
-                        piece = bbPiece;
-                    }
-                }
+                if (bb_piece != NO_PIECE && getBit(position->bitboards[bb_piece], square))
+                    // get piece code
+                    piece = bb_piece;
+
                 if (piece == -1) {
                     file--;
                 }
