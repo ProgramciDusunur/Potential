@@ -857,7 +857,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             return score;
     }
 
-
     // razoring
     if (canPrune && depth <= 3 && static_eval + 200 * depth < alpha) {
         int razoringScore = quiescence(alpha, beta, pos, time);
