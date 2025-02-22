@@ -554,7 +554,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // best move (to store in TT)
     //int bestMove = 0;
 
-
     int bestMove = 0;
     int tt_move = 0;
     int16_t tt_score = 0;
@@ -563,8 +562,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     uint8_t tt_flag = hashFlagExact;
 
     // read hash entry
-    if (position->ply &&
-        (tt_hit =
+    if ((tt_hit =
                  readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
@@ -738,7 +736,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     }
 
     // read hash entry
-    if (!pos->isSingularMove[pos->ply] && !rootNode &&
+    if (!pos->isSingularMove[pos->ply] &&
         (tt_hit =
                 readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag)) &&
                 !pvNode) {
