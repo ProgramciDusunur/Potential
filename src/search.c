@@ -940,12 +940,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
-        // SEE PVS Pruning
-        int seeThreshold =
-                isQuiet ? -67 * depth : -32 * depth * depth;
-        if (depth <= 10 && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
-            continue;
-
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(pos, &copyPosition);
@@ -968,6 +962,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // skip to next move
             continue;
         }
+
+        // SEE PVS Pruning
+        int seeThreshold =
+                isQuiet ? -67 * depth : -32 * depth * depth;
+        if (depth <= 10 && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
+            continue;
 
         int extensions = 0;
 
