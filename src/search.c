@@ -1272,7 +1272,6 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             // find best move within a given position
             score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), position, time, false);
 
-
             if (score == infinity) {
                 // Restore the saved best line
                 memset(position->pvTable, 0, sizeof(position->pvTable));
