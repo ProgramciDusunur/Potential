@@ -765,8 +765,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
+    if (!pos->isSingularMove[pos->ply]) {
+        score = !in_check ? tt_score : score;
+    }
 
-    score = !in_check ? tt_score : score;
 
 
     int raw_eval = evaluate(pos);
