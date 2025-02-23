@@ -11,6 +11,7 @@
                                         Score layot
     [-infinity, mateValue ... mateScore ... score ... mateScore ... mateValue, infinity]
  */
+#define noScore 32001
 #define infinity  32000
 #define mateValue 31000
 #define mateScore 30000
