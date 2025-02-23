@@ -1023,7 +1023,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 extensions -= 1 + !pvNode;
 
                 // Negative Low Depth Extension
-                depth -= (depth < 12 && !pvNode && cutNode && !improving);
+                depth -= (depth < 10 && !pvNode && cutNode && !improving);
             }
         }
 
