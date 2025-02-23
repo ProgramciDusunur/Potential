@@ -857,6 +857,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             return score;
     }
 
+
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
         canPrune && depth <= 5 && static_eval + 200 * depth < alpha) {
