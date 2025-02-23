@@ -753,6 +753,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
     }
 
+    score = tt_score;
+
     // recursion escapre condition
     if (depth <= 0)
         // run quiescence search
@@ -765,12 +767,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                                     pos->side ^ 1, pos);
 
 
-    int raw_eval;
-    if (!pos->isSingularMove[pos->ply]) {
-        raw_eval = in_check ? noScore : (tt_hit ? tt_score : evaluate(pos));
-    } else {
-        raw_eval = evaluate(pos);
-    }
+    int raw_eval = evaluate(pos);
 
 
     int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
