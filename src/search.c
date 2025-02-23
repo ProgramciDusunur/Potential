@@ -771,9 +771,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
 
     if (!pos->isSingularMove[pos->ply]) {
-        static_eval = in_check ? noScore
-                         : tt_hit ? tt_score
-                                   : static_eval;
+        static_eval = in_check ? noScore : (tt_hit ? tt_score : raw_eval);
     }
 
 
