@@ -777,7 +777,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     }
 
 
-
     bool improving = false;
 
     int pastStack = -1;
