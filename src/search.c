@@ -1026,9 +1026,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 // decrement repetition index
                 pos->repetitionIndex--;
 
-                // take move back
-                takeBack(pos, &copyPosition);
-
                 return singularBeta;
             }
 
