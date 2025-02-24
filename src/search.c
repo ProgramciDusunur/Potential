@@ -1024,7 +1024,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
 
             // Fail High Extension
-            else if (static_eval >= beta - 30 * depth + 170 && !pvNode) {
+            else if (static_eval >= beta - 30 * depth + 170) {
                 extensions -= 1;
             }
 
