@@ -767,19 +767,21 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                                     pos->side ^ 1, pos);
 
 
-    if (!pos->isSingularMove[pos->ply] && tt_move && !in_check &&
-        (tt_flag == hashFlagExact ||
-         (tt_flag == hashFlagAlpha && tt_score >= score) ||
-         (tt_flag == hashFlagBeta && tt_score <= score))) {
 
-        score = tt_score;
-    }
 
 
     // get static evaluation score
     int raw_eval = evaluate(pos);
 
     int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
+
+    if (!pos->isSingularMove[pos->ply] && tt_move && !in_check &&
+        (tt_flag == hashFlagExact ||
+         (tt_flag == hashFlagAlpha && tt_score >= static_eval) ||
+         (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
+
+        static_eval = tt_score;
+    }
 
     bool improving = false;
 
