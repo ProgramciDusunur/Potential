@@ -767,7 +767,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                                     pos->side ^ 1, pos);
 
 
-
     if (!pos->isSingularMove[pos->ply] && tt_move && !in_check &&
         (tt_flag == hashFlagExact ||
          (tt_flag == hashFlagAlpha && tt_score >= score) ||
