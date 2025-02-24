@@ -1025,6 +1025,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 // Fail High Extension
                 extensions -= static_eval >= beta;
             }
+
         }
 
         // increment nodes count
