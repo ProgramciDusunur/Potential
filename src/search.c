@@ -753,6 +753,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
     }
 
+
+
     // recursion escapre condition
     if (depth <= 0)
         // run quiescence search
@@ -763,6 +765,16 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
+
+
+
+    if (!pos->isSingularMove[pos->ply] && tt_move && !in_check &&
+        (tt_flag == hashFlagExact ||
+         (tt_flag == hashFlagAlpha && tt_score >= score) ||
+         (tt_flag == hashFlagBeta && tt_score <= score))) {
+
+        score = tt_score;
+    }
 
 
     // get static evaluation score
