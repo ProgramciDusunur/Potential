@@ -799,15 +799,14 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     uint16_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
 
-
     // reverse futility pruning
     if (!pos->isSingularMove[pos->ply] &&
         depth <= 5 && !pvNode && !in_check && !tt_hit && static_eval - rfpMargin >= beta)
         return static_eval;
 
     // null move pruning
-    if (!pos->isSingularMove[pos->ply] &&
-        depth >= nullMoveDepth && in_check == 0 && !rootNode &&
+    if (!pos->isSingularMove[pos->ply] && !pvNode &&
+        depth >= nullMoveDepth && !in_check && !rootNode &&
             static_eval >= beta &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
@@ -833,6 +832,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         pos->hashKey ^= sideKey;
 
         int R = 3 + depth / 3;
+
+        R += myMIN((static_eval - beta) / 400, 3);
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
