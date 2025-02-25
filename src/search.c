@@ -664,7 +664,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             bestScore = score;
             // found a better move
             if (score > alpha) {
-                //bestMove = moveList->moves[count];
+                bestMove = moveList->moves[count];
 
                 //hashFlag = hashFlagExact;
                 alpha = score;
