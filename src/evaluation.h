@@ -97,7 +97,7 @@ extern const int passedCanMoveBonus;
 
 
 int get_game_phase_score(board* position);
-int evaluate(board* position);
+int evaluate(board* pos);
 void clearStaticEvaluationHistory(board* position);
 
 #endif //POTENTIAL_EVALUATION_H
