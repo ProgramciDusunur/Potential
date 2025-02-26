@@ -805,10 +805,20 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         depth <= 5 && !pvNode && !in_check && !tt_hit && static_eval - rfpMargin >= beta)
         return static_eval;
 
+    int ttAdjustedEval = static_eval;
+
+    if (!pos->isSingularMove[pos->ply] && tt_move && !in_check &&
+        (tt_flag == hashFlagExact ||
+         (tt_flag == hashFlagAlpha && tt_score >= static_eval) ||
+         (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
+
+        ttAdjustedEval = tt_score;
+    }
+
     // null move pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= nullMoveDepth && !in_check && !rootNode &&
-            static_eval >= beta &&
+            ttAdjustedEval >= beta &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
         // preserve board state
