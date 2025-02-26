@@ -200,7 +200,7 @@ int quiescenceScoreMove(int move, board* position) {
     return 0;
 }
 
-void quiescence_sort_moves(moves *moveList, board* position) {
+void quiescence_sort_moves(moves *moveList, board* position, int tt_move) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -211,9 +211,9 @@ void quiescence_sort_moves(moves *moveList, board* position) {
         int current_score;
 
         // if hash move available
-        /*if (bestMove == current_move)
+        if (tt_move == current_move)
             current_score = 2000000000;
-        else*/
+        else
         current_score = quiescenceScoreMove(current_move, position);
 
         // Find the correct position to insert the current move
@@ -547,12 +547,9 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     int score = 0, bestScore = 0;
 
-    //int pvNode = beta - alpha > 1;
+    int pvNode = beta - alpha > 1;
 
     //int rootNode = position->ply == 0;
-
-    // best move (to store in TT)
-    //int bestMove = 0;
 
 
     int bestMove = 0;
@@ -565,7 +562,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // read hash entry
     if (position->ply &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag)) &&
+                 !pvNode) {
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
@@ -601,7 +599,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     // sort moves
     if (moveList->count > 0) {
-        quiescence_sort_moves(moveList, position);
+        quiescence_sort_moves(moveList, position, tt_move);
     }
 
 
@@ -664,7 +662,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             bestScore = score;
             // found a better move
             if (score > alpha) {
-                //bestMove = moveList->moves[count];
+                bestMove = moveList->moves[count];
 
                 //hashFlag = hashFlagExact;
                 alpha = score;
