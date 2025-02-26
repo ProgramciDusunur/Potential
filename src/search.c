@@ -815,6 +815,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         ttAdjustedEval = tt_score;
     }
 
+
     // null move pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= nullMoveDepth && !in_check && !rootNode &&
