@@ -7,6 +7,7 @@
 #define POTENTIAL_STRUCTS_H
 
 #include "stdint.h"
+#include <stdbool.h>
 
 #ifndef U64
 #define U64 unsigned long long
@@ -39,6 +40,8 @@ typedef struct {
 
     int followPv;
     int scorePv;
+
+    bool inCheck;
 
     //int depth;
     U64 hashKey;

@@ -764,6 +764,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
 
+    pos->inCheck = in_check;
+
 
     // get static evaluation score
     int raw_eval = evaluate(pos);
@@ -1057,6 +1059,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // Reduce More
             if (!improving) {
                 lmrReduction += 1;
+            }
+
+            // Reduce Less
+            if (in_check) {
+                lmrReduction -= 1;
             }
 
 
