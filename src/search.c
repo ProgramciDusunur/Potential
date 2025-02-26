@@ -800,10 +800,22 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     uint16_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
 
+    int ttAdjustedEval = static_eval;
+
+    if (!pos->isSingularMove[pos->ply] && tt_move && !in_check &&
+        (tt_flag == hashFlagExact ||
+         (tt_flag == hashFlagAlpha && tt_score >= static_eval) ||
+         (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
+
+        ttAdjustedEval = tt_score;
+    }
+
     // reverse futility pruning
     if (!pos->isSingularMove[pos->ply] &&
-        depth <= 5 && !pvNode && !in_check && !tt_hit && static_eval - rfpMargin >= beta)
-        return static_eval;
+        depth <= 5 && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
+        ttAdjustedEval - rfpMargin >= beta)
+        return ttAdjustedEval;
+
 
     // null move pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
