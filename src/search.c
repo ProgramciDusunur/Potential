@@ -814,12 +814,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // reverse futility pruning
     if (!pos->isSingularMove[pos->ply] &&
         depth <= 5 && !pvNode && !in_check && !tt_hit && static_eval - rfpMargin >= beta)
-        return ttAdjustedEval;
+        return static_eval;
 
     // null move pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= nullMoveDepth && !in_check && !rootNode &&
-            static_eval >= beta &&
+            ttAdjustedEval >= beta &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
         // preserve board state
