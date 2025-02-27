@@ -870,9 +870,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             return score;
     }
 
+    uint16_t razoringMargin = improving ? 160 * (depth - 1) : 200 * depth;
+
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
-        canPrune && depth <= 3 && static_eval + 200 * depth < alpha) {
+        canPrune && depth <= 3 && razoringMargin < alpha) {
         int razoringScore = quiescence(alpha, beta, pos, time);
         if (razoringScore <= alpha) {
             return razoringScore;
