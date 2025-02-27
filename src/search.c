@@ -1040,7 +1040,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             else if (abs(static_eval - raw_eval) < 10) {
                 extensions -= 1;
             }
-
         }
 
         // increment nodes count
