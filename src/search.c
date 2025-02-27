@@ -1038,7 +1038,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
 
             // Corrplexity Extension
-            else if (abs(static_eval - raw_eval) < 5 * depth) {
+            else if (abs(static_eval - raw_eval) < 2 * depth) {
                 extensions -= 1;
             }
         }
