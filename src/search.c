@@ -89,6 +89,29 @@ int scoreMove(int move, board* position) {
         return 1500000000;
     }
 
+    int isPromotionMove = getMovePromoted(move);
+    // score promotion move
+    if (isPromotionMove) {
+        switch (isPromotionMove) {
+            case q:
+            case Q:
+                return 1400000001;
+                break;
+            case n:
+            case N:
+                return 1400000000;
+                break;
+            default:
+                return -1000000;
+                break;
+        }
+        if (getMoveCapture(move) && SEE(position, move, SEE_MOVE_ORDER_THRESHOLD)) {
+            return 0;
+        } else {
+            return -1000000;
+        }
+    }
+
     // score capture move
     if (getMoveCapture(move)) {
         int captureScore = 0;
