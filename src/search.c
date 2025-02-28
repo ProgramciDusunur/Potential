@@ -90,6 +90,7 @@ int scoreMove(int move, board* position) {
     }
 
     int isPromotionMove = getMovePromoted(move);
+
     // score promotion move
     if (isPromotionMove) {
         switch (isPromotionMove) {
