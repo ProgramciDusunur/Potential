@@ -551,9 +551,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     //int rootNode = position->ply == 0;
 
-    // best move (to store in TT)
-    //int bestMove = 0;
-
 
     int bestMove = 0;
     int tt_move = 0;
