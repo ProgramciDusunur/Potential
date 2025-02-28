@@ -1058,62 +1058,41 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         int new_depth = depth - 1 + extensions;
 
-        // full-depth search
-        if (moves_searched == 0) {
-            // do normal alpha beta search
-            score = -negamax(-beta, -alpha, new_depth, pos, time, false);
-        } else {
-            int lmrReduction = getLmrReduction(depth, legal_moves);
+        int lmrReduction = getLmrReduction(depth, legal_moves);
 
-            /* All Moves */
+        /* All Moves */
 
+        // Reduce More
+        if (!improving) {
+            lmrReduction += 1;
+        }
+
+
+        if (isQuiet) {
 
             // Reduce More
-            if (!improving) {
+            if (!pvNode && quietMoves >= 4) {
                 lmrReduction += 1;
             }
 
-
-            if (isQuiet) {
-
-                // Reduce More
-                if (!pvNode && quietMoves >= 4) {
-                    lmrReduction += 1;
-                }
-
-            }
-
-
-            // condition to consider LMR
-            if(moves_searched >= lmr_full_depth_moves &&
-               depth >= lmr_reduction_limit) {
-                // search current move with reduced depth:
-                score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, pos, time, true);
-            } else {
-                // hack to ensure that full-depth search is done
-                score = alpha + 1;
-            }
-
-            // principle variation search PVS
-            if (score > alpha) {
-                /* Once you've found a move with a score that is between alpha and beta,
-                   the rest of the moves are searched with the goal of proving that they are all bad.
-                   It's possible to do this a bit faster than a search that worries that one
-                   of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, depth - 1, pos, time, true);
-
-                /* If the algorithm finds out that it was wrong, and that one of the
-                   subsequent moves was better than the first PV move, it has to search again,
-                   in the normal alpha-beta manner.  This happens sometimes, and it's a waste of time,
-                   but generally not often enough to counteract the savings gained from doing the
-                   "bad move proof" search referred to earlier. */
-                if((score > alpha) && (score < beta))
-                    /* re-search the move that has failed to be proved to be bad
-                       with normal alpha beta score bounds*/
-                    score = -negamax(-beta, -alpha, depth - 1, pos, time, false);
-            }
-
         }
+
+
+
+        if(moves_searched >= lmr_full_depth_moves &&
+           depth >= lmr_reduction_limit) {
+            score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, pos, time, true);
+        }
+        else if (!pvNode || legal_moves > 1) {
+            // do normal alpha beta search
+            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+        }
+
+        if (pvNode && (legal_moves == 1 || score > alpha)) {
+            score = -negamax(-beta, -alpha, new_depth, pos, time, false);
+        }
+
+
 
 
         // decrement ply
