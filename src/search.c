@@ -1077,8 +1077,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         }
 
-
-
         if(moves_searched >= lmr_full_depth_moves &&
            depth >= lmr_reduction_limit) {
             score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, pos, time, true);
@@ -1091,8 +1089,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (pvNode && (legal_moves == 1 || score > alpha)) {
             score = -negamax(-beta, -alpha, new_depth, pos, time, false);
         }
-
-
 
 
         // decrement ply
