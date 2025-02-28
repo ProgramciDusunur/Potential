@@ -645,6 +645,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         // increment nodes count
         searchNodes++;
 
+        prefetch_hash_entry(position->hashKey);
+
         // score current move
         score = -quiescence(-beta, -alpha, position, time);
 
@@ -842,6 +844,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // hash the side
         pos->hashKey ^= sideKey;
+
+        prefetch_hash_entry(pos->hashKey);
 
         int R = 3 + depth / 3;
 
@@ -1043,6 +1047,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (isQuiet) {
             addMoveToHistoryList(badQuiets, currentMove);
         }
+
+        prefetch_hash_entry(pos->hashKey);
 
         // increment legal moves
         legal_moves++;
