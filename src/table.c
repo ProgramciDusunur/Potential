@@ -154,6 +154,11 @@ uint32_t get_hash_low_bits(uint64_t hash) {
     return (uint32_t)hash;
 }
 
+void prefetch_hash_entry(uint64_t hash_key) {
+    const uint64_t index = get_hash_index(hash_key);
+    __builtin_prefetch(&hashTable[index]);
+}
+
 
 void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position) {
     // create a TT instance pointer to particular hash entry storing

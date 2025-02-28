@@ -32,6 +32,7 @@ extern tt *hashTable;
 U64 generateHashKey(board* position);
 uint64_t get_hash_index(uint64_t hash);
 uint32_t get_hash_low_bits(uint64_t hash);
+void prefetch_hash_entry(uint64_t hash_key);
 void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position);
 int readHashEntry(board *position, int *move, int16_t *tt_score,
                   uint8_t *tt_depth, uint8_t *tt_flag);
