@@ -1101,7 +1101,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                    the rest of the moves are searched with the goal of proving that they are all bad.
                    It's possible to do this a bit faster than a search that worries that one
                    of the remaining moves might be good. */
-                score = -negamax(-alpha - 1, -alpha, depth - 1, pos, time, false);
+                score = -negamax(-alpha - 1, -alpha, depth - 1, pos, time, true);
 
                 /* If the algorithm finds out that it was wrong, and that one of the
                    subsequent moves was better than the first PV move, it has to search again,
