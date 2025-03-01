@@ -17,8 +17,10 @@ U64 bishopAttacks[64][512];
 // Rook attack table [square][occupancies]
 U64 rookAttacks[64][4096];
 
-
-
+// Make sure the move isn't capture or promotion
+bool isTactical(int move) {
+    return getMoveCapture(move) || getMovePromoted(move);
+}
 
 
 void copyBoard(board *p, struct copyposition *cp) {

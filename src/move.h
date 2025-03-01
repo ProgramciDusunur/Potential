@@ -12,6 +12,7 @@
 #include "mask.h"
 #include "magic.h"
 #include "table.h"
+#include <stdbool.h>
 
 // encode move
 #define encodeMove(source, target, piece, promoted, capture, double, enpassant, castling) \
@@ -59,6 +60,7 @@ extern U64 rookAttacks[64][4096];
 void copyBoard(board *p, struct copyposition *cp);
 void takeBack(board *p, struct copyposition *cp);
 void addMove(moves *moveList, int move);
+bool isTactical(int move);
 U64 getBishopAttacks(int square, U64 occupancy);
 U64 getRookAttacks(int square, U64 occupancy);
 U64 getQueenAttacks(int square, U64 occupancy);
