@@ -818,7 +818,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // null move pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= nullMoveDepth && !in_check && !rootNode &&
-            static_eval >= beta + 75 - 12 * depth &&
+            static_eval >= beta + 75 - 7 * depth &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
         // preserve board state
