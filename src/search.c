@@ -1076,7 +1076,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction += 1;
         }
 
-
         if (isQuiet) {
 
             // Reduce More
