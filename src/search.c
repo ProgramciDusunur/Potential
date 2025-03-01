@@ -1096,7 +1096,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
         else if (!pvNode || legal_moves > 1) {
-            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !pvNode ? true : !cutNode);
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
