@@ -935,24 +935,32 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         bool isNotMated = bestScore > -mateScore;
 
-        if (!rootNode && isQuiet && isNotMated) {
+        if (!rootNode && isNotMated) {
 
-            int lmpBase = 4;
-            int lmpMultiplier = 3;
-            int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
+            if (isQuiet) {
+                int lmpBase = 4;
+                int lmpMultiplier = 3;
+                int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
 
-            if (legal_moves>= lmpThreshold) {
-                skipQuiet = 1;
+                if (legal_moves>= lmpThreshold) {
+                    skipQuiet = 1;
+                }
+
+                if (canPrune && depth <= 4 && static_eval + 82 * depth <= alpha) {
+                    skipQuiet = 1;
+                }
             }
 
-            if (canPrune && depth <= 4 && static_eval + 82 * depth <= alpha) {
-                skipQuiet = 1;
+            if (!isMoveTactical) {
+                // Quiet History Pruning
+                if (canPrune && depth <= 2 && moveHistory < depth * -2048) {
+                    break;
+                }
             }
 
-            // Quiet History Pruning
-            if (canPrune && depth <= 2 && moveHistory < depth * -2048) {
-                break;
-            }
+
+
+
         }
 
         // SEE PVS Pruning
@@ -1042,7 +1050,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // increment nodes count
         searchNodes++;
 
-        if (!isMoveTactical) {
+        if (isQuiet) {
             addMoveToHistoryList(badQuiets, currentMove);
         }
 
@@ -1137,7 +1145,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
-                    if (!isMoveTactical) {
+                    if (isQuiet) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
