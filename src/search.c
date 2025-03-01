@@ -923,7 +923,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         bool isQuiet = !isTactical(currentMove);
 
-
         if (skipQuiet && isQuiet) {
             skipQuiet = 0;
             continue;
