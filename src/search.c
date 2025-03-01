@@ -957,10 +957,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     break;
                 }
             }
-
-
-
-
         }
 
         // SEE PVS Pruning
