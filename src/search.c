@@ -921,7 +921,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             continue;
         }
 
-        bool isQuiet = !isTactical(currentMove);
+        bool isQuiet = getMoveCapture(currentMove) == 0;
+
+        bool isMoveTactical = isTactical(currentMove);
 
         if (skipQuiet && isQuiet) {
             skipQuiet = 0;
@@ -1040,7 +1042,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // increment nodes count
         searchNodes++;
 
-        if (isQuiet) {
+        if (!isMoveTactical) {
             addMoveToHistoryList(badQuiets, currentMove);
         }
 
@@ -1049,7 +1051,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // increment legal moves
         legal_moves++;
 
-        if (isQuiet) {
+        if (!isMoveTactical) {
             quietMoves++;
         } else {
             //captureMoves++;
@@ -1067,7 +1069,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
 
-        if (isQuiet) {
+        if (!isMoveTactical) {
 
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
