@@ -1137,7 +1137,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
-                    if (isQuiet) {
+                    if (!isMoveTactical) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
