@@ -19,6 +19,9 @@ U64 whitePassedMasks[64];
 // black passed pawn masks [square]
 U64 blackPassedMasks[64];
 
+// connected pawn masks [side][square]
+U64 connectedMask[2][64];
+
 
 // Rook attack masks rookMask[square]
 U64 rookMask[64];
@@ -243,7 +246,7 @@ U64 setFileRankMask(int file_number, int rank_number) {
 }
 
 
-void initEvaluationMasks() {
+void initEvaluationMasks(void) {
     // loop over ranks
     for (int rank = 0; rank < 8; rank++)
     {
@@ -336,5 +339,23 @@ void initEvaluationMasks() {
                 blackPassedMasks[square] &= ~rankMasks[i * 8 + file];
         }
     }
+
+    // init connected masks
+    for (int rank = 1; rank < 7; rank++) {
+        for (int file = 0; file < 8; file++) {
+            int square = rank * 8 + file;
+            if (file > 0 && file < 7) {
+                connectedMask[white][square] |= ((fileMasks[square - 1] | fileMasks[square + 1]) & (rankMasks[square] | rankMasks[square + 8]));
+                connectedMask[black][square] |= ((fileMasks[square - 1] | fileMasks[square + 1]) & (rankMasks[square] | rankMasks[square - 8]));
+            } else if (file == 0) {
+                connectedMask[white][square] |= (fileMasks[square + 1] & (rankMasks[square] | rankMasks[square + 8]));
+                connectedMask[black][square] |= (fileMasks[square + 1] & (rankMasks[square] | rankMasks[square - 8]));
+            } else if (file == 7) {
+                connectedMask[white][square] |= (fileMasks[square - 1] & (rankMasks[square] | rankMasks[square + 8]));
+                connectedMask[black][square] |= (fileMasks[square - 1] & (rankMasks[square] | rankMasks[square - 8]));
+            }
+        }
+    }
+
 }
 

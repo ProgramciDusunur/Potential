@@ -26,6 +26,9 @@ extern U64 whitePassedMasks[64];
 // black passed pawn masks [square]
 extern U64 blackPassedMasks[64];
 
+// connected pawn masks [side][square]
+extern U64 connectedMask[2][64];
+
 
 // Rook attack masks rookMask[square]
 extern U64 rookMask[64];
@@ -43,7 +46,7 @@ U64 maskRookAttacks(int square);
 U64 rookAttack(int square, U64 block);
 U64 get_attackers(const board *pos, int square, int side);
 U64 setFileRankMask(int file_number, int rank_number);
-void initEvaluationMasks();
+void initEvaluationMasks(void);
 
 
 #endif //POTENTIAL_MASK_H
