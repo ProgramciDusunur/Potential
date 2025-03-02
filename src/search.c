@@ -1050,9 +1050,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 return singularBeta;
             }
-
-
-                // Negative Extension
+            // Negative Extension
             else if (tt_score >= beta) {
                 extensions -= 1 + !pvNode;
             }
