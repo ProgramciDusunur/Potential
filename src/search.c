@@ -1256,7 +1256,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             time->stopped = 1;
         }
 
-        int window = 9;
+        int window = 30;
         int aspirationWindowDepth = current_depth;
 
         while (true) {
