@@ -789,10 +789,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         pos->improvingRate[pos->ply] = fmin(fmax(pos->improvingRate[pos->ply] + diff / 50, (-1.0)), 1.0);
     }
 
+    bool doShallowerIIR = depth >= 10 + 3 * pos->nmpNode && score < alpha + 2 * (depth / 2);
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode || !improving) && depth >= 8 && (!tt_move || tt_depth < depth - 3)) {
-        depth--;
+        depth -= 1 + doShallowerIIR;
     }
 
     bool canPrune = in_check == 0 && pvNode == 0;
@@ -848,9 +849,13 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         R += myMIN((static_eval - beta) / 400, 3);
 
+        pos->nmpNode = true;
+
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
         score = -negamax(-beta, -beta + 1, depth - R, pos, time, !cutNode);
+
+        pos->nmpNode = false;
 
         // decrement ply
         pos->ply--;
