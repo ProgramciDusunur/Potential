@@ -1154,7 +1154,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                         if (rootNode) {
                             updateRootHistory(pos, bestMove, historyDepth, badQuiets);
                         }
-
                     }
 
                     // node (move) fails high
