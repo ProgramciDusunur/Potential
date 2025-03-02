@@ -1084,7 +1084,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
-        lmrReduction = clamp(lmrReduction, 1, new_depth);
+        lmrReduction = clamp(lmrReduction, 0, new_depth - 1);
 
         if(moves_searched >= lmr_full_depth_moves &&
            depth >= lmr_reduction_limit) {
