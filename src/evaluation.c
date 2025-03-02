@@ -659,8 +659,6 @@ int evaluate(board* position) {
 
                     // Knight Outpost Bonus
                     if (!(position->bitboards[P] & (blackPassedMasks[square] & isolatedMasks[square]))) {
-
-
                         // check corners to avoid wrong patterns
                         bool pawnHoleCheck = pawnHoleSquareCheck[square];
 
