@@ -789,9 +789,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         pos->improvingRate[pos->ply] = fmin(fmax(pos->improvingRate[pos->ply] + diff / 50, (-1.0)), 1.0);
     }
 
-    bool doShallowerIIR = depth >= 10 + 3 * pos->nmpNode && score < alpha + 2 * (depth / 2);
 
     // Internal Iterative Reductions
+    bool doShallowerIIR = depth >= 10 + 3 * pos->nmpNode && score < alpha + 2 * (depth / 2);
+
     if ((pvNode || cutNode || !improving) && depth >= 8 && (!tt_move || tt_depth < depth - 3)) {
         depth -= 1 + doShallowerIIR;
     }
