@@ -1011,7 +1011,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 // Double Extension
                 if (!pvNode && singularScore <= singularBeta - 20) {
                     extensions++;
-
                 }
 
                 // Triple Extension
@@ -1168,8 +1167,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
             !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
             !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
-            printf("Correction History Bonus: %d\n", bestScore - static_eval);
-
             updatePawnCorrectionHistory(pos, depth, bestScore - static_eval);
             updateMinorCorrectionHistory(pos, depth, bestScore - static_eval);
             update_non_pawn_corrhist(pos, depth, bestScore - static_eval);
@@ -1177,7 +1174,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // store hash entry with the score equal to alpha
         writeHashEntry(bestScore, bestMove, depth, hashFlag, pos);
-
     }
 
     // node (move) fails low
