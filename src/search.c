@@ -830,7 +830,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         int R = 3 + depth / 3;
 
-        R += myMIN((ttAdjustedEval - beta) / 400, 3);
+        R += myMIN((static_eval - beta) / 400, 3);
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
