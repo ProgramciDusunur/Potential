@@ -984,7 +984,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (!rootNode && depth >= 7 && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
             tt_depth >= depth - 3 && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateScore) {
-            const int singularBeta = tt_score - depth * 5 / 8;
+            const int singularBeta = tt_score - depth;
             const int singularDepth = (depth - 1) / 2;
 
             // decrement ply
@@ -1017,7 +1017,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Triple Extension
-                if (!getMoveCapture(currentMove) && singularScore + 40 < singularBeta) {
+                if (!getMoveCapture(currentMove) && singularScore + 80 < singularBeta) {
                     extensions++;
                 }
 
