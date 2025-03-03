@@ -576,7 +576,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     evaluation = adjustEvalWithCorrectionHistory(position, evaluation);
 
-    score = bestScore = tt_hit ? tt_score : evaluation + beta;
+    score = bestScore = tt_hit ? tt_score : evaluation;
 
     // fail-hard beta cutoff
     if (evaluation >= beta) {
