@@ -33,8 +33,6 @@ typedef struct {
 
     int staticEval[maxPly];
 
-    double improvingRate[maxPly];
-
     int isSingularMove[maxPly];
 
     int followPv;
