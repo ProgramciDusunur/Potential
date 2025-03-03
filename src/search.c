@@ -579,16 +579,16 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     score = bestScore = tt_hit ? tt_score : evaluation;
 
     // fail-hard beta cutoff
-    if (evaluation >= beta) {
+    if (bestScore >= beta) {
         // node (move) fails high
-        return evaluation;
+        return bestScore;
     }
 
 
     // found a better move
-    if (evaluation > alpha) {
+    if (bestScore > alpha) {
         // PV node (move)
-        alpha = evaluation;
+        alpha = bestScore;
     }
 
     // create move list instance
