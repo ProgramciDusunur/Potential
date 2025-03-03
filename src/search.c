@@ -775,27 +775,16 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     pos->staticEval[pos->ply] = static_eval;
 
-    pos->improvingRate[pos->ply] = 0.0;
+    pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval  ?  pos->ply - 2 : -1;
 
-    if (pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval) {
-        pastStack = pos->ply - 2;
-    } else if (pos->ply >= 4 && pos->staticEval[pos->ply - 4] != noEval) {
-        pastStack = pos->ply - 4;
-    }
 
-    if (pastStack > -1 && !in_check) {
-        improving = pos->staticEval[pos->ply] > pos->staticEval[pastStack];
-        const double diff = pos->staticEval[pos->ply] - pos->staticEval[pastStack];
-        pos->improvingRate[pos->ply] = fmin(fmax(pos->improvingRate[pos->ply] + diff / 50, (-1.0)), 1.0);
-    }
+    improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
 
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode || !improving) && depth >= 8 && (!tt_move || tt_depth < depth - 3)) {
         depth--;
     }
-
-    bool canPrune = in_check == 0 && pvNode == 0;
 
     uint16_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
 
@@ -873,7 +862,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
-        canPrune && depth <= 3 && static_eval + 200 * depth < alpha) {
+        !pvNode && !in_check && depth <= 3 && static_eval + 200 * depth < alpha) {
         int razoringScore = quiescence(alpha, beta, pos, time);
         if (razoringScore <= alpha) {
             return razoringScore;
@@ -946,21 +935,17 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     skipQuiet = 1;
                 }
 
-                if (canPrune && depth <= 4 && static_eval + 82 * depth <= alpha) {
+                if (depth <= 4 && !pvNode && !in_check && static_eval + 82 * depth <= alpha) {
                     skipQuiet = 1;
                 }
             }
 
             if (!isMoveTactical) {
                 // Quiet History Pruning
-                if (canPrune && depth <= 2 && moveHistory < depth * -2048) {
+                if (depth <= 2 && !pvNode && !in_check && moveHistory < depth * -2048) {
                     break;
                 }
             }
-
-
-
-
         }
 
         // SEE PVS Pruning
@@ -1176,25 +1161,27 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             return 0;
     }
 
-    uint8_t hashFlag = hashFlagExact;
-    if (alpha >= beta) {
-        hashFlag = hashFlagAlpha;
-    } else if (alpha <= originalAlpha) {
-        hashFlag = hashFlagBeta;
-    }
 
-    if (!pos->isSingularMove[pos->ply] && !in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
-    !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
-    !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
-        updatePawnCorrectionHistory(pos, depth, bestScore - static_eval);
-        updateMinorCorrectionHistory(pos, depth, bestScore - static_eval);
-        update_non_pawn_corrhist(pos, depth, bestScore - static_eval);
-    }
     if (!pos->isSingularMove[pos->ply]) {
+        uint8_t hashFlag = hashFlagExact;
+        if (alpha >= beta) {
+            hashFlag = hashFlagAlpha;
+        } else if (alpha <= originalAlpha) {
+            hashFlag = hashFlagBeta;
+        }
+
+        if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
+            !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
+            !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
+            updatePawnCorrectionHistory(pos, depth, bestScore - static_eval);
+            updateMinorCorrectionHistory(pos, depth, bestScore - static_eval);
+            update_non_pawn_corrhist(pos, depth, bestScore - static_eval);
+        }
+
         // store hash entry with the score equal to alpha
         writeHashEntry(bestScore, bestMove, depth, hashFlag, pos);
-    }
 
+    }
 
     // node (move) fails low
     return bestScore;
