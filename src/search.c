@@ -581,7 +581,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // fail-hard beta cutoff
     if (evaluation >= beta) {
         // node (move) fails high
-        return (evaluation + beta) / 2;
+        return tt_hit ? evaluation : (evaluation + beta) / 2;
     }
 
     // found a better move
