@@ -702,6 +702,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // variable to store current move's score (from the static evaluation perspective)
     int score = 0;
 
+
     if ((searchNodes & 2047) == 0) {
         communicate(time);
     }
