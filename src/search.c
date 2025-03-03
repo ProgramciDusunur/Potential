@@ -1148,10 +1148,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     if (isQuiet) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
-                        updateQuietMoveHistory(bestMove, pos->side, depth + (bestScore > beta + 50), badQuiets);
+                        uint8_t historyDepth = depth + (bestScore > beta + 70);
+                        updateQuietMoveHistory(bestMove, pos->side, historyDepth, badQuiets);
 
                         if (rootNode) {
-                            updateRootHistory(pos, bestMove, depth + (bestScore > beta + 80), badQuiets);
+                            updateRootHistory(pos, bestMove, depth, badQuiets);
                         }
                     }
 
