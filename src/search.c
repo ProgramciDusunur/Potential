@@ -699,13 +699,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // init PV length
     pos->pvLength[pos->ply] = pos->ply;
 
-
     // variable to store current move's score (from the static evaluation perspective)
     int score = 0;
-
-
-
-
 
     if ((searchNodes & 2047) == 0) {
         communicate(time);
@@ -806,7 +801,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // null move pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= nullMoveDepth && !in_check && !rootNode &&
-            static_eval >= beta &&
+            ttAdjustedEval >= beta &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
         // preserve board state
@@ -834,7 +829,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         int R = 3 + depth / 3;
 
-        R += myMIN((static_eval - beta) / 400, 3);
+        R += myMIN((ttAdjustedEval - beta) / 400, 3);
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
