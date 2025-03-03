@@ -1060,9 +1060,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         // Reduce Less
-        if (pvNode) {
-            lmrReduction -= 1;
+        if (!pvNode) {
+            lmrReduction += 1;
         }
+
 
 
         if(moves_searched >= lmr_full_depth_moves &&
