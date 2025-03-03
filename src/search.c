@@ -1065,12 +1065,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
 
-        if (isQuiet) {
-
-
-
-        }
-
         if(moves_searched >= lmr_full_depth_moves &&
            depth >= lmr_reduction_limit) {
 
