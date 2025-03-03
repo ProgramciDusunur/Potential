@@ -1027,7 +1027,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             // Cut Node Extension
             else if (cutNode) {
-                extensions -= 1;
+                extensions -= 2;
             }
 
         }
