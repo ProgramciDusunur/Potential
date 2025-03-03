@@ -587,7 +587,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         return bestScore;
     }
 
-
     // found a better move
     if (bestScore > alpha) {
         // PV node (move)
