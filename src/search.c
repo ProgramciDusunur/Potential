@@ -26,6 +26,7 @@ const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
 
 int CORRHIST_WEIGHT_SCALE = 256;
 int CORRHIST_GRAIN = 256;
+int CORRHIST_LIMIT = 1024;
 int CORRHIST_SIZE = 16384;
 int CORRHIST_MAX = 16384;
 
@@ -1157,6 +1158,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
 
     if (!pos->isSingularMove[pos->ply]) {
+
         uint8_t hashFlag = hashFlagExact;
         if (alpha >= beta) {
             hashFlag = hashFlagAlpha;
@@ -1167,9 +1169,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
             !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
             !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
-            updatePawnCorrectionHistory(pos, depth, bestScore - static_eval);
-            updateMinorCorrectionHistory(pos, depth, bestScore - static_eval);
-            update_non_pawn_corrhist(pos, depth, bestScore - static_eval);
+            int corrhistBonus = clamp(bestScore - static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
+            updatePawnCorrectionHistory(pos, depth, corrhistBonus);
+            updateMinorCorrectionHistory(pos, depth, corrhistBonus);
+            update_non_pawn_corrhist(pos, depth, corrhistBonus);
         }
 
         // store hash entry with the score equal to alpha
