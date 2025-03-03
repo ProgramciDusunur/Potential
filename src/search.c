@@ -1008,13 +1008,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // Singular Extension
             if (singularScore < singularBeta) {
                 extensions++;
-
                 // Double Extension
-                if (!pvNode && score <= singularBeta - 20) {
+                if (!pvNode && singularScore <= singularBeta - 20) {
                     extensions++;
-
-                    // Low Depth Extension
-                    depth += depth < 8;
                 }
 
                 // Triple Extension
@@ -1178,7 +1174,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // store hash entry with the score equal to alpha
         writeHashEntry(bestScore, bestMove, depth, hashFlag, pos);
-
     }
 
     // node (move) fails low
