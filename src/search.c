@@ -901,6 +901,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     const int originalAlpha = alpha;
 
+    bool noisyTTMove = tt_move && isTactical(tt_move);
+
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
         int currentMove = moveList->moves[count];
@@ -1055,6 +1057,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (!improving) {
             lmrReduction += 1;
         }
+
+        if (noisyTTMove) {
+            lmrReduction += 1;
+        }
+
+
 
 
         if (isQuiet) {
