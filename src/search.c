@@ -548,7 +548,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     int score = 0, bestScore = 0;
 
-    //int pvNode = beta - alpha > 1;
+    int pvNode = beta - alpha > 1;
 
     //int rootNode = position->ply == 0;
 
@@ -559,11 +559,12 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
+    bool tt_pv = pvNode;
 
     // read hash entry
     if (position->ply &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag))) {
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv))) {
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
@@ -687,7 +688,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
 
     // store hash entry with the score equal to alpha
-    writeHashEntry(bestScore, bestMove, 0, hashFlag, position);
+    writeHashEntry(bestScore, bestMove, 0, hashFlag, tt_pv, position);
 
     // node (move) fails low
     return bestScore;
@@ -722,6 +723,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
+    bool tt_pv = pvNode;
 
     if (!rootNode) {
 
@@ -740,18 +742,17 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // read hash entry
     if (!pos->isSingularMove[pos->ply] && !rootNode &&
         (tt_hit =
-                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag)) &&
+                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv)) &&
                 !pvNode) {
         if (tt_depth >= depth) {
-
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
                 ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
                 return tt_score;
             }
-
         }
     }
+
 
     // recursion escapre condition
     if (depth <= 0)
@@ -1056,6 +1057,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction += 1;
         }
 
+        // Reduce Less
+        if (tt_pv) {
+            lmrReduction -= 1;
+        }
 
         if (isQuiet) {
 
@@ -1176,7 +1181,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         // store hash entry with the score equal to alpha
-        writeHashEntry(bestScore, bestMove, depth, hashFlag, pos);
+        writeHashEntry(bestScore, bestMove, depth, hashFlag, tt_pv, pos);
     }
 
     // node (move) fails low

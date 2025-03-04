@@ -160,7 +160,7 @@ void prefetch_hash_entry(uint64_t hash_key) {
 }
 
 
-void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* position) {
+void writeHashEntry(int16_t score, int bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
     tt *hashEntry = &hashTable[get_hash_index(position->hashKey)];
@@ -176,11 +176,12 @@ void writeHashEntry(int score, int bestMove, int depth, int hashFlag, board* pos
     hashEntry->flag = hashFlag;
     hashEntry->depth = depth;
     hashEntry->bestMove = bestMove;
+    hashEntry->ttPv = ttPv;
 }
 
 // read hash entry data
 int readHashEntry(board *position, int *move, int16_t *tt_score,
-                    uint8_t *tt_depth, uint8_t *tt_flag) {
+                    uint8_t *tt_depth, uint8_t *tt_flag, bool *tt_pv) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
     tt *hashEntry = &hashTable[get_hash_index(position->hashKey)];
@@ -200,6 +201,7 @@ int readHashEntry(board *position, int *move, int16_t *tt_score,
         *tt_score = score;
         *tt_depth = hashEntry->depth;
         *tt_flag = hashEntry->flag;
+        *tt_pv = hashEntry->ttPv;
 
         return 1;
 
@@ -222,6 +224,7 @@ void clearHashTable(void) {
         hash_entry->flag = 0;
         hash_entry->score = 0;
         hash_entry->bestMove = 0;
+        hash_entry->ttPv = 0;
     }
 }
 
