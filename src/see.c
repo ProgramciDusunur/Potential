@@ -80,7 +80,7 @@ char* suitFens[71] = {
         "r1bqk1nr/pppp1ppp/2n5/1B2p3/1b2P3/5N2/PPPP1PPP/RNBQK2R w KQkq -",
 };
 
-int seeSuitThresholds[71] = {
+int suitThresholds[71] = {
         -100, 0,0,0,0,100,0,-500,-500,200,
         200,800,200,-100,0,0,100,100,0,0,
         100,500,500,300,-200,-400,100,-100,100,-200,
@@ -89,6 +89,17 @@ int seeSuitThresholds[71] = {
         0,-300,0,-300,800,-100,200,-100,200,200,
         0,0,0,200,300,0,700,300,0,100,
         0,
+};
+
+char* suitMoves[71] = {
+        "f1f4","d6f4","h5g4","h5g4","g4f3","d6e5","e1e8","e1e8","e1e8","f7f8q",
+        "f7f8n","f7f8q","f7f8b","f7f8r","h1f1","h1f1","c5c1","f3e5","f4e5","g5h6",
+        "g5h6","c3c8","c3c8","c3c5","g2c6","e6e4","h7e4","d3d4","d3e5","d3e5",
+        "h4f6","g4f3","c6d4","e6g7","e6g7","d6h2","d6h2","g4f3","b4c3","b6b2",
+        "f6d5","b8b3","b8b4","c8c1","f5c2","a5a2","a5a2","d5e7","d3e4","e4d6",
+        "e4d6","d5c6","d5c6","d5c6","d7d8q","d7d8q","d7d8q","c7c8q","c7c8q","c7c8q",
+        "g5f6","g5f6","g5f6","c7b8q","g1h2","c6d8","c7d8q","e6d8","e3d1","c3d1",
+        "e1g1"
 };
 
 void initSuits(void) {
