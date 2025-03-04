@@ -6,6 +6,7 @@
 #ifndef POTENTIAL_STRUCTS_H
 #define POTENTIAL_STRUCTS_H
 
+#include <stdbool.h>
 #include "stdint.h"
 
 #ifndef U64
@@ -55,6 +56,7 @@ typedef struct {
     uint8_t depth;       // current search depth
     uint8_t flag;        // flag the type of node (fail-high(score >= beta)/fail-low(score < alpha))
     int16_t score;       // score (alpha/beta/PV)
+    bool ttPv;           // tt was pv node or not
     int bestMove;        // best move from the search
 } tt;                    // transposition table (TT aka hash table)
 
