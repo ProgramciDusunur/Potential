@@ -983,7 +983,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // A rather simple idea that if our TT move is accurate we run a reduced
         // search to see if we can beat this score. If not we extend the TT move
         // search
-        if (!rootNode && depth >= 7 && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
+        if (!rootNode && depth >= 7 + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
             tt_depth >= depth - 3 && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateScore) {
             const int singularBeta = tt_score - depth;
@@ -1063,18 +1063,18 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         if (isQuiet) {
-
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
                 lmrReduction += 1;
             }
-
         }
+
+        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
 
         if(moves_searched >= lmr_full_depth_moves &&
            depth >= lmr_reduction_limit) {
 
-            score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, pos, time, true);
+            score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
 
             if (score > alpha && lmrReduction != 0) {
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
