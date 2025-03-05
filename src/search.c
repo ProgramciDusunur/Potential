@@ -1021,13 +1021,13 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
             }
+            // Corrplexity Extension
+            else if (abs(static_eval - raw_eval) >= 50) {
+                extensions += 1;
+            }
             // Negative Extension
             else if (tt_score >= beta) {
                 extensions -= 1 + !pvNode;
-            }
-            // Corrplexity Extension
-            else if (abs(static_eval - raw_eval) >= 30) {
-                extensions += 1;
             }
         }
 
