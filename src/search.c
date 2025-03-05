@@ -1014,7 +1014,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (!pvNode && singularScore <= singularBeta - 20) {
                     extensions++;
 
-
                     // Low Depth Extension
                     depth += depth < 10;
                 }
