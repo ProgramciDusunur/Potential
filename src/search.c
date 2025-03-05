@@ -1068,7 +1068,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             if (!pvNode && quietMoves >= 4) {
                 lmrReduction += 1;
             }
-
         }
 
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
