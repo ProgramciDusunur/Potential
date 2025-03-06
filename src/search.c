@@ -1064,6 +1064,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (tt_pv) {
             lmrReduction -= 1;
         }
+
         if (abs(static_eval - raw_eval) > 80) {
             lmrReduction -= 1;
         }
