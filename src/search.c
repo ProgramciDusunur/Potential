@@ -798,6 +798,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         ttAdjustedEval = tt_score;
     }
 
+
     // reverse futility pruning
     if (!pos->isSingularMove[pos->ply] &&
         depth <= 5 && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
