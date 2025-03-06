@@ -581,12 +581,9 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     // fail-hard beta cutoff
     if (evaluation >= beta) {
-        if (abs(evaluation) < mateScore && abs(evaluation) < mateScore) {
-            evaluation = (evaluation + beta) / 2;
-        }
         // node (move) fails high
         return evaluation;
-    }
+   }
 
     // found a better move
     if (evaluation > alpha) {
@@ -679,6 +676,10 @@ int quiescence(int alpha, int beta, board* position, time* time) {
                 break;
             }
         }
+    }
+
+    if (abs(bestScore) < mateScore && abs(bestScore) < mateScore) {
+        bestScore = (bestScore + beta) / 2;
     }
 
     uint8_t hashFlag = hashFlagNone;
