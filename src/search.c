@@ -1065,6 +1065,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction -= 1;
         }
 
+        if (!isMoveTactical) {
+            // if the move have good history decrease reduction other hand the move have bad history then reduce more
+            lmrReduction -= moveHistory / 8192;
+        }
+
         if (isQuiet) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
