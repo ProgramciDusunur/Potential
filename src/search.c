@@ -1136,7 +1136,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     if (isQuiet) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
-                        int historyDepth = depth + (bestScore > beta + 50);
+                        int historyDepth = depth + (bestScore > beta + 5 * depth);
                         updateQuietMoveHistory(bestMove, pos->side, historyDepth, badQuiets);
 
                         if (rootNode) {
