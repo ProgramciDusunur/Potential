@@ -95,8 +95,12 @@ extern const bool pawnHoleSquareCheck[64];
 // Passed Can Move Bonus
 extern const int passedCanMoveBonus;
 
+extern int mg_table[12][64]; // [piece][square] -> midgame score
+extern int eg_table[12][64]; // [piece][square] -> endgame score
+
 
 int get_game_phase_score(board* position);
+void init_tables();
 int evaluate(board* position);
 void clearStaticEvaluationHistory(board* position);
 
