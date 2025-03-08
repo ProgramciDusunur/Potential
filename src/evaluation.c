@@ -540,8 +540,6 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][KNIGHT][mirrorScore[square]];
 
-
-
                     break;
 
                     // evaluate black bishops
