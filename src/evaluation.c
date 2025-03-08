@@ -556,7 +556,6 @@ int evaluate(board* position) {
     // INTERPOLATION
     score = (int)(score_opening * phase_ratio + score_endgame * (1 - phase_ratio));
 
-
     // return final evaluation based on side
     return (position->side == white) ? score : -score;
 }
