@@ -250,7 +250,7 @@ const int king_shield_bonus = 5;
 const int king_distance_bonus = 2;
 
 // Game Phase Scores
-const int opening_phase_score = 6192;
+const int opening_phase_score = 7740;
 const int endgame_phase_score = 518;
 
 // Passed Can Move Bonus
@@ -270,6 +270,8 @@ void init_tables() {
                                                 + positional_score[endgame][piece][square];
                 }
         }
+
+
 
         // Black pieces (p, n, b, r, q, k)
         for (int piece = p; piece <= k; piece++) {
