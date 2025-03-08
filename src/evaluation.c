@@ -533,31 +533,41 @@ int evaluate(board* position) {
             popBit(bitboard, square);
         }
     }
+
     /*
-        Now in order to calculate interpolated score
-        for a given game phase we use this formula
-        (same for material and positional scores):
-
-        (
-          score_opening * game_phase_score +
-          score_endgame * (opening_phase_score - game_phase_score)
-        ) / opening_phase_score
-
-        E.g. the score for pawn on d4 at phase say 5000 would be
-        interpolated_score = (12 * 5000 + (-7) * (6192 - 5000)) / 6192 = 8,342377261
+        Improved interpolation between opening and endgame scores.
+        Instead of using discrete game phases, we'll use a smooth, continuous
+        interpolation that provides better transitions between game phases.
     */
-    // interpolate score in the middlegame
-    if (game_phase == middlegame)
-        score = (
-            score_opening * game_phase_score +
-            score_endgame * (opening_phase_score - game_phase_score)
-        ) / opening_phase_score;
 
-    // return pure opening score in opening
-    else if (game_phase == opening) score = score_opening;
+    // Ensure game_phase_score is within bounds
+    if (game_phase_score > opening_phase_score)
+        game_phase_score = opening_phase_score;
+    if (game_phase_score < endgame_phase_score)
+        game_phase_score = endgame_phase_score;
 
-    // return pure endgame score in engame
-    else score = score_endgame;
+    // Calculate interpolation factor (0.0 = pure opening, 1.0 = pure endgame)
+    double phase = 0.0;
+    if (opening_phase_score > endgame_phase_score) // Avoid division by zero
+        phase = (double)(opening_phase_score - game_phase_score) /
+                (opening_phase_score - endgame_phase_score);
+
+    // Apply a non-linear adjustment to give smoother transition
+    // This gives more weight to opening in early-middlegame and
+    // more weight to endgame in late-middlegame
+    phase = phase * phase * (3 - 2 * phase); // Smoothstep function
+
+    // For compatibility with your evaluation structure, still use the phases
+    // but calculate the score based on the continuous interpolation
+    if (game_phase == opening) {
+        score = score_opening;
+    }
+    else if (game_phase == endgame) {
+        score = score_endgame;
+    }
+    else { // middlegame with improved interpolation
+        score = (int)(score_opening * (1.0 - phase) + score_endgame * phase);
+    }
 
     // return final evaluation based on side
     return (position->side == white) ? score : -score;
