@@ -201,7 +201,7 @@ int readHashEntry(board *position, int *move, int16_t *tt_score,
         *tt_score = score;
         *tt_depth = hashEntry->depth;
         *tt_flag = hashEntry->flag;
-        *tt_pv = hashEntry->ttPv;
+        *tt_pv |= hashEntry->ttPv;
 
         return 1;
 
