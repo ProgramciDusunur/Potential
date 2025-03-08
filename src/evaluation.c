@@ -325,7 +325,7 @@ int evaluate(board* position) {
     //int double_pawns = 0;
 
     // passer pawn count
-    int passedPawnCount = 0;
+    //int passedPawnCount = 0;
 
     // loop over piece bitboards
     for (int bb_piece = P; bb_piece <= k; bb_piece++) {
@@ -399,25 +399,7 @@ int evaluate(board* position) {
                         score += isolated_pawn_penalty;
                     */
                     // on passed pawn
-                    if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
-                        // give passed pawn bonus
-                        if (game_phase == endgame) {
-                            passedPawnCount += 1;
 
-                            // passed pawn can move bonus
-                            if (!(getBit(position->occupancies[both], (square - 8)))) {
-                                score += passedCanMoveBonus;
-                            }
-
-                            int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
-                            int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
-                            int kingDistance = blackKingDistance - whiteKingDistance;
-                            score += kingDistance * king_distance_bonus;
-                            score += passed_pawn_bonus_endgame[square];
-                        }
-                        score += passed_pawn_bonus_middle[square];
-
-                    }
 
 
                     break;
@@ -436,24 +418,7 @@ int evaluate(board* position) {
                     else score += positional_score[game_phase][KNIGHT][square];
 
 
-                    // Knight Outpost Bonus
-                    if (!(position->bitboards[p] & (whitePassedMasks[square] & isolatedMasks[square]))) {
-                        // check corners to avoid wrong patterns
-                        bool pawnHoleCheck = pawnHoleSquareCheck[square];
 
-                        // Pawn Hole Bonus
-                        if (pawnHoleCheck && (getBit(position->bitboards[p], (square - 1)) && getBit(position->bitboards[p], (square + 1)) && getBit(position->bitboards[p], (square - 8)))) {
-                            int pawnHoleDefenderPawnsBonus = countBits((getBit(position->bitboards[P], (square + 7))) | (getBit(position->bitboards[P], (square + 9)))) == 2
-                                                             ? 2 : 1;
-                            score += pawnHoleBonus[square] + pawnHoleDefenderPawnsBonus;
-                        }
-
-                        if (game_phase == endgame) {
-                            score += knightOutpost[endgame][square];
-                        } else {
-                            score += knightOutpost[opening][square];
-                        }
-                    }
 
 
                     break;
@@ -471,13 +436,7 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][BISHOP][square];
 
-                    // mobility
-                    if (game_phase == endgame) {
-                        score += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
-                    } else {
-                        score += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
 
-                    }
                     //score += count_bits(get_bishop_attacks(square, occupancies[both]));
 
                     break;
@@ -495,15 +454,7 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][ROOK][square];
 
-                    //semi open file
-                    if ((position->bitboards[P] & fileMasks[square]) == 0)
-                        // add semi open file bonus
-                        score += semi_open_file_score;
 
-                    // open file
-                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
-                        // add open file bonus
-                        score += rook_open_file;
                     break;
 
                     // evaluate white queens
@@ -536,18 +487,7 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score += positional_score[game_phase][KING][square];
 
-                    // semi open file
-                    if ((position->bitboards[P] & fileMasks[square]) == 0)
-                        // add semi open file penalty
-                        score -= semi_open_file_score;
 
-                    // semi open file
-                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
-                        // add semi open file penalty
-                        score -= open_file_score;
-
-                    // king safety bonus
-                    score += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
 
                     break;
 
@@ -583,24 +523,7 @@ int evaluate(board* position) {
                         score -= isolated_pawn_penalty;
                     */
                     // on passed pawn
-                    if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
-                        // give passed pawn bonus
-                        if (game_phase == endgame) {
-                            passedPawnCount -= 1;
 
-                            // passed pawn can move bonus
-                            if (!(getBit(position->occupancies[both], (square + 8)))) {
-                                score -= passedCanMoveBonus;
-                            }
-
-                            int whiteKingDistance = (getLS1BIndex(position->bitboards[K]) - square) / 8;
-                            int blackKingDistance = (getLS1BIndex(position->bitboards[k]) - square) / 8;
-                            int kingDistance = whiteKingDistance - blackKingDistance;
-                            score -= kingDistance * king_distance_bonus;
-                            score -= passed_pawn_bonus_endgame[mirrorScore[square]];
-                        }
-                        score -= passed_pawn_bonus_middle[mirrorScore[square]];
-                    }
 
                     break;
 
@@ -617,26 +540,7 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][KNIGHT][mirrorScore[square]];
 
-                    // Knight Outpost Bonus
-                    if (!(position->bitboards[P] & (blackPassedMasks[square] & isolatedMasks[square]))) {
 
-
-                        // check corners to avoid wrong patterns
-                        bool pawnHoleCheck = pawnHoleSquareCheck[square];
-
-                        // Pawn Hole Bonus
-                        if (pawnHoleCheck && (getBit(position->bitboards[P], (square - 1)) && getBit(position->bitboards[P], (square + 1)) && getBit(position->bitboards[P], (square + 8)))) {
-                            int pawnHoleDefenderPawnsBonus = countBits((getBit(position->bitboards[p], (square - 7))) | (getBit(position->bitboards[p], (square - 9)))) == 2
-                                                             ? 2 : 1;
-                            score -= pawnHoleBonus[square] + pawnHoleDefenderPawnsBonus;
-                        }
-
-                        if (game_phase == endgame) {
-                            score -= knightOutpost[endgame][square];
-                        } else {
-                            score -= knightOutpost[opening][square];
-                        }
-                    }
 
                     break;
 
@@ -653,12 +557,7 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][BISHOP][mirrorScore[square]];
 
-                    // mobility
-                    if (game_phase == endgame) {
-                        score -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
-                    } else {
-                        score -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
-                    }
+
                     //score -= count_bits(get_bishop_attacks(square, occupancies[both]));
                     break;
 
@@ -675,15 +574,7 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][ROOK][mirrorScore[square]];
 
-                    //semi open file
-                    if ((position->bitboards[p] & fileMasks[square]) == 0)
-                        // add semi open file bonus
-                        score -= semi_open_file_score;
 
-                    // open file
-                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
-                        // add open file bonus
-                        score -= rook_open_file;
                     break;
 
                     // evaluate black queens
@@ -716,18 +607,7 @@ int evaluate(board* position) {
                         // score material weights with pure scores in opening or endgame
                     else score -= positional_score[game_phase][KING][mirrorScore[square]];
 
-                    // semi open file
-                    if ((position->bitboards[p] & fileMasks[square]) == 0)
-                        // add semi open file penalty
-                        score += semi_open_file_score;
 
-                    // semi open file
-                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0)
-                        // add semi open file penalty
-                        score += open_file_score;
-
-                    // king safety bonus
-                    score -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus;
 
                     break;
             }
@@ -737,22 +617,9 @@ int evaluate(board* position) {
         }
     }
 
-    int infiltriation = 0;
-    if (!position->side && get_rank[getLS1BIndex(position->bitboards[K])] > 5) {
-        infiltriation = 20;
-    } else if (position->side && get_rank[getLS1BIndex(position->bitboards[k])] < 2) {
-        infiltriation = -20;
-    }
-    // winnable
-    int winnableScore = 6 * passedPawnCount +
-                        8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p])) +
-                        infiltriation
-    ;
-    score += winnableScore;
 
-    int tempo = 10;
     // return final evaluation based on side
-    return (position->side == white) ? score + tempo : -(score - tempo);
+    return (position->side == white) ? score : -score;
 }
 
 
