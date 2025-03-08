@@ -250,8 +250,8 @@ const int king_shield_bonus = 5;
 const int king_distance_bonus = 2;
 
 // Game Phase Scores
-const int opening_phase_score = 5572;
-const int endgame_phase_score = 570;
+const int opening_phase_score = 5263;
+const int endgame_phase_score = 518;
 
 // Passed Can Move Bonus
 const int passedCanMoveBonus = 5;
