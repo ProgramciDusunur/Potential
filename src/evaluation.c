@@ -329,6 +329,7 @@ int evaluate(const board* position) {
                         score_opening += mg_table[piece][square];
                         score_endgame += eg_table[piece][square];
                         switch (piece) {
+
                                 case  K:
                                         // king safety bonus
                                                 score_opening += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
