@@ -533,7 +533,6 @@ int evaluate(board* position) {
             popBit(bitboard, square);
         }
     }
-
     /*
         Now in order to calculate interpolated score
         for a given game phase we use this formula
@@ -547,7 +546,6 @@ int evaluate(board* position) {
         E.g. the score for pawn on d4 at phase say 5000 would be
         interpolated_score = (12 * 5000 + (-7) * (6192 - 5000)) / 6192 = 8,342377261
     */
-
     // interpolate score in the middlegame
     if (game_phase == middlegame)
         score = (
