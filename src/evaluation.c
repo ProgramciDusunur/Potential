@@ -284,7 +284,6 @@ void init_tables() {
         }
 }
 
-
 // get game phase score
 int get_game_phase_score(board* position) {
     /*
