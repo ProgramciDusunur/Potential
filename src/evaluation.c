@@ -4,6 +4,8 @@
 
 #include "evaluation.h"
 
+#include "utils.h"
+
 
 // Mirror Score Array
 const int mirrorScore[128] =
@@ -301,16 +303,21 @@ int evaluate(board* position) {
      // get game phase score
     int game_phase_score = get_game_phase_score(position);
 
-    // game phase (opening, middle game, endgame)
-    int game_phase = -1;
-
-    // pick up game phase based on game phase score
-    if (game_phase_score > opening_phase_score) game_phase = opening;
-    else if (game_phase_score < endgame_phase_score) game_phase = endgame;
-    else game_phase = middlegame;
-
     // static evaluation score
     int score = 0, score_opening = 0, score_endgame = 0;
+
+    // calculate phase ratio (0.0 = endgame, 1.0 = opening)
+    double phase_ratio;
+    if (opening_phase_score == endgame_phase_score) {
+        // avoid division by zero (if all pieces exchanged)
+        phase_ratio = 0.0;
+    } else {
+        phase_ratio = (double)(game_phase_score - endgame_phase_score) /
+                     (opening_phase_score - endgame_phase_score);
+    }
+
+    // clamp phase ratio between 0 and 1
+    clampDecimalValue(phase_ratio, 0.0, 1.0);
 
     // current pieces bitboard copy
     U64 bitboard;
@@ -546,18 +553,9 @@ int evaluate(board* position) {
         E.g. the score for pawn on d4 at phase say 5000 would be
         interpolated_score = (12 * 5000 + (-7) * (6192 - 5000)) / 6192 = 8,342377261
     */
-    // interpolate score in the middlegame
-    if (game_phase == middlegame)
-        score = (
-            score_opening * game_phase_score +
-            score_endgame * (opening_phase_score - game_phase_score)
-        ) / opening_phase_score;
+    // INTERPOLATION
+    score = (int)(score_opening * phase_ratio + score_endgame * (1 - phase_ratio));
 
-    // return pure opening score in opening
-    else if (game_phase == opening) score = score_opening;
-
-    // return pure endgame score in engame
-    else score = score_endgame;
 
     // return final evaluation based on side
     return (position->side == white) ? score : -score;
