@@ -287,7 +287,7 @@ void init_tables() {
 }
 
 // get game phase score
-int get_game_phase_score(board* position) {
+int get_game_phase_score(const board* position) {
     /*
         The game phase score of the game is derived from the pieces
         (not counting pawns and kings) that are still on the board.
@@ -318,18 +318,31 @@ int get_game_phase_score(board* position) {
 }
 
 
-int evaluate(board* position) {
-        int game_phase_score = get_game_phase_score(position);
+int evaluate(const board* position) {
+        const int game_phase_score = get_game_phase_score(position);
         int score_opening = 0, score_endgame = 0;
 
         for (int piece = P; piece <= k; piece++) {
                 U64 bitboard = position->bitboards[piece];
                 while (bitboard) {
-                        int square = getLS1BIndex(bitboard);
+                        const int square = getLS1BIndex(bitboard);
                         score_opening += mg_table[piece][square];
                         score_endgame += eg_table[piece][square];
+                        switch (piece) {
+                                case  K:
+                                        // king safety bonus
+                                                score_opening += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
+                                                score_endgame += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
+                                break;
+                                case k:
+                                        // king safety bonus
+                                                score_opening -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus;
+                                                score_endgame -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus;
+                                        break;
+                        }
                         popBit(bitboard, square);
                 }
+
         }
 
         int score;
