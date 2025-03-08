@@ -60,6 +60,7 @@ void initAll() {
     initializeLMRTable();
     // init tranposition table
     init_hash_table(64);
+    init_tables();
 }
 
 
@@ -70,8 +71,9 @@ int main(int argc, char* argv[]) {
         board position;
         parseFEN(startPosition, &position);
 
-        perftRoot(7, &position);
-        printf("Nodes: %llu", perftNodes);
+        //perftRoot(7, &position);
+        //printf("Nodes: %llu", perftNodes);
+        printf("Evaluation %d", evaluate(&position));
     } else {
         uciProtocol(argc, argv);
     }
