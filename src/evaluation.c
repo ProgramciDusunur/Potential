@@ -263,7 +263,6 @@ const int passedCanMoveBonus = 5;
 
 
 
-
 // get game phase score
 int get_game_phase_score(board* position) {
     /*
