@@ -569,6 +569,7 @@ int evaluate(board* position) {
         score = (int)(score_opening * (1.0 - phase) + score_endgame * phase);
     }
 
+
     // return final evaluation based on side
     return (position->side == white) ? score : -score;
 }
