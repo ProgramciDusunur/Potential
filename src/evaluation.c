@@ -335,14 +335,32 @@ int evaluate(const board* position) {
                                         score_opening += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
+                                case R:
+                                        // open file
+                                        if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) {
+                                                // add open file bonus
+                                                score_opening += rook_open_file;
+                                                score_endgame += rook_open_file;
+                                        }
+                                        break;
                                 case b:
                                         score_opening -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        break;
+                                case r:
+                                        // open file
+                                        if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) {
+                                                // add open file bonus
+                                                score_opening -= rook_open_file;
+                                                score_endgame -= rook_open_file;
+                                        }
                                         break;
                         }
                         popBit(bitboard, square);
                 }
         }
+
+
 
         // king safety bonus
 
