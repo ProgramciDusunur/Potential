@@ -78,7 +78,8 @@ extern const int queen_mobility_middlegame;
 extern const int queen_mobility_endgame;
 
 // King's Bonuses
-extern const int king_shield_bonus;
+extern const int king_shield_bonus_middlegame ;
+extern const int king_shield_bonus_endgame;
 extern const int king_distance_bonus;
 
 // Game Phase Scores
@@ -99,9 +100,9 @@ extern int mg_table[12][64]; // [piece][square] -> midgame score
 extern int eg_table[12][64]; // [piece][square] -> endgame score
 
 
-int get_game_phase_score(board* position);
+int get_game_phase_score(const board* position);
 void init_tables();
-int evaluate(board* position);
+int evaluate(const board* position);
 void clearStaticEvaluationHistory(board* position);
 
 #endif //POTENTIAL_EVALUATION_H

@@ -246,7 +246,8 @@ const int queen_mobility_middlegame = 1;
 const int queen_mobility_endgame = 2;
 
 // King's Bonuses
-const int king_shield_bonus = 5;
+const int king_shield_bonus_middlegame = 6;
+const int king_shield_bonus_endgame = 2;
 const int king_distance_bonus = 2;
 
 // Game Phase Scores
@@ -287,7 +288,7 @@ void init_tables() {
 }
 
 // get game phase score
-int get_game_phase_score(board* position) {
+int get_game_phase_score(const board* position) {
     /*
         The game phase score of the game is derived from the pieces
         (not counting pawns and kings) that are still on the board.
@@ -318,14 +319,14 @@ int get_game_phase_score(board* position) {
 }
 
 
-int evaluate(board* position) {
-        int game_phase_score = get_game_phase_score(position);
+int evaluate(const board* position) {
+        const int game_phase_score = get_game_phase_score(position);
         int score_opening = 0, score_endgame = 0;
 
         for (int piece = P; piece <= k; piece++) {
                 U64 bitboard = position->bitboards[piece];
                 while (bitboard) {
-                        int square = getLS1BIndex(bitboard);
+                        const int square = getLS1BIndex(bitboard);
                         score_opening += mg_table[piece][square];
                         score_endgame += eg_table[piece][square];
 
@@ -341,7 +342,18 @@ int evaluate(board* position) {
                         }
                         popBit(bitboard, square);
                 }
+
         }
+
+        // king safety bonus
+
+        // White
+        score_opening += countBits(kingAttacks[getLS1BIndex(position->bitboards[K])] & position->occupancies[white]) * king_shield_bonus_middlegame;
+        score_endgame += countBits(kingAttacks[getLS1BIndex(position->bitboards[K])] & position->occupancies[white]) * king_shield_bonus_endgame;
+
+        // Black
+        score_opening -= countBits(kingAttacks[getLS1BIndex(position->bitboards[k])] & position->occupancies[black]) * king_shield_bonus_middlegame;
+        score_endgame -= countBits(kingAttacks[getLS1BIndex(position->bitboards[k])] & position->occupancies[black]) * king_shield_bonus_endgame;
 
         int score;
         if (game_phase_score > opening_phase_score)
