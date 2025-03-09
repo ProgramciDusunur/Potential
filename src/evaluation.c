@@ -335,10 +335,19 @@ int evaluate(const board* position) {
                                         score_opening += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
+                                case Q:
+                                        score_opening += countBits(getQueenAttacks(square, position->occupancies[both]));
+                                        score_endgame += countBits(getQueenAttacks(square, position->occupancies[both]));
+                                        break;
                                 case b:
                                         score_opening -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
+                                case q:
+                                        score_opening -= countBits(getQueenAttacks(square, position->occupancies[both]));
+                                        score_endgame -= countBits(getQueenAttacks(square, position->occupancies[both]));
+                                        break;
+
                         }
                         popBit(bitboard, square);
                 }
