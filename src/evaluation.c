@@ -399,7 +399,7 @@ int evaluate(const board* position) {
 
         const int tempo = 10;
 
-        return (position->side == white) ? score + tempo : -(score - tempo);
+        return (position->side == white) ? score + tempo : -(score + tempo);
 }
 
 
