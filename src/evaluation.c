@@ -342,6 +342,7 @@ int evaluate(const board* position) {
                                                 // add semi open file bonus
                                                 score_opening += semi_open_file_score;
                                                 score_endgame += semi_open_file_score;
+                                        }
 
                                         // open file
                                         if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) {
@@ -362,6 +363,7 @@ int evaluate(const board* position) {
                                                 // add semi open file bonus
                                                 score_opening -= semi_open_file_score;
                                                 score_endgame -= semi_open_file_score;
+                                        }
 
                                         // open file
                                         if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) {
