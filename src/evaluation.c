@@ -329,23 +329,20 @@ int evaluate(const board* position) {
                         const int square = getLS1BIndex(bitboard);
                         score_opening += mg_table[piece][square];
                         score_endgame += eg_table[piece][square];
-                        switch (piece) {
-
-                                case  K:
-                                        // king safety bonus
-                                                score_opening += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus_middlegame;
-                                                score_endgame += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus_endgame;
-                                break;
-                                case k:
-                                        // king safety bonus
-                                                score_opening -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus_middlegame;
-                                                score_endgame -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus_endgame;
-                                        break;
-                        }
                         popBit(bitboard, square);
                 }
 
         }
+
+        // king safety bonus
+
+        // White
+        score_opening += countBits(kingAttacks[getLS1BIndex(position->bitboards[K])] & position->occupancies[white]) * king_shield_bonus_middlegame;
+        score_endgame += countBits(kingAttacks[getLS1BIndex(position->bitboards[K])] & position->occupancies[white]) * king_shield_bonus_endgame;
+
+        // Black
+        score_opening -= countBits(kingAttacks[getLS1BIndex(position->bitboards[k])] & position->occupancies[black]) * king_shield_bonus_middlegame;
+        score_endgame -= countBits(kingAttacks[getLS1BIndex(position->bitboards[k])] & position->occupancies[black]) * king_shield_bonus_endgame;
 
         int score;
         if (game_phase_score > opening_phase_score)
