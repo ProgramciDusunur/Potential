@@ -240,8 +240,8 @@ const int bishop_unit = 4;
 const int queen_unit = 9;
 
 // Mobility Bonuses
-const int bishop_mobility_middlegame = 3;
-const int bishop_mobility_endgame = 6;
+const int bishop_mobility_middlegame = 5;
+const int bishop_mobility_endgame = 10;
 const int queen_mobility_middlegame = 1;
 const int queen_mobility_endgame = 2;
 
@@ -331,12 +331,12 @@ int evaluate(board* position) {
 
                         switch (piece) {
                                 case B:
-                                        score_opening += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
-                                        score_endgame += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
+                                        score_opening += countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case b:
-                                        score_opening -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
-                                        score_endgame -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
+                                        score_opening -= countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                         }
                         popBit(bitboard, square);
