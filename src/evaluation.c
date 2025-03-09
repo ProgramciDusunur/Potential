@@ -331,9 +331,12 @@ int evaluate(board* position) {
 
                         switch (piece) {
                                 case B:
+                                        score_opening += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
+                                        score_endgame += (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
+                                        break;
                                 case b:
-                                score_opening -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
-                                score_endgame -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
+                                        score_opening -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_middlegame;
+                                        score_endgame -= (countBits(getBishopAttacks(square, position->occupancies[both])) - bishop_unit) * bishop_mobility_endgame;
                                         break;
                         }
                         popBit(bitboard, square);
