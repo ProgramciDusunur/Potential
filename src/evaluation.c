@@ -246,7 +246,7 @@ const int queen_mobility_middlegame = 1;
 const int queen_mobility_endgame = 2;
 
 // King's Bonuses
-const int king_shield_bonus_middlegame = 5;
+const int king_shield_bonus_middlegame = 6;
 const int king_shield_bonus_endgame = 2;
 const int king_distance_bonus = 2;
 
