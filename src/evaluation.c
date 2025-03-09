@@ -336,11 +336,19 @@ int evaluate(const board* position) {
                                         score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case R:
+
+                                        // Semi Open File Bonus
+                                        if ((position->bitboards[P] & fileMasks[square]) == 0) {
+                                                // add semi open file bonus
+                                                score_opening += semi_open_file_score;
+                                                score_endgame += semi_open_file_score;
+
                                         // open file
                                         if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) {
                                                 // add open file bonus
                                                 score_opening += rook_open_file;
                                                 score_endgame += rook_open_file;
+
                                         }
                                         break;
                                 case b:
@@ -348,11 +356,19 @@ int evaluate(const board* position) {
                                         score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case r:
+
+                                        // Semi Open File Bonus
+                                        if ((position->bitboards[p] & fileMasks[square]) == 0) {
+                                                // add semi open file bonus
+                                                score_opening -= semi_open_file_score;
+                                                score_endgame -= semi_open_file_score;
+
                                         // open file
                                         if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) {
                                                 // add open file bonus
                                                 score_opening -= rook_open_file;
                                                 score_endgame -= rook_open_file;
+
                                         }
                                         break;
                         }
