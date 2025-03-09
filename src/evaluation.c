@@ -328,6 +328,17 @@ int evaluate(board* position) {
                         int square = getLS1BIndex(bitboard);
                         score_opening += mg_table[piece][square];
                         score_endgame += eg_table[piece][square];
+
+                        switch (piece) {
+                                case B:
+                                        score_opening += countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        break;
+                                case b:
+                                        score_opening -= countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        break;
+                        }
                         popBit(bitboard, square);
                 }
         }
