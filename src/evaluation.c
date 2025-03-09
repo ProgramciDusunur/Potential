@@ -240,8 +240,8 @@ const int bishop_unit = 4;
 const int queen_unit = 9;
 
 // Mobility Bonuses
-const int bishop_mobility_middlegame = 5;
-const int bishop_mobility_endgame = 10;
+const int bishop_mobility_middlegame = 3;
+const int bishop_mobility_endgame = 6;
 const int queen_mobility_middlegame = 1;
 const int queen_mobility_endgame = 2;
 
