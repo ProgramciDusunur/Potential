@@ -354,7 +354,6 @@ int evaluate(const board* position) {
                                                 score_opening -= rook_open_file;
                                                 score_endgame -= rook_open_file;
                                         }
-
                                         break;
                         }
                         popBit(bitboard, square);
