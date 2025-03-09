@@ -378,8 +378,6 @@ int evaluate(const board* position) {
                 }
         }
 
-
-
         // king safety bonus
 
         // White
