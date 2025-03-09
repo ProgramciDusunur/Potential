@@ -246,7 +246,8 @@ const int queen_mobility_middlegame = 1;
 const int queen_mobility_endgame = 2;
 
 // King's Bonuses
-const int king_shield_bonus = 5;
+const int king_shield_bonus_middlegame = 5;
+const int king_shield_bonus_endgame = 2;
 const int king_distance_bonus = 2;
 
 // Game Phase Scores
@@ -332,13 +333,13 @@ int evaluate(const board* position) {
 
                                 case  K:
                                         // king safety bonus
-                                                score_opening += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
-                                                score_endgame += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus;
+                                                score_opening += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus_middlegame;
+                                                score_endgame += countBits(kingAttacks[square] & position->occupancies[white]) * king_shield_bonus_endgame;
                                 break;
                                 case k:
                                         // king safety bonus
-                                                score_opening -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus;
-                                                score_endgame -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus;
+                                                score_opening -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus_middlegame;
+                                                score_endgame -= countBits(kingAttacks[square] & position->occupancies[black]) * king_shield_bonus_endgame;
                                         break;
                         }
                         popBit(bitboard, square);
