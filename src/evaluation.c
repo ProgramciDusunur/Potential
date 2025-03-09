@@ -351,7 +351,6 @@ int evaluate(const board* position) {
                         }
                         popBit(bitboard, square);
                 }
-
         }
 
         // king safety bonus
