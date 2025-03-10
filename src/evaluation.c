@@ -404,8 +404,6 @@ int evaluate(const board* position) {
         }
 
 
-
-
         // Black
 
         // King ring bonus
