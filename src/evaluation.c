@@ -379,7 +379,6 @@ int evaluate(const board* position) {
         }
 
 
-
         // king safety bonus
         int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
         int blackKingSquare = getLS1BIndex(position->bitboards[k]);
