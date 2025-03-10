@@ -39,6 +39,8 @@ typedef struct {
     int followPv;
     int scorePv;
 
+    bool inCheck;
+
     //int depth;
     U64 hashKey;
     U64 pawnKey;
