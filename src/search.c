@@ -980,9 +980,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         int extensions = 0;
 
         // Singular Extensions
-        // A rather simple idea that if our TT move is accurate we run a reduced
-        // search to see if we can beat this score. If not we extend the TT move
-        // search
         if (!rootNode && depth >= 7 + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
             tt_depth >= depth - 3 && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateScore) {
@@ -1023,6 +1020,17 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     extensions++;
                 }
 
+            }
+
+            // Multicut
+            else if (singularBeta >= beta) {
+                // decrement ply
+                pos->ply--;
+
+                // decrement repetition index
+                pos->repetitionIndex--;
+
+                return singularBeta;
             }
 
             // Negative Extension
