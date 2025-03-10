@@ -388,6 +388,10 @@ int evaluate(const board* position) {
         score_opening -= countBits(kingAttacks[getLS1BIndex(position->bitboards[k])] & position->occupancies[black]) * king_shield_bonus_middlegame;
         score_endgame -= countBits(kingAttacks[getLS1BIndex(position->bitboards[k])] & position->occupancies[black]) * king_shield_bonus_endgame;
 
+        // Tempo
+        score_opening += (position->side == white) ? 23 : -23;
+        score_endgame += (position->side == white) ? 14 : -14;
+
         int score;
         if (game_phase_score > opening_phase_score)
                 score = score_opening;
@@ -397,9 +401,8 @@ int evaluate(const board* position) {
                 score = (score_opening * game_phase_score + score_endgame * (opening_phase_score - game_phase_score))
                        / opening_phase_score;
 
-        const int tempo = 10;
 
-        return (position->side == white) ? score + tempo : -(score + tempo);
+        return (position->side == white) ? score : -score;
 }
 
 
