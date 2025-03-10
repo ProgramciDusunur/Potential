@@ -1164,7 +1164,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             return 0;
     }
 
-
     if (!pos->isSingularMove[pos->ply]) {
 
         uint8_t hashFlag = hashFlagExact;
