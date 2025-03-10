@@ -384,6 +384,8 @@ int evaluate(const board* position) {
         int blackKingSquare = getLS1BIndex(position->bitboards[k]);
 
         // White
+
+        // King ring bonus
         score_opening += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_middlegame;
         score_endgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_endgame;
 
@@ -394,17 +396,36 @@ int evaluate(const board* position) {
                 score_endgame -= semi_open_file_score;
         }
 
+        // open file penalty
+        if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[whiteKingSquare]) == 0) {
+                // add open file penalty
+                score_opening -= open_file_score;
+                score_endgame -= open_file_score;
+        }
+
+
+
 
         // Black
+
+        // King ring bonus
         score_opening -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_middlegame;
         score_endgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_endgame;
 
-        // semi open file
+        // semi open file penalty
         if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) {
                 // add semi open file penalty
                 score_opening += semi_open_file_score;
                 score_endgame += semi_open_file_score;
         }
+
+        // open file penalty
+        if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[blackKingSquare]) == 0) {
+                // add semi open file penalty
+                score_opening += open_file_score;
+                score_endgame += open_file_score;
+        }
+
 
 
         int score;
