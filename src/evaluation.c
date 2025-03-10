@@ -235,6 +235,8 @@ const int knightOutpost[2][64] = {
 // File and Mobility Scores
 const int semi_open_file_score = 10;
 const int open_file_score = 15;
+const int king_semi_open_file_score = 10;
+const int king_open_file_score = 20;
 const int rook_open_file = 10;
 const int bishop_unit = 4;
 const int queen_unit = 9;
@@ -392,15 +394,15 @@ int evaluate(const board* position) {
         // semi open file
         if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0) {
                 // add semi open file penalty
-                score_opening -= semi_open_file_score;
-                score_endgame -= semi_open_file_score;
+                score_opening -= king_semi_open_file_score;
+                score_endgame -= king_semi_open_file_score;
         }
 
         // open file penalty
         if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[whiteKingSquare]) == 0) {
                 // add open file penalty
-                score_opening -= open_file_score;
-                score_endgame -= open_file_score;
+                score_opening -= king_open_file_score;
+                score_endgame -= king_open_file_score;
         }
 
 
@@ -413,15 +415,15 @@ int evaluate(const board* position) {
         // semi open file penalty
         if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) {
                 // add semi open file penalty
-                score_opening += semi_open_file_score;
-                score_endgame += semi_open_file_score;
+                score_opening += king_semi_open_file_score;
+                score_endgame += king_semi_open_file_score;
         }
 
         // open file penalty
         if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[blackKingSquare]) == 0) {
                 // add semi open file penalty
-                score_opening += open_file_score;
-                score_endgame += open_file_score;
+                score_opening += king_open_file_score;
+                score_endgame += king_open_file_score;
         }
 
 
