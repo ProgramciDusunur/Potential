@@ -1172,7 +1172,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         } else if (alpha <= originalAlpha) {
             hashFlag = hashFlagBeta;
         }
+
         int averageEval = (raw_eval + static_eval * 2) / 3;
+
         if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
             !(hashFlag == hashFlagAlpha && bestScore <= averageEval) &&
             !(hashFlag == hashFlagBeta && bestScore >= averageEval)) {
