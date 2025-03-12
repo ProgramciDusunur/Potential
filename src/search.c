@@ -1133,6 +1133,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
+
                     if (isQuiet) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
@@ -1142,7 +1143,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                         if (rootNode) {
                             updateRootHistory(pos, bestMove, depth, badQuiets);
                         }
-
                     }
 
                     // node (move) fails high
