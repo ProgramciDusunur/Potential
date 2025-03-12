@@ -1027,7 +1027,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             // Negative Extension
             else if (tt_score >= beta) {
-                extensions -= 1 + !pvNode;
+                extensions -= 2 + pvNode;
             }
         }
 
@@ -1136,7 +1136,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     if (isQuiet) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
-                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
+                        int historyDepth = depth + (bestScore > beta + 50);
+                        updateQuietMoveHistory(bestMove, pos->side, historyDepth, badQuiets);
 
                         if (rootNode) {
                             updateRootHistory(pos, bestMove, depth, badQuiets);
