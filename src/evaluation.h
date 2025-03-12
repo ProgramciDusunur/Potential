@@ -69,6 +69,8 @@ extern const int semi_open_file_score;
 extern const int open_file_score;
 extern const int king_semi_open_file_score;
 extern const int king_open_file_score;
+extern const int king_safety_diff_bonus;
+extern const int king_safety_diff_bonus_endgame;
 extern const int rook_file_score;
 extern const int bishop_unit;
 extern const int queen_unit;
