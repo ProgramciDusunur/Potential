@@ -237,8 +237,8 @@ const int semi_open_file_score = 10;
 const int open_file_score = 15;
 const int king_semi_open_file_score = 10;
 const int king_open_file_score = 20;
-const int king_safety_diff_bonus_middlegame = 8;
-const int king_safety_diff_bonus_endgame = 4;
+const int king_safety_diff_bonus_middlegame = 2;
+const int king_safety_diff_bonus_endgame = 1;
 const int rook_open_file = 10;
 const int bishop_unit = 4;
 const int queen_unit = 9;
@@ -325,6 +325,8 @@ int evaluate(const board* position) {
         const int game_phase_score = get_game_phase_score(position);
         int score_opening = 0, score_endgame = 0;
 
+        uint16_t mobility = 0;
+
         for (int piece = P; piece <= k; piece++) {
                 U64 bitboard = position->bitboards[piece];
                 while (bitboard) {
@@ -336,6 +338,7 @@ int evaluate(const board* position) {
                                 case B:
                                         score_opening += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        mobility += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case R:
 
@@ -357,6 +360,7 @@ int evaluate(const board* position) {
                                 case b:
                                         score_opening -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        mobility -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case r:
 
@@ -435,13 +439,13 @@ int evaluate(const board* position) {
 
         // King safety difference
         int king_safety_diff_middle = (white_king_ring_bonus_middlegame
-                                        - black_king_ring_bonus_middlegame);
+                                        - black_king_ring_bonus_middlegame) * mobility;
         int king_safety_diff_endgame = (white_king_ring_bonus_endgame
-                                        - black_king_ring_bonus_endgame);
+                                        - black_king_ring_bonus_endgame) * mobility;
 
         // King safety difference bonus
-        score_opening += king_safety_diff_middle + king_safety_diff_bonus_middlegame;
-        score_endgame += king_safety_diff_endgame + king_safety_diff_bonus_endgame;
+        score_opening += king_safety_diff_middle * king_safety_diff_bonus_middlegame;
+        score_endgame += king_safety_diff_endgame * king_safety_diff_bonus_endgame;
 
 
 
