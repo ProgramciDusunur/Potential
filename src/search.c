@@ -929,7 +929,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     continue;
                 }
 
-                if (depth <= 6 && !pvNode && !in_check && (static_eval + 41) + 82 * depth <= alpha) {
+                if (depth <= 6 && !pvNode && !in_check && (static_eval + 65) + 82 * depth <= alpha) {
                     continue;
                 }
 
