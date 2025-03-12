@@ -1027,7 +1027,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             // Negative Extension
             else if (tt_score >= beta) {
-                extensions -= 2 + !pvNode;
+                extensions -= 1 + !pvNode;
+            }
+
+            // Corrplexity Extension
+            else if (abs(static_eval - raw_eval) < 10) {
+                extensions -= 1;
             }
         }
 
