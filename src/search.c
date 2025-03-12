@@ -921,7 +921,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         if (!rootNode && isQuiet && isNotMated) {
 
-
                 int lmpBase = 4;
                 int lmpMultiplier = 3;
                 int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
