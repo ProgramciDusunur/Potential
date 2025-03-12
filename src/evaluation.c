@@ -276,8 +276,6 @@ void init_tables() {
                 }
         }
 
-
-
         // Black pieces (p, n, b, r, q, k)
         for (int piece = p; piece <= k; piece++) {
                 int piece_type = piece - p; // 0-5 (Pawn, Knight,... King)
