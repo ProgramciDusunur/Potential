@@ -889,7 +889,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     int bestScore = -infinity;
 
-    bool skipQuiet = false;
+    //bool skipQuiet = false;
 
     // legal moves counter
     int legal_moves = 0;
@@ -914,38 +914,34 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         //bool isMoveTactical = isTactical(currentMove);
 
-        if (skipQuiet && isQuiet) {
-            skipQuiet = 0;
-            continue;
-        }
 
         //int moveHistory = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
 
-        //bool isNotMated = bestScore > -mateScore;
+        bool isNotMated = bestScore > -mateScore;
 
-        /*if (!rootNode && isNotMated) {
+        if (!rootNode && isQuiet && isNotMated) {
 
-            if (isQuiet) {
+
                 int lmpBase = 4;
                 int lmpMultiplier = 3;
                 int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
 
                 if (legal_moves>= lmpThreshold) {
+                    continue;
+                }
+
+                /*if (depth <= 4 && !pvNode && !in_check && static_eval + 82 * depth <= alpha) {
                     skipQuiet = 1;
                 }
 
-                if (depth <= 4 && !pvNode && !in_check && static_eval + 82 * depth <= alpha) {
-                    skipQuiet = 1;
-                }
-            }
 
             if (!isMoveTactical) {
                 // Quiet History Pruning
                 if (depth <= 2 && !pvNode && !in_check && moveHistory < depth * -2048) {
                     break;
                 }
-            }
-        }*/
+            }*/
+        }
 
         // SEE PVS Pruning
         int seeThreshold =
