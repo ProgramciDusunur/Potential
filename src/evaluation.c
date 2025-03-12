@@ -440,8 +440,8 @@ int evaluate(const board* position) {
                                         - black_king_ring_bonus_endgame);
 
         // King safety difference bonus
-        score_opening += king_safety_diff_middle * king_safety_diff_bonus_middlegame;
-        score_endgame += king_safety_diff_endgame * king_safety_diff_bonus_endgame;
+        score_opening += king_safety_diff_middle + king_safety_diff_bonus_middlegame;
+        score_endgame += king_safety_diff_endgame + king_safety_diff_bonus_endgame;
 
 
 
