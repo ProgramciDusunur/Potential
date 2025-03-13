@@ -1023,6 +1023,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             else if (singularBeta >= beta) {
                 // decrement ply
                 pos->ply--;
+
                 // decrement repetition index
                 pos->repetitionIndex--;
 
