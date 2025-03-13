@@ -925,21 +925,19 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 int lmpMultiplier = 3;
                 int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
 
+
                 if (legal_moves>= lmpThreshold) {
                     continue;
                 }
 
                 /*if (depth <= 4 && !pvNode && !in_check && static_eval + 82 * depth <= alpha) {
                     skipQuiet = 1;
-                }
+                }*/
 
-
-            if (!isMoveTactical) {
                 // Quiet History Pruning
-                if (depth <= 2 && !pvNode && !in_check && moveHistory < depth * -2048) {
+                if (depth <= 4 && !pvNode && !in_check && moveHistory < depth * -2048) {
                     break;
                 }
-            }*/
         }
 
         // SEE PVS Pruning
