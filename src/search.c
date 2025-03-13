@@ -23,6 +23,7 @@ int lmrTable[maxPly][maxPly];
 int counterMoves[2][maxPly][maxPly];
 
 const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
+int futilityPruningOffset[] = {0, 82, 41, 20, 10};
 
 int CORRHIST_WEIGHT_SCALE = 256;
 int CORRHIST_GRAIN = 256;
@@ -62,7 +63,7 @@ void initializeLMRTable(void) {
                 lmrTable[depth][ply] = 0;
                 continue;
             }
-            lmrTable[depth][ply] = round(0.825 + log(depth) * log(ply) * 0.300);
+            lmrTable[depth][ply] = round(0.75 + log(depth) * log(ply) * 0.300);
         }
     }
 }
@@ -927,6 +928,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (legal_moves>= lmpThreshold) {
                     continue;
                 }
+                if (depth <= 4 && !pvNode && !in_check && (static_eval + futilityPruningOffset[depth]) + 82 * depth <= alpha) {
+                    continue;
+                }
 
                 /*if (depth <= 4 && !pvNode && !in_check && static_eval + 82 * depth <= alpha) {
                     skipQuiet = 1;
@@ -1080,9 +1084,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
 
             if (score > alpha && lmrReduction != 0) {
-                bool doDeeper = score > bestScore + 35 + 2 * new_depth;
-                bool doShallower = score < bestScore + 8;
-                new_depth += doDeeper - doShallower;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             }
         }
