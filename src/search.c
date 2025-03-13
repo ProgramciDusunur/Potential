@@ -1051,6 +1051,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // Reduce More
 
+        if (!improving) {
+            lmrReduction += 1;
+        }
+
         if (isQuiet) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
@@ -1058,9 +1062,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
-        /*if (!improving) {
-            lmrReduction += 1;
-        }
+        /*
 
         // Reduce Less
         if (tt_pv) {
