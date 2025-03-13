@@ -936,8 +936,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }*/
 
                 // Quiet History Pruning
-                if (depth <= 4 && !pvNode && !in_check && moveHistory < depth * -2048) {
-                    break;
+                if (depth <= 4 && !pvNode && !in_check && moveHistory < depth * -1024) {
+                    continue;
                 }
         }
 
