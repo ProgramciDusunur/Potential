@@ -62,7 +62,7 @@ void initializeLMRTable(void) {
                 lmrTable[depth][ply] = 0;
                 continue;
             }
-            lmrTable[depth][ply] = round(0.600 + log(depth) * log(ply) * 0.300);
+            lmrTable[depth][ply] = round(0.75 + log(depth) * log(ply) * 0.300);
         }
     }
 }
@@ -1057,14 +1057,16 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
-        /*if (!improving) {
-            lmrReduction += 1;
-        }
-
         // Reduce Less
         if (tt_pv) {
             lmrReduction -= 1;
         }
+
+        /*if (!improving) {
+            lmrReduction += 1;
+        }
+
+
 
         */
 
