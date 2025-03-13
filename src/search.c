@@ -24,6 +24,8 @@ int counterMoves[2][maxPly][maxPly];
 
 const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
 
+int futilityPruningOffset[] = {82, 41, 20, 10, 5};
+
 int CORRHIST_WEIGHT_SCALE = 256;
 int CORRHIST_GRAIN = 256;
 int CORRHIST_LIMIT = 1024;
@@ -926,6 +928,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
 
                 if (legal_moves>= lmpThreshold) {
+                    continue;
+                }
+
+                if (depth <= 4 && !pvNode && !in_check && (static_eval + futilityPruningOffset[depth]) + 82 * depth <= alpha) {
                     continue;
                 }
 
