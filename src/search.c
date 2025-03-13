@@ -939,7 +939,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     skipQuiet = 1;
                 }
 
-
             if (!isMoveTactical) {
                 // Quiet History Pruning
                 if (depth <= 2 && !pvNode && !in_check && moveHistory < depth * -2048) {
