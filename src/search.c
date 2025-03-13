@@ -1056,12 +1056,13 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             if (!pvNode && quietMoves >= 4) {
                 lmrReduction += 1;
             }
+
+            // Reduce Less
+            if (pos->killerMoves[pos->ply][0] == bestMove) {
+                lmrReduction -= 1;
+            }
         }
 
-        // Reduce Less
-        if (pos->killerMoves[pos->ply][0] == bestMove) {
-            lmrReduction -= 1;
-        }
 
         /*if (!improving) {
             lmrReduction += 1;
