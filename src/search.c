@@ -924,8 +924,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 int lmpBase = 4;
                 int lmpMultiplier = 3;
                 int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
+                uint8_t improvingFactor = improving ? 2 : 1;
 
-                if (legal_moves>= lmpThreshold) {
+                if (legal_moves >= (lmpThreshold / improvingFactor)) {
                     continue;
                 }
 
