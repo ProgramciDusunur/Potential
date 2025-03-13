@@ -910,7 +910,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             continue;
         }
 
-        bool isQuiet = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
+        bool noTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
         //bool isMoveTactical = isTactical(currentMove);
 
@@ -919,7 +919,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         bool isNotMated = bestScore > -mateScore;
 
-        if (!rootNode && isQuiet && isNotMated) {
+        if (!rootNode && noTactical && isNotMated) {
 
                 int lmpBase = 4;
                 int lmpMultiplier = 3;
@@ -944,7 +944,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // SEE PVS Pruning
         int seeThreshold =
-                isQuiet ? -67 * depth : -32 * depth * depth;
+                noTactical ? -67 * depth : -32 * depth * depth;
         if (depth <= 10 && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
@@ -1028,7 +1028,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // increment nodes count
         searchNodes++;
 
-        if (isQuiet) {
+        if (noTactical) {
             addMoveToHistoryList(badQuiets, currentMove);
         }
 
@@ -1037,7 +1037,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // increment legal moves
         legal_moves++;
 
-        if (isQuiet) {
+        if (noTactical) {
             quietMoves++;
         } else {
             //captureMoves++;
@@ -1050,22 +1050,26 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         /* All Moves */
 
         // Reduce More
-
-        if (isQuiet) {
+        if (noTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
                 lmrReduction += 1;
             }
         }
 
-        /*if (!improving) {
-            lmrReduction += 1;
-        }
-
         // Reduce Less
         if (tt_pv) {
             lmrReduction -= 1;
         }
+
+        if (in_check) {
+            lmrReduction -= 1;
+        }
+
+        /*if (!improving) {
+            lmrReduction += 1;
+        }
+
 
         */
 
@@ -1130,7 +1134,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
-                    if (isQuiet) {
+                    if (noTactical) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
