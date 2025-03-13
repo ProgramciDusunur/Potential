@@ -62,7 +62,7 @@ void initializeLMRTable(void) {
                 lmrTable[depth][ply] = 0;
                 continue;
             }
-            lmrTable[depth][ply] = round(0.75 + log(depth) * log(ply) * 0.300);
+            lmrTable[depth][ply] = round(0.650 + log(depth) * log(ply) * 0.300);
         }
     }
 }
