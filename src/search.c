@@ -1058,14 +1058,15 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
-        /*if (!improving) {
-            lmrReduction += 1;
-        }
-
         // Reduce Less
         if (tt_pv) {
             lmrReduction -= 1;
         }
+
+        /*if (!improving) {
+            lmrReduction += 1;
+        }
+
 
         */
 
