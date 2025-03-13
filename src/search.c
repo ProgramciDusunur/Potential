@@ -23,7 +23,7 @@ int lmrTable[maxPly][maxPly];
 int counterMoves[2][maxPly][maxPly];
 
 const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
-int futilityPruningOffset[] = {0, 82, 41, 20, 10};
+int futilityPruningOffset[] = {0, 102, 51, 25, 12};
 
 int CORRHIST_WEIGHT_SCALE = 256;
 int CORRHIST_GRAIN = 256;
