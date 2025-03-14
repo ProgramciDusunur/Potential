@@ -24,6 +24,7 @@ int counterMoves[2][maxPly][maxPly];
 
 const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
 int futilityPruningOffset[] = {0, 61, 30, 15, 7};
+int historyPruningOffset[] = {0, 1024, 512, 256, 128};
 
 int CORRHIST_WEIGHT_SCALE = 256;
 int CORRHIST_GRAIN = 256;
@@ -928,7 +929,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     continue;
                 }
                 // Quiet History Pruning
-                if (depth <= 4 && !in_check && moveHistory < depth * -2048) {
+                if (depth <= 4 && !in_check && moveHistory < -(2048 + historyPruningOffset[depth]) * depth) {
                     break;
                 }
 
