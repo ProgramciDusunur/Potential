@@ -1112,7 +1112,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             score = -negamax(-beta, -alpha, new_depth, pos, time, false);
         }
 
-
         // decrement ply
         pos->ply--;
 
