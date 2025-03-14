@@ -913,7 +913,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         //bool isMoveTactical = isTactical(currentMove);
 
 
-        //int moveHistory = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
+        int moveHistory = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
 
         bool isNotMated = bestScore > -mateScore;
 
@@ -929,7 +929,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (depth <= 4 && !pvNode && !in_check && (static_eval + futilityPruningOffset[depth]) + 82 * depth <= alpha) {
                     continue;
                 }
-
+                // Quiet History Pruning
+                if (!in_check && depth <= 2 && moveHistory < depth * -2048) {
+                    break;
+                }
                 /*if (depth <= 4 && !pvNode && !in_check && static_eval + 82 * depth <= alpha) {
                     skipQuiet = 1;
                 }
