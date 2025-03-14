@@ -1035,7 +1035,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (!getMoveCapture(currentMove) && singularScore + 40 < singularBeta) {
                     extensions++;
                 }
-
             }
 
             // Negative Extension
