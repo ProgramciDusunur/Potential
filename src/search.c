@@ -933,17 +933,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (!in_check && depth <= 2 && moveHistory < depth * -2048) {
                     break;
                 }
-                /*if (depth <= 4 && !pvNode && !in_check && static_eval + 82 * depth <= alpha) {
-                    skipQuiet = 1;
-                }
 
-
-            if (!isMoveTactical) {
-                // Quiet History Pruning
-                if (depth <= 2 && !pvNode && !in_check && moveHistory < depth * -2048) {
-                    break;
-                }
-            }*/
         }
 
         // SEE PVS Pruning
