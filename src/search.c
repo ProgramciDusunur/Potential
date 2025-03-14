@@ -702,7 +702,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
 
     // variable to store current move's score (from the static evaluation perspective)
-    int score = 0;
+    int nmpScore = 0;
 
 
 
@@ -808,6 +808,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= nullMoveDepth && !in_check && !rootNode &&
             static_eval >= beta &&
+            pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
         // preserve board state
@@ -839,7 +840,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, depth - R, pos, time, !cutNode);
+        nmpScore = -negamax(-beta, -beta + 1, depth - R, pos, time, !cutNode);
 
         // decrement ply
         pos->ply--;
@@ -854,10 +855,27 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (time->stopped == 1) return 0;
 
         // fail-hard beta cutoff
-        if (score >= beta)
+        if (nmpScore >= beta) {
 
-            // node (move) fails high
-            return score;
+            // if there is any unproven mate don't return but we can still return beta
+            if (nmpScore > mateScore) {
+                nmpScore = beta;
+            }
+
+            if (pos->nmpPly || depth < 15) {
+                return nmpScore;
+            }
+
+            pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
+            int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, false);
+            pos->nmpPly = 0;
+
+            if (verificationScore >= beta) {
+                return nmpScore;
+            }
+        }
+
+
     }
 
     // razoring
@@ -1081,19 +1099,19 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if(moves_searched >= lmr_full_depth_moves &&
            depth >= lmr_reduction_limit) {
 
-            score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
+            nmpScore = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
 
-            if (score > alpha && lmrReduction != 0) {
-                score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+            if (nmpScore > alpha && lmrReduction != 0) {
+                nmpScore = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             }
         }
         else if (!pvNode || legal_moves > 1) {
-            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+            nmpScore = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
         }
 
-        if (pvNode && (legal_moves == 1 || score > alpha)) {
+        if (pvNode && (legal_moves == 1 || nmpScore > alpha)) {
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, new_depth, pos, time, false);
+            nmpScore = -negamax(-beta, -alpha, new_depth, pos, time, false);
         }
 
 
@@ -1112,15 +1130,15 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         moves_searched++;
 
         // found a better move
-        if (score > bestScore) {
-            bestScore = score;
+        if (nmpScore > bestScore) {
+            bestScore = nmpScore;
 
-            if (score > alpha) {
+            if (nmpScore > alpha) {
                 // store best move (for TT or anything)
                 bestMove = currentMove;
 
                 // PV node (move)
-                alpha = score;
+                alpha = nmpScore;
 
                 if (pvNode) {
                     // write PV move
@@ -1136,7 +1154,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // fail-hard beta cutoff
-                if (score >= beta) {
+                if (nmpScore >= beta) {
                     if (isQuiet) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
