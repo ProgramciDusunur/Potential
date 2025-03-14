@@ -38,7 +38,6 @@ int nonPawnCorrectionHistory[2][2][16384];
 
 
 
-
 // position repetition detection
 int isRepetition(board* position) {
     // loop over repetition indicies range
