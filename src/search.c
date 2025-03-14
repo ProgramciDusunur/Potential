@@ -806,6 +806,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= nullMoveDepth && !in_check && !rootNode &&
             static_eval >= beta &&
+            pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
         // preserve board state
@@ -852,10 +853,27 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (time->stopped == 1) return 0;
 
         // fail-hard beta cutoff
-        if (score >= beta)
+        if (score >= beta) {
 
-            // node (move) fails high
-            return score;
+            // if there is any unproven mate don't return but we can still return beta
+            if (score > mateScore) {
+                score = beta;
+            }
+
+            if (pos->nmpPly || depth < 15) {
+                return score;
+            }
+
+            pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
+            int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, false);
+            pos->nmpPly = 0;
+
+            if (verificationScore >= beta) {
+                return score;
+            }
+        }
+
+
     }
 
     // razoring
