@@ -63,7 +63,7 @@ void initializeLMRTable(void) {
                 continue;
             }
             lmrTable[0][depth][moves] = 0.38 + log(depth) * log(moves) / 3.76; // noisy/tactical
-            lmrTable[1][depth][moves] = 2.01 + log(depth) * log(moves) / 2.32; // quiet
+            lmrTable[1][depth][moves] = 1.01 + log(depth) * log(moves) / 2.32; // quiet
         }
     }
 }
