@@ -19,7 +19,7 @@ int nullMoveDepth = 3;
 
 U64 searchNodes = 0;
 
-int lmrTable[maxPly][maxPly];
+int lmrTable[2][maxPly][maxPly];
 int counterMoves[2][maxPly][maxPly];
 
 const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
@@ -34,8 +34,6 @@ int CORRHIST_MAX = 16384;
 int pawnCorrectionHistory[2][16384];
 int minorCorrectionHistory[2][16384];
 int nonPawnCorrectionHistory[2][2][16384];
-
-
 
 
 
@@ -57,13 +55,14 @@ int isRepetition(board* position) {
 // [depth][moveNumber]
 void initializeLMRTable(void) {
     for (int depth = 1; depth < maxPly; ++depth) {
-        for (int ply = 1; ply < maxPly; ++ply) {
-            if (ply == 0 || depth == 0) {
-                lmrTable[depth][ply] = 0;
-                lmrTable[depth][ply] = 0;
+        for (int moves = 1; moves < maxPly; ++moves) {
+            if (moves == 0 || depth == 0) {
+                lmrTable[0][depth][moves] = 0;
+                lmrTable[1][depth][moves] = 0;
                 continue;
             }
-            lmrTable[depth][ply] = round(0.75 + log(depth) * log(ply) * 0.300);
+            lmrTable[0][depth][moves] = 0.38 + log(depth) * log(moves) / 3.76; // noisy/tactical
+            lmrTable[1][depth][moves] = 1.01 + log(depth) * log(moves) / 2.32; // quiet
         }
     }
 }
@@ -266,9 +265,8 @@ void printMove(int move) {
 }
 
 
-int getLmrReduction(int depth, int moveNumber) {
-    int reduction = lmrTable[myMIN(63, depth)][myMIN(63, moveNumber)];
-    return reduction;
+int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
+    return lmrTable[isQuiet][myMIN(63, depth)][myMIN(63, moveNumber)];
 }
 
 void clearCounterMoves(void) {
@@ -910,7 +908,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             continue;
         }
 
-        bool isQuiet = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
+        bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
         //bool isMoveTactical = isTactical(currentMove);
 
@@ -919,7 +917,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         bool isNotMated = bestScore > -mateScore;
 
-        if (!rootNode && isQuiet && isNotMated) {
+        if (!rootNode && notTactical && isNotMated) {
 
                 int lmpBase = 4;
                 int lmpMultiplier = 3;
@@ -947,7 +945,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // SEE PVS Pruning
         int seeThreshold =
-                isQuiet ? -67 * depth : -32 * depth * depth;
+                notTactical ? -67 * depth : -32 * depth * depth;
         if (depth <= 10 && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
@@ -1031,7 +1029,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // increment nodes count
         searchNodes++;
 
-        if (isQuiet) {
+        if (notTactical) {
             addMoveToHistoryList(badQuiets, currentMove);
         }
 
@@ -1040,7 +1038,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // increment legal moves
         legal_moves++;
 
-        if (isQuiet) {
+        if (notTactical) {
             quietMoves++;
         } else {
             //captureMoves++;
@@ -1048,13 +1046,13 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         int new_depth = depth - 1 + extensions;
 
-        int lmrReduction = getLmrReduction(depth, legal_moves);
+        int lmrReduction = getLmrReduction(depth, legal_moves, notTactical);
 
         /* All Moves */
 
         // Reduce More
 
-        if (isQuiet) {
+        if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
                 lmrReduction += 1;
@@ -1137,7 +1135,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
-                    if (isQuiet) {
+                    if (notTactical) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
