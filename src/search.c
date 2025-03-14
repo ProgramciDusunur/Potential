@@ -23,6 +23,7 @@ int lmrTable[maxPly][maxPly];
 int counterMoves[2][maxPly][maxPly];
 
 const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
+int futilityPruningOffset[] = {0, 61, 30, 15, 7};
 
 int CORRHIST_WEIGHT_SCALE = 256;
 int CORRHIST_GRAIN = 256;
@@ -33,7 +34,6 @@ int CORRHIST_MAX = 16384;
 int pawnCorrectionHistory[2][16384];
 int minorCorrectionHistory[2][16384];
 int nonPawnCorrectionHistory[2][2][16384];
-
 
 
 
@@ -63,7 +63,7 @@ void initializeLMRTable(void) {
                 lmrTable[depth][ply] = 0;
                 continue;
             }
-            lmrTable[depth][ply] = round(0.75 + log(depth) * log(ply) * 0.375);
+            lmrTable[depth][ply] = round(0.75 + log(depth) * log(ply) * 0.300);
         }
     }
 }
@@ -928,6 +928,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (legal_moves>= lmpThreshold) {
                     continue;
                 }
+                if (depth <= 4 && !pvNode && !in_check && (static_eval + futilityPruningOffset[depth]) + 82 * depth <= alpha) {
+                    continue;
+                }
 
                 /*if (depth <= 4 && !pvNode && !in_check && static_eval + 82 * depth <= alpha) {
                     skipQuiet = 1;
@@ -1058,13 +1061,17 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
-        /*if (!improving) {
-            lmrReduction += 1;
-        }
+
+
+        /*
 
         // Reduce Less
         if (tt_pv) {
             lmrReduction -= 1;
+        }
+
+        if (!improving) {
+            lmrReduction += 1;
         }
 
         */
