@@ -702,7 +702,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
 
     // variable to store current move's score (from the static evaluation perspective)
-    int nmpScore = 0;
+    int score = 0;
 
 
 
@@ -840,7 +840,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        nmpScore = -negamax(-beta, -beta + 1, depth - R, pos, time, !cutNode);
+        score = -negamax(-beta, -beta + 1, depth - R, pos, time, !cutNode);
 
         // decrement ply
         pos->ply--;
@@ -855,15 +855,15 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (time->stopped == 1) return 0;
 
         // fail-hard beta cutoff
-        if (nmpScore >= beta) {
+        if (score >= beta) {
 
             // if there is any unproven mate don't return but we can still return beta
-            if (nmpScore > mateScore) {
-                nmpScore = beta;
+            if (score > mateScore) {
+                score = beta;
             }
 
             if (pos->nmpPly || depth < 15) {
-                return nmpScore;
+                return score;
             }
 
             pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
@@ -871,7 +871,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             pos->nmpPly = 0;
 
             if (verificationScore >= beta) {
-                return nmpScore;
+                return score;
             }
         }
 
@@ -1099,19 +1099,19 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if(moves_searched >= lmr_full_depth_moves &&
            depth >= lmr_reduction_limit) {
 
-            nmpScore = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
+            score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
 
-            if (nmpScore > alpha && lmrReduction != 0) {
-                nmpScore = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+            if (score > alpha && lmrReduction != 0) {
+                score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             }
         }
         else if (!pvNode || legal_moves > 1) {
-            nmpScore = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
         }
 
-        if (pvNode && (legal_moves == 1 || nmpScore > alpha)) {
+        if (pvNode && (legal_moves == 1 || score > alpha)) {
             // do normal alpha beta search
-            nmpScore = -negamax(-beta, -alpha, new_depth, pos, time, false);
+            score = -negamax(-beta, -alpha, new_depth, pos, time, false);
         }
 
 
@@ -1130,15 +1130,15 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         moves_searched++;
 
         // found a better move
-        if (nmpScore > bestScore) {
-            bestScore = nmpScore;
+        if (score > bestScore) {
+            bestScore = score;
 
-            if (nmpScore > alpha) {
+            if (score > alpha) {
                 // store best move (for TT or anything)
                 bestMove = currentMove;
 
                 // PV node (move)
-                alpha = nmpScore;
+                alpha = score;
 
                 if (pvNode) {
                     // write PV move
@@ -1154,7 +1154,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // fail-hard beta cutoff
-                if (nmpScore >= beta) {
+                if (score >= beta) {
                     if (isQuiet) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
