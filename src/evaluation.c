@@ -365,7 +365,7 @@ int evaluate(const board* position) {
                                 case b:
                                         score_midgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        black_bishop_mobility -= countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        black_bishop_mobility += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case r:
 
