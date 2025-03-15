@@ -259,6 +259,10 @@ const int endgame_phase_score = 518;
 // Passed Can Move Bonus
 const int passedCanMoveBonus = 5;
 
+// Bishop Pair Bonus
+const int bishop_pair_bonus_midgame = 10;
+const int bishop_pair_bonus_endgame = 30;
+
 // Pre-interpolated tables
 int mg_table[12][64]; // [piece][square] -> midgame score
 int eg_table[12][64]; // [piece][square] -> endgame score
@@ -323,18 +327,18 @@ int get_game_phase_score(const board* position) {
 
 int evaluate(const board* position) {
         const int game_phase_score = get_game_phase_score(position);
-        int score_opening = 0, score_endgame = 0;
+        int score_midgame = 0, score_endgame = 0;
 
         for (int piece = P; piece <= k; piece++) {
                 U64 bitboard = position->bitboards[piece];
                 while (bitboard) {
                         const int square = getLS1BIndex(bitboard);
-                        score_opening += mg_table[piece][square];
+                        score_midgame += mg_table[piece][square];
                         score_endgame += eg_table[piece][square];
 
                         switch (piece) {
                                 case B:
-                                        score_opening += countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        score_midgame += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case R:
@@ -342,20 +346,20 @@ int evaluate(const board* position) {
                                         // Semi Open File Bonus
                                         if ((position->bitboards[P] & fileMasks[square]) == 0) {
                                                 // add semi open file bonus
-                                                score_opening += semi_open_file_score;
+                                                score_midgame += semi_open_file_score;
                                                 score_endgame += semi_open_file_score;
                                         }
 
                                         // open file
                                         if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) {
                                                 // add open file bonus
-                                                score_opening += rook_open_file;
+                                                score_midgame += rook_open_file;
                                                 score_endgame += rook_open_file;
 
                                         }
                                         break;
                                 case b:
-                                        score_opening -= countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        score_midgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case r:
@@ -363,14 +367,14 @@ int evaluate(const board* position) {
                                         // Semi Open File Bonus
                                         if ((position->bitboards[p] & fileMasks[square]) == 0) {
                                                 // add semi open file bonus
-                                                score_opening -= semi_open_file_score;
+                                                score_midgame -= semi_open_file_score;
                                                 score_endgame -= semi_open_file_score;
                                         }
 
                                         // open file
                                         if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) {
                                                 // add open file bonus
-                                                score_opening -= rook_open_file;
+                                                score_midgame -= rook_open_file;
                                                 score_endgame -= rook_open_file;
 
                                         }
@@ -388,20 +392,20 @@ int evaluate(const board* position) {
         // White
 
         // King ring bonus
-        score_opening += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_middlegame;
+        score_midgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_middlegame;
         score_endgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_endgame;
 
         // semi open file
         if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0) {
                 // add semi open file penalty
-                score_opening -= king_semi_open_file_score;
+                score_midgame -= king_semi_open_file_score;
                 score_endgame -= king_semi_open_file_score;
         }
 
         // open file penalty
         if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[whiteKingSquare]) == 0) {
                 // add open file penalty
-                score_opening -= king_open_file_score;
+                score_midgame -= king_open_file_score;
                 score_endgame -= king_open_file_score;
         }
 
@@ -409,32 +413,46 @@ int evaluate(const board* position) {
         // Black
 
         // King ring bonus
-        score_opening -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_middlegame;
+        score_midgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_middlegame;
         score_endgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_endgame;
 
         // semi open file penalty
         if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) {
                 // add semi open file penalty
-                score_opening += king_semi_open_file_score;
+                score_midgame += king_semi_open_file_score;
                 score_endgame += king_semi_open_file_score;
         }
 
         // open file penalty
         if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[blackKingSquare]) == 0) {
                 // add semi open file penalty
-                score_opening += king_open_file_score;
+                score_midgame += king_open_file_score;
                 score_endgame += king_open_file_score;
+        }
+
+        // bishop pair bonus
+
+        // White
+        if (countBits(position->bitboards[B]) == 2) {
+                score_midgame += bishop_pair_bonus_midgame;
+                score_endgame += bishop_pair_bonus_endgame;
+        }
+
+        // Black
+        if (countBits(position->bitboards[b]) == 2) {
+                score_midgame -= bishop_pair_bonus_midgame;
+                score_endgame -= bishop_pair_bonus_endgame;
         }
 
 
 
         int score;
         if (game_phase_score > opening_phase_score)
-                score = score_opening;
+                score = score_midgame;
         else if (game_phase_score < endgame_phase_score)
                 score = score_endgame;
         else
-                score = (score_opening * game_phase_score + score_endgame * (opening_phase_score - game_phase_score))
+                score = (score_midgame * game_phase_score + score_endgame * (opening_phase_score - game_phase_score))
                        / opening_phase_score;
 
         return (position->side == white) ? score : -score;

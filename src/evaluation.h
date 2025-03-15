@@ -98,6 +98,10 @@ extern const bool pawnHoleSquareCheck[64];
 // Passed Can Move Bonus
 extern const int passedCanMoveBonus;
 
+// Bishop Pair Bonus
+extern const int bishop_pair_bonus_midgame;
+extern const int bishop_pair_bonus_endgame;
+
 extern int mg_table[12][64]; // [piece][square] -> midgame score
 extern int eg_table[12][64]; // [piece][square] -> endgame score
 
