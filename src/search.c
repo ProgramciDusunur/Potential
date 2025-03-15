@@ -23,7 +23,8 @@ int lmrTable[2][maxPly][maxPly];
 int counterMoves[2][maxPly][maxPly];
 
 const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
-int futilityPruningOffset[] = {0, 61, 30, 15, 7};
+int quiet_futility_pruning_offset[] = {0, 61, 30, 15, 7};
+int noisy_futility_pruning_offset[] = {0, 123, 61, 30, 11};
 
 int CORRHIST_WEIGHT_SCALE = 256;
 int CORRHIST_GRAIN = 256;
@@ -935,24 +936,28 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         bool isNotMated = bestScore > -mateScore;
 
-        if (!rootNode && notTactical && isNotMated) {
+        if (!rootNode && isNotMated) {
 
-                int lmpBase = 4;
-                int lmpMultiplier = 3;
-                int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
+                // Quiet moves
+                if (notTactical) {
+                    int lmpBase = 4;
+                    int lmpMultiplier = 3;
+                    int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
 
-                if (legal_moves>= lmpThreshold) {
-                    continue;
+                    if (legal_moves>= lmpThreshold) {
+                        continue;
+                    }
+                    if (depth <= 4 && !pvNode && !in_check && (static_eval + quiet_futility_pruning_offset[depth]) + 82 * depth <= alpha) {
+                        continue;
+                    }
+                } else { // Tactical moves
+                    if (depth <= 4 && !pvNode && !in_check && (static_eval + noisy_futility_pruning_offset[depth]) + 164 * depth <= alpha) {
+                        continue;
+                    }
                 }
-                if (depth <= 4 && !pvNode && !in_check && (static_eval + futilityPruningOffset[depth]) + 82 * depth <= alpha) {
-                    continue;
-                }
-
-                /*if (depth <= 4 && !pvNode && !in_check && static_eval + 82 * depth <= alpha) {
-                    skipQuiet = 1;
-                }
 
 
+                /*
             if (!isMoveTactical) {
                 // Quiet History Pruning
                 if (depth <= 2 && !pvNode && !in_check && moveHistory < depth * -2048) {
