@@ -262,8 +262,8 @@ const int endgame_phase_score = 518;
 const int passedCanMoveBonus = 5;
 
 // Bishop Pair Bonus
-const int bishop_pair_bonus_midgame = 2;
-const int bishop_pair_bonus_endgame = 10;
+const int bishop_pair_bonus_midgame = 8;
+const int bishop_pair_bonus_endgame = 48;
 
 const int bishop_pair_bonus[] = {0, 8, 15, 23, 30, 38};
 
@@ -332,7 +332,7 @@ int get_game_phase_score(const board* position) {
 int evaluate(const board* position) {
         const int game_phase_score = get_game_phase_score(position);
 
-        const int material_scale = game_phase_score / 1500;
+
 
         int score_midgame = 0, score_endgame = 0;
         int white_bishop_mobility = 0;
@@ -446,14 +446,14 @@ int evaluate(const board* position) {
 
         // White
         if (countBits(position->bitboards[B]) == 2) {
-                score_midgame += bishop_pair_bonus[myMIN(material_scale, 5)];
-                score_endgame += bishop_pair_bonus[myMIN(material_scale, 5)];
+                score_midgame += bishop_pair_bonus_midgame;
+                score_endgame += bishop_pair_bonus_endgame;
         }
 
         // Black
         if (countBits(position->bitboards[b]) == 2) {
-                score_midgame -= bishop_pair_bonus[myMIN(material_scale, 5)];
-                score_endgame -= bishop_pair_bonus[myMIN(material_scale, 5)];
+                score_midgame -= bishop_pair_bonus_midgame;
+                score_endgame -= bishop_pair_bonus_endgame;
         }
 
 
