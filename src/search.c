@@ -802,7 +802,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         ttAdjustedEval - rfpMargin >= beta)
         return (ttAdjustedEval + beta) / 2;
 
-
     // null move pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= nullMoveDepth && !in_check && !rootNode &&
