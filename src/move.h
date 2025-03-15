@@ -74,5 +74,6 @@ void noisyGenerator(moves *moveList, board* position);
 void initSlidersAttacks(int bishop);
 void initLeaperAttacks();
 void addMoveToHistoryList(moves* list, int move);
+bool isTacticalMove(int move);
 
 #endif //POTENTIAL_MOVE_H

@@ -928,7 +928,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
-        //bool isMoveTactical = isTactical(currentMove);
 
 
         //int moveHistory = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
@@ -1076,6 +1075,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 lmrReduction += 1;
             }
         }
+
+        if (isTacticalMove(tt_move)) {
+            lmrReduction += 1;
+        }
+
+
 
         // Reduce Less
         if (tt_pv) {

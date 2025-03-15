@@ -1151,3 +1151,7 @@ void addMoveToHistoryList(moves* list, int move) {
         list->count += 1;
     }
 }
+
+bool isTacticalMove(int move) {
+    return getMoveCapture(move) || getMovePromoted(move);
+}
