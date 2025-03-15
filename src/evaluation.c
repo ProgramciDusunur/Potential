@@ -260,8 +260,8 @@ const int endgame_phase_score = 518;
 const int passedCanMoveBonus = 5;
 
 // Bishop Pair Bonus
-const int bishop_pair_bonus_midgame = 10;
-const int bishop_pair_bonus_endgame = 40;
+const int bishop_pair_bonus_midgame = 2;
+const int bishop_pair_bonus_endgame = 10;
 
 // Pre-interpolated tables
 int mg_table[12][64]; // [piece][square] -> midgame score
@@ -328,9 +328,12 @@ int get_game_phase_score(const board* position) {
 int evaluate(const board* position) {
         const int game_phase_score = get_game_phase_score(position);
         int score_midgame = 0, score_endgame = 0;
+        int white_bishop_mobility = 0;
+        int black_bishop_mobility = 0;
 
         for (int piece = P; piece <= k; piece++) {
                 U64 bitboard = position->bitboards[piece];
+
                 while (bitboard) {
                         const int square = getLS1BIndex(bitboard);
                         score_midgame += mg_table[piece][square];
@@ -340,6 +343,7 @@ int evaluate(const board* position) {
                                 case B:
                                         score_midgame += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        white_bishop_mobility += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case R:
 
@@ -361,6 +365,7 @@ int evaluate(const board* position) {
                                 case b:
                                         score_midgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        black_bishop_mobility -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case r:
 
@@ -434,14 +439,14 @@ int evaluate(const board* position) {
 
         // White
         if (countBits(position->bitboards[B]) == 2) {
-                score_midgame += bishop_pair_bonus_midgame;
-                score_endgame += bishop_pair_bonus_endgame;
+                score_midgame += bishop_pair_bonus_midgame * white_bishop_mobility;
+                score_endgame += bishop_pair_bonus_endgame * white_bishop_mobility;
         }
 
         // Black
         if (countBits(position->bitboards[b]) == 2) {
-                score_midgame -= bishop_pair_bonus_midgame;
-                score_endgame -= bishop_pair_bonus_endgame;
+                score_midgame -= bishop_pair_bonus_midgame * black_bishop_mobility;
+                score_endgame -= bishop_pair_bonus_endgame * black_bishop_mobility;
         }
 
 
