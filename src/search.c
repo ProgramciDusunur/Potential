@@ -949,8 +949,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     }
                 } else { // Tactical moves
                     int lmpBase = 4;
-                    int lmpMultiplier = 2;
-                    int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth * depth);
+                    int lmpMultiplier = 3;
+                    int lmpThreshold = (lmpBase + lmpMultiplier * depth * depth);
 
                     if (legal_moves>= lmpThreshold) {
                         continue;
