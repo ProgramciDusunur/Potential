@@ -265,7 +265,7 @@ const int passedCanMoveBonus = 5;
 const int bishop_pair_bonus_midgame = 2;
 const int bishop_pair_bonus_endgame = 10;
 
-const int bishop_pair_bonus[] = {0, 10, 20, 30, 40, 50};
+const int bishop_pair_bonus[] = {0, 8, 15, 23, 30, 38};
 
 // Pre-interpolated tables
 int mg_table[12][64]; // [piece][square] -> midgame score
