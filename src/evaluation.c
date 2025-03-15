@@ -4,6 +4,8 @@
 
 #include "evaluation.h"
 
+#include "utils.h"
+
 
 // Mirror Score Array
 const int mirrorScore[128] =
@@ -263,7 +265,7 @@ const int passedCanMoveBonus = 5;
 const int bishop_pair_bonus_midgame = 2;
 const int bishop_pair_bonus_endgame = 10;
 
-const int bishop_pair_bonus[] = {0, 10, 20, 30, 40};
+const int bishop_pair_bonus[] = {0, 10, 20, 30, 40, 50};
 
 // Pre-interpolated tables
 int mg_table[12][64]; // [piece][square] -> midgame score
@@ -444,14 +446,14 @@ int evaluate(const board* position) {
 
         // White
         if (countBits(position->bitboards[B]) == 2) {
-                score_midgame += bishop_pair_bonus[material_scale];
-                score_endgame += bishop_pair_bonus[material_scale];
+                score_midgame += bishop_pair_bonus[myMIN(material_scale, 5)];
+                score_endgame += bishop_pair_bonus[myMIN(material_scale, 5)];
         }
 
         // Black
         if (countBits(position->bitboards[b]) == 2) {
-                score_midgame -= bishop_pair_bonus[material_scale];
-                score_endgame -= bishop_pair_bonus[material_scale];
+                score_midgame -= bishop_pair_bonus[myMIN(material_scale, 5)];
+                score_endgame -= bishop_pair_bonus[myMIN(material_scale, 5)];
         }
 
 
