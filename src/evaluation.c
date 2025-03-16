@@ -333,6 +333,7 @@ int evaluate(const board* position) {
         const int game_phase_score = get_game_phase_score(position);
 
         int score_midgame = 0, score_endgame = 0;
+        int passed_pawn_count = 0;
 
         for (int piece = P; piece <= k; piece++) {
                 U64 bitboard = position->bitboards[piece];
@@ -343,6 +344,16 @@ int evaluate(const board* position) {
                         score_endgame += eg_table[piece][square];
 
                         switch (piece) {
+                                case P:
+                                        if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
+                                                passed_pawn_count += 1;
+                                        }
+                                break;
+                                case p:
+                                        if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
+                                                passed_pawn_count -= 1;
+                                        }
+                                break;
                                 case B:
                                         score_midgame += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
@@ -449,6 +460,20 @@ int evaluate(const board* position) {
                 score_midgame -= bishop_pair_bonus_midgame;
                 score_endgame -= bishop_pair_bonus_endgame;
         }
+
+        int winnableScore = 0;
+        // winnable
+        int8_t strong_side = position->side ? -70 : 70;
+        //winnableScore += (position->side && (get_rank[getLS1BIndex(position->bitboards[k])] < 2)) * -20;
+        //winnableScore += (!position->side && (get_rank[getLS1BIndex(position->bitboards[K])] > 5)) * 20;
+
+        winnableScore +=  6 * passed_pawn_count +
+                8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p])) +
+                strong_side
+        ;
+
+        score_midgame += winnableScore;
+        score_endgame += winnableScore;
 
 
         int score;
