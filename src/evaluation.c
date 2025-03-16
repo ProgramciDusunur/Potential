@@ -431,11 +431,10 @@ int evaluate(const board* position) {
         winnableScore += (position->side && (get_rank[getLS1BIndex(position->bitboards[k])] < 2)) * -20;
         winnableScore += (!position->side && (get_rank[getLS1BIndex(position->bitboards[K])] > 5)) * 20;
 
-        winnableScore += 8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]))
-        ;
+        winnableScore += 8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]));
+
         score_opening += winnableScore;
         score_endgame += winnableScore;
-
 
 
         int score;
