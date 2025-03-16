@@ -332,11 +332,7 @@ int get_game_phase_score(const board* position) {
 int evaluate(const board* position) {
         const int game_phase_score = get_game_phase_score(position);
 
-
-
         int score_midgame = 0, score_endgame = 0;
-        int white_bishop_mobility = 0;
-        int black_bishop_mobility = 0;
 
         for (int piece = P; piece <= k; piece++) {
                 U64 bitboard = position->bitboards[piece];
@@ -350,7 +346,6 @@ int evaluate(const board* position) {
                                 case B:
                                         score_midgame += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        white_bishop_mobility += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case R:
 
@@ -372,7 +367,6 @@ int evaluate(const board* position) {
                                 case b:
                                         score_midgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        black_bishop_mobility += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case r:
 
