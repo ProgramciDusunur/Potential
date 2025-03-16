@@ -333,6 +333,10 @@ int evaluate(const board* position) {
         const int game_phase_score = get_game_phase_score(position);
 
         int score_midgame = 0, score_endgame = 0;
+
+        const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
+        const int blackKingSquare = getLS1BIndex(position->bitboards[k]);
+
         int passed_pawn_count = 0;
 
         for (int piece = P; piece <= k; piece++) {
@@ -403,8 +407,6 @@ int evaluate(const board* position) {
 
 
         // king safety bonus
-        int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
-        int blackKingSquare = getLS1BIndex(position->bitboards[k]);
 
         // White
 
@@ -463,7 +465,7 @@ int evaluate(const board* position) {
 
         int winnableScore = 0;
         // winnable
-        int8_t strong_side = position->side ? -70 : 70;
+        const int8_t strong_side = position->side ? -70 : 70;
         //winnableScore += (position->side && (get_rank[getLS1BIndex(position->bitboards[k])] < 2)) * -20;
         //winnableScore += (!position->side && (get_rank[getLS1BIndex(position->bitboards[K])] > 5)) * 20;
 
