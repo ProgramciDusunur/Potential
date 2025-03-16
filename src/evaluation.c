@@ -472,7 +472,6 @@ int evaluate(const board* position) {
         score_midgame += winnableScore;
         score_endgame += winnableScore;
 
-
         int score;
         if (game_phase_score > opening_phase_score)
                 score = score_midgame;
