@@ -363,7 +363,6 @@ int evaluate(const board* position) {
                                                                 score_midgame += pawnHoleBonus[square] + pawnHoleDefenderPawnsBonus;
                                                                 score_endgame += pawnHoleBonus[square] + pawnHoleDefenderPawnsBonus;
                                                         }
-
                                                         score_midgame -= knightOutpost[opening][square];
                                                         score_endgame -= knightOutpost[endgame][square];
                                                 }
