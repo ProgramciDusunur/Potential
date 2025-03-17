@@ -326,7 +326,6 @@ int get_game_phase_score(const board* position) {
     return white_piece_scores + black_piece_scores;
 }
 
-
 int evaluate(const board* position) {
         const int game_phase_score = get_game_phase_score(position);
 
