@@ -1103,6 +1103,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
 
             if (score > alpha && lmrReduction != 0) {
+                bool doShallower = score < bestScore + 8;
+                new_depth -= doShallower;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             }
         }
