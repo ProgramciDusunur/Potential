@@ -4,8 +4,6 @@
 
 #include "evaluation.h"
 
-#include "utils.h"
-
 
 // Mirror Score Array
 const int mirrorScore[128] =
@@ -165,7 +163,7 @@ const int positional_score[2][6][64] = {
 // Pawn Penalties and Bonuses
 const int double_pawn_penalty_opening = -5;
 const int double_pawn_penalty_endgame = -10;
-const int isolated_pawn_penalty_opening = -5;
+const int isolated_pawn_penalty_midgame = -5;
 const int isolated_pawn_penalty_endgame = -10;
 
 // passed pawn bonus
@@ -349,11 +347,26 @@ int evaluate(const board* position) {
 
                         switch (piece) {
                                 case P:
+                                        // isolated pawn
+                                        if ((position->bitboards[P] & isolatedMasks[square]) == 0) {
+                                                // give an isolated pawn penalty
+                                                score_midgame += isolated_pawn_penalty_midgame;
+                                                score_endgame += isolated_pawn_penalty_endgame;
+                                        }
+
+                                        // passed pawn
                                         if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                                                 passed_pawn_count += 1;
                                         }
                                 break;
                                 case p:
+                                        // isolated pawn
+                                        if ((position->bitboards[p] & isolatedMasks[square]) == 0) {
+                                                // give an isolated pawn penalty
+                                                score_midgame -= isolated_pawn_penalty_midgame;
+                                                score_endgame -= isolated_pawn_penalty_endgame;
+                                        }
+
                                         if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                                                 passed_pawn_count -= 1;
                                         }
