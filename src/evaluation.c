@@ -357,7 +357,7 @@ int evaluate(const board* position) {
                                                 const int kingDistance = blackKingDistance - whiteKingDistance;
 
                                                 score_midgame += kingDistance * king_distance_bonus;
-                                                score_endgame += kingDistance * king_distance_bonus;
+                                                score_endgame += kingDistance * king_distance_bonus * king_distance_bonus;
                                         }
                                 break;
                                 case p:
@@ -369,7 +369,7 @@ int evaluate(const board* position) {
                                                 const int kingDistance = whiteKingDistance - blackKingDistance;
 
                                                 score_midgame -= kingDistance * king_distance_bonus;
-                                                score_endgame -= kingDistance * king_distance_bonus;
+                                                score_endgame -= kingDistance * king_distance_bonus * king_distance_bonus;
                                         }
                                 break;
                                 case B:
