@@ -1082,18 +1082,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
 
-        /*
-
-        // Reduce Less
-        if (tt_pv) {
-            lmrReduction -= 1;
-        }
-
-        if (!improving) {
-            lmrReduction += 1;
-        }
-
-        */
 
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
 
