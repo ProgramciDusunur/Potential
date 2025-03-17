@@ -351,11 +351,15 @@ int evaluate(const board* position) {
                                 case P:
                                         if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                                                 passed_pawn_count += 1;
+                                                score_midgame += passed_pawn_bonus_middle[square];
+                                                score_endgame += passed_pawn_bonus_endgame[square];
                                         }
                                 break;
                                 case p:
                                         if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                                                 passed_pawn_count -= 1;
+                                                score_midgame -= passed_pawn_bonus_middle[mirrorScore[square]];
+                                                score_endgame -= passed_pawn_bonus_endgame[mirrorScore[square]];
                                         }
                                 break;
                                 case B:
