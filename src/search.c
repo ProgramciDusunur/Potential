@@ -264,7 +264,6 @@ void printMove(int move) {
     }
 }
 
-
 int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
     return lmrTable[isQuiet][myMIN(63, depth)][myMIN(63, moveNumber)];
 }
