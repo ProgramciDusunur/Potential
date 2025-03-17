@@ -366,7 +366,7 @@ int evaluate(const board* position) {
 
                                                 const int whiteKingDistance = (whiteKingSquare - square) / 8;
                                                 const int blackKingDistance = (blackKingSquare- square) / 8;
-                                                const int kingDistance = blackKingDistance - whiteKingDistance;
+                                                const int kingDistance = whiteKingDistance - blackKingDistance;
 
                                                 score_midgame -= kingDistance * king_distance_bonus;
                                                 score_endgame -= kingDistance * king_distance_bonus;
