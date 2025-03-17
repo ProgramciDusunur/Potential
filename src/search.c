@@ -1082,7 +1082,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
 
-
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
 
         if(moves_searched >= lmr_full_depth_moves &&
@@ -1091,7 +1090,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
 
             if (score > alpha && lmrReduction != 0) {
-                bool doDeeper = score > bestScore + 35;
+                int doDeeper = (score > bestScore + 35) + pvNode;
                 new_depth += doDeeper;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             }
