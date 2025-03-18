@@ -943,7 +943,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (depth <= 4 && !pvNode && !in_check && (static_eval + futilityPruningOffset[depth]) + 82 * depth <= alpha) {
                     continue;
                 }
-                if (depth <= 2 && moveHistory < depth * -2048) {
+                if (depth <= 2 && !in_check && moveHistory < depth * -2048) {
                     break;
                 }
 
