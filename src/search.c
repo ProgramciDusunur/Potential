@@ -1030,7 +1030,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Triple Extension
-                if (!getMoveCapture(currentMove) && singularScore + 40 < singularBeta) {
+                if (!getMoveCapture(currentMove) && singularScore + 80 < singularBeta) {
                     extensions++;
                 }
 
