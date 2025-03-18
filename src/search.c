@@ -264,7 +264,6 @@ void printMove(int move) {
     }
 }
 
-
 int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
     return lmrTable[isQuiet][myMIN(63, depth)][myMIN(63, moveNumber)];
 }
@@ -285,7 +284,7 @@ void updatePawnCorrectionHistory(board *position, const int depth, const int dif
     int entry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = myMIN(depth + 1, 16);
+    const int newWeight = 2 * myMIN(depth + 1, 16);
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
@@ -299,7 +298,7 @@ void updateMinorCorrectionHistory(board *position, const int depth, const int di
     int entry = minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = myMIN(depth + 1, 16);
+    const int newWeight = 2 * myMIN(depth + 1, 16);
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
@@ -312,7 +311,7 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff) 
     U64 blackKey = position->blackNonPawnKey;
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = myMIN(depth + 1, 16);
+    const int newWeight = 2 * myMIN(depth + 1, 16);
 
     int whiteEntry = nonPawnCorrectionHistory[white][position->side][whiteKey % CORRHIST_SIZE];
 
