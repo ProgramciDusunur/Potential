@@ -1073,11 +1073,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool predict
             if (!pvNode && quietMoves >= 4) {
                 lmrReduction += 1;
             }
+
+            if (predicted_cut_node) {
+                lmrReduction += 2;
+            }
         }
 
-        if (predicted_cut_node) {
-            lmrReduction += 1;
-        }
 
         // Reduce Less
         if (tt_pv) {
