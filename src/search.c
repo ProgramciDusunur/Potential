@@ -693,7 +693,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode) {
+int negamax(int alpha, int beta, int depth, board* pos, time* time, bool predicted_cut_node) {
     // init PV length
     pos->pvLength[pos->ply] = pos->ply;
 
@@ -778,7 +778,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
 
     // Internal Iterative Reductions
-    if ((pvNode || cutNode) && depth >= 8 && (!tt_move || tt_depth < depth - 3)) {
+    if ((pvNode || predicted_cut_node) && depth >= 8 && (!tt_move || tt_depth < depth - 3)) {
         depth--;
     }
 
@@ -836,7 +836,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, depth - R, pos, time, !cutNode);
+        score = -negamax(-beta, -beta + 1, depth - R, pos, time, !predicted_cut_node);
 
         // decrement ply
         pos->ply--;
@@ -1010,7 +1010,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             pos->isSingularMove[pos->ply] = currentMove;
 
             const int singularScore =
-                    negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, cutNode);
+                    negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, predicted_cut_node);
 
             pos->isSingularMove[pos->ply] = 0;
 
@@ -1075,7 +1075,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
-        if (cutNode) {
+        if (predicted_cut_node) {
             lmrReduction += 1;
         }
 
@@ -1096,11 +1096,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + 35;
                 new_depth += doDeeper;
-                score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+                score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !predicted_cut_node);
             }
         }
         else if (!pvNode || legal_moves > 1) {
-            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !predicted_cut_node);
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {

@@ -50,7 +50,7 @@ void updateMinorCorrectionHistory(board *position, const int depth, const int di
 int quiescence(int alpha, int beta, board* position, time* time);
 void quiescence_sort_moves(moves *moveList, board* position);
 int quiescenceScoreMove(int move, board* position);
-int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode);
+int negamax(int alpha, int beta, int depth, board* pos, time* time, bool predicted_cut_node);
 void searchPosition(int depth, board* position, bool benchmark, time* time);
 
 #endif //POTENTIAL_SEARCH_H
