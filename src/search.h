@@ -17,10 +17,10 @@
 #include <stdint.h>
 #include "utils.h"
 
-extern int lmr_full_depth_moves;
-extern int lmr_reduction_limit;
+extern int LMR_FULL_DEPTH_MOVES;
+extern int LMR_REDUCTION_LIMIT;
 extern int lateMovePruningBaseReduction;
-extern int nullMoveDepth;
+extern int NMP_DEPTH;
 extern int CORRHIST_WEIGHT_SCALE;
 extern int CORRHIST_GRAIN;
 extern int CORRHIST_SIZE;
@@ -28,10 +28,10 @@ extern int CORRHIST_MAX;
 
 extern U64 searchNodes;
 
-extern int lmrTable[2][maxPly][maxPly];
+extern int LMR_TABLE[2][maxPly][maxPly];
 extern int counterMoves[2][maxPly][maxPly];
-extern int pawnCorrectionHistory[2][16384];
-extern int minorCorrectionHistory[2][16384];
+extern int PAWN_CORRECTION_HISTORY[2][16384];
+extern int MINOR_CORRECTION_HISTORY[2][16384];
 
 int isRepetition(board* position);
 uint8_t isMaterialDraw(board *pos);
