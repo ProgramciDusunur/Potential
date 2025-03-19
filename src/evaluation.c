@@ -485,7 +485,9 @@ int evaluate(const board* position) {
                 score = (score_midgame * game_phase_score + score_endgame * (opening_phase_score - game_phase_score))
                        / opening_phase_score;
 
-        return (position->side == white) ? score : -score;
+        const int tempo = 5;
+
+        return (position->side == white) ? score + tempo : -(score + tempo);
 }
 
 
