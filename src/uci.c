@@ -211,7 +211,6 @@ void goCommand(char *command, board* position, time* time) {
 
 
 
-
     // if move time is not available
     if (time->movetime != -1) {
         // set time equal to move time
