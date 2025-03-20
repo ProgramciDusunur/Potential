@@ -200,9 +200,17 @@ void goCommand(char *command, board* position, time* time) {
         time->movetime = atoi(argument + 9);
 
     // match UCI "depth" command
-    if ((argument = strstr(command, "depth")))
+    if ((argument = strstr(command, "depth"))) {
+        time->starttime = -1;
         // parse search depth
         depth = atoi(argument + 6);
+    } else {
+        // init start time
+        time->starttime = getTimeMiliSecond();
+    }
+
+
+
 
     // if move time is not available
     if (time->movetime != -1) {
@@ -213,8 +221,6 @@ void goCommand(char *command, board* position, time* time) {
         time->movestogo = 1;
     }
 
-    // init start time
-    time->starttime = getTimeMiliSecond();
 
     // init search depth
     //depth = depth;
