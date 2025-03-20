@@ -204,10 +204,8 @@ void goCommand(char *command, board* position, time* time) {
         time->starttime = -1;
         // parse search depth
         depth = atoi(argument + 6);
-    } else {
-        // init start time
-        time->starttime = getTimeMiliSecond();
     }
+
 
 
 
@@ -220,6 +218,8 @@ void goCommand(char *command, board* position, time* time) {
         time->movestogo = 1;
     }
 
+    // init start time
+    time->starttime = getTimeMiliSecond();
 
     // init search depth
     //depth = depth;
