@@ -11,6 +11,7 @@
 #include "table.h"
 #include "fen.h"
 #include "perft.h"
+#include "see.h"
 
 
 
@@ -45,7 +46,7 @@ void perftChild(int depth, board* position);
 
 void initRandomKeys();*/
 
-void initAll() {
+void initAll(void) {
     initLeaperAttacks();
     initMagicNumbers();
     initSlidersAttacks(bishop);
@@ -66,14 +67,20 @@ void initAll() {
 
 int main(int argc, char* argv[]) {
     initAll();
-    int debug = 0;
+    int debug = 1;
     if (debug) {
-        board position;
+        /*board position;
         parseFEN(startPosition, &position);
+
+
+        perftRoot(7, &position);
+        printf("Nodes: %llu", perftNodes);*/
+        
 
         //perftRoot(7, &position);
         //printf("Nodes: %llu", perftNodes);
-        printf("Evaluation %d", evaluate(&position));
+        
+
     } else {
         uciProtocol(argc, argv);
     }

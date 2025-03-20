@@ -126,7 +126,11 @@ typedef struct {
     int stopped;
 } time;
 
-
+typedef struct  {
+    char *fen;
+    int move;
+    int score;
+} see;
 
 
 

@@ -20,7 +20,6 @@
 #define repetitions "2r3k1/R7/8/1R6/8/8/P4KPP/8 w - - 0 40"
 
 void parseFEN(char *fen, board* position);
-void pBoard(board* position);
 
 
 #endif //POTENTIAL_FEN_H
