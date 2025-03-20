@@ -200,9 +200,13 @@ void goCommand(char *command, board* position, time* time) {
         time->movetime = atoi(argument + 9);
 
     // match UCI "depth" command
-    if ((argument = strstr(command, "depth")))
+    if ((argument = strstr(command, "depth"))) {
         // parse search depth
         depth = atoi(argument + 6);
+    }
+
+
+
 
     // if move time is not available
     if (time->movetime != -1) {
@@ -378,6 +382,8 @@ void uciProtocol(int argc, char *argv[]) {
     board *position = (board *)malloc(sizeof(board));
 
     position->ply = 0;
+    position->nmpPly = 0;
+
 
     for (int i = 0; i < 64;i++) {
         position->mailbox[i] = NO_PIECE;
