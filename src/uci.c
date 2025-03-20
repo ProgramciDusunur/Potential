@@ -201,7 +201,6 @@ void goCommand(char *command, board* position, time* time) {
 
     // match UCI "depth" command
     if ((argument = strstr(command, "depth"))) {
-        time->starttime = -1;
         // parse search depth
         depth = atoi(argument + 6);
     }
