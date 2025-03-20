@@ -1360,7 +1360,6 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             evalStability = 0;
         }
 
-
         if (time->timeset && current_depth > 6) {
             scaleTime(time, bestMoveStability, evalStability);
         }
