@@ -351,11 +351,23 @@ int evaluate(const board* position) {
                                 case P:
                                         if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                                                 passed_pawn_count += 1;
+
+                                                // passed pawn can move bonus
+                                                if (!(getBit(position->occupancies[both], (square - 8)))) {
+                                                        score_midgame += passedCanMoveBonus;
+                                                        score_endgame += passedCanMoveBonus;
+                                                }
                                         }
                                 break;
                                 case p:
                                         if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                                                 passed_pawn_count -= 1;
+
+                                                // passed pawn can move bonus
+                                                if (!(getBit(position->occupancies[both], (square + 8)))) {
+                                                        score_midgame -= passedCanMoveBonus;
+                                                        score_endgame -= passedCanMoveBonus;
+                                                }
                                         }
                                 break;
                                 case B:
@@ -494,4 +506,3 @@ void clearStaticEvaluationHistory(board* position) {
         position->staticEval[i] = noEval;
     }
 }
-
