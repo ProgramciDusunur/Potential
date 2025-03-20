@@ -58,6 +58,7 @@ void pBoard(board* position) {
 
     // print hash key
     printf("    Hash key:  %llx\n\n", position->hashKey);
+}
 
 double clampDecimalValue(double d, const double min, const double max) {
     const double t = d < min ? min : d;
