@@ -267,7 +267,7 @@ const int bishop_pair_bonus_endgame = 48;
 
 
 // Connected Rook Bonus
-const int connected_rook_midgame = 3;
+const int connected_rook_midgame = 5;
 const int connected_rook_endgame = 15;
 
 // Pre-interpolated tables
