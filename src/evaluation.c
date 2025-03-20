@@ -351,11 +351,26 @@ int evaluate(const board* position) {
                                 case P:
                                         if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                                                 passed_pawn_count += 1;
+
+                                                const int whiteKingDistance = (whiteKingSquare - square) / 8;
+                                                const int blackKingDistance = (blackKingSquare- square) / 8;
+                                                const int kingDistance = blackKingDistance - whiteKingDistance;
+
+
+                                                score_endgame += kingDistance * king_distance_bonus;
                                         }
                                 break;
                                 case p:
                                         if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                                                 passed_pawn_count -= 1;
+
+
+                                                const int whiteKingDistance = (whiteKingSquare - square) / 8;
+                                                const int blackKingDistance = (blackKingSquare- square) / 8;
+                                                const int kingDistance = whiteKingDistance - blackKingDistance;
+
+
+                                                score_endgame -= kingDistance * king_distance_bonus;
                                         }
                                 break;
                                 case B:
