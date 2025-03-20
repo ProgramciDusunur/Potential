@@ -506,4 +506,3 @@ void clearStaticEvaluationHistory(board* position) {
         position->staticEval[i] = noEval;
     }
 }
-
