@@ -380,6 +380,7 @@ void uciProtocol(int argc, char *argv[]) {
     position->ply = 0;
     position->nmpPly = 0;
 
+
     for (int i = 0; i < 64;i++) {
         position->mailbox[i] = NO_PIECE;
     }
