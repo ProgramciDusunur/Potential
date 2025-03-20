@@ -126,7 +126,10 @@ typedef struct {
     int stopped;
 } time;
 
-
+// move list structure
+typedef struct {
+    int value;
+} spsa_table;
 
 
 
