@@ -15,10 +15,11 @@ int myMIN(int x, int y) {
     return (x < y) ? x : y;
 }
 
-int clamp(int d, int min, int max) {
+int clamp(const int d, const int min, const int max) {
     const int t = d < min ? min : d;
     return t > max ? max : t;
 }
+
 
 void pBoard(board* position) {
     printf("\n");
@@ -57,4 +58,8 @@ void pBoard(board* position) {
 
     // print hash key
     printf("    Hash key:  %llx\n\n", position->hashKey);
+
+double clampDecimalValue(double d, const double min, const double max) {
+    const double t = d < min ? min : d;
+    return t > max ? max : t;
 }

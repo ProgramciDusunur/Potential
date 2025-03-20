@@ -5,36 +5,76 @@
 #include "search.h"
 
 
+/* Tunable Search Parameteres */
+
 // Static Exchange Evaluation
+int SEE_PIECE_VALUES[] = {100, 300, 300, 500, 1200, 0, 0};
 int QS_SEE_THRESHOLD = 0;
-int SEE_MOVE_ORDER_THRESHOLD = -82;
+int SEE_MOVE_ORDERING_THRESHOLD = -82;
 int SEE_QUIET_THRESHOLD = -67;
 int SEE_NOISY_THRESHOLD = -32;
 int SEE_DEPTH = 10;
 
-int lmr_full_depth_moves = 4;
-int lmr_reduction_limit = 3;
-int lateMovePruningBaseReduction = 4;
-int nullMoveDepth = 3;
+// Null Move Pruning
+int NMP_DEPTH = 3;
+int NMP_BASE_REDUCTION = 3;
+int NMP_REDUCTION_DEPTH_DIVISOR = 3;
+int NMP_EVAL_DIVISOR = 400;
 
-U64 searchNodes = 0;
+// Late Move Reduction
+int LMR_TABLE[2][maxPly][maxPly];
+int LMR_FULL_DEPTH_MOVES = 4;
+int LMR_REDUCTION_LIMIT = 3;
+int DEEPER_LMR_MARGIN = 35;
+double LMR_TABLE_BASE_NOISY = 0.38;
+double LMR_TABLE_NOISY_DIVISOR = 3.76;
+double LMR_TABLE_BASE_QUIET = 1.01;
+double LMR_TABLE_QUIET_DIVISOR = 2.32;
 
-int lmrTable[maxPly][maxPly];
-int counterMoves[2][maxPly][maxPly];
 
-const int SEEPieceValues[] = {100, 300, 300, 500, 1200, 0, 0};
+// Late Move Pruning
+int LMP_BASE = 4;
+int LMP_MULTIPLIER = 3;
 
+// Futility Pruning
+int FUTILITY_PRUNING_OFFSET[] = {0, 61, 30, 15, 7};
+int FP_DEPTH = 4;
+int FP_MARGIN = 82;
+
+// Reverse Futility Pruning
+int RFP_MARGIN = 82;
+int RFP_IMPROVING_MARGIN = 65;
+int RFP_DEPTH = 5;
+
+// Razoring
+int RAZORING_DEPTH = 3;
+int RAZORING_MARGIN = 200;
+
+// Singular Extensions
+int SE_DEPTH = 7;
+int SEE_TT_DEPTH_SUBTRACTOR = 3;
+int DOUBLE_EXTENSION_MARGIN = 20;
+int TRIPLE_EXTENSION_MARGIN = 40;
+
+// Correction History
 int CORRHIST_WEIGHT_SCALE = 256;
 int CORRHIST_GRAIN = 256;
 int CORRHIST_LIMIT = 1024;
 int CORRHIST_SIZE = 16384;
 int CORRHIST_MAX = 16384;
 
-int pawnCorrectionHistory[2][16384];
-int minorCorrectionHistory[2][16384];
-int nonPawnCorrectionHistory[2][2][16384];
+int PAWN_CORRECTION_HISTORY[2][16384];
+int MINOR_CORRECTION_HISTORY[2][16384];
+int NON_PAWN_CORRECTION_HISTORY[2][2][16384];
+
+// Internal Iterative Reductions
+int IIR_DEPTH = 8;
+int IIR_TT_DEPTH_SUBTRACTOR = 3;
 
 
+U64 searchNodes = 0;
+
+int counterMoves[2][maxPly][maxPly];
 
 
 
@@ -57,13 +97,14 @@ int isRepetition(board* position) {
 // [depth][moveNumber]
 void initializeLMRTable(void) {
     for (int depth = 1; depth < maxPly; ++depth) {
-        for (int ply = 1; ply < maxPly; ++ply) {
-            if (ply == 0 || depth == 0) {
-                lmrTable[depth][ply] = 0;
-                lmrTable[depth][ply] = 0;
+        for (int moves = 1; moves < maxPly; ++moves) {
+            if (moves == 0 || depth == 0) {
+                LMR_TABLE[0][depth][moves] = 0;
+                LMR_TABLE[1][depth][moves] = 0;
                 continue;
             }
-            lmrTable[depth][ply] = round(0.75 + log(depth) * log(ply) * 0.375);
+            LMR_TABLE[0][depth][moves] = LMR_TABLE_BASE_NOISY + log(depth) * log(moves) / LMR_TABLE_NOISY_DIVISOR; // noisy/tactical
+            LMR_TABLE[1][depth][moves] = LMR_TABLE_BASE_QUIET + log(depth) * log(moves) / LMR_TABLE_QUIET_DIVISOR; // quiet
         }
     }
 }
@@ -107,7 +148,7 @@ int scoreMove(int move, board* position) {
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[getMovePiece(move)][target_piece];
 
-        captureScore += SEE(position, move, SEE_MOVE_ORDER_THRESHOLD) ? 1000000000 : -1000000;
+        captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
 
         return captureScore;
 
@@ -265,10 +306,8 @@ void printMove(int move) {
     }
 }
 
-
-int getLmrReduction(int depth, int moveNumber) {
-    int reduction = lmrTable[myMIN(63, depth)][myMIN(63, moveNumber)];
-    return reduction;
+int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
+    return LMR_TABLE[isQuiet][myMIN(63, depth)][myMIN(63, moveNumber)];
 }
 
 void clearCounterMoves(void) {
@@ -284,29 +323,29 @@ void clearCounterMoves(void) {
 void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
     U64 pawnKey = position->pawnKey;
 
-    int entry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
+    int entry = PAWN_CORRECTION_HISTORY[position->side][pawnKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = myMIN(depth + 1, 16);
+    const int newWeight = 2 * myMIN(depth + 1, 16);
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
 
-    pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE] = entry;
+    PAWN_CORRECTION_HISTORY[position->side][pawnKey % CORRHIST_SIZE] = entry;
 }
 
 void updateMinorCorrectionHistory(board *position, const int depth, const int diff) {
     U64 minorKey = position->minorKey;
 
-    int entry = minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE];
+    int entry = MINOR_CORRECTION_HISTORY[position->side][minorKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = myMIN(depth + 1, 16);
+    const int newWeight = 2 * myMIN(depth + 1, 16);
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
 
-    minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE] = entry;
+    MINOR_CORRECTION_HISTORY[position->side][minorKey % CORRHIST_SIZE] = entry;
 }
 
 void update_non_pawn_corrhist(board *position, const int depth, const int diff) {
@@ -314,34 +353,34 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff) 
     U64 blackKey = position->blackNonPawnKey;
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = myMIN(depth + 1, 16);
+    const int newWeight = 2 * myMIN(depth + 1, 16);
 
-    int whiteEntry = nonPawnCorrectionHistory[white][position->side][whiteKey % CORRHIST_SIZE];
+    int whiteEntry = NON_PAWN_CORRECTION_HISTORY[white][position->side][whiteKey % CORRHIST_SIZE];
 
     whiteEntry = (whiteEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     whiteEntry = clamp(whiteEntry, -CORRHIST_MAX, CORRHIST_MAX);
 
-    int blackEntry = nonPawnCorrectionHistory[black][position->side][blackKey % CORRHIST_SIZE];
+    int blackEntry = NON_PAWN_CORRECTION_HISTORY[black][position->side][blackKey % CORRHIST_SIZE];
 
     blackEntry = (blackEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     blackEntry = clamp(blackEntry, -CORRHIST_MAX, CORRHIST_MAX);
 
-    nonPawnCorrectionHistory[white][position->side][whiteKey % CORRHIST_SIZE] = whiteEntry;
-    nonPawnCorrectionHistory[black][position->side][blackKey % CORRHIST_SIZE] = blackEntry;
+    NON_PAWN_CORRECTION_HISTORY[white][position->side][whiteKey % CORRHIST_SIZE] = whiteEntry;
+    NON_PAWN_CORRECTION_HISTORY[black][position->side][blackKey % CORRHIST_SIZE] = blackEntry;
 }
 
 int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
     U64 pawnKey = position->pawnKey;
     U64 minorKey = position->minorKey;
 
-    int pawnEntry = pawnCorrectionHistory[position->side][pawnKey % CORRHIST_SIZE];
-    int minorEntry = minorCorrectionHistory[position->side][minorKey % CORRHIST_SIZE];
+    int pawnEntry = PAWN_CORRECTION_HISTORY[position->side][pawnKey % CORRHIST_SIZE];
+    int minorEntry = MINOR_CORRECTION_HISTORY[position->side][minorKey % CORRHIST_SIZE];
 
     U64 whiteNPKey = position->whiteNonPawnKey;
-    int whiteNPEntry = nonPawnCorrectionHistory[white][position->side][whiteNPKey % CORRHIST_SIZE];
+    int whiteNPEntry = NON_PAWN_CORRECTION_HISTORY[white][position->side][whiteNPKey % CORRHIST_SIZE];
 
     U64 blackNPKey = position->blackNonPawnKey;
-    int blackNPEntry = nonPawnCorrectionHistory[black][position->side][blackNPKey % CORRHIST_SIZE];
+    int blackNPEntry = NON_PAWN_CORRECTION_HISTORY[black][position->side][blackNPKey % CORRHIST_SIZE];
 
     int mateFound = mateValue - maxPly;
 
@@ -367,15 +406,15 @@ int move_estimated_value(board *pos, int move) {
     int promoted_piece = getMovePromoted(move);
     promoted_piece = promoted_piece > 5 ? promoted_piece - 6 : promoted_piece;
 
-    int value = SEEPieceValues[target_piece];
+    int value = SEE_PIECE_VALUES[target_piece];
 
     // Factor in the new piece's value and remove our promoted pawn
     if (getMovePromoted(move))
-        value += SEEPieceValues[promoted_piece] - SEEPieceValues[PAWN];
+        value += SEE_PIECE_VALUES[promoted_piece] - SEE_PIECE_VALUES[PAWN];
 
         // Target square is encoded as empty for enpass moves
     else if (getMoveEnpassant(move))
-        value = SEEPieceValues[PAWN];
+        value = SEE_PIECE_VALUES[PAWN];
 
         // We encode Castle moves as KxR, so the initial step is wrong
     else if (getMoveCastling(move))
@@ -427,7 +466,7 @@ int SEE(board *pos, int move, int threshold) {
         return 0;
 
     // Worst case is losing the moved piece
-    balance -= SEEPieceValues[nextVictim];
+    balance -= SEE_PIECE_VALUES[nextVictim];
 
     // If the balance is positive even if losing the moved piece,
     // the exchange is guaranteed to beat the threshold.
@@ -489,7 +528,7 @@ int SEE(board *pos, int move, int threshold) {
         colour = !colour;
 
         // Negamax the balance and add the value of the next victim
-        balance = -balance - 1 - SEEPieceValues[nextVictim];
+        balance = -balance - 1 - SEE_PIECE_VALUES[nextVictim];
 
         // If the balance is non negative after giving away our piece then we win
         if (balance >= 0) {
@@ -765,7 +804,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
 
-
     // get static evaluation score
     int raw_eval = evaluate(pos);
 
@@ -782,11 +820,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
 
     // Internal Iterative Reductions
-    if ((pvNode || cutNode || !improving) && depth >= 8 && (!tt_move || tt_depth < depth - 3)) {
+    if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
         depth--;
     }
 
-    uint16_t rfpMargin = improving ? 65 * (depth - 1) : 82 * depth;
 
     int ttAdjustedEval = static_eval;
 
@@ -798,16 +835,19 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         ttAdjustedEval = tt_score;
     }
 
+    uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
+
     // reverse futility pruning
     if (!pos->isSingularMove[pos->ply] &&
-        depth <= 5 && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
+        depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
         ttAdjustedEval - rfpMargin >= beta)
         return ttAdjustedEval;
 
     // null move pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
-        depth >= nullMoveDepth && !in_check && !rootNode &&
+        depth >= NMP_DEPTH && !in_check && !rootNode &&
             static_eval >= beta &&
+            pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
         // preserve board state
@@ -833,9 +873,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         prefetch_hash_entry(pos->hashKey);
 
-        int R = 3 + depth / 3;
+        int R = NMP_BASE_REDUCTION + depth / NMP_REDUCTION_DEPTH_DIVISOR;
 
-        R += myMIN((static_eval - beta) / 400, 3);
+        R += myMIN((static_eval - beta) / NMP_EVAL_DIVISOR, 3);
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
@@ -854,15 +894,32 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (time->stopped == 1) return 0;
 
         // fail-hard beta cutoff
-        if (score >= beta)
+        if (score >= beta) {
 
-            // node (move) fails high
-            return score;
+            // if there is any unproven mate don't return but we can still return beta
+            if (score > mateScore) {
+                score = beta;
+            }
+
+            if (pos->nmpPly || depth < 15) {
+                return score;
+            }
+
+            pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
+            int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, false);
+            pos->nmpPly = 0;
+
+            if (verificationScore >= beta) {
+                return score;
+            }
+        }
+
+
     }
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
-        !pvNode && !in_check && depth <= 3 && static_eval + 200 * depth < alpha) {
+        !pvNode && !in_check && depth <= RAZORING_DEPTH && static_eval + RAZORING_MARGIN * depth < alpha) {
         int razoringScore = quiescence(alpha, beta, pos, time);
         if (razoringScore <= alpha) {
             return razoringScore;
@@ -889,7 +946,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     int bestScore = -infinity;
 
-    bool skipQuiet = false;
+    //bool skipQuiet = false;
 
     // legal moves counter
     int legal_moves = 0;
@@ -910,48 +967,43 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             continue;
         }
 
-        bool isQuiet = getMoveCapture(currentMove) == 0;
+        bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
-        bool isMoveTactical = isTactical(currentMove);
-
-        if (skipQuiet && isQuiet) {
-            skipQuiet = 0;
-            continue;
-        }
+        //bool isMoveTactical = isTactical(currentMove);
 
 
-        int moveHistory = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
+        //int moveHistory = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
 
         bool isNotMated = bestScore > -mateScore;
 
-        if (!rootNode && isNotMated) {
+        if (!rootNode && notTactical && isNotMated) {
 
-            if (isQuiet) {
-                int lmpBase = 4;
-                int lmpMultiplier = 3;
-                int lmpThreshold = (lmpBase + lmpMultiplier * (depth - 1) * (depth - 1));
+                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * (depth - 1) * (depth - 1));
 
                 if (legal_moves>= lmpThreshold) {
+                    continue;
+                }
+                if (depth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[depth]) + FP_MARGIN * depth <= alpha) {
+                    continue;
+                }
+
+                /*if (depth <= 4 && !pvNode && !in_check && static_eval + 82 * depth <= alpha) {
                     skipQuiet = 1;
                 }
 
-                if (depth <= 4 && !pvNode && !in_check && static_eval + 82 * depth <= alpha) {
-                    skipQuiet = 1;
-                }
-            }
 
             if (!isMoveTactical) {
                 // Quiet History Pruning
                 if (depth <= 2 && !pvNode && !in_check && moveHistory < depth * -2048) {
                     break;
                 }
-            }
+            }*/
         }
 
         // SEE PVS Pruning
         int seeThreshold =
-                isQuiet ? -67 * depth : -32 * depth * depth;
-        if (depth <= 10 && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
+                notTactical ? SEE_QUIET_THRESHOLD * depth : SEE_NOISY_THRESHOLD * depth * depth;
+        if (depth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
         struct copyposition copyPosition;
@@ -983,8 +1035,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // A rather simple idea that if our TT move is accurate we run a reduced
         // search to see if we can beat this score. If not we extend the TT move
         // search
-        if (!rootNode && depth >= 7 && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
-            tt_depth >= depth - 3 && tt_flag != hashFlagBeta &&
+        if (!rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
+            tt_depth >= depth - SEE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateScore) {
             const int singularBeta = tt_score - depth;
             const int singularDepth = (depth - 1) / 2;
@@ -1011,12 +1063,15 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             if (singularScore < singularBeta) {
                 extensions++;
                 // Double Extension
-                if (!pvNode && singularScore <= singularBeta - 20) {
+                if (!pvNode && singularScore <= singularBeta - DOUBLE_EXTENSION_MARGIN) {
                     extensions++;
+
+                    // Low Depth Extension
+                    depth += depth < 10;
                 }
 
                 // Triple Extension
-                if (!getMoveCapture(currentMove) && singularScore + 40 < singularBeta) {
+                if (!getMoveCapture(currentMove) && singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
                     extensions++;
                 }
 
@@ -1031,7 +1086,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // increment nodes count
         searchNodes++;
 
-        if (isQuiet) {
+        if (notTactical) {
             addMoveToHistoryList(badQuiets, currentMove);
         }
 
@@ -1040,7 +1095,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // increment legal moves
         legal_moves++;
 
-        if (isQuiet) {
+        if (notTactical) {
             quietMoves++;
         } else {
             //captureMoves++;
@@ -1048,13 +1103,17 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         int new_depth = depth - 1 + extensions;
 
-        int lmrReduction = getLmrReduction(depth, legal_moves);
+        int lmrReduction = getLmrReduction(depth, legal_moves, notTactical);
 
         /* All Moves */
 
         // Reduce More
-        if (!improving) {
-            lmrReduction += 1;
+
+        if (notTactical) {
+            // Reduce More
+            if (!pvNode && quietMoves >= 4) {
+                lmrReduction += 1;
+            }
         }
 
         // Reduce Less
@@ -1062,21 +1121,18 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction -= 1;
         }
 
-        if (isQuiet) {
 
-            // Reduce More
-            if (!pvNode && quietMoves >= 4) {
-                lmrReduction += 1;
-            }
 
-        }
+        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
 
-        if(moves_searched >= lmr_full_depth_moves &&
-           depth >= lmr_reduction_limit) {
+        if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
+           depth >= LMR_REDUCTION_LIMIT) {
 
-            score = -negamax(-alpha - 1, -alpha, depth - lmrReduction, pos, time, true);
+            score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
 
             if (score > alpha && lmrReduction != 0) {
+                bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
+                new_depth += doDeeper;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             }
         }
@@ -1088,7 +1144,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, new_depth, pos, time, false);
         }
-
 
         // decrement ply
         pos->ply--;
@@ -1130,7 +1185,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
-                    if (isQuiet) {
+                    if (notTactical) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
@@ -1138,7 +1193,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                         if (rootNode) {
                             updateRootHistory(pos, bestMove, depth, badQuiets);
                         }
-
                     }
 
                     // node (move) fails high
@@ -1161,7 +1215,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             return 0;
     }
 
-
     if (!pos->isSingularMove[pos->ply]) {
 
         uint8_t hashFlag = hashFlagExact;
@@ -1170,11 +1223,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         } else if (alpha <= originalAlpha) {
             hashFlag = hashFlagBeta;
         }
-
+        int averageEval = (raw_eval + static_eval) / 2;
         if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
-            !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
-            !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
-            int corrhistBonus = clamp(bestScore - static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
+            !(hashFlag == hashFlagAlpha && bestScore <= averageEval) &&
+            !(hashFlag == hashFlagBeta && bestScore >= averageEval)) {
+
+            int corrhistBonus = clamp(bestScore - averageEval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
             updatePawnCorrectionHistory(pos, depth, corrhistBonus);
             updateMinorCorrectionHistory(pos, depth, corrhistBonus);
             update_non_pawn_corrhist(pos, depth, corrhistBonus);
@@ -1207,9 +1261,9 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     //memset(position->mailbox, NO_PIECE, sizeof(position->mailbox));
     memset(quietHistory, 0, sizeof(quietHistory));
     memset(rootHistory, 0, sizeof(rootHistory));
-    memset(pawnCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
-    memset(minorCorrectionHistory, 0, sizeof(pawnCorrectionHistory));
-    memset(nonPawnCorrectionHistory, 0, sizeof(nonPawnCorrectionHistory));
+    memset(PAWN_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
+    memset(MINOR_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
+    memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));

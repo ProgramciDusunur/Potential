@@ -67,6 +67,8 @@ extern const int passed_pawn_bonus_endgame[64];
 // File and Mobility Scores
 extern const int semi_open_file_score;
 extern const int open_file_score;
+extern const int king_semi_open_file_score;
+extern const int king_open_file_score;
 extern const int rook_file_score;
 extern const int bishop_unit;
 extern const int queen_unit;
@@ -78,7 +80,8 @@ extern const int queen_mobility_middlegame;
 extern const int queen_mobility_endgame;
 
 // King's Bonuses
-extern const int king_shield_bonus;
+extern const int king_shield_bonus_middlegame ;
+extern const int king_shield_bonus_endgame;
 extern const int king_distance_bonus;
 
 // Game Phase Scores
@@ -95,9 +98,18 @@ extern const bool pawnHoleSquareCheck[64];
 // Passed Can Move Bonus
 extern const int passedCanMoveBonus;
 
+// Bishop Pair Bonus
+extern const int bishop_pair_bonus_midgame;
+extern const int bishop_pair_bonus_endgame;
+extern const int bishop_pair_bonus[];
 
-int get_game_phase_score(board* position);
-int evaluate(board* position);
+extern int mg_table[12][64]; // [piece][square] -> midgame score
+extern int eg_table[12][64]; // [piece][square] -> endgame score
+
+
+int get_game_phase_score(const board* position);
+void init_tables();
+int evaluate(const board* position);
 void clearStaticEvaluationHistory(board* position);
 
 #endif //POTENTIAL_EVALUATION_H

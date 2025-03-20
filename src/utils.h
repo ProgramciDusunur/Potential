@@ -11,7 +11,10 @@
 
 int myMAX(int x, int y);
 int myMIN(int x, int y);
+
 int clamp(int d, int min, int max);
 void pBoard(board* position);
+int clamp(const int d, const int min, const int max);
+double clampDecimalValue(double d, const double min, const double max);
 
 #endif //POTENTIAL_UTILS_H
