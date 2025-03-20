@@ -265,7 +265,11 @@ const int passedCanMoveBonus = 5;
 const int bishop_pair_bonus_midgame = 8;
 const int bishop_pair_bonus_endgame = 48;
 
-const int bishop_pair_bonus[] = {0, 8, 15, 23, 30, 38};
+
+
+// Connected Rook Bonus
+const int connected_rook_midgame = 5;
+const int connected_rook_endgame = 10;
 
 // Pre-interpolated tables
 int mg_table[12][64]; // [piece][square] -> midgame score
@@ -363,7 +367,6 @@ int evaluate(const board* position) {
                                         score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case R:
-
                                         // Semi Open File Bonus
                                         if ((position->bitboards[P] & fileMasks[square]) == 0) {
                                                 // add semi open file bonus
@@ -377,6 +380,12 @@ int evaluate(const board* position) {
                                                 score_midgame += rook_open_file;
                                                 score_endgame += rook_open_file;
 
+                                        }
+
+                                        // connected rook bonus
+                                        if (getRookAttacks(square, position->occupancies[both]) & position->bitboards[R]) {
+                                                score_midgame += connected_rook_midgame;
+                                                score_endgame += connected_rook_endgame;
                                         }
                                         break;
                                 case b:
@@ -398,6 +407,11 @@ int evaluate(const board* position) {
                                                 score_midgame -= rook_open_file;
                                                 score_endgame -= rook_open_file;
 
+                                        }
+                                        // connected rook bonus
+                                        if (getRookAttacks(square, position->occupancies[both]) & position->bitboards[r]) {
+                                                score_midgame -= connected_rook_midgame;
+                                                score_endgame -= connected_rook_endgame;
                                         }
                                         break;
                         }

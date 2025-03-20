@@ -69,16 +69,16 @@ int main(int argc, char* argv[]) {
     initAll();
     int debug = 0;
     if (debug) {
-        /*board position;
-        parseFEN(startPosition, &position);
+        board position;
+        parseFEN("8/1R4R1/8/8/8/8/8/8 w - - 0 1", &position);
+        pBoard(&position);
+        U64 attacks = getRookAttacks(b7, position.occupancies[both]);
+        printBitboard(attacks & position.bitboards[R]);
+        //printBitboard(position.bitboards[R]);
 
-
-        perftRoot(7, &position);
-        printf("Nodes: %llu", perftNodes);*/
-        
 
         //perftRoot(7, &position);
-        //printf("Nodes: %llu", perftNodes);
+        //printf("Nodes: %llu", perftNodes);*
         
 
     } else {

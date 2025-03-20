@@ -101,7 +101,11 @@ extern const int passedCanMoveBonus;
 // Bishop Pair Bonus
 extern const int bishop_pair_bonus_midgame;
 extern const int bishop_pair_bonus_endgame;
-extern const int bishop_pair_bonus[];
+
+// Connected Rook Bonus
+extern const int connected_rook_midgame;
+extern const int connected_rook_endgame;
+
 
 extern int mg_table[12][64]; // [piece][square] -> midgame score
 extern int eg_table[12][64]; // [piece][square] -> endgame score
