@@ -889,11 +889,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // restore board state
         takeBack(pos, &copyPosition);
 
-
         if (time->stopped == 1) return 0;
 
         // fail-hard beta cutoff
-        if (score >= beta) {
+        if (score >= (beta + ttAdjustedEval) / 2) {
 
             // if there is any unproven mate don't return but we can still return beta
             if (score > mateScore) {
@@ -1222,12 +1221,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         } else if (alpha <= originalAlpha) {
             hashFlag = hashFlagBeta;
         }
-        int averageEval = (raw_eval + static_eval) / 2;
         if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
-            !(hashFlag == hashFlagAlpha && bestScore <= averageEval) &&
-            !(hashFlag == hashFlagBeta && bestScore >= averageEval)) {
+            !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
+            !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
 
-            int corrhistBonus = clamp(bestScore - averageEval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
+            int corrhistBonus = clamp(bestScore - static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
             updatePawnCorrectionHistory(pos, depth, corrhistBonus);
             updateMinorCorrectionHistory(pos, depth, corrhistBonus);
             update_non_pawn_corrhist(pos, depth, corrhistBonus);
