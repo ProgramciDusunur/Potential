@@ -986,7 +986,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (legal_moves>= lmpThreshold) {
                     continue;
                 }
-                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 4)]) + FP_MARGIN * depth <= alpha) {
+                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 4)]) + FP_MARGIN * lmrDepth <= alpha) {
                     continue;
                 }
 
