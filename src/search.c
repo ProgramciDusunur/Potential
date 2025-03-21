@@ -912,7 +912,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 return score;
             }
         }
-
     }
 
     // razoring
