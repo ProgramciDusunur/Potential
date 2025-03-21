@@ -979,7 +979,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         if (!rootNode && notTactical && isNotMated) {
 
-                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * (depth - 1) * (depth - 1));
+                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth);
 
                 // Late Move Pruning
                 if (legal_moves>= lmpThreshold) {
