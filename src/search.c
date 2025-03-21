@@ -981,9 +981,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * (depth - 1) * (depth - 1));
 
+                // Late Move Pruning
                 if (legal_moves>= lmpThreshold) {
                     continue;
                 }
+
+                // Futility Pruning
                 if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 4)]) + FP_MARGIN * lmrDepth <= alpha) {
                     continue;
                 }
