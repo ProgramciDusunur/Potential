@@ -1073,7 +1073,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (!getMoveCapture(currentMove) && singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
                     extensions++;
                 }
-
             }
 
             // Multicut
