@@ -973,8 +973,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         //int moveHistory = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
 
-
-
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical));
 
         bool isNotMated = bestScore > -mateScore;
@@ -990,9 +988,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     continue;
                 }
 
-                /*if (depth <= 4 && !pvNode && !in_check && static_eval + 82 * depth <= alpha) {
-                    skipQuiet = 1;
-                }
+
+                /*
 
             if (!isMoveTactical) {
                 // Quiet History Pruning
@@ -1004,8 +1001,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // SEE PVS Pruning
         int seeThreshold =
-                notTactical ? SEE_QUIET_THRESHOLD * depth : SEE_NOISY_THRESHOLD * depth * depth;
-        if (depth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
+                notTactical ? SEE_QUIET_THRESHOLD * lmrDepth : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
+        if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
         struct copyposition copyPosition;
