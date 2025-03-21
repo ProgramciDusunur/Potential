@@ -1038,7 +1038,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             const int singularBeta = tt_score - depth * (16 + 10 * (!tt_pv && !pvNode)) / 16;
             const int singularDepth = (depth - 1) / 2;
 
-
             // decrement ply
             pos->ply--;
 
