@@ -892,7 +892,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (time->stopped == 1) return 0;
 
         // fail-hard beta cutoff
-        if (score >= (beta + ttAdjustedEval) / 2) {
+        if (score >= beta) {
 
             // if there is any unproven mate don't return but we can still return beta
             if (score > mateScore) {
@@ -900,7 +900,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
 
             if (pos->nmpPly || depth < 15) {
-                return score;
+                return (beta + ttAdjustedEval) / 2;
             }
 
             pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
