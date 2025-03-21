@@ -31,7 +31,6 @@ double LMR_TABLE_NOISY_DIVISOR = 3.76;
 double LMR_TABLE_BASE_QUIET = 1.01;
 double LMR_TABLE_QUIET_DIVISOR = 2.32;
 
-
 // Late Move Pruning
 int LMP_BASE = 2;
 int LMP_MULTIPLIER = 2;
