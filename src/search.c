@@ -33,8 +33,8 @@ double LMR_TABLE_QUIET_DIVISOR = 2.32;
 
 
 // Late Move Pruning
-int LMP_BASE = 4;
-int LMP_MULTIPLIER = 3;
+int LMP_BASE = 2;
+int LMP_MULTIPLIER = 2;
 
 // Futility Pruning
 int FUTILITY_PRUNING_OFFSET[] = {0, 61, 30, 15, 7};
@@ -979,7 +979,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         if (!rootNode && notTactical && isNotMated) {
 
-                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * (depth - 1) * (depth - 1));
+                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * depth * depth);
 
                 // Late Move Pruning
                 if (legal_moves>= lmpThreshold) {
