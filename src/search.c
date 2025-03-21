@@ -973,11 +973,13 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         //int moveHistory = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
 
+        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical));
+
         bool isNotMated = bestScore > -mateScore;
 
         if (!rootNode && notTactical && isNotMated) {
 
-                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * (depth - 1) * (depth - 1));
+                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * (lmrDepth - 1) * (lmrDepth - 1));
 
                 if (legal_moves>= lmpThreshold) {
                     continue;
@@ -1031,9 +1033,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         int extensions = 0;
 
         // Singular Extensions
-        // A rather simple idea that if our TT move is accurate we run a reduced
-        // search to see if we can beat this score. If not we extend the TT move
-        // search
         if (!rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
             tt_depth >= depth - SEE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateScore) {
