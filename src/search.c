@@ -1100,7 +1100,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         int new_depth = depth - 1 + extensions;
 
-        int lmrReduction = getLmrReduction(depth, legal_moves, notTactical);
+        int lmrReduction = getLmrReduction(depth, legal_moves, notTactical) * 1024;
 
         /* All Moves */
 
@@ -1109,14 +1109,20 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
-                lmrReduction += 1;
+                lmrReduction += 1024;
             }
         }
 
         // Reduce Less
         if (tt_pv) {
-            lmrReduction -= 1;
+            lmrReduction -= 1024;
         }
+
+        if (in_check) {
+            lmrReduction -= 512;
+        }
+
+        lmrReduction /= 1024;
 
 
 
