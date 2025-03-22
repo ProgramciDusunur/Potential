@@ -970,18 +970,19 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         //int moveHistory = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
 
-        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical));
-        int lmr_depth_margin = lmrDepth;
+        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical)) * 1024;
+
 
         if (tt_pv) {
-            lmr_depth_margin -= 1;
+            lmrDepth -= 1536;
         }
+        lmrDepth /= 1024;
 
         bool isNotMated = bestScore > -mateScore;
 
         if (!rootNode && notTactical && isNotMated) {
 
-                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmr_depth_margin * lmr_depth_margin);
+                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth);
 
                 // Late Move Pruning
                 if (legal_moves>= lmpThreshold) {
@@ -989,7 +990,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Futility Pruning
-                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmr_depth_margin, 1, 4)]) + FP_MARGIN * lmr_depth_margin <= alpha) {
+                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 4)]) + FP_MARGIN * lmrDepth <= alpha) {
                     continue;
                 }
 
@@ -1005,7 +1006,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // SEE PVS Pruning
         int seeThreshold =
-                notTactical ? SEE_QUIET_THRESHOLD * lmr_depth_margin : SEE_NOISY_THRESHOLD * lmr_depth_margin * lmr_depth_margin;
+                notTactical ? SEE_QUIET_THRESHOLD * lmrDepth : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
         if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
