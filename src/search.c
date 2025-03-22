@@ -1119,7 +1119,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         if (in_check) {
-            lmrReduction -= 256;
+            lmrReduction -= 768;
         }
 
         lmrReduction /= 1024;
