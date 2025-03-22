@@ -1125,7 +1125,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         lmrReduction /= 1024;
 
 
-
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
 
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
