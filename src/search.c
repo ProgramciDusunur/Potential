@@ -38,7 +38,7 @@ int LMP_MULTIPLIER = 3;
 
 // Futility Pruning
 int FUTILITY_PRUNING_OFFSET[] = {0, 61, 30, 15, 7};
-int FP_DEPTH = 4;
+int FP_DEPTH = 6;
 int FP_MARGIN = 82;
 
 // Reverse Futility Pruning
