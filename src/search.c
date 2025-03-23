@@ -1076,9 +1076,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             // Negative Extensions
             else if (tt_score >= beta) {
-                extensions -= 1 + !pvNode;
+                extensions -= 1;
                 // Double Negative Extension
-                if (!pvNode && !getMoveCapture(currentMove) && tt_score >= beta + 20) {
+                if (!pvNode && tt_score >= beta + 20) {
                     extensions -= 1;
                 }
             }
