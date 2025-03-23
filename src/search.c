@@ -1083,7 +1083,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     extensions -= 1;
 
                     // High Depth Extension
-                    depth -= depth > 15;
+                    depth -= depth > 12;
                 }
             }
         }
