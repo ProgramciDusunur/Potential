@@ -969,7 +969,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
 
-        //int moveHistory = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
+        int moveHistory = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)];
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical));
 
@@ -988,15 +988,17 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 4)]) + FP_MARGIN * lmrDepth <= alpha) {
                     continue;
                 }
+                // History Pruning
+                if (lmrDepth <= 4 && !in_check && moveHistory < depth * -2048) {
+                    break;
+                }
 
 
                 /*
 
             if (!isMoveTactical) {
                 // Quiet History Pruning
-                if (depth <= 2 && !pvNode && !in_check && moveHistory < depth * -2048) {
-                    break;
-                }
+
             }*/
         }
 
