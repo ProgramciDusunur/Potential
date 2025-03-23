@@ -1059,6 +1059,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // Singular Extension
             if (singularScore < singularBeta) {
                 extensions++;
+
                 // Double Extension
                 if (!pvNode && singularScore <= singularBeta - DOUBLE_EXTENSION_MARGIN) {
                     extensions++;
