@@ -71,7 +71,6 @@ int NON_PAWN_CORRECTION_HISTORY[2][2][16384];
 int IIR_DEPTH = 8;
 int IIR_TT_DEPTH_SUBTRACTOR = 3;
 
-
 U64 searchNodes = 0;
 
 int counterMoves[2][maxPly][maxPly];
