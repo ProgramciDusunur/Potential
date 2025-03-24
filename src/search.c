@@ -1073,7 +1073,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Quadruple Extension
-                if (!in_check && singularScore + 60 < singularBeta) {
+                if (notTactical && singularScore < singularBeta - 60) {
                     extensions++;
                 }
 
