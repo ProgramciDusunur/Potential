@@ -942,7 +942,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
       sort_moves(capture_promos, pc_tt_move, pos);
 
-
     for (int count = 0; count < capture_promos->count; count++) {
       int move = capture_promos->moves[count];
       if (move == pos->isSingularMove[pos->ply]  ||
