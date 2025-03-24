@@ -1076,14 +1076,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
 
             // Multicut
-            else if (score >= singularBeta) {
-                // decrement ply
-                pos->ply--;
+            else if (singularBeta >= beta) {
 
-                // decrement repetition index
-                pos->repetitionIndex--;
-
-                return score;
+                extensions -= 3;
             }
 
             // Negative Extensions
