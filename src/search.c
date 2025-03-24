@@ -1035,7 +1035,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (!rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
             tt_depth >= depth - SEE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateScore) {
-            const int singularBeta = tt_score - depth;
+            const int singularBeta = tt_score - depth * (16 + 10 * (!tt_pv && !pvNode)) / 16;
             const int singularDepth = (depth - 1) / 2;
 
 
