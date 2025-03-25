@@ -928,14 +928,14 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // legal moves counter
     int legal_moves = 0;
 
-    int probcut_beta = beta + 200;
-  if (!pvNode && !in_check && depth >= 7 && abs(beta) < mateScore  &&
+    int probcut_beta = beta + 250;
+  if (!pvNode && !in_check && depth >= 5 && abs(beta) < mateScore  &&
       (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
     moves capture_promos[1];
     capture_promos->count = 0;
     int score = -noEval;
 
-    int16_t pc_see = probcut_beta - static_eval;
+    int pc_see = probcut_beta - static_eval;
     uint16_t pc_tt_move = SEE(pos, tt_move, pc_see) ? tt_move : 0;
 
     moveGenerator(capture_promos, pos);
