@@ -1092,6 +1092,14 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
             }
+
+            // Low Depth Extension
+            else if (depth < 8 && !pos->isSingularMove[pos->ply] && !in_check &&
+                 currentMove == tt_move && !rootNode &&
+                 pos->staticEval[pos->ply] < alpha - 25 &&
+                 tt_flag == hashFlagAlpha) {
+                extensions = 1;
+            }
         }
 
         // increment nodes count
