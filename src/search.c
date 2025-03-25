@@ -930,10 +930,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     int probcut_beta = beta + 300;
     if (!pvNode && !in_check && depth >= 7 && abs(beta) < mateScore  &&
-        (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
+         (tt_depth + 3 < depth || tt_score >= probcut_beta)) {
         moves capture_promos[1];
         capture_promos->count = 0;
-        int probcut_score = -noEval;
+        int score = -noEval;
 
         int16_t pc_see = probcut_beta - static_eval;
         uint16_t pc_tt_move = SEE(pos, tt_move, pc_see) ? tt_move : 0;
@@ -975,9 +975,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             legal_moves++;
 
 
-            probcut_score = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
+            score = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
 
-            if (probcut_score >= beta) {
+            if (score >= probcut_beta) {
                 negamax(-probcut_beta, -probcut_beta + 1, depth - 4, pos, time, !cutNode);
             }
 
@@ -990,13 +990,13 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // take move back
             takeBack(pos, &copyPosition);
 
-            if (probcut_beta >= beta) {
-                writeHashEntry(probcut_beta, 0, depth - 3, hashFlagBeta, tt_pv, pos);
+            if (score >= probcut_beta) {
+                writeHashEntry(score, 0, depth - 3, hashFlagAlpha, tt_pv, pos);
 
-                return probcut_beta;
+                return score;
             }
         }
-    }
+         }
 
 
     // create move list instance
