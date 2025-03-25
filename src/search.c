@@ -821,8 +821,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // Internal Iterative Reductions
     bool doShallowerIIR = depth >= 12 && cutNode && score < alpha + 4 * (depth / 2);
 
-    if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
-        depth -= 1 + doShallowerIIR;
+    if ((pvNode || cutNode || doShallowerIIR) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
+        depth -= 1 ;
     }
 
     int ttAdjustedEval = static_eval;
