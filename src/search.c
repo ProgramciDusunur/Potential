@@ -928,9 +928,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // legal moves counter
     int legal_moves = 0;
 
-    int probcut_beta = beta + 300;
+    int probcut_beta = beta + 200;
   if (!pvNode && !in_check && depth >= 7 && abs(beta) < mateScore  &&
-      (!tt_hit || tt_depth + 2 < depth || tt_score >= probcut_beta)) {
+      (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
     moves capture_promos[1];
     capture_promos->count = 0;
     int score = -noEval;
@@ -991,7 +991,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         takeBack(pos, &copyPosition);
 
       if (score >= probcut_beta) {
-          writeHashEntry(score, 0, depth - 2, hashFlagAlpha, tt_pv, pos);
+          writeHashEntry(score, 0, depth - 3, hashFlagAlpha, tt_pv, pos);
 
         return score;
       }
