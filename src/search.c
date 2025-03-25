@@ -991,7 +991,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         takeBack(pos, &copyPosition);
 
       if (score >= probcut_beta) {
-          writeHashEntry(score, 0, depth - 3, hashFlagAlpha, tt_pv, pos);
+          writeHashEntry(score, 0, depth - 2, hashFlagAlpha, tt_pv, pos);
 
         return score;
       }
