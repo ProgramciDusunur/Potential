@@ -825,7 +825,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         depth -= 1 + doShallowerIIR;
     }
 
-
     int ttAdjustedEval = static_eval;
 
     if (!pos->isSingularMove[pos->ply] && tt_move && !in_check &&
