@@ -130,6 +130,30 @@ int scoreMove(int move, board* position) {
         return 1500000000;
     }
 
+    const int piece = getMovePromoted(move);
+    if (piece) {
+        int promotionBonus = 0;
+        switch (piece) {
+            case q:
+            case Q:
+              promotionBonus = 1400000001;
+            break;
+            case n:
+            case N:
+              promotionBonus = 1400000000;
+            break;
+            default:
+                promotionBonus = -1000000;
+            break;
+        }
+        if (getMoveCapture(move) && SEE(position, move, -SEE_MOVE_ORDERING_THRESHOLD)) {
+            return promotionBonus;
+        } else {
+            promotionBonus = -1000000;
+            return promotionBonus;
+        }
+    }
+
     // score capture move
     if (getMoveCapture(move)) {
         int captureScore = 0;
@@ -205,6 +229,31 @@ void sort_moves(moves *moveList, int tt_move, board* position) {
 }
 
 int quiescenceScoreMove(int move, board* position) {
+    const int piece = getMovePromoted(move);
+    if (piece) {
+        int promotionBonus = 0;
+        switch (piece) {
+            case q:
+            case Q:
+              promotionBonus = 1400000001;
+            break;
+            case n:
+            case N:
+              promotionBonus = 1400000000;
+            break;
+            default:
+                promotionBonus = -1000000;
+            break;
+        }
+        if (getMoveCapture(move) && SEE(position, move, -SEE_MOVE_ORDERING_THRESHOLD)) {
+            return promotionBonus;
+        } else {
+            promotionBonus = -1000000;
+            return promotionBonus;
+        }
+    }
+
+
     // score capture move
     if (getMoveCapture(move)) {
         // init target piece
