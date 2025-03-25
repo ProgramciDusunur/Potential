@@ -990,10 +990,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // take move back
         takeBack(pos, &copyPosition);
 
-      if (score >= probcut_beta) {
+      if (beta >= probcut_beta) {
           writeHashEntry(score, 0, depth - 3, hashFlagBeta, tt_pv, pos);
 
-        return score;
+        return probcut_beta;
       }
     }
   }
