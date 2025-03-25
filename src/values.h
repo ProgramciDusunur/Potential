@@ -14,7 +14,7 @@
 #define infinity  32000
 #define mateValue 31000
 #define mateScore 30000
-#define noEval 200000
+#define noEval 32001
 
 
 #endif //POTENTIAL_VALUES_H
