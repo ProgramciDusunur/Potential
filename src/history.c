@@ -78,7 +78,7 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
     int score = continuationHistory[prev_piece][prev_target][piece][target];
     int bonus = myMIN(1024, 16 * depth * depth + 32 * depth + 16);
 
-    continuationHistory[prev_piece][prev_target][piece][target] += scaledBonus(score, bonus, maxQuietHistory);
+    continuationHistory[prev_piece][prev_target][piece][target] += scaledBonus(score, bonus, 8192);
 
     for (int index = 0; index < badQuiets->count; index++) {
 
@@ -94,7 +94,7 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
 
 
 
-        continuationHistory[prev_piece][prev_target][badQuietPiece][badQuietTarget] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
+        continuationHistory[prev_piece][prev_target][badQuietPiece][badQuietTarget] += scaledBonus(badQuietScore, -bonus, 8192);
     }
 
 }
