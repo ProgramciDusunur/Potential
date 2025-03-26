@@ -44,7 +44,7 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets)
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int bonus = myMIN(1024, 16 * depth * depth + 32 * depth + 16);
+    int bonus = 16 * depth * depth + 32 * depth + 16;
     int score = quietHistory[side][from][to];
 
     quietHistory[side][from][to] += scaledBonus(score, bonus, maxQuietHistory);
@@ -80,7 +80,7 @@ void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus
 
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
 
-    int bonus = myMIN(1024, 16 * depth * depth + 32 * depth + 16);
+    int bonus = 16 * depth * depth + 32 * depth + 16;
 
     updateSingleCHScore(pos, bestMove, 1, bonus);
     updateSingleCHScore(pos, bestMove, 2, bonus * 2);
