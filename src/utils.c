@@ -60,7 +60,6 @@ void pBoard(board* position) {
     printf("    Hash key:  %llx\n\n", position->hashKey);
 }
 
-
 void printMailbox(const board *position) {
     printf("\n");
     for (int y = 0, coordinate = 8; y < 8; y++, coordinate--) {
