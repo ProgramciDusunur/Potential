@@ -80,7 +80,7 @@ void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus
 
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
 
-    int bonus = myMIN(16 * depth * depth + 32 * depth + 16, 2048);
+    int bonus = 16 * depth * depth + 32 * depth + 16;
 
     updateSingleCHScore(pos, bestMove, 1, bonus);
     updateSingleCHScore(pos, bestMove, 2, bonus);
