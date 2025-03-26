@@ -1108,7 +1108,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         if (notTactical) {
             pos->move[pos->ply] = currentMove;
-            pos->piece[pos->ply] = getMovePiece(currentMove);
+            pos->piece[pos->ply] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
             addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
         } else {
