@@ -166,6 +166,7 @@ int scoreMove(int move, board* position) {
             return 700000000;*/
 
         return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)] +
+                getContinuationHistoryScore(position, 1, move) +
                (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
     }
     return 0;
@@ -876,6 +877,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         R += myMIN((static_eval - beta) / NMP_EVAL_DIVISOR, 3);
 
+        pos->move[pos->ply] = 0;
+        pos->piece[pos->ply] = 0;
+
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
         score = -negamax(-beta, -beta + 1, depth - R, pos, time, !cutNode);
@@ -1094,12 +1098,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
+
         // increment nodes count
         searchNodes++;
-
-        if (notTactical) {
-            addMoveToHistoryList(badQuiets, currentMove);
-        }
 
         prefetch_hash_entry(pos->hashKey);
 
@@ -1107,6 +1108,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         legal_moves++;
 
         if (notTactical) {
+            pos->move[pos->ply] = currentMove;
+            pos->piece[pos->ply] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
+            addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
         } else {
             //captureMoves++;
@@ -1200,6 +1204,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
+                        updateContinuationHistory(pos, bestMove, depth, badQuiets);
 
                         if (rootNode) {
                             updateRootHistory(pos, bestMove, depth, badQuiets);
@@ -1273,6 +1278,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(quietHistory, 0, sizeof(quietHistory));
     memset(rootHistory, 0, sizeof(rootHistory));
     memset(PAWN_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
+    //memset(continuationHistory, 0, sizeof(continuationHistory));
     memset(MINOR_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
     memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
     memset(position->pvTable, 0, sizeof(position->pvTable));
@@ -1301,6 +1307,8 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         for (int i = 0; i < maxPly; ++i) {
             position->isSingularMove[i] = 0;
             position->staticEval[i] = noEval;
+            position->piece[i] = 0;
+            position->move[i] = 0;
         }
 
         int startTime = getTimeMiliSecond();
