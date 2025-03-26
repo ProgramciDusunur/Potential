@@ -71,7 +71,7 @@ int getContinuationHistoryScore(board *pos, int offSet, int move) {
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus) {
     const int ply = pos->ply - offSet;
     if (ply >= 0) {
-        const int scaledBonus = bonus - getContinuationHistoryScore(pos, offSet, move) * abs(bonus) / (maxQuietHistory * offSet);
+        const int scaledBonus = bonus - getContinuationHistoryScore(pos, offSet, move) * abs(bonus) / (maxQuietHistory / offSet);
         continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
                               [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
     }
