@@ -37,6 +37,9 @@ typedef struct {
 
     int isSingularMove[maxPly];
 
+    uint16_t piece[maxPly];
+    int move[maxPly];
+
     int followPv;
     int scorePv;
 
