@@ -79,11 +79,6 @@ void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus
 
 
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
-    /*int prev_piece = pos->piece[pos->ply];
-    int prev_target = getMoveTarget(pos->move[pos->ply]);
-    int piece = pos->mailbox[getMoveSource(bestMove)];
-    int target = getMoveTarget(bestMove);*/
-
     int bonus = 16 * depth * depth + 32 * depth + 16;
 
     updateSingleCHScore(pos, bestMove, 1, bonus);
