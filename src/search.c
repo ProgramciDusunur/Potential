@@ -975,8 +975,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         bool isNotMated = bestScore > -mateScore;
 
-        if (!rootNode && notTactical && isNotMated) {
+        if (!rootNode && isNotMated) {
 
+            if (notTactical) { // quiet moves
                 int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth);
 
                 // Late Move Pruning
@@ -988,6 +989,14 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 4)]) + FP_MARGIN * lmrDepth <= alpha) {
                     continue;
                 }
+            } else { // noisy moves
+                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth);
+
+                // Late Move Pruning
+                if (legal_moves>= lmpThreshold) {
+                    continue;
+                }
+            }
 
 
                 /*
