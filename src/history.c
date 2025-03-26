@@ -68,33 +68,42 @@ int getContinuationHistoryScore(board *pos, int offSet, int move) {
                               [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] : 0;
 }
 
+void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus) {
+    const int ply = pos->ply - offSet;
+    if (ply >= 0) {
+        const int scaledBonus = bonus - getContinuationHistoryScore(pos, offSet, move) * abs(bonus) / maxQuietHistory;
+        continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
+                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
+    }
+}
+
 
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
-    int prev_piece = pos->piece[pos->ply];
+    /*int prev_piece = pos->piece[pos->ply];
     int prev_target = getMoveTarget(pos->move[pos->ply]);
     int piece = pos->mailbox[getMoveSource(bestMove)];
-    int target = getMoveTarget(bestMove);
+    int target = getMoveTarget(bestMove);*/
 
-    int score = continuationHistory[prev_piece][prev_target][piece][target];
     int bonus = 16 * depth * depth + 32 * depth + 16;
 
-    continuationHistory[prev_piece][prev_target][piece][target] += scaledBonus(score, bonus, maxQuietHistory);
+    updateSingleCHScore(pos, bestMove, 1, bonus);
 
     for (int index = 0; index < badQuiets->count; index++) {
 
         if (badQuiets->moves[index] == bestMove) continue;
 
 
-        int badQuietPiece = pos->mailbox[getMoveSource(badQuiets->moves[index])];
-        int badQuietTarget = getMoveTarget(badQuiets->moves[index]);
+        //int badQuietPiece = pos->mailbox[getMoveSource(badQuiets->moves[index])];
+        //int badQuietTarget = getMoveTarget(badQuiets->moves[index]);
 
 
 
-        int badQuietScore = continuationHistory[prev_piece][prev_target][badQuietPiece][badQuietTarget];
+        //int badQuietScore = continuationHistory[prev_piece][prev_target][badQuietPiece][badQuietTarget];
 
 
 
-        continuationHistory[prev_piece][prev_target][badQuietPiece][badQuietTarget] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
+        //continuationHistory[prev_piece][prev_target][badQuietPiece][badQuietTarget] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
+        updateSingleCHScore(pos, badQuiets->moves[index], 1, -bonus);
     }
 
 }

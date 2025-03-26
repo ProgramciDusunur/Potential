@@ -1098,8 +1098,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
-        pos->move[pos->ply] = currentMove;
-        pos->piece[pos->ply] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
 
         // increment nodes count
         searchNodes++;
@@ -1110,6 +1108,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         legal_moves++;
 
         if (notTactical) {
+            pos->move[pos->ply] = currentMove;
+            pos->piece[pos->ply] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
             addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
         } else {
