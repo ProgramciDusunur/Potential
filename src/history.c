@@ -87,6 +87,7 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
     int bonus = 16 * depth * depth + 32 * depth + 16;
 
     updateSingleCHScore(pos, bestMove, 1, bonus);
+    updateSingleCHScore(pos, bestMove, 4, bonus);
 
     for (int index = 0; index < badQuiets->count; index++) {
 
@@ -104,6 +105,7 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
 
         //continuationHistory[prev_piece][prev_target][badQuietPiece][badQuietTarget] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
         updateSingleCHScore(pos, badQuiets->moves[index], 1, -bonus);
+        updateSingleCHScore(pos, badQuiets->moves[index], 4, -bonus);
     }
 
 }
