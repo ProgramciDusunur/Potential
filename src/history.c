@@ -4,6 +4,8 @@
 
 #include "history.h"
 
+#include "utils.h"
+
 // quietHistory[side to move][fromSquare][toSquare]
 int quietHistory[2][64][64];
 // rootHistory[side to move][fromSquare][toSquare]
@@ -40,7 +42,8 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets)
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int bonus = 16 * depth * depth + 32 * depth + 16;
+    int bonus = clamp(16 * depth * depth + 32 * depth + 16,
+        maxQuietHistoryMalus, maxQuietHistoryBonus);
     int score = quietHistory[side][from][to];
 
     quietHistory[side][from][to] += scaledBonus(score, bonus, maxQuietHistory);
@@ -72,7 +75,8 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
     int target = getMoveTarget(bestMove);
 
     int score = continuationHistory[prev_piece][prev_target][piece][target];
-    int bonus = 16 * depth * depth + 32 * depth + 16;
+    int bonus = clamp(16 * depth * depth + 32 * depth + 16,
+        maxQuietHistoryMalus, maxQuietHistoryBonus);
 
     continuationHistory[prev_piece][prev_target][piece][target] += scaledBonus(score, bonus, maxQuietHistory);
 
