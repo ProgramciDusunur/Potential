@@ -18,7 +18,8 @@
 
 
 enum {
-    maxQuietHistory = 16384
+    maxQuietHistory = 16384,
+    maxContinuationHistory = 32768
 };
 
 // quietHistory[side to move][fromSquare][toSquare]
