@@ -22,7 +22,7 @@ void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiet
     int to = getMoveTarget(bestMove);
 
 
-    int bonus = myMIN(1024, 16 * depth * depth + 32 * depth + 16);
+    int bonus = 16 * depth * depth + 32 * depth + 16;
 
     int score = rootHistory[position->side][from][to];
 
@@ -44,7 +44,7 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets)
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int bonus = myMIN(1024, 16 * depth * depth + 32 * depth + 16);
+    int bonus = 16 * depth * depth + 32 * depth + 16;
     int score = quietHistory[side][from][to];
 
     quietHistory[side][from][to] += scaledBonus(score, bonus, maxQuietHistory);
@@ -72,11 +72,11 @@ int getContinuationHistoryScore(board *pos, int offSet, int move) {
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
     int prev_piece = pos->piece[pos->ply];
     int prev_target = getMoveTarget(pos->move[pos->ply]);
-    int piece = pos->mailbox[getMoveSource(bestMove)];
+    int piece = getMovePiece(bestMove);
     int target = getMoveTarget(bestMove);
 
     int score = continuationHistory[prev_piece][prev_target][piece][target];
-    int bonus = myMIN(1024, 16 * depth * depth + 32 * depth + 16);
+    int bonus = 16 * depth * depth + 32 * depth + 16;
 
     continuationHistory[prev_piece][prev_target][piece][target] += scaledBonus(score, bonus, maxQuietHistory);
 
@@ -85,7 +85,7 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
         if (badQuiets->moves[index] == bestMove) continue;
 
 
-        int badQuietPiece = pos->mailbox[getMoveSource(badQuiets->moves[index])];
+        int badQuietPiece = getMovePiece(badQuiets->moves[index]);
         int badQuietTarget = getMoveTarget(badQuiets->moves[index]);
 
 
