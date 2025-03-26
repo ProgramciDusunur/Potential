@@ -5,7 +5,7 @@
 #include "search.h"
 
 
-/* Tunable Search Parameteres */
+/* Tunable Search Parameters */
 
 // Static Exchange Evaluation
 int SEE_PIECE_VALUES[] = {100, 300, 300, 500, 1200, 0, 0};
@@ -1275,12 +1275,6 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
     //memset(position->mailbox, NO_PIECE, sizeof(position->mailbox));
-    memset(quietHistory, 0, sizeof(quietHistory));
-    memset(rootHistory, 0, sizeof(rootHistory));
-    memset(PAWN_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
-    //memset(continuationHistory, 0, sizeof(continuationHistory));
-    memset(MINOR_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
-    memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));
