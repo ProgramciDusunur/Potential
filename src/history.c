@@ -12,6 +12,8 @@ int quietHistory[2][64][64];
 int rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int continuationHistory[12][64][12][64];
+// continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+int twoPlyContinuationHistory[12][64][12][64];
 
 int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
@@ -62,16 +64,31 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets)
 }
 
 
-int getContinuationHistoryScore(board *pos, int offSet, int move) {
+int get1PlyContinuationHistoryScore(board *pos, int offSet, int move) {
     const int ply = pos->ply - offSet;
     return ply >= 0 ? continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
                               [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] : 0;
 }
 
-void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus) {
+int get2PlyContinuationHistoryScore(board *pos, int offSet, int move) {
+    const int ply = pos->ply - offSet;
+    return ply >= 0 ? twoPlyContinuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
+                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] : 0;
+}
+
+void update1PlyCHScore(board *pos, int move, const int offSet, const int bonus) {
     const int ply = pos->ply - offSet;
     if (ply >= 0) {
-        const int scaledBonus = bonus - getContinuationHistoryScore(pos, offSet, move) * abs(bonus) / maxContinuationHistory;
+        const int scaledBonus = bonus - get1PlyContinuationHistoryScore(pos, offSet, move) * abs(bonus) / maxContinuationHistory;
+        continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
+                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
+    }
+}
+
+void update2PlyCHScore(board *pos, int move, const int offSet, const int bonus) {
+    const int ply = pos->ply - offSet;
+    if (ply >= 0) {
+        const int scaledBonus = bonus - get1PlyContinuationHistoryScore(pos, offSet, move) * abs(bonus) / maxContinuationHistory;
         continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
                               [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
     }
@@ -82,8 +99,8 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
 
     int bonus = 16 * depth * depth + 32 * depth + 16;
 
-    updateSingleCHScore(pos, bestMove, 1, bonus);
-    updateSingleCHScore(pos, bestMove, 2, bonus);
+    update1PlyCHScore(pos, bestMove, 1, bonus);
+    update2PlyCHScore(pos, bestMove, 2, bonus);
 
     for (int index = 0; index < badQuiets->count; index++) {
 
@@ -97,11 +114,9 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
 
         //int badQuietScore = continuationHistory[prev_piece][prev_target][badQuietPiece][badQuietTarget];
 
-
-
         //continuationHistory[prev_piece][prev_target][badQuietPiece][badQuietTarget] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
-        updateSingleCHScore(pos, badQuiets->moves[index], 1, -bonus);
-        updateSingleCHScore(pos, badQuiets->moves[index], 2, -bonus);
+        update1PlyCHScore(pos, bestMove, 1, bonus);
+        update2PlyCHScore(pos, bestMove, 2, bonus);
     }
 
 }
