@@ -990,7 +990,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     continue;
                 }
             } else { // noisy moves
-                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth);
+                int TACTICAL_LMP_BASE = 2;
+                int TACTICAL_LMP_MULTIPLIER = 5;
+                int lmpThreshold = (TACTICAL_LMP_BASE + TACTICAL_LMP_MULTIPLIER * lmrDepth * lmrDepth);
 
                 // Late Move Pruning
                 if (legal_moves>= lmpThreshold) {
