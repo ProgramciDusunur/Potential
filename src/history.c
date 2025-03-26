@@ -63,8 +63,9 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets)
 
 
 int getContinuationHistoryScore(board *pos, int offSet, int move) {
-    return continuationHistory[pos->piece[pos->ply - offSet]][getMoveTarget(pos->move[pos->ply - offSet])]
-                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)];
+    const int ply = pos->ply - offSet;
+    return ply >= 0 ? continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
+                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] : 0;
 }
 
 
@@ -81,7 +82,7 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
 
     for (int index = 0; index < badQuiets->count; index++) {
 
-        //if (badQuiets->moves[index] == bestMove) continue;
+        if (badQuiets->moves[index] == bestMove) continue;
 
 
         int badQuietPiece = pos->mailbox[getMoveSource(badQuiets->moves[index])];
