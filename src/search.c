@@ -1277,7 +1277,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     memset(quietHistory, 0, sizeof(quietHistory));
     memset(rootHistory, 0, sizeof(rootHistory));
     memset(PAWN_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
-    memset(continuationHistory, 0, sizeof(continuationHistory));
+    //memset(continuationHistory, 0, sizeof(continuationHistory));
     memset(MINOR_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
     memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
     memset(position->pvTable, 0, sizeof(position->pvTable));
