@@ -42,8 +42,7 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets)
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int bonus = clamp(16 * depth * depth + 32 * depth + 16,
-        maxQuietHistoryMalus, maxQuietHistoryBonus);
+    int bonus = 16 * depth * depth + 32 * depth + 16;
     int score = quietHistory[side][from][to];
 
     quietHistory[side][from][to] += scaledBonus(score, bonus, maxQuietHistory);
