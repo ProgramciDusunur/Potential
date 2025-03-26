@@ -60,6 +60,69 @@ void pBoard(board* position) {
     printf("    Hash key:  %llx\n\n", position->hashKey);
 }
 
+
+void printMailbox(const board *position) {
+    printf("\n");
+    for (int y = 0, coordinate = 8; y < 8; y++, coordinate--) {
+        printf("%d  ", coordinate);
+        for (int x = 0; x < 8; x++) {
+            const int index = y * 8 + x;
+            const int piece = position->mailbox[index];
+            switch (piece) {
+                case P:
+                    printf("P ");
+                break;
+                case N:
+                    printf("N ");
+                break;
+                case B:
+                    printf("B ");
+                break;
+                case R:
+                    printf("R ");
+                break;
+                case Q:
+                    printf("Q ");
+                break;
+                case K:
+                    printf("K ");
+                break;
+
+                case p:
+                    printf("p ");
+                break;
+                case n:
+                    printf("n ");
+                break;
+                case b:
+                    printf("b ");
+                break;
+                case r:
+                    printf("r ");
+                break;
+                case q:
+                    printf("q ");
+                break;
+                case k:
+                    printf("k ");
+                break;
+                default:
+                    printf("- ");
+                break;
+            }
+
+        }
+        printf(" \n");
+    }
+    printf("\n   a b c d e f g h \n");
+
+
+    printf("\n");
+
+}
+
+
+
 double clampDecimalValue(double d, const double min, const double max) {
     const double t = d < min ? min : d;
     return t > max ? max : t;
