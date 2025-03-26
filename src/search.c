@@ -678,6 +678,9 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             continue;
         }
 
+        position->move[position->ply] = moveList->moves[count];
+        position->piece[position->ply] = copyPosition.mailboxCopy[getMoveSource(moveList->moves[count])];
+
         //legal_moves++;
 
         // increment nodes count
@@ -1098,14 +1101,14 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
+        pos->move[pos->ply] = currentMove;
+        pos->piece[pos->ply] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
 
         // increment nodes count
         searchNodes++;
 
         if (notTactical) {
             addMoveToHistoryList(badQuiets, currentMove);
-            pos->move[pos->ply] = currentMove;
-            pos->piece[pos->ply] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
         }
 
         prefetch_hash_entry(pos->hashKey);
