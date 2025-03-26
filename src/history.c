@@ -76,7 +76,7 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
     int target = getMoveTarget(bestMove);
 
     int score = continuationHistory[prev_piece][prev_target][piece][target];
-    int bonus = myMIN(2048, 16 * depth * depth + 32 * depth + 16);
+    int bonus = myMIN(4096, 16 * depth * depth + 32 * depth + 16);
 
     continuationHistory[prev_piece][prev_target][piece][target] += scaledBonus(score, bonus, maxQuietHistory);
 
