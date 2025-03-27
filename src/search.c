@@ -1127,7 +1127,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
-            lmrReduction -= moveHistory / 16384;
+            lmrReduction -= moveHistory / 4096;
         }
 
         // Reduce Less
