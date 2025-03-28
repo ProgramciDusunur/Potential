@@ -1093,7 +1093,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Quadruple Negative Extension
-                if (notTactical && tt_score >= beta + 120 && moveHistory < depth * -128) {
+                if (notTactical && tt_score >= beta + 120 && moveHistory < depth * -1024) {
                     extensions -= 1;
                 }
 
