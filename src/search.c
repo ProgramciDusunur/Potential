@@ -1092,6 +1092,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     extensions -= 1;
                 }
 
+                // Quadruple Negative Extension
+                if (!pvNode && tt_score >= beta + 120 && moveHistory <  depth * -8192) {
+                    extensions -= 1;
+                }
+
             }
         }
 
