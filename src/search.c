@@ -168,7 +168,6 @@ int scoreMove(int move, board* position) {
         return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)] +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
-                        getContinuationHistoryScore(position, 4, move) +
                         getContinuationHistoryScore(position, 6, move) +
                (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
     }
@@ -977,7 +976,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
 
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
+                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 6, currentMove): 0;
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical));
 
