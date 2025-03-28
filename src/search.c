@@ -168,6 +168,7 @@ int scoreMove(int move, board* position) {
         return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)] +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
+                        getContinuationHistoryScore(position, 6, move) +
                (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
     }
     return 0;
