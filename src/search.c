@@ -1131,7 +1131,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             int moveHistoryReduction = moveHistory / 4096;
             // if searched moves are decently high then we can increase our maximum clamp
             int historyClamp = 3;
-            historyClamp += moves_searched > 0 && moveHistoryReduction != 0 ? clamp(moves_searched / moveHistoryReduction, -4 , 4) : 0;
+            historyClamp += moves_searched > 0 && moveHistoryReduction != 0 ? clamp(moves_searched / moveHistoryReduction, -3 , 3) : 0;
             lmrReduction -= clamp(moveHistoryReduction, -historyClamp, historyClamp);
         }
 
