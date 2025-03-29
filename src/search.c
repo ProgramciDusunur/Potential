@@ -975,7 +975,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
 
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 2, currentMove): 0;
+                getContinuationHistoryScore(pos, 1, currentMove): 0;
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical));
 
@@ -1131,7 +1131,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             int moveHistoryReduction = moveHistory / 4096;
             // if searched moves are decently high then we can increase our maximum clamp
             int historyClamp = 3;
-            historyClamp += moves_searched > 0 && moveHistoryReduction != 0 ? clamp(moves_searched / moveHistoryReduction, -3, 3) : 0;
+            historyClamp += moves_searched > 0 && moveHistoryReduction != 0 ? clamp(moves_searched / moveHistoryReduction, -1, 1) : 0;
             lmrReduction -= clamp(moveHistoryReduction, -historyClamp, historyClamp);
         }
 
