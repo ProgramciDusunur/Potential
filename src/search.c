@@ -1132,7 +1132,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         // if our tt move is noisy/capture and current move is quiet then reduce more
-        if (getMoveCapture(tt_move) == 0 && getMovePromoted(tt_move) == 0 && notTactical) {
+        if ((getMoveCapture(tt_move) || getMovePromoted(tt_move)) && notTactical) {
             lmrReduction += 1;
         }
 
