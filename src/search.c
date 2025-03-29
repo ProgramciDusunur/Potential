@@ -985,7 +985,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) * 1024;
 
-                lmpThreshold += pvNode ? 2048 : 0;
+                lmpThreshold += pvNode ? 1536 : 0;
 
                 lmpThreshold /= 1024;
 
