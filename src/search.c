@@ -1130,8 +1130,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
             int moveHistoryReduction = moveHistory / 4096;
             // if searched moves are decently high then we can increase our maximum clamp
-            int scaleClamp = moves_searched > 0 && moveHistoryReduction != 0 ? moves_searched / moveHistoryReduction : 0;
-            lmrReduction -= clamp(moveHistoryReduction + scaleClamp, -3, 3);
+            int scaleClamp = moves_searched > 0 && moveHistoryReduction != 0 ? clamp(moves_searched / moveHistoryReduction, -2 , 2) : 0;            lmrReduction -= clamp(moveHistoryReduction + scaleClamp, -3, 3);
         }
 
         // Reduce Less
