@@ -612,6 +612,12 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         }
     }
 
+    // is king in check
+    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
+                                    getLS1BIndex(position->bitboards[k]),
+                                    position->side ^ 1, position);
+
+
     // evaluate position
     int evaluation = evaluate(position);
 
@@ -643,6 +649,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         quiescence_sort_moves(moveList, position);
     }
 
+    const int futility_score = bestScore + 162;
 
 
 
@@ -652,7 +659,13 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
+        // Futility Pruning
+        if (!in_check && getMoveCapture(moveList->moves[count]) && futility_score <= alpha && !SEE(position, moveList->moves[count], 1)) {
+            bestScore = myMAX(bestScore, futility_score);
+            continue;
+        }
 
+        // Static Exchange Evaluation Pruning
         if (!SEE(position, moveList->moves[count], QS_SEE_THRESHOLD)) {
             continue;
         }
