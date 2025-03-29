@@ -985,6 +985,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth);
 
+                lmpThreshold = improving ? lmpThreshold / 2 : lmpThreshold;
+
                 // Late Move Pruning
                 if (legal_moves>= lmpThreshold) {
                     continue;
