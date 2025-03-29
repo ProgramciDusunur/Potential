@@ -913,7 +913,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, false);
             pos->nmpPly = 0;
 
-            if (verificationScore >= beta) {
+            if (verificationScore >= (beta + ttAdjustedEval) / 2) {
                 return score;
             }
         }
