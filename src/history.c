@@ -13,6 +13,10 @@ int rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int continuationHistory[12][64][12][64];
 
+int getHistoryBonus(int depth) {
+    return 16 * depth * depth + 32 * depth + 16;
+}
+
 int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
 }
@@ -21,8 +25,7 @@ void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiet
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-
-    int bonus = 16 * depth * depth + 32 * depth + 16;
+    int bonus = getHistoryBonus(depth);
 
     int score = rootHistory[position->side][from][to];
 
@@ -44,7 +47,7 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets)
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int bonus = 16 * depth * depth + 32 * depth + 16;
+    int bonus = getHistoryBonus(depth);
     int score = quietHistory[side][from][to];
 
     quietHistory[side][from][to] += scaledBonus(score, bonus, maxQuietHistory);
@@ -77,36 +80,20 @@ void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus
     }
 }
 
+void updateAllCH(board *pos, int move, int bonus) {
+    updateSingleCHScore(pos, move, 1, bonus);
+    updateSingleCHScore(pos, move, 2, bonus);
+}
 
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
-    /*int prev_piece = pos->piece[pos->ply];
-    int prev_target = getMoveTarget(pos->move[pos->ply]);
-    int piece = pos->mailbox[getMoveSource(bestMove)];
-    int target = getMoveTarget(bestMove);*/
+    int bonus = getHistoryBonus(depth);
 
-    int bonus = 16 * depth * depth + 32 * depth + 16;
+    updateAllCH(pos, bestMove, bonus);
 
-    updateSingleCHScore(pos, bestMove, 1, bonus);
-    updateSingleCHScore(pos, bestMove, 2, bonus);
     for (int index = 0; index < badQuiets->count; index++) {
-
         if (badQuiets->moves[index] == bestMove) continue;
-
-
-        //int badQuietPiece = pos->mailbox[getMoveSource(badQuiets->moves[index])];
-        //int badQuietTarget = getMoveTarget(badQuiets->moves[index]);
-
-
-
-        //int badQuietScore = continuationHistory[prev_piece][prev_target][badQuietPiece][badQuietTarget];
-
-
-
-        //continuationHistory[prev_piece][prev_target][badQuietPiece][badQuietTarget] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
-        updateSingleCHScore(pos, badQuiets->moves[index], 1, -bonus);
-        updateSingleCHScore(pos, badQuiets->moves[index], 2, -bonus);
+        updateAllCH(pos, badQuiets->moves[index], -bonus);
     }
-
 }
 
 

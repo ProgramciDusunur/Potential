@@ -34,6 +34,8 @@ int scaledBonus(int score, int bonus, int gravity);
 void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets);
 void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiets);
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus);
+void updateAllCH(board *pos, int move, int bonus);
+int getHistoryBonus(int depth);
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets);
 int getContinuationHistoryScore(board *pos, int offSet, int move);
 void clearQuietHistory(void);
