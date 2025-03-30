@@ -649,7 +649,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         quiescence_sort_moves(moveList, position);
     }
 
-    const int futility_score = bestScore + 162;
+    const int futility_score = bestScore + 243;
 
 
 
