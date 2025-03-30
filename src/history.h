@@ -33,6 +33,7 @@ extern int continuationHistory[12][64][12][64];
 int scaledBonus(int score, int bonus, int gravity);
 void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets);
 void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiets);
+void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus);
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets);
 int getContinuationHistoryScore(board *pos, int offSet, int move);
 void clearQuietHistory(void);

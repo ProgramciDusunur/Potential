@@ -1150,6 +1150,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
                 new_depth += doDeeper;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+                if (notTactical && (score <= alpha || score >= beta)){
+                    const int bonus = score <= alpha ? -(16 * new_depth * new_depth + 32 * new_depth + 16) : 16 * new_depth * new_depth + 32 * new_depth + 16;
+                    updateSingleCHScore(pos, currentMove, 1, bonus);
+                    updateSingleCHScore(pos, currentMove, 2, bonus);
+                }
             }
         }
         else if (!pvNode || legal_moves > 1) {
