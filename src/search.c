@@ -1150,6 +1150,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
                 new_depth += doDeeper;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+                if (notTactical && (score <= alpha || score >= beta)){
+                    const int bonus = score <= alpha ? -getHistoryBonus(new_depth) : getHistoryBonus(new_depth);
+                    updateAllCH(pos, currentMove, bonus);
+                }
             }
         }
         else if (!pvNode || legal_moves > 1) {
