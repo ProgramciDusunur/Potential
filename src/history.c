@@ -83,6 +83,7 @@ void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus
 void updateAllCH(board *pos, int move, int bonus) {
     updateSingleCHScore(pos, move, 1, bonus);
     updateSingleCHScore(pos, move, 2, bonus);
+    updateSingleCHScore(pos, move, 4, bonus);
 }
 
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
