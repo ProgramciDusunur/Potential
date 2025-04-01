@@ -37,8 +37,8 @@ int LMP_BASE = 4;
 int LMP_MULTIPLIER = 3;
 
 // Futility Pruning
-int FUTILITY_PRUNING_OFFSET[] = {0, 82, 41, 20, 10, 5};
-int FP_DEPTH = 5;
+int FUTILITY_PRUNING_OFFSET[] = {0, 82, 41, 20, 10, 5, 3};
+int FP_DEPTH = 6;
 int FP_MARGIN = 82;
 
 // Reverse Futility Pruning
@@ -992,7 +992,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Futility Pruning
-                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth <= alpha) {
+                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 6)]) + FP_MARGIN * lmrDepth <= alpha) {
                     continue;
                 }
                 // Quiet History Pruning
