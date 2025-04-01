@@ -47,7 +47,7 @@ int RFP_IMPROVING_MARGIN = 65;
 int RFP_DEPTH = 5;
 
 // Razoring
-int RAZORING_DEPTH = 4;
+int RAZORING_DEPTH = 3;
 int RAZORING_MARGIN = 200;
 
 // Singular Extensions
@@ -924,7 +924,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
-        !pvNode && !in_check && !(tt_score > alpha && tt_flag == hashFlagAlpha) && depth <= RAZORING_DEPTH && static_eval + RAZORING_MARGIN * depth < alpha) {
+        !pvNode && !in_check && tt_flag != hashFlagNone && tt_flag != hashFlagBeta && depth <= RAZORING_DEPTH && static_eval + RAZORING_MARGIN * depth < alpha) {
         int razoringScore = quiescence(alpha, beta, pos, time);
         if (razoringScore <= alpha) {
             return razoringScore;
