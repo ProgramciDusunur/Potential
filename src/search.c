@@ -175,7 +175,6 @@ int scoreMove(int move, board* position) {
     return 0;
 }
 
-
 void sort_moves(moves *moveList, int tt_move, board* position) {
     // move scores
     int move_scores[moveList->count];
