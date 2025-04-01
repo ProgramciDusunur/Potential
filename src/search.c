@@ -995,8 +995,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth <= alpha) {
                     continue;
                 }
+                int historyMargin = depth * -2048 / isTacticalMove(tt_move) ? 2 : 1;
                 // Quiet History Pruning
-                if (depth <= 4 && !in_check && moveHistory < depth * -2048) {
+                if (depth <= 4 && !in_check && moveHistory < historyMargin) {
                     break;
                 }
 
