@@ -996,7 +996,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     continue;
                 }
                 int historyMargin = (depth * -2048) * 1024;
-                historyMargin /= isTacticalMove(tt_move) ? 1280 : 1024;
+                historyMargin /= isTacticalMove(tt_move) ? 1536 : 1024;
                 // Quiet History Pruning
                 if (depth <= 4 && !in_check && moveHistory < historyMargin) {
                     break;
