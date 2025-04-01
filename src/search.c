@@ -47,8 +47,8 @@ int RFP_IMPROVING_MARGIN = 65;
 int RFP_DEPTH = 6;
 
 // Razoring
-int RAZORING_DEPTH = 3;
-int RAZORING_MARGIN = 150;
+int RAZORING_DEPTH = 4;
+int RAZORING_MARGIN = 180;
 
 // Singular Extensions
 int SE_DEPTH = 7;
