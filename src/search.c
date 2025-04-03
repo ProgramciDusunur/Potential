@@ -975,8 +975,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
 
-        int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
+       /* int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)] +
+                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;*/
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical));
 
@@ -996,9 +996,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     continue;
                 }
                 // Quiet History Pruning
-                if (depth <= 4 && !in_check && moveHistory < depth * -2048) {
+                /*if (depth <= 4 && !in_check && moveHistory < depth * -2048) {
                     break;
-                }
+                }*/
 
         }
 
@@ -1129,8 +1129,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
-            int moveHistoryReduction = moveHistory / 4096;
-            lmrReduction -= clamp(moveHistoryReduction, -3, 3);
+            /*int moveHistoryReduction = moveHistory / 4096;
+            lmrReduction -= clamp(moveHistoryReduction, -3, 3);*/
         }
 
         // Reduce Less
