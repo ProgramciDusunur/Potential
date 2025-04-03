@@ -1121,6 +1121,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         /* All Moves */
 
         // Reduce More
+        if (depth - 5 >= tt_depth) {
+            lmrReduction += 1;
+        }
 
         if (notTactical) {
             // Reduce More
@@ -1138,9 +1141,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction -= 1;
         }
 
-        if (tt_depth - 3 >= depth) {
-            lmrReduction -= 1;
-        }
 
 
 
