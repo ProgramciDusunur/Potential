@@ -43,6 +43,10 @@ void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiet
     }
 }
 
+int getQuietMoveScore(const int side, const int from, const int to) {
+    return quietHistory[side][from][to] == 0 ? 0 : quietHistory[side][from][to];
+}
+
 void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
