@@ -29,7 +29,7 @@ void goCommand(char *command, board* position, time* time);
 void printMoveList(moves *moveList);
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
 void read_input(time* time);
-void communicate(time* time);
+void communicate(time* time, board *pos);
 
 
 

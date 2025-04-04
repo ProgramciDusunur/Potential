@@ -584,7 +584,7 @@ uint8_t isMaterialDraw(board *pos) {
 // quiescence search
 int quiescence(int alpha, int beta, board* position, time* time) {
     if ((searchNodes & 2047) == 0) {
-        communicate(time);
+        communicate(time, position);
     }
 
     int score = 0, bestScore = 0;
@@ -750,7 +750,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
 
     if ((searchNodes & 2047) == 0) {
-        communicate(time);
+        communicate(time, pos);
     }
 
 
@@ -1309,7 +1309,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
         int startTime = getTimeMiliSecond();
 
-        if (time->timeset && startTime >= time->softLimit) {
+        if (time->timeset && startTime >= time->softLimit && position->pvTable[0][0] != 0) {
             time->stopped = 1;
         }
 
@@ -1318,7 +1318,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
         while (true) {
 
-            if (time->timeset && startTime >= time->softLimit) {
+            if (time->timeset && startTime >= time->softLimit && position->pvTable[0][0] != 0) {
                 time->stopped = 1;
             }
 
