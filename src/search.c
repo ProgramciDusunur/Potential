@@ -1049,10 +1049,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             const int singularBeta = tt_score - depth;
             const int singularDepth = (depth - 1) / 2;
 
-            pos->isSingularMove[pos->ply] = currentMove;
 
             // decrement ply
             pos->ply--;
+
+            pos->isSingularMove[pos->ply] = currentMove;
 
             // take move back
             takeBack(pos, &copyPosition);
