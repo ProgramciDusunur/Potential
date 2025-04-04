@@ -1083,10 +1083,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (notTactical && tt_score - 90 >= beta) {
                     extensions -= 1;
                 }
-
             }
-            }
+        }
 
+        myMIN(pos->ply, 255);
 
 
         struct copyposition copyPosition;
@@ -1122,8 +1122,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         legal_moves++;
 
         if (notTactical) {
-            pos->move[myMIN(pos->ply, 255)] = currentMove;
-            pos->piece[myMIN(pos->ply, 255)] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
+            pos->move[pos->ply] = currentMove;
+            pos->piece[pos->ply] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
             addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
         } else {
