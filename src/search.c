@@ -595,15 +595,15 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
 
     int bestMove = 0;
-    //int tt_move = 0;
+    int tt_move = 0;
     int16_t tt_score = 0;
     uint8_t tt_hit = 0;
-    //uint8_t tt_depth = 0;
-    //uint8_t tt_flag = hashFlagExact;
+    uint8_t tt_depth = 0;
+    uint8_t tt_flag = hashFlagExact;
     bool tt_pv = pvNode;
 
     // read hash entry
-    /*if (position->ply &&
+    if (position->ply &&
         (tt_hit =
                  readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv))) {
         if ((tt_flag == hashFlagExact) ||
@@ -611,7 +611,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
             return tt_score;
         }
-    }*/
+    }
 
     // evaluate position
     int evaluation = evaluate(position);
@@ -781,7 +781,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     }
 
     // read hash entry
-    /*if (!pos->isSingularMove[pos->ply] && !rootNode &&
+    if (!pos->isSingularMove[pos->ply] && !rootNode &&
         (tt_hit =
                 readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv)) &&
                 !pvNode) {
@@ -792,7 +792,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 return tt_score;
             }
         }
-    }*/
+    }
 
 
     // recursion escapre condition
