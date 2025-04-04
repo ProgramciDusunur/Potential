@@ -1053,10 +1053,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // decrement ply
             pos->ply--;
 
-            pos->isSingularMove[pos->ply] = currentMove;
-
             // take move back
             takeBack(pos, &copyPosition);
+
+            pos->isSingularMove[pos->ply] = currentMove;
 
 
 
