@@ -82,7 +82,11 @@ int main(int argc, char* argv[]) {
         
 
     } else {
-        uciProtocol(argc, argv);
+        board *position = (board *)malloc(sizeof(board));
+        time *time_ctrl = (time *)malloc(sizeof(time));
+        uciProtocol(argc, argv, position, time_ctrl);
+        free(position);
+        free(time_ctrl);
     }
     return 0;
 }
