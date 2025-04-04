@@ -1086,7 +1086,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
-        myMIN(pos->ply, 255);
+        pos->ply = myMIN(pos->ply, 255);
 
 
         struct copyposition copyPosition;
