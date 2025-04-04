@@ -4,6 +4,8 @@
 
 #include "uci.h"
 
+#include "perft.h"
+
 double DEF_TIME_MULTIPLIER = 0.054;
 double DEF_INC_MULTIPLIER = 0.85;
 double MAX_TIME_MULTIPLIER = 0.76;
@@ -534,6 +536,8 @@ void uciProtocol(int argc, char *argv[]) {
             printf("option name Threads type spin default %d min %d max %d\n", 1, 1,
                    1);
             printf("uciok\n");
+        } else if (strncmp(input, "perft", 5) == 0) {
+            perftSuite();
         }
         else if (strncmp(input, "bench", 5) == 0) {
             benchmark(15, position, time_ctrl);
