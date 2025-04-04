@@ -743,6 +743,14 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode) {
+    if ((searchNodes & 2047) == 0) {
+        communicate(time, pos);
+    }
+
+    if (pos->ply > maxPly - 1) {
+        // evaluate position
+        return evaluate(pos);
+    }
     // init PV length
     pos->pvLength[pos->ply] = pos->ply;
 
@@ -752,15 +760,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     depth = myMIN(depth, maxPly - 1);
 
-    if ((searchNodes & 2047) == 0) {
-        communicate(time, pos);
-    }
 
 
-    if (pos->ply > maxPly - 1) {
-        // evaluate position
-        return evaluate(pos);
-    }
+
 
 
     int pvNode = beta - alpha > 1;
