@@ -152,7 +152,7 @@ void parse_position(char *command, board* position) {
     }
 
     // print board
-    pBoard(position);
+    //pBoard(position);
 }
 
 
