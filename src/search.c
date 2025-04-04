@@ -587,6 +587,11 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         communicate(time, position);
     }
 
+    if (position->ply > maxPly - 1) {
+        // evaluate position
+        return evaluate(position);
+    }
+
     int score = 0, bestScore = 0;
 
     int pvNode = beta - alpha > 1;
@@ -745,12 +750,16 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // variable to store current move's score (from the static evaluation perspective)
     int score = 0;
 
-
-
-
+    depth = myMIN(depth, maxPly - 1);
 
     if ((searchNodes & 2047) == 0) {
         communicate(time, pos);
+    }
+
+
+    if (pos->ply > maxPly - 1) {
+        // evaluate position
+        return evaluate(pos);
     }
 
 
@@ -1008,29 +1017,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
-        struct copyposition copyPosition;
-        // preserve board state
-        copyBoard(pos, &copyPosition);
-
-        // increment ply
-        pos->ply++;
-
-        // increment repetition index & store hash key
-        pos->repetitionIndex++;
-        pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
-
-        // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
-            // decrement ply
-            pos->ply--;
-
-            // decrement repetition index
-            pos->repetitionIndex--;
-
-            // skip to next move
-            continue;
-        }
-
         int extensions = 0;
 
         // Singular Extensions
@@ -1041,22 +1027,25 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             const int singularDepth = (depth - 1) / 2;
 
 
-            // decrement ply
-            pos->ply--;
+            struct copyposition copyPosition;
+            // preserve board state
+            copyBoard(pos, &copyPosition);
+
+            // make sure to make only legal moves
+            if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
+                continue;
+            }
+
+            pos->isSingularMove[pos->ply] = currentMove;
 
             // take move back
             takeBack(pos, &copyPosition);
 
-            pos->isSingularMove[pos->ply] = currentMove;
 
             const int singularScore =
                     negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, cutNode);
 
             pos->isSingularMove[pos->ply] = 0;
-
-            makeMove(moveList->moves[count], allMoves, pos);
-
-            pos->ply++;
 
             // Singular Extension
             if (singularScore < singularBeta) {
@@ -1094,6 +1083,31 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
             }
+            }
+
+
+
+        struct copyposition copyPosition;
+        // preserve board state
+        copyBoard(pos, &copyPosition);
+
+        // increment ply
+        pos->ply++;
+
+        // increment repetition index & store hash key
+        pos->repetitionIndex++;
+        pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
+
+        // make sure to make only legal moves
+        if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
+            // decrement ply
+            pos->ply--;
+
+            // decrement repetition index
+            pos->repetitionIndex--;
+
+            // skip to next move
+            continue;
         }
 
 
