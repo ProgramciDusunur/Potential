@@ -152,7 +152,7 @@ void parse_position(char *command, board* position) {
     }
 
     // print board
-    //pBoard(position);
+    pBoard(position);
 }
 
 
@@ -370,9 +370,9 @@ void read_input(time* time) {
     }
 }
 
-void communicate(time* time) {
+void communicate(time* time, board *pos) {
     // if time is up break here
-    if (time->timeset == 1 && getTimeMiliSecond() > time->hardLimit) {
+    if (time->timeset == 1 && getTimeMiliSecond() > time->hardLimit && pos->pvTable[0][0] != 0) {
         // tell engine to stop calculating
         time->stopped = 1;
     }
