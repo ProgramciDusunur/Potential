@@ -1050,10 +1050,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             const int singularBeta = tt_score - depth;
             const int singularDepth = (depth - 1) / 2;
 
-
-            // decrement ply
-            pos->ply--;
-
             // take move back
             takeBack(pos, &copyPosition);
 
@@ -1066,7 +1062,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             makeMove(moveList->moves[count], allMoves, pos);
 
-            pos->ply++;
 
             // Singular Extension
             if (singularScore < singularBeta) {
