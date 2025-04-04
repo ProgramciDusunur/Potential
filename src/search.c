@@ -685,7 +685,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         // increment nodes count
         searchNodes++;
 
-        prefetch_hash_entry(position->hashKey);
+        prefetch_hash_entry(position);
 
         // score current move
         score = -quiescence(-beta, -alpha, position, time);
@@ -873,7 +873,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // hash the side
         pos->hashKey ^= sideKey;
 
-        prefetch_hash_entry(pos->hashKey);
+        prefetch_hash_entry(pos);
 
         int R = NMP_BASE_REDUCTION + depth / NMP_REDUCTION_DEPTH_DIVISOR;
 
@@ -1100,7 +1100,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // increment nodes count
         searchNodes++;
 
-        prefetch_hash_entry(pos->hashKey);
+        prefetch_hash_entry(pos);
 
         // increment legal moves
         legal_moves++;
