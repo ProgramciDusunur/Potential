@@ -890,8 +890,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         R += myMIN((static_eval - beta) / NMP_EVAL_DIVISOR, 3);
 
-        pos->move[pos->ply] = 0;
-        pos->piece[pos->ply] = 0;
+        pos->move[myMIN(pos->ply, 255)] = 0;
+        pos->piece[myMIN(pos->ply, 255)] = 0;
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
@@ -1119,11 +1119,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // increment legal moves
         legal_moves++;
 
-        pos->ply >= maxPly ? myMIN(pos->ply, 255) : pos->ply;
-
         if (notTactical) {
-            pos->move[pos->ply] = currentMove;
-            pos->piece[pos->ply] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
+            pos->move[myMIN(pos->ply, 255)] = currentMove;
+            pos->piece[myMIN(pos->ply, 255)] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
             addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
         } else {
