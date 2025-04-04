@@ -171,7 +171,7 @@ void writeHashEntry(int16_t score, int bestMove, uint8_t depth, uint8_t hashFlag
     if (score > mateScore) score += position->ply;
 
 
-    hashEntry->hashKey = get_hash_low_bits(position->hashKey);
+    hashEntry->hashKey = position->hashKey;
     hashEntry->score = score;
     hashEntry->flag = hashFlag;
     hashEntry->depth = depth;
