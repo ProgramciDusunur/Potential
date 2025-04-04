@@ -1086,8 +1086,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
-        pos->ply >= maxPly ? myMIN(pos->ply, 255) : pos->ply;
-
 
         struct copyposition copyPosition;
         // preserve board state
@@ -1120,6 +1118,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // increment legal moves
         legal_moves++;
+
+        pos->ply >= maxPly ? myMIN(pos->ply, 255) : pos->ply;
 
         if (notTactical) {
             pos->move[pos->ply] = currentMove;
