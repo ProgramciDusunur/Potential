@@ -176,7 +176,7 @@ void writeHashEntry(int16_t score, int bestMove, uint8_t depth, uint8_t hashFlag
     hashEntry->flag = hashFlag;
     hashEntry->depth = depth;
     hashEntry->bestMove = bestMove;
-    hashEntry->ttPv = ttPv;
+    hashEntry->ttPv |= ttPv;
 }
 
 // read hash entry data
