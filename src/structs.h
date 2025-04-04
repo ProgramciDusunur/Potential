@@ -36,7 +36,6 @@ typedef struct {
     int staticEval[maxPly];
 
     int isSingularMove[maxPly];
-    int rootBestMove;
 
     uint16_t piece[maxPly];
     int move[maxPly];

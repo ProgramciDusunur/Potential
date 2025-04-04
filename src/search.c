@@ -1191,10 +1191,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     // write PV move
                     pos->pvTable[pos->ply][pos->ply] = currentMove;
 
-                    if (rootNode) {
-                        pos->rootBestMove = currentMove;
-                    }
-
                     // loop over the next ply
                     for (int next_ply = pos->ply + 1; next_ply < pos->pvLength[pos->ply + 1]; next_ply++)
                         // copy move from deeper ply into a current ply's line
@@ -1313,7 +1309,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
         int startTime = getTimeMiliSecond();
 
-        if (time->timeset && startTime >= time->softLimit) {
+        if (time->timeset && startTime >= time->softLimit && position->pvTable[0][0] != 0) {
             time->stopped = 1;
         }
 
@@ -1322,7 +1318,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
         while (true) {
 
-            if (time->timeset && startTime >= time->softLimit) {
+            if (time->timeset && startTime >= time->softLimit && position->pvTable[0][0] != 0) {
                 time->stopped = 1;
             }
 
@@ -1417,7 +1413,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     if (!benchmark) {
         // best move placeholder
         printf("bestmove ");
-        printMove(position->rootBestMove);
+        printMove(position->pvTable[0][0]);
         printf("\n");
     }
 

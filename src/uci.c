@@ -231,7 +231,7 @@ void goCommand(char *command, board* position, time* time) {
         time->timeset = 1;
 
         // Engine <--> GUI communication safety margin
-        time->time -= myMIN(time->time / 2, 100);
+        time->time -= myMIN(time->time / 2, 50);
 
         int64_t baseTime = 0;
 
