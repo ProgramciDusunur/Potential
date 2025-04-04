@@ -587,6 +587,11 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         communicate(time, position);
     }
 
+    if (position->ply > maxPly - 1) {
+        // evaluate position
+        return evaluate(position);
+    }
+
     int score = 0, bestScore = 0;
 
     int pvNode = beta - alpha > 1;
@@ -751,6 +756,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     if ((searchNodes & 2047) == 0) {
         communicate(time, pos);
+    }
+
+    if (pos->ply > maxPly - 1) {
+        // evaluate position
+        return evaluate(pos);
     }
 
 
@@ -1106,6 +1116,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         legal_moves++;
 
         if (notTactical) {
+            if (pos->ply > maxPly) {
+                printf("FUCK! \n");
+            }
             pos->move[pos->ply] = currentMove;
             pos->piece[pos->ply] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
             addMoveToHistoryList(badQuiets, currentMove);
