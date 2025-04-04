@@ -163,7 +163,7 @@ void prefetch_hash_entry(uint64_t hash_key) {
 void writeHashEntry(int16_t score, int bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[get_hash_index(position->hashKey)];
+    tt *hashEntry = &hashTable[position->hashKey % hash_entries];
 
     // store score independent from the actual path
     // from root node (position) to current node (position)
@@ -184,10 +184,10 @@ int readHashEntry(board *position, int *move, int16_t *tt_score,
                     uint8_t *tt_depth, uint8_t *tt_flag, bool *tt_pv) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[get_hash_index(position->hashKey)];
+    tt *hashEntry = &hashTable[position->hashKey % hash_entries];
 
     // make sure we're dealing with the exact position we need
-    if (hashEntry->hashKey == get_hash_low_bits(position->hashKey)) {
+    if (hashEntry->hashKey == position->hashKey) {
 
         // extract stored score from TT entry
         int16_t score = hashEntry->score;

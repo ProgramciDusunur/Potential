@@ -56,7 +56,7 @@ typedef struct {
 
 // transposition table data structure
 typedef struct {
-    uint32_t hashKey;    // "almost" unique chess position identifier
+    uint64_t hashKey;    // "almost" unique chess position identifier
     uint8_t depth;       // current search depth
     uint8_t flag;        // flag the type of node (fail-high(score >= beta)/fail-low(score < alpha))
     int16_t score;       // score (alpha/beta/PV)
