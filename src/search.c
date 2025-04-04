@@ -1117,9 +1117,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         legal_moves++;
 
         if (notTactical) {
-            if (pos->ply > maxPly) {
-                printf("FUCK! \n");
-            }
             pos->move[pos->ply] = currentMove;
             pos->piece[pos->ply] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
             addMoveToHistoryList(badQuiets, currentMove);
