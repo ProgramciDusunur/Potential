@@ -380,8 +380,8 @@ void communicate(time* time, board *pos) {
 }
 
 
-void uciProtocol(int argc, char *argv[]) {
-    board *position = (board *)malloc(sizeof(board));
+void uciProtocol(int argc, char *argv[], board *position, time *time_ctrl) {
+    //board *position = (board *)malloc(sizeof(board));
 
     position->ply = 0;
     position->nmpPly = 0;
@@ -393,7 +393,7 @@ void uciProtocol(int argc, char *argv[]) {
 
     clearStaticEvaluationHistory(position);
 
-    time *time_ctrl = (time *)malloc(sizeof(time));
+    //time *time_ctrl = (time *)malloc(sizeof(time));
 
     // init time control
     initTimeControl(time_ctrl);
