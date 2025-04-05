@@ -1062,6 +1062,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     extensions++;
                 }
 
+                // Quadruple Extension
+                if (singularScore <= singularBeta - 50 - 10 * pvNode) {
+                    extensions++;
+                }
+
             }
 
             // Negative Extensions
@@ -1081,7 +1086,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
             }
-            }
+        }
 
 
 
