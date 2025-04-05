@@ -14,7 +14,7 @@ int rootHistory[2][64][64];
 int continuationHistory[12][64][12][64];
 
 int getHistoryBonus(int depth) {
-    return 16 * depth * depth + 32 * depth + 16;
+    return myMIN(16 * depth * depth + 32 * depth + 16, 4096);
 }
 
 int scaledBonus(int score, int bonus, int gravity) {
