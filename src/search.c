@@ -44,7 +44,7 @@ int FP_MARGIN = 82;
 // Reverse Futility Pruning
 int RFP_MARGIN = 82;
 int RFP_IMPROVING_MARGIN = 65;
-int RFP_DEPTH = 6;
+int RFP_DEPTH = 7;
 
 // Razoring
 int RAZORING_DEPTH = 3;
