@@ -77,7 +77,6 @@ U64 searchNodes = 0;
 int counterMoves[2][maxPly][maxPly];
 
 
-
 // position repetition detection
 int isRepetition(board* position) {
     // loop over repetition indicies range
