@@ -1137,30 +1137,32 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         int new_depth = depth - 1 + extensions;
 
-        int lmrReduction = getLmrReduction(depth, legal_moves, notTactical);
+        int lmrReduction = getLmrReduction(depth, legal_moves, notTactical) * 1024;
 
         /* All Moves */
 
         // Reduce More
         if (cutNode) {
-            lmrReduction += 2;
+            lmrReduction += 2048;
         }
 
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
-                lmrReduction += 1;
+                lmrReduction += 1024;
             }
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
             int moveHistoryReduction = moveHistory / 4096;
-            lmrReduction -= clamp(moveHistoryReduction, -3, 3);
+            lmrReduction -= clamp(moveHistoryReduction * 1024, -3072, 3072);
         }
 
         // Reduce Less
         if (tt_pv) {
-            lmrReduction -= 1;
+            lmrReduction -= 1024;
         }
+
+        lmrReduction /= 1024;
 
 
 
