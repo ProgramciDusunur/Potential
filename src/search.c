@@ -1143,7 +1143,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // Reduce More
         if (cutNode) {
-            lmrReduction += 1;
+            lmrReduction += 2;
         }
 
         if (notTactical) {
