@@ -16,7 +16,7 @@
 
 The search function explores possible moves and evaluates their outcomes to find the best one. Core techniques include:
 
-- Negamax with Fail-Hard Framework
+- Negamax with Fail-Soft Framework
 - Principle Variation Search
 - Iterative Deepening
 - Transposition Table (TT)
@@ -30,6 +30,7 @@ The search function explores possible moves and evaluates their outcomes to find
 - Quiescence SEE Pruning
 - PVS SEE Pruning
 - Improving Heuristic
+- Singular Extensions
 - Razoring
 - Cut Node
 - Quiescence Search
