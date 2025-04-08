@@ -1158,7 +1158,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         // Reduce Less
-        if (tt_pv) {
+        if (tt_pv && tt_score > alpha) {
             lmrReduction -= 1;
         }
 
