@@ -1133,7 +1133,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             quietMoves++;
         } else {
             //captureMoves++;
-        }
+        }        
+        
 
         int new_depth = depth - 1 + extensions;
 
@@ -1159,6 +1160,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // Reduce Less
         if (tt_pv) {
+            lmrReduction -= 1;
+        }
+
+        if (in_check) {
             lmrReduction -= 1;
         }
 
