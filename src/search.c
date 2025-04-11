@@ -679,9 +679,9 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     score = bestScore = tt_hit ? tt_score : evaluation;
 
     // fail-hard beta cutoff
-    if (evaluation >= beta) {
+    if (bestScore >= beta) {
         // node (move) fails high
-        return (evaluation + beta) / 2;
+        return (bestScore + beta) / 2;
     }
 
 
