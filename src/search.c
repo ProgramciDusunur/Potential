@@ -23,18 +23,18 @@
   int SEE_DEPTH = 10;
   
   
-  /*╔═══════════════════════╗
-    ║ Null Move Pruning     ║
-    ╚═══════════════════════╝*/
+/*╔═══════════════════════╗
+  ║ Null Move Pruning     ║
+  ╚═══════════════════════╝*/
   int NMP_DEPTH = 3;
   int NMP_BASE_REDUCTION = 3;
   int NMP_REDUCTION_DEPTH_DIVISOR = 3;
   int NMP_EVAL_DIVISOR = 400;
   
   
-  /*╔═══════════════════════╗
-    ║ Late Move Reduction   ║
-    ╚═══════════════════════╝*/
+/*╔═══════════════════════╗
+  ║ Late Move Reduction   ║
+  ╚═══════════════════════╝*/
   int LMR_TABLE[2][maxPly][maxPly];
   double LMR_TABLE_BASE_NOISY = 0.38;
   double LMR_TABLE_NOISY_DIVISOR = 3.76;
@@ -53,54 +53,56 @@
   
   
   
-  /*╔═══════════════════════╗
-    ║ Late Move Pruning     ║
-    ╚═══════════════════════╝*/
+/*╔═══════════════════════╗
+  ║ Late Move Pruning     ║
+  ╚═══════════════════════╝*/
   int LMP_BASE = 4;
   int LMP_MULTIPLIER = 3;
   
   
-  /*╔════════════════════╗
-    ║ Futility Pruning   ║
-    ╚════════════════════╝*/
+/*╔════════════════════╗
+  ║ Futility Pruning   ║
+  ╚════════════════════╝*/
   int FUTILITY_PRUNING_OFFSET[] = {0, 82, 41, 20, 10, 5};
   int FP_DEPTH = 5;
   int FP_MARGIN = 82;
   
   
-  /*╔══════════════════════════════╗
-    ║ Reverse Futility Pruning     ║
-    ╚══════════════════════════════╝*/
+/*╔══════════════════════════════╗
+  ║ Reverse Futility Pruning     ║
+  ╚══════════════════════════════╝*/
   int RFP_MARGIN = 82;
   int RFP_IMPROVING_MARGIN = 65;
   int RFP_DEPTH = 6;
   
   
-  /*╔══════════╗
-    ║ Razoring ║
-    ╚══════════╝*/
+/*╔══════════╗
+  ║ Razoring ║
+  ╚══════════╝*/
   int RAZORING_DEPTH = 3;
   int RAZORING_MARGIN = 200;
   
   
-  /*╔═════════════════════╗
-    ║ Singular Extensions ║
-    ╚═════════════════════╝*/
+/*╔═════════════════════╗
+  ║ Singular Extensions ║
+  ╚═════════════════════╝*/
   int SE_DEPTH = 7;
   int SE_TT_DEPTH_SUBTRACTOR = 3;
   // Positive Extensions
   int DOUBLE_EXTENSION_MARGIN = 20;
+  int LOW_DEPTH_EXTENSION_DEPTH = 10;
   int TRIPLE_EXTENSION_MARGIN = 40;
   int QUADRUPLE_EXTENSION_MARGIN = 85;
   // Negative Extensions
   int DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
+  int HIGH_DEPTH_REDUCTION_DEPTH = 12;
   int TRIPLE_NEGATIVE_EXTENSION_MARGIN = 90;
 
   
   
-  /*╔════════════════════╗
-    ║ Correction History ║
-    ╚════════════════════╝*/
+/*╔════════════════════╗
+  ║ Correction History ║
+  ╚════════════════════╝*/
   int CORRHIST_WEIGHT_SCALE = 256;
   int CORRHIST_GRAIN = 256;
   int CORRHIST_LIMIT = 1024;
@@ -112,17 +114,18 @@
   int NON_PAWN_CORRECTION_HISTORY[2][2][16384];
   
   
-  /*╔═══════════════════════════════╗
-    ║ Internal Iterative Reductions ║
-    ╚═══════════════════════════════╝*/
+/*╔═══════════════════════════════╗
+  ║ Internal Iterative Reductions ║
+  ╚═══════════════════════════════╝*/
   int IIR_DEPTH = 8;
   int IIR_TT_DEPTH_SUBTRACTOR = 3;
 
-  /*╔══════════════════════════════╗
-    ║      Aspiration Windows      ║
-    ╚══════════════════════════════╝*/
+/*╔══════════════════════════════╗
+  ║      Aspiration Windows      ║
+  ╚══════════════════════════════╝*/
   int ASP_WINDOW_BASE = 9;
   int ASP_WINDOW_MIN_DEPTH = 4;
+  int ASP_WINDOW_FAIL_HIGH_DEPTH_SUBTRACTOR = 5;
   double ASP_WINDOW_MULTIPLIER = 1.8;
 
 
@@ -1044,21 +1047,22 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         if (!rootNode && notTactical && isNotMated) {
 
-                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth);
+            int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth);
 
-                // Late Move Pruning
-                if (legal_moves>= lmpThreshold) {
-                    continue;
-                }
+            // Late Move Pruning
+            if (legal_moves>= lmpThreshold) {
+                continue;
+            }
 
-                // Futility Pruning
-                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth <= alpha) {
-                    continue;
-                }
-                // Quiet History Pruning
-                if (depth <= 4 && !in_check && moveHistory < depth * -2048) {
-                    break;
-                }
+            // Futility Pruning
+            if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth <= alpha) {
+                continue;
+            }
+
+            // Quiet History Pruning
+            if (depth <= 4 && !in_check && moveHistory < depth * -2048) {
+                break;
+            }
 
         }
 
@@ -1107,24 +1111,24 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     extensions++;
 
                     // Low Depth Extension
-                    depth += depth < 10;
+                    depth += depth < LOW_DEPTH_EXTENSION_DEPTH;
                 }
 
                 // Triple Extension
                 if (!getMoveCapture(currentMove) && singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
                     extensions++;
                 }
-            // ╔═══════════════════════════╗
-            // ║            /\             ║
-            // ║           /  \            ║
-            // ║         <SCALER>          ║
-            // ║           \  /            ║
-            // ║            \/             ║
-            // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
-            // ║    Scaling STC / LTC      ║
-            // ║   STC:  0.93  +-  1.94    ║
-            // ║   LTC: 14.05  +-  7.19    ║
-            // ╚═══════════════════════════╝
+                // ╔═══════════════════════════╗
+                // ║            /\             ║
+                // ║           /  \            ║
+                // ║         <SCALER>          ║
+                // ║           \  /            ║
+                // ║            \/             ║
+                // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
+                // ║    Scaling STC / LTC      ║
+                // ║   STC:  0.93  +-  1.94    ║
+                // ║   LTC: 14.05  +-  7.19    ║
+                // ╚═══════════════════════════╝
 
                 // ~~~~ Quadruple Extension ~~~~ //
                 if (singularScore <= singularBeta - QUADRUPLE_EXTENSION_MARGIN) {
@@ -1141,15 +1145,16 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // Negative Extensions
             else if (tt_score >= beta) {
                 extensions -= 1 + !pvNode;
-                // Double Negative Extension
+
+                // ~~~~ Double Negative Extension ~~~~ //
                 if (!pvNode && tt_score >= beta + DOUBLE_NEGATIVE_EXTENSION_MARGIN) {
                     extensions -= 1;
 
-                    // High Depth Reduction
-                    depth -= depth > 12;
+                    // ~~~~ High Depth Reduction ~~~~ //
+                    depth -= depth > HIGH_DEPTH_REDUCTION_DEPTH;
                 }
 
-                // Triple Negative Extension
+                // ~~~~ Triple Negative Extension ~~~~ //
                 if (notTactical && tt_score - TRIPLE_NEGATIVE_EXTENSION_MARGIN >= beta) {
                     extensions -= 1;
                 }
@@ -1441,12 +1446,12 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
             else if (score >= beta) {
                 beta = myMIN(infinity, beta + window);
-                aspirationWindowDepth = myMAX(aspirationWindowDepth - 1, current_depth - 5);
+                aspirationWindowDepth = myMAX(aspirationWindowDepth - 1, current_depth - ASP_WINDOW_FAIL_HIGH_DEPTH_SUBTRACTOR);
 
             } else {
                 break;
             }
-            window *= 1.8f;
+            window *= ASP_WINDOW_MULTIPLIER;
 
         }
 
