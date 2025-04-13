@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 
 #ifndef U64
 #define U64 unsigned long long
@@ -53,6 +55,7 @@ extern int minorPieces[6];
 extern int whiteNonPawnPieces[5];
 extern int blackNonPawnPieces[5];
 extern int mvvLva[12][12];
+extern int8_t enPassantSquares[];
 extern const U64 notHFile;
 extern const U64 notAFile;
 extern const U64 not8Rank;

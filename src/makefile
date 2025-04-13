@@ -20,24 +20,31 @@ endif
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
-	MKDIR   := mkdir
+    # Force CC to gcc on Windows_NT systems using direct assignment
+    CC      = gcc
+    MKDIR   := mkdir
 else
 ifeq ($(COMP), MINGW)
-	MKDIR   := mkdir
+    # Also force CC to gcc if MINGW detected using direct assignment
+    CC      = gcc
+    MKDIR   := mkdir
 else
-	MKDIR   := mkdir -p
+    # For other systems, use conditional assignment (allow override)
+    CC      ?= cc
+    MKDIR   := mkdir -p
 endif
 endif
 
-# Detect Windows
+# Detect Windows (Second Block - Retained as per original structure)
 ifeq ($(OS), Windows_NT)
-	uname_S  := Windows
-	SUFFIX   := .exe
-	CFLAGS  += -static
+    uname_S  := Windows
+    SUFFIX   := .exe
+    CFLAGS  += -static
+    FLAGS    ?= # Ensure FLAGS is defined for Windows, even if empty
 else
-	FLAGS    = -pthread -lm
-	SUFFIX  :=
-	uname_S := $(shell uname -s)
+    FLAGS    = -pthread -lm # Define FLAGS for non-Windows
+    SUFFIX  :=
+    uname_S := $(shell uname -s)
 endif
 
 # Different native flag for macOS
@@ -159,11 +166,6 @@ ifneq ($(findstring gcc, $(CC)),)
 	PGOUSE   = -fprofile-use
 endif
 
-ifneq ($(findstring clang, $(CC)),)
-	PGOMERGE = llvm-profdata merge -output=quanticade.profdata *.profraw
-	PGOGEN   = -fprofile-instr-generate
-	PGOUSE   = -fprofile-instr-use=quanticade.profdata
-endif
 
 SOURCES := $(wildcard *.c)
 OBJECTS := $(patsubst %.c,$(TMPDIR)/%.o,$(SOURCES))
