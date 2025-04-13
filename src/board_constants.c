@@ -12,6 +12,10 @@ U64 enpassantKeys[64];
 // random castling keys
 U64 castleKeys[16];
 
+int8_t enPassantSquares[] = {
+        8, -8
+};
+
 
 char *squareToCoordinates[] = {
         "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",

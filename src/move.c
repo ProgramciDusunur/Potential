@@ -276,6 +276,7 @@ int makeMove(int move, int moveFlag, board* position) {
             position->hashKey ^= pieceKeys[P][targetSquare - 8];
             position->pawnKey ^= pieceKeys[P][targetSquare - 8];
         }
+
     }
 
 
@@ -325,24 +326,13 @@ int makeMove(int move, int moveFlag, board* position) {
     position->enpassant = no_sq;
 
     // handle double pawn push
-    if (doublePush) {
-        // white to move
-        if (position->side == white) {
-            // set enpassant square
-            position->enpassant = targetSquare + 8;
+    if (doublePush) {        
+        // set enpassant square
+        position->enpassant = targetSquare + enPassantSquares[position->side];
 
-            // hash enpassant
-            position->hashKey ^= enpassantKeys[targetSquare + 8];
-        }
+        // hash enpassant
+        position->hashKey ^= enpassantKeys[targetSquare + enPassantSquares[position->side]];
 
-            // black to move
-        else {
-            // set enpassant square
-            position->enpassant = targetSquare - 8;
-
-            // hash enpassant
-            position->hashKey ^= enpassantKeys[targetSquare - 8];
-        }
     }
 
     // handle castling moves
@@ -454,41 +444,118 @@ int makeMove(int move, int moveFlag, board* position) {
         return 0;
     }
 
-    /*if (position->pawnKey != generatePawnKey(position)) {
-        printf("Wrong Pawn Key: %s%s%c \n", squareToCoordinates[sourceSquare],
-               squareToCoordinates[targetSquare],
-               promotedPieces[promotedPiece]);
-    }
-
-    if (position->minorKey != generateMinorKey(position)) {
-        printf("Wrong Minor Key: %s%s%c \n", squareToCoordinates[sourceSquare],
-               squareToCoordinates[targetSquare],
-               promotedPieces[promotedPiece]);
-    }*/
-
-    /*if (position->whiteNonPawnKey != generate_white_np_hash_key(position)) {
-
-        printf("Wrong White Non Pawn Key: %s%s%c \n", squareToCoordinates[sourceSquare],
-               squareToCoordinates[targetSquare],
-               promotedPieces[promotedPiece]);
-
-        pBoard(position);
-    }
-
-    if (position->blackNonPawnKey != generate_black_np_hash_key(position)) {
-
-        printf("Wrong Black Non Pawn Key: %s%s%c \n", squareToCoordinates[sourceSquare],
-               squareToCoordinates[targetSquare],
-               promotedPieces[promotedPiece]);
-
-        pBoard(position);
-    }*/
-
-
-
-
     return 1;
 }
+
+
+
+// pawn promotions
+/*void generate_quiet_white_pawn_promotion(int source_square, int target_square, moves *moveList) {
+    addMove(moveList, encodeMove(source_square, target_square, piece, Q, 0, 0, 0, 0));
+    addMove(moveList, encodeMove(source_square, target_square, piece, R, 0, 0, 0, 0));
+    addMove(moveList, encodeMove(source_square, target_square, piece, B, 0, 0, 0, 0));
+    addMove(moveList, encodeMove(source_square, target_square, piece, N, 0, 0, 0, 0));
+}
+
+void generate_quiet_black_pawn_promotion(int source_square, int target_square, moves *moveList) {
+
+}
+
+// pawn push
+void generate_one_pawn_push(int source_square, int target_square, moves *moveList) {
+    addMove(moveList, encodeMove(source_square, target_square, piece, 0, 0, 0, 0, 0));
+}
+
+void generate_white_double_pawn_push(int source_square, int target_square, moves *moveList) {
+
+}
+
+void generate_black_double_pawn_push(int source_square, int target_square, moves *moveList) {
+
+}*/
+
+// castling
+void generate_white_king_side_castling(board *position, moves *moveList) {
+    // king side castling is available
+    if (position->castle & wk) {
+        // make sure square between king and king's rook are empty
+        if (!(getBit(position->occupancies[both], f1)) && !(getBit(position->occupancies[both], g1))) {
+            // make sure king and the f1 squares are not under attacks
+            if (!isSquareAttacked(e1, black, position) && !isSquareAttacked(f1, black, position))
+                addMove(moveList, encodeMove(e1, g1, K, 0, 0, 0, 0, 1));
+        }
+    }
+}
+
+void generate_white_queen_side_castling(board *position, moves *moveList) {
+    // queen side castling is available
+    if (position->castle & wq) {
+        // make sure square between king and queen's rook are empty
+        if (!(getBit(position->occupancies[both], d1)) && !(getBit(position->occupancies[both], c1)) &&
+            !(getBit(position->occupancies[both], b1))) {
+            // make sure king and the d1 squares are not under attacks
+            if (!isSquareAttacked(e1, black, position) && !isSquareAttacked(d1, black, position))
+                addMove(moveList, encodeMove(e1, c1, K, 0, 0, 0, 0, 1));
+        }
+    }
+}
+
+void generate_black_king_side_castling(board *position, moves *moveList) {
+    // king side castling is available
+    if (position->castle & bk) {
+        // make sure square between king and king's rook are empty
+        if (!(getBit(position->occupancies[both], f8)) && !(getBit(position->occupancies[both], g8))) {
+            // make sure king and the f8 squares are not under attacks
+            if (!isSquareAttacked(e8, white, position) && !isSquareAttacked(f8, white, position))
+                addMove(moveList, encodeMove(e8, g8, k, 0, 0, 0, 0, 1));
+        }
+    }
+}
+
+void generate_black_queen_side_castling(board *position, moves *moveList) {
+    // queen side castling is available
+    if (position->castle & bq) {
+        // make sure square between king and queen's rook are empty
+        if (!(getBit(position->occupancies[both], d8)) && !(getBit(position->occupancies[both], c8)) &&
+            !(getBit(position->occupancies[both], b8))) {
+            // make sure king and the d8 squares are not under attacks
+            if (!isSquareAttacked(e8, white, position) && !isSquareAttacked(d8, white, position))
+                addMove(moveList, encodeMove(e8, c8, k, 0, 0, 0, 0, 1));
+        }
+    }
+}
+
+// enpassant
+void generate_white_enpassant(board *position, int source_square, moves *moveList) {
+    if (position->enpassant != no_sq) {
+        // lookup pawn attacks and bitwise AND with enpassant square (bit)
+        U64 enpassant_attacks = pawnAttacks[position->side][source_square] & (1ULL << position->enpassant);
+
+        // make sure enpassant capture available
+        if (enpassant_attacks) {
+            // init enpassant capture target square
+            int target_enpassant = getLS1BIndex(enpassant_attacks);
+            addMove(moveList, encodeMove(source_square, target_enpassant, P, 0, 1, 0, 1, 0));
+        }
+    }
+}
+
+void generate_black_enpassant(board *position, int source_square, moves *moveList) {
+    if (position->enpassant != no_sq) {
+        // lookup pawn attacks and bitwise AND with enpassant square (bit)
+        U64 enpassant_attacks = pawnAttacks[position->side][source_square] & (1ULL << position->enpassant);
+
+        // make sure enpassant capture available
+        if (enpassant_attacks) {
+            // init enpassant capture target square
+            int target_enpassant = getLS1BIndex(enpassant_attacks);
+            addMove(moveList, encodeMove(source_square, target_enpassant, p, 0, 1, 0, 1, 0));
+        }
+    }
+}
+
+
+
 
 // generate all captures and promotions
 void noisyGenerator(moves *moveList, board* position) {
@@ -531,16 +598,7 @@ void noisyGenerator(moves *moveList, board* position) {
                         popBit(attacks, target_square);
                     }
                     // generate enpassant captures
-                    if (position->enpassant != no_sq) {
-                        // lookup pawn attacks and bitwise AND with enpassant square (bit)
-                        U64 enpassant_attacks = pawnAttacks[position->side][source_square] & (1ULL << position->enpassant);
-                        // make sure enpassant capture available
-                        if (enpassant_attacks) {
-                            // init enpassant capture target square
-                            int target_enpassant = getLS1BIndex(enpassant_attacks);
-                            addMove(moveList, encodeMove(source_square, target_enpassant, piece, 0, 1, 0, 1, 0));
-                        }
-                    }
+                    generate_white_enpassant(position, source_square, moveList);
                     // pop ls1b from piece bitboard copy
                     popBit(bitboard, source_square);
                 }
@@ -574,17 +632,7 @@ void noisyGenerator(moves *moveList, board* position) {
                         // pop ls1b of the pawn attacks
                         popBit(attacks, target_square);
                     }
-                    // generate enpassant captures
-                    if (position->enpassant != no_sq) {
-                        // lookup pawn attacks and bitwise AND with enpassant square (bit)
-                        U64 enpassant_attacks = pawnAttacks[position->side][source_square] & (1ULL << position->enpassant);
-                        // make sure enpassant capture available
-                        if (enpassant_attacks) {
-                            // init enpassant capture target square
-                            int target_enpassant = getLS1BIndex(enpassant_attacks);
-                            addMove(moveList, encodeMove(source_square, target_enpassant, piece, 0, 1, 0, 1, 0));
-                        }
-                    }
+                    generate_black_enpassant(position, source_square, moveList);
                     // pop ls1b from piece bitboard copy
                     popBit(bitboard, source_square);
                 }
@@ -708,7 +756,6 @@ void noisyGenerator(moves *moveList, board* position) {
 
 
 
-
 // generate all moves
 void moveGenerator(moves *moveList, board* position) {
     // init move count
@@ -780,17 +827,7 @@ void moveGenerator(moves *moveList, board* position) {
                     }
 
                     // generate enpassant captures
-                    if (position->enpassant != no_sq) {
-                        // lookup pawn attacks and bitwise AND with enpassant square (bit)
-                        U64 enpassant_attacks = pawnAttacks[position->side][source_square] & (1ULL << position->enpassant);
-
-                        // make sure enpassant capture available
-                        if (enpassant_attacks) {
-                            // init enpassant capture target square
-                            int target_enpassant = getLS1BIndex(enpassant_attacks);
-                            addMove(moveList, encodeMove(source_square, target_enpassant, piece, 0, 1, 0, 1, 0));
-                        }
-                    }
+                    generate_white_enpassant(position, source_square, moveList);
 
                     // pop ls1b from piece bitboard copy
                     popBit(bitboard, source_square);
@@ -799,26 +836,8 @@ void moveGenerator(moves *moveList, board* position) {
 
             // castling moves
             if (piece == K) {
-                // king side castling is available
-                if (position->castle & wk) {
-                    // make sure square between king and king's rook are empty
-                    if (!(getBit(position->occupancies[both], f1)) && !(getBit(position->occupancies[both], g1))) {
-                        // make sure king and the f1 squares are not under attacks
-                        if (!isSquareAttacked(e1, black, position) && !isSquareAttacked(f1, black, position))
-                            addMove(moveList, encodeMove(e1, g1, piece, 0, 0, 0, 0, 1));
-                    }
-                }
-
-                // queen side castling is available
-                if (position->castle & wq) {
-                    // make sure square between king and queen's rook are empty
-                    if (!(getBit(position->occupancies[both], d1)) && !(getBit(position->occupancies[both], c1)) &&
-                        !(getBit(position->occupancies[both], b1))) {
-                        // make sure king and the d1 squares are not under attacks
-                        if (!isSquareAttacked(e1, black, position) && !isSquareAttacked(d1, black, position))
-                            addMove(moveList, encodeMove(e1, c1, piece, 0, 0, 0, 0, 1));
-                    }
-                }
+                generate_white_king_side_castling(position, moveList);
+                generate_white_queen_side_castling(position, moveList);
             }
         }
 
@@ -876,17 +895,7 @@ void moveGenerator(moves *moveList, board* position) {
                     }
 
                     // generate enpassant captures
-                    if (position->enpassant != no_sq) {
-                        // lookup pawn attacks and bitwise AND with enpassant square (bit)
-                        U64 enpassant_attacks = pawnAttacks[position->side][source_square] & (1ULL << position->enpassant);
-
-                        // make sure enpassant capture available
-                        if (enpassant_attacks) {
-                            // init enpassant capture target square
-                            int target_enpassant = getLS1BIndex(enpassant_attacks);
-                            addMove(moveList, encodeMove(source_square, target_enpassant, piece, 0, 1, 0, 1, 0));
-                        }
-                    }
+                    generate_black_enpassant(position, source_square, moveList);
 
                     // pop ls1b from piece bitboard copy
                     popBit(bitboard, source_square);
@@ -895,26 +904,8 @@ void moveGenerator(moves *moveList, board* position) {
 
             // castling moves
             if (piece == k) {
-                // king side castling is available
-                if (position->castle & bk) {
-                    // make sure square between king and king's rook are empty
-                    if (!(getBit(position->occupancies[both], f8)) && !(getBit(position->occupancies[both], g8))) {
-                        // make sure king and the f8 squares are not under attacks
-                        if (!isSquareAttacked(e8, white, position) && !isSquareAttacked(f8, white, position))
-                            addMove(moveList, encodeMove(e8, g8, piece, 0, 0, 0, 0, 1));
-                    }
-                }
-
-                // queen side castling is available
-                if (position->castle & bq) {
-                    // make sure square between king and queen's rook are empty
-                    if (!(getBit(position->occupancies[both], d8)) && !(getBit(position->occupancies[both], c8)) &&
-                        !(getBit(position->occupancies[both], b8))) {
-                        // make sure king and the d8 squares are not under attacks
-                        if (!isSquareAttacked(e8, white, position) && !isSquareAttacked(d8, white, position))
-                            addMove(moveList, encodeMove(e8, c8, piece, 0, 0, 0, 0, 1));
-                    }
-                }
+                generate_black_king_side_castling(position, moveList);
+                generate_black_queen_side_castling(position, moveList);
             }
         }
 
