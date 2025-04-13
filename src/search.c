@@ -1039,6 +1039,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical));
+        
+        // Prune More
+        if (tt_pv) {
+            lmrDepth -= 1;
+        }
 
         bool isNotMated = bestScore > -mateScore;
 
