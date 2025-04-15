@@ -63,7 +63,7 @@
   /*╔════════════════════╗
     ║ Futility Pruning   ║
     ╚════════════════════╝*/
-  int FUTILITY_PRUNING_OFFSET[] = {0, 82, 71, 62, 54, 47, 41, 36, 32, 28, 25};
+  int FUTILITY_PRUNING_OFFSET[] = {0, 82, 65, 52, 42, 34, 27, 22, 18, 14, 11};
   int FP_DEPTH = 10;
   int FP_MARGIN = 82;
   
