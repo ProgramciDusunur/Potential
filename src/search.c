@@ -1132,7 +1132,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
             }
-
+   
             // Multicut
             else if (singularBeta >= beta) {
                 return singularBeta;
@@ -1154,6 +1154,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     extensions -= 1;
                 }
 
+            }
+
+            // Corrplexity Extension
+            else if (abs(static_eval - raw_eval) < 10) {
+                extensions -= 1;
             }
         }
 
