@@ -1114,20 +1114,25 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (!getMoveCapture(currentMove) && singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
                     extensions++;
                 }
-            // ╔═══════════════════════════╗
-            // ║            /\             ║
-            // ║           /  \            ║
-            // ║         <SCALER>          ║
-            // ║           \  /            ║
-            // ║            \/             ║
-            // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
-            // ║    Scaling STC / LTC      ║
-            // ║   STC:  0.93  +-  1.94    ║
-            // ║   LTC: 14.05  +-  7.19    ║
-            // ╚═══════════════════════════╝
+                // ╔═══════════════════════════╗
+                // ║            /\             ║
+                // ║           /  \            ║
+                // ║         <SCALER>          ║
+                // ║           \  /            ║
+                // ║            \/             ║
+                // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
+                // ║    Scaling STC / LTC      ║
+                // ║   STC:  0.93  +-  1.94    ║
+                // ║   LTC: 14.05  +-  7.19    ║
+                // ╚═══════════════════════════╝
 
                 // ~~~~ Quadruple Extension ~~~~ //
                 if (singularScore <= singularBeta - QUADRUPLE_EXTENSION_MARGIN) {
+                    extensions++;
+                }
+
+                // Quintuple Extension
+                if (singularScore <= singularBeta - 135) {
                     extensions++;
                 }
 
