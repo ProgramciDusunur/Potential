@@ -883,12 +883,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
-        depth -= cutNode ? (depth * depth + depth * depth) / 20 : 1;
-
-        // we are too aggressive so dive in quiescence search
-        if (depth <= 0) {            
-            return quiescence(alpha, beta, pos, time);
-        }
+        depth -= cutNode ? (depth * 2) / IIR_DEPTH : 1;        
     }
 
 
