@@ -1132,7 +1132,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Quintuple Extension
-                if (singularScore <= singularBeta - 135) {
+                if (singularScore <= singularBeta - 170) {
                     extensions++;
                 }
 
