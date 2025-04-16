@@ -1251,7 +1251,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // After the found pv node, we found a new pv node, although we didn't think the sub-moves were good. 
             // We'd better take a look again.
             if (pvNode) {
-                score = -negamax(-beta, -alpha, new_depth, pos, time, false);
+                score = -negamax(-beta, -alpha, new_depth - reduced_depth, pos, time, false);
             } 
         }
         // Full-Depth Alpha Beta Search
