@@ -1233,6 +1233,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
 
+        // LMR (Late Move Reductions)
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
@@ -1246,8 +1247,14 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
         else if (!pvNode || legal_moves > 1) {
             score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
-        }
 
+            // After the found pv node, we found a new pv node, although we didn't think the sub-moves were good. 
+            // We'd better take a look again.
+            if (pvNode) {
+                score = -negamax(-beta, -alpha, new_depth, pos, time, false);
+            } 
+        }
+        // Full-Depth Alpha Beta Search
         if (pvNode && (legal_moves == 1 || score > alpha)) {
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, new_depth, pos, time, false);
