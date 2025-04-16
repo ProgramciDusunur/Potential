@@ -1141,6 +1141,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // Negative Extensions
             else if (tt_score >= beta) {
                 extensions -= 1 + !pvNode;
+                cutNode = tt_score >= beta + DOUBLE_NEGATIVE_EXTENSION_MARGIN / 3;
                 // Double Negative Extension
                 if (!pvNode && tt_score >= beta + DOUBLE_NEGATIVE_EXTENSION_MARGIN) {
                     extensions -= 1;
@@ -1154,6 +1155,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     extensions -= 1;
                 }
 
+            }
+            
+            // Cut Node Extension
+            else if (cutNode) {
+                extensions -= myMIN(depth / (SE_DEPTH * 2), 3);
             }
         }
 
