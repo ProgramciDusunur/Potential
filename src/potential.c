@@ -3,6 +3,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 
 
 #include "uci.h"
@@ -45,6 +49,7 @@ void perftChild(int depth, board* position);
 
 void initRandomKeys();*/
 
+
 void initAll() {
     initLeaperAttacks();
     initMagicNumbers();
@@ -62,16 +67,24 @@ void initAll() {
     init_hash_table(64);
 }
 
+int test_function(int a, int b) {
+    return a + b;
+}
 
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
 int main(int argc, char* argv[]) {
     initAll();
-    int debug = 0;
+    int debug = 1;
     if (debug) {
         board position;
-        parseFEN(startPosition, &position);
+        time_struct time_control;
+        parseFEN("1rbq1rk1/6pp/2p2b2/2n2p2/2p2P2/R3P2B/1P4QP/1NB2KNR b - - 1 19", &position);
 
-        perftRoot(6, &position);
-        printf("Nodes: %llu", perftNodes);
+        //perftRoot(6, &position);
+        goCommand("go movetime 10000 depth 40", &position, &time_control);
+        //printf("Nodes: %llu\n", perftNodes);
     } else {
         uciProtocol(argc, argv);
     }

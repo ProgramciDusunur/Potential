@@ -103,7 +103,7 @@ typedef struct {
 
     // variable to flag when the time is up
     int stopped;
-} time;
+} time_struct;
 
 
 

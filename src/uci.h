@@ -24,11 +24,11 @@
 void uciProtocol(int argc, char *argv[]);
 int parse_move(char *move_string, board* position);
 void parse_position(char *command, board* position);
-void goCommand(char *command, board* position, time* time);
+void goCommand(char *command, board* position, time_struct* time);
 void printMoveList(moves *moveList);
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
-void read_input(time* time);
-void communicate(time* time);
+void read_input(time_struct* time);
+void communicate(time_struct* time);
 
 
 

@@ -287,7 +287,7 @@ uint8_t justPawns(board *pos) {
 }
 
 // quiescence search
-int quiescence(int alpha, int beta, board* position, time* time) {
+int quiescence(int alpha, int beta, board* position, time_struct* time) {
     if ((searchNodes & 2047) == 0) {
         communicate(time);
     }
@@ -437,7 +437,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, board* position, time* time, bool cutNode) {
+int negamax(int alpha, int beta, int depth, board* position, time_struct* time, bool cutNode) {
     // init PV length
     position->pvLength[position->ply] = position->ply;
 
@@ -837,7 +837,7 @@ int negamax(int alpha, int beta, int depth, board* position, time* time, bool cu
 
 
 // search position for the best move
-void searchPosition(int depth, board* position, bool benchmark, time* time) {
+void searchPosition(int depth, board* position, bool benchmark, time_struct* time) {
     // define best score variable
     int score = 0;
 

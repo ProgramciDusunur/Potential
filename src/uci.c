@@ -138,7 +138,7 @@ void parse_position(char *command, board* position) {
 
 
 
-void goCommand(char *command, board* position, time* time) {
+void goCommand(char *command, board* position, time_struct* time) {
 
     // reset time control
     resetTimeControl(time);
@@ -293,7 +293,7 @@ int areSubStringsEqual(char *command, char *uciCommand, int stringSize) {
 
 
 // read GUI/user input
-void read_input(time* time) {
+void read_input(time_struct* time) {
     // bytes to read holder
     int bytes;
 
@@ -337,23 +337,23 @@ void read_input(time* time) {
     }
 }
 
-void communicate(time* time) {
+void communicate(time_struct* time) {
     // if time is up break here
     if (time->timeset == 1 && getTimeMiliSecond() > time->hardLimit) {
         // tell engine to stop calculating
-        time->stopped = 1;
+        //time->stopped = 1;
     }
-    read_input(time);
+    //read_input(time);
 }
 
 
 void uciProtocol(int argc, char *argv[]) {
     board position;
 
-    time time;
+    time_struct time_control;
 
     // init time control
-    initTimeControl(&time);
+    initTimeControl(&time_control);
 
     // max hash MB
     int max_hash = 32768;
@@ -373,7 +373,7 @@ void uciProtocol(int argc, char *argv[]) {
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..\n");
-        benchmark(12, &position, &time);
+        benchmark(12, &position, &time_control);
         return;
     }
 
@@ -442,7 +442,7 @@ void uciProtocol(int argc, char *argv[]) {
             // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0) {
             // call parse go function
-            goCommand(input, &position, &time);
+            goCommand(input, &position, &time_control);
 
             // clear hash table
             clearHashTable();
@@ -488,7 +488,7 @@ void uciProtocol(int argc, char *argv[]) {
             printf("uciok\n");
         }
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(12, &position, &time);
+            benchmark(12, &position, &time_control);
         }
     }
 }

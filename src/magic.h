@@ -10,6 +10,7 @@
 #include "bit_manipulation.h"
 #include "mask.h"
 #include <string.h>
+#include <stdlib.h>
 
 extern const int bishopRelevantBits[64];
 extern const int rookRelevantBits[64];

@@ -80,14 +80,32 @@ U64 generateMagicNumber() {
 }
 
 U64 findMagicNumber(int square, int relevantBits, int bishop) {
+    size_t num_elements = 4096;
+    size_t array_bytes = num_elements * sizeof(U64);
+
     // init occupancies
-    U64 magicOccupancies[4096];
+    U64* magicOccupancies = malloc(array_bytes);
+    if (magicOccupancies == NULL) {
+        printf("Memory allocation failed for magicOccupancies!\n");
+        return 0ULL;
+    }
 
     // init attack tables
-    U64 attacks[4096];
+    U64* attacks = malloc(array_bytes);
+    if (attacks == NULL) {
+        printf("Memory allocation failed for attacks!\n");
+        free(magicOccupancies);
+        return 0ULL;
+    }
 
     // init used attacks
-    U64 usedAttacks[4096];
+    U64* usedAttacks = malloc(array_bytes);
+     if (usedAttacks == NULL) {
+        printf("Memory allocation failed for usedAttacks!\n");
+        free(magicOccupancies);
+        free(attacks);
+        return 0ULL;
+    }
 
     // init attack mask for a current piece
     U64 attackMask = bishop ? maskBishopAttacks(square) : maskRookAttacks(square);
@@ -102,8 +120,9 @@ U64 findMagicNumber(int square, int relevantBits, int bishop) {
 
         // init attacks
         attacks[index] = bishop ? bishopAttack(square, magicOccupancies[index]) :
-                         rookAttack(square, magicOccupancies[index]);
+                                 rookAttack(square, magicOccupancies[index]);
     }
+
     // test magic numbers loop
     for (int randomCount = 0; randomCount < 100000000; randomCount++) {
 
@@ -114,7 +133,7 @@ U64 findMagicNumber(int square, int relevantBits, int bishop) {
         if (countBits((attackMask * magicNumber) & 0xFF00000000000000) < 6) continue;
 
         // init used attacks
-        memset(usedAttacks, 0ULL, sizeof(usedAttacks));
+        memset(usedAttacks, 0, array_bytes);
 
         // init index & fail flag
         int index, fail;
@@ -134,12 +153,16 @@ U64 findMagicNumber(int square, int relevantBits, int bishop) {
             }
         }
         // if magic number works
-        if (!fail) {
+        if (!fail) {            
             return magicNumber;
         }
     }
+
     // if magic number doesn't work
-    printf("  Magic number fails!\n");
+    printf("   Magic number fails!\n");
+    free(magicOccupancies);
+    free(attacks);
+    free(usedAttacks);
     return 0ULL;
 }
 
