@@ -417,6 +417,8 @@ void uciProtocol(int argc, char *argv[], board *position, time *time_ctrl) {
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..\n");
         benchmark(15, position, time_ctrl);
+        printf("\n");
+        fflush(NULL);
         return;
     }
 
