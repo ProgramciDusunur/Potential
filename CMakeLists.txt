@@ -33,3 +33,5 @@ add_executable(Potential
         src/utils.c src/utils.h
         src/see.c
         src/see.h)
+
+target_link_libraries(Potential m)
