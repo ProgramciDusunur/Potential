@@ -897,6 +897,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         ttAdjustedEval = tt_score;
     }
 
+    improving |= pos->staticEval[pos->ply] >= beta + 100;
+
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
     // Reverse Futility Pruning
@@ -978,9 +980,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 return score;
             }
         }
-
-
-    }
+    }    
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
