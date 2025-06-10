@@ -899,7 +899,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     improving |= pos->staticEval[pos->ply] >= beta + 100;
 
-    uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
+    uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1): RFP_MARGIN * depth;
+
+    // add a offset to the RFP margin
+    rfpMargin = rfpMargin + 20;
 
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] &&
