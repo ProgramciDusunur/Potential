@@ -978,9 +978,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 return score;
             }
         }
-
-
     }
+
+    improving |= ss->staticEval >= beta + 100;
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
