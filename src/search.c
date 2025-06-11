@@ -860,7 +860,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // run quiescence search
         return quiescence(alpha, beta, pos, time);
 
-
     // is king in check
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
                                     getLS1BIndex(pos->bitboards[k]),
