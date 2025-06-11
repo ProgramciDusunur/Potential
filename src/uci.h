@@ -28,7 +28,7 @@ void parse_position(char *command, board* position);
 void goCommand(char *command, board* position, time* time);
 void printMoveList(moves *moveList);
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
-void read_input(time* time);
+void read_input(time* time, board* pos);
 void communicate(time* time, board *pos);
 
 

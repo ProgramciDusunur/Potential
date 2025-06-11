@@ -63,6 +63,7 @@ char* benchmarkfens[52] = {
 
 void benchmark(int depth, board* position, time* time) {
     U64 totalNodes = 0;
+    position->benchmark = true;
 
     int benchStartTime = getTimeMiliSecond();
     for (int i = 0;i < 52;i++) {

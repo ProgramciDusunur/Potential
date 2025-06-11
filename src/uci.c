@@ -326,7 +326,7 @@ int areSubStringsEqual(char *command, char *uciCommand, int stringSize) {
 
 
 // read GUI/user input
-void read_input(time* time) {
+void read_input(time* time, board* pos) {
     // bytes to read holder
     int bytes;
 
@@ -334,14 +334,14 @@ void read_input(time* time) {
     char input[256] = "", *endc;
 
     // "listen" to STDIN
-    if (input_waiting()) {
+    if (input_waiting() && !pos->benchmark) {
         // tell engine to stop calculating
         time->stopped = 1;
 
         // loop to read bytes from STDIN
         do {
             // read bytes from STDIN
-            bytes = read(fileno(stdin), input, 256);
+            bytes = read(fileno(stdin), input, 256);                            
         }
 
             // until bytes available
@@ -376,7 +376,7 @@ void communicate(time* time, board *pos) {
         // tell engine to stop calculating
         time->stopped = 1;
     }
-    read_input(time);
+    read_input(time, pos);
 }
 
 

@@ -40,6 +40,8 @@ typedef struct {
     uint16_t piece[maxPly];
     int move[maxPly];
 
+    bool benchmark;
+
     int followPv;
     int scorePv;
 
