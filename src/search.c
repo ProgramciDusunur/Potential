@@ -884,7 +884,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
      // Cache static evaluation
     if (!tt_hit && !pos->isSingularMove[pos->ply] && !in_check) {        
-        writeHashEntry(0, 0, depth, hashFlagNone, tt_pv, raw_eval, pos);
+        writeHashEntry(noScore, 0, depth, hashFlagNone, tt_pv, raw_eval, pos);
     }
 
     // Internal Iterative Reductions
