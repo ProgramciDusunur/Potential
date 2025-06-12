@@ -675,7 +675,9 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // evaluate position
     int evaluation = evaluate(position);
 
-    evaluation = adjustEvalWithCorrectionHistory(position, evaluation);
+    bool isTTCapture = getMoveCapture(tt_move);
+
+    evaluation = isTTCapture ? evaluation : adjustEvalWithCorrectionHistory(position, evaluation);    
 
     score = bestScore = tt_hit ? tt_score : evaluation;
 
@@ -869,7 +871,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // get static evaluation score
     int raw_eval = evaluate(pos);
 
-    int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
+    bool isTTCapture = getMoveCapture(tt_move);
+
+    int static_eval = isTTCapture ? raw_eval : adjustEvalWithCorrectionHistory(pos, raw_eval);
 
     bool improving = false;
 
