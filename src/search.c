@@ -42,7 +42,8 @@
   double LMR_TABLE_QUIET_DIVISOR = 2.32;
   int LMR_FULL_DEPTH_MOVES = 2;
   int LMR_REDUCTION_LIMIT = 3;
-  int DEEPER_LMR_MARGIN = 35;  
+  int DEEPER_LMR_MARGIN = 35;
+  int DEEPER_PVS_MARGIN = 50;  
   int QUIET_HISTORY_LMR_DIVISOR = 4096;
   int QUIET_HISTORY_LMR_MINIMUM_SCALER = 3072;
   int QUIET_HISTORY_LMR_MAXIMUM_SCALER = 3072;
@@ -1251,6 +1252,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
         else if (!pvNode || legal_moves > 1) {
             score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+
+            if (pvNode) {
+                new_depth += score > bestScore + DEEPER_PVS_MARGIN;
+                score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);    
+            }
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
