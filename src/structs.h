@@ -62,6 +62,7 @@ typedef struct {
     uint8_t depth;       // current search depth
     uint8_t flag;        // flag the type of node (fail-high(score >= beta)/fail-low(score < alpha))
     int16_t score;       // score (alpha/beta/PV)
+    int16_t staticEval;  // static evaluation of the position
     bool ttPv;           // tt was pv node or not
     int bestMove;        // best move from the search
 } tt;                    // transposition table (TT aka hash table)

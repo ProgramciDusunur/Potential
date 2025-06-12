@@ -655,6 +655,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     int bestMove = 0;
     int tt_move = 0;
     int16_t tt_score = 0;
+    int16_t tt_static_eval = noScore;
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
@@ -663,7 +664,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // read hash entry
     if (position->ply &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv))) {
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, &tt_static_eval))) {
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
@@ -672,7 +673,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     }
 
     // evaluate position
-    int evaluation = evaluate(position);
+    int evaluation = tt_static_eval != noScore ? tt_static_eval : evaluate(position);
 
     evaluation = adjustEvalWithCorrectionHistory(position, evaluation);
 
@@ -787,7 +788,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
 
     // store hash entry with the score equal to alpha
-    writeHashEntry(bestScore, bestMove, 0, hashFlag, tt_pv, position);
+    writeHashEntry(bestScore, bestMove, 0, hashFlag, tt_pv, evaluation, position);
 
     // node (move) fails low
     return bestScore;
@@ -821,6 +822,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     int bestMove = 0;
     int tt_move = 0;
     int16_t tt_score = 0;
+    int16_t tt_static_eval = noScore;
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
@@ -843,7 +845,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // read hash entry
     if (!pos->isSingularMove[pos->ply] && !rootNode &&
         (tt_hit =
-                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv)) &&
+                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, &tt_static_eval)) &&
                 !pvNode) {
         if (tt_depth >= depth) {
             if ((tt_flag == hashFlagExact) ||
@@ -866,7 +868,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                                     pos->side ^ 1, pos);
 
     // get static evaluation score
-    int raw_eval = evaluate(pos);
+    int raw_eval = tt_static_eval != noScore ? tt_static_eval : evaluate(pos);
 
     int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
 
@@ -1348,7 +1350,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         // store hash entry with the score equal to alpha
-        writeHashEntry(bestScore, bestMove, depth, hashFlag, tt_pv, pos);
+        writeHashEntry(bestScore, bestMove, depth, hashFlag, tt_pv, raw_eval, pos);
     }
     // node (move) fails low
     return bestScore;
