@@ -67,7 +67,6 @@ typedef struct {
 } tt;                    // transposition table (TT aka hash table)
 
 
-
 // move list structure
 typedef struct {
     // moves
