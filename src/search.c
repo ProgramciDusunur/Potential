@@ -125,8 +125,11 @@
   int ASP_WINDOW_MIN_DEPTH = 4;
   double ASP_WINDOW_MULTIPLIER = 1.8;
 
+  uint64_t nodes_spent_table[4096] = {0};
 
-U64 searchNodes = 0;
+
+
+  uint64_t searchNodes = 0;
 
 int counterMoves[2][maxPly][maxPly];
 
@@ -633,6 +636,17 @@ uint8_t isMaterialDraw(board *pos) {
         }
     }
     return 0;
+}
+
+void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int move) {
+    double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
+    double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
+    double not_bm_nodes_fraction = 
+    1 - (double)nodes_spent_table[move & 4095] / (double)searchNodes;
+    double node_scaling_factor = myMAX(2.3f * not_bm_nodes_fraction + 0.45f, 0.55f);
+    time->softLimit =
+            myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
+                evalScale[evalStability], time->maxTime + time->starttime);    
 }
 
 // quiescence search
@@ -1205,6 +1219,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             //captureMoves++;
         }
 
+        uint64_t nodes_before_search = searchNodes;
+
         int new_depth = depth - 1 + extensions;
 
         int lmrReduction = getLmrReduction(depth, legal_moves, notTactical) * 1024;
@@ -1265,6 +1281,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // take move back
         takeBack(pos, &copyPosition);
+
+        if (rootNode) {
+            nodes_spent_table[currentMove & 4095] += searchNodes - nodes_before_search;
+        }
 
         if (time->stopped == 1) return 0;
 
@@ -1370,12 +1390,10 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
     position->scorePv = 0;
 
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
-    //memset(position->mailbox, NO_PIECE, sizeof(position->mailbox));
+    memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
-    memset(position->staticEval, 0, sizeof(position->staticEval));
-    //memset(time, 0, sizeof(*time));
-    //memset(counterMoves, 0, sizeof(counterMoves));
+    memset(position->staticEval, 0, sizeof(position->staticEval));    
 
     // define initial alpha beta bounds
     int alpha = -infinity;
@@ -1471,7 +1489,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         }
 
         if (time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability);
+            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0]);
         }
 
         int endTime = getTimeMiliSecond();
