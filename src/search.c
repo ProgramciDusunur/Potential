@@ -41,7 +41,7 @@
   double LMR_TABLE_BASE_QUIET = 1.01;
   double LMR_TABLE_QUIET_DIVISOR = 2.32;
   int LMR_FULL_DEPTH_MOVES = 2;
-  int LMR_REDUCTION_LIMIT = 3;
+  int LMR_REDUCTION_LIMIT = 2;
   int DEEPER_LMR_MARGIN = 35;  
   int QUIET_HISTORY_LMR_DIVISOR = 4096;
   int QUIET_HISTORY_LMR_MINIMUM_SCALER = 3072;
@@ -1159,6 +1159,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             
             // Cut Node Extension
             else if (cutNode) {
+                int depthReduction = myMIN(depth / (SE_DEPTH * 2), 3);
                 extensions -= myMIN(depth / (SE_DEPTH * 2), 3);
             }
         }
