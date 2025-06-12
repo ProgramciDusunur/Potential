@@ -646,7 +646,7 @@ void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int
     double node_scaling_factor = myMAX(2.3f * not_bm_nodes_fraction + 0.45f, 0.55f);
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
-                evalScale[evalStability], time->maxTime + time->starttime);    
+                evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
 }
 
 // quiescence search
