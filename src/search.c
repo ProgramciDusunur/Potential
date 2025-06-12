@@ -129,7 +129,7 @@
 
 
 
-  uint64_t searchNodes = 0;
+  U64 searchNodes = 0;
 
 int counterMoves[2][maxPly][maxPly];
 
