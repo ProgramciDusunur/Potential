@@ -882,6 +882,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
 
+     // Cache static evaluation
+    if (!tt_hit && !pos->isSingularMove[pos->ply] && !in_check) {        
+        writeHashEntry(0, 0, depth, hashFlagNone, tt_pv, raw_eval, pos);
+    }
+
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
         depth--;
