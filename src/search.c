@@ -638,15 +638,16 @@ uint8_t isMaterialDraw(board *pos) {
     return 0;
 }
 
-void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int move) {
+void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int move, board *pos) {
     double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
+    double extensionScale[5] = {0.9375, 0.8625, 0.75, 0.705, 0.66};
     double not_bm_nodes_fraction = 
        (double)nodes_spent_table[move & 4095] / (double)searchNodes;
     double node_scaling_factor = (1.5f - not_bm_nodes_fraction) * 1.35f;
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
-                evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
+                evalScale[evalStability] * node_scaling_factor * extensionScale[clamp(pos->extensions[pos->ply], 0, 4)], time->maxTime + time->starttime);    
 }
 
 // quiescence search
@@ -1176,6 +1177,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
 
+        pos->extensions[pos->ply] = extensions;
 
 
         struct copyposition copyPosition;
@@ -1489,7 +1491,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         }
 
         if (time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0]);
+            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0], position);
         }
 
         int endTime = getTimeMiliSecond();

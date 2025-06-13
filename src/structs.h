@@ -37,6 +37,8 @@ typedef struct {
 
     int isSingularMove[maxPly];
 
+    int extensions[maxPly];
+
     uint16_t piece[maxPly];
     int move[maxPly];
 
