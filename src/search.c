@@ -641,7 +641,7 @@ uint8_t isMaterialDraw(board *pos) {
 void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int move, board *pos) {
     double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
-    double extensionScale[5] = {0.9375, 0.8625, 0.75, 0.705, 0.66};
+    double extensionScale[5] = {0.77, 0.88, 1.09, 1.35, 2.43};
     double not_bm_nodes_fraction = 
        (double)nodes_spent_table[move & 4095] / (double)searchNodes;
     double node_scaling_factor = (1.5f - not_bm_nodes_fraction) * 1.35f;
