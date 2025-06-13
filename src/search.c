@@ -1117,14 +1117,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 // Double Extension
                 if (singularScore <= singularBeta - DOUBLE_EXTENSION_MARGIN) {
-                    extensions++;
-
-                    // Low Depth Extension
-                    depth += depth < 10;
+                    extensions++;                    
                 }
 
                 // Triple Extension
-                if (!getMoveCapture(currentMove) && singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
+                if (!getMoveCapture(currentMove) && singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {                    
                     extensions++;
                 }
             // ╔═══════════════════════════╗
@@ -1141,6 +1138,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 // ~~~~ Quadruple Extension ~~~~ //
                 if (singularScore <= singularBeta - QUADRUPLE_EXTENSION_MARGIN) {
+                    // Low Depth Extension
+                    depth += depth < 10;
+
                     extensions++;
                 }
 
