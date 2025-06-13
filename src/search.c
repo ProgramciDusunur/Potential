@@ -49,6 +49,7 @@
   int QUIET_NON_PV_LMR_SCALER = 1024;
   int CUT_NODE_LMR_SCALER = 1024;
   int TT_PV_LMR_SCALER = 1024;
+  int IMPROVING_LMR_SCALER = 1024;
   
   
   
@@ -1231,6 +1232,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (cutNode) {
             lmrReduction += CUT_NODE_LMR_SCALER;
         }
+
+        if (!improving) {
+            lmrReduction += IMPROVING_LMR_SCALER;
+        }
+
 
         if (notTactical) {
             // Reduce More
