@@ -1116,7 +1116,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 extensions++;
 
                 // Double Extension
-                if (!pvNode && singularScore <= singularBeta - DOUBLE_EXTENSION_MARGIN) {
+                if (singularScore <= singularBeta - DOUBLE_EXTENSION_MARGIN) {
                     extensions++;
 
                     // Low Depth Extension
@@ -1124,7 +1124,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Triple Extension
-                if (!getMoveCapture(currentMove) && singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
+                if (singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
                     extensions++;
                 }
             // ╔═══════════════════════════╗
