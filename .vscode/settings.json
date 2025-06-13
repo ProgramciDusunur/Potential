@@ -1,0 +1,13 @@
+{
+    "C_Cpp.errorSquiggles": "disabled",
+    "makefile.makefilePath": "C:\\Users\\erena\\CLionProjects\\Potential\\src",
+    "files.associations": {
+        "board_constants.h": "c",
+        "search.h": "c",
+        "math.h": "c",
+        "evaluation.h": "c",
+        "history.h": "c",
+        "unistd.h": "c",
+        "compare": "c"
+    }
+}
