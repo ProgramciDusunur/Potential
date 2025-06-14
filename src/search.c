@@ -1439,6 +1439,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             }
 
             if (current_depth >= ASP_WINDOW_MIN_DEPTH) {
+                window += score * score / 32768;
                 alpha = myMAX(-infinity, score - window);
                 beta = myMIN(infinity, score + window);
             }
@@ -1467,7 +1468,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             } else {
                 break;
             }
-            window *= 1.8f;
+            window += window / 2;
 
         }
 
