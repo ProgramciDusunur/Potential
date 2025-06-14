@@ -28,7 +28,7 @@ extern U64 sideKey;
 extern U64 hash_entries;
 extern tt *hashTable;
 
-
+int hash_full(void);
 U64 generateHashKey(board* position);
 uint64_t get_hash_index(uint64_t hash);
 uint32_t get_hash_low_bits(uint64_t hash);

@@ -666,6 +666,10 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     //int rootNode = position->ply == 0;
 
+    if (position->ply > position->seldepth) {
+        position->seldepth = position->ply;
+    }
+
 
     int bestMove = 0;
     int tt_move = 0;
@@ -821,6 +825,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     }
     // init PV length
     pos->pvLength[pos->ply] = pos->ply;
+
+    if (pos->ply > pos->seldepth) {
+        pos->seldepth = pos->ply;
+    }
 
 
     // variable to store current move's score (from the static evaluation perspective)
@@ -1419,6 +1427,8 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             position->move[i] = 0;
         }
 
+        position->seldepth = 0;
+
         int startTime = getTimeMiliSecond();
 
         if (time->timeset && startTime >= time->softLimit && position->pvTable[0][0] != 0) {
@@ -1498,19 +1508,19 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         if (position->pvLength[0] && !benchmark) {
             unsigned long long nps = (totalTime > 0) ? (searchNodes * 1000) / totalTime : 0;
 
-            printf("info depth %d ", current_depth);
+            printf("info depth %d seldepth %d ", current_depth, position->seldepth);
 
             if (score > -mateValue && score < -mateScore)
-                printf("score mate %d nodes %llu nps %llu time %d pv ",
+                printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
                        -(score + mateValue) / 2 - 1,
-                       searchNodes, nps, totalTime);
+                       searchNodes, nps, hash_full(), totalTime);
             else if (score > mateScore && score < mateValue)
-                printf("score mate %d nodes %llu nps %llu time %d pv ",
+                printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
                        (mateValue - score) / 2 + 1,
-                       searchNodes, nps, totalTime);
+                       searchNodes, nps, hash_full(), totalTime);
             else
-                printf("score cp %d nodes %llu nps %llu time %d pv ",
-                       score, searchNodes, nps, totalTime);
+                printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
+                       score, searchNodes, nps, hash_full(), totalTime);
 
             // loop over the moves within a PV line
             for (int count = 0; count < position->pvLength[0]; count++) {

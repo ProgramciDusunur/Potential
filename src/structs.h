@@ -24,6 +24,7 @@ typedef struct {
     int enpassant;
 
     int ply;
+    int seldepth;
     int nmpPly;
 
     U64 repetitionTable[1000];

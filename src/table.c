@@ -11,6 +11,20 @@ tt *hashTable = NULL;
 __extension__ typedef unsigned __int128 uint128_t;
 
 
+int hash_full(void) {
+  int used = 0;
+  int samples = 1000;
+
+  for (int i = 0; i < samples; ++i) {
+    if (hashTable[i].hashKey != 0) {
+      used++;
+    }
+  }
+
+  return used;
+}
+
+
 // generate "almost" unique position ID aka hash key from scratch
 U64 generateHashKey(board* position) {
     // final hash key
