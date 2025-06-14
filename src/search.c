@@ -1055,23 +1055,33 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         bool isNotMated = bestScore > -mateScore;
 
-        if (!rootNode && notTactical && isNotMated) {
+        if (!rootNode && isNotMated) {
 
-                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
+                if (notTactical) { // Quiet Moves
+                    int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
 
-                // Late Move Pruning
-                if (legal_moves>= lmpThreshold) {
-                    continue;
-                }
+                    // Late Move Pruning
+                    if (legal_moves>= lmpThreshold) {
+                        continue;
+                    }
 
-                // Futility Pruning
-                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth <= alpha) {
-                    continue;
+                    // Quiet Futility Pruning
+                    if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth <= alpha) {
+                        continue;
+                    }
+                    // Quiet History Pruning
+                    if (depth <= 4 && !in_check && moveHistory < depth * -2048) {
+                        break;
+                    }    
+                } else { // Noisy Moves
+                    // Noisy Futility Pruning
+                    int noisyFPMargin = 122 * depth + 371 * moves_searched / 128;
+                    if (depth <= 5 && !pvNode && !in_check && static_eval + noisyFPMargin <= alpha) {
+                        continue;
+                    }
+                    
                 }
-                // Quiet History Pruning
-                if (depth <= 4 && !in_check && moveHistory < depth * -2048) {
-                    break;
-                }
+                
 
         }
 
