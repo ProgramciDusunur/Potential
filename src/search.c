@@ -887,6 +887,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     bool improving = false;
 
+    bool isTTCapture = getMoveCapture(tt_move);
+
     int pastStack = -1;
 
     pos->staticEval[pos->ply] = static_eval;
@@ -1116,7 +1118,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 extensions++;
 
                 // Double Extension
-                if (!pvNode && singularScore <= singularBeta - DOUBLE_EXTENSION_MARGIN) {
+                if (!pvNode && singularScore <= singularBeta - DOUBLE_EXTENSION_MARGIN -4 + 206 * !isTTCapture ) {
                     extensions++;
 
                     // Low Depth Extension
