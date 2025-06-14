@@ -1425,7 +1425,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             time->stopped = 1;
         }
 
-        int window = ASP_WINDOW_BASE;
+        int window = ASP_WINDOW_BASE + score * score / 16384;
         int aspirationWindowDepth = current_depth;
 
         while (true) {
