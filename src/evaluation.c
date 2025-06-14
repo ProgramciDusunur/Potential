@@ -477,8 +477,8 @@ int evaluate(const board* position) {
 
         int winnableScore = 0;
         // winnable
-        //winnableScore += (position->side && (get_rank[getLS1BIndex(position->bitboards[k])] < 2)) * -20;
-        //winnableScore += (!position->side && (get_rank[getLS1BIndex(position->bitboards[K])] > 5)) * 20;
+        winnableScore += (position->side && (get_rank[getLS1BIndex(position->bitboards[k])] < 2)) * -20;
+        winnableScore += (!position->side && (get_rank[getLS1BIndex(position->bitboards[K])] > 5)) * 20;
 
         winnableScore +=  6 * passed_pawn_count +
                 8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]))
