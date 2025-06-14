@@ -49,7 +49,7 @@
   int QUIET_NON_PV_LMR_SCALER = 1024;
   int CUT_NODE_LMR_SCALER = 1024;
   int TT_PV_LMR_SCALER = 1024;
-  int IN_CHECK_LMR_SCALER = 1024;
+  int IN_CHECK_LMR_SCALER = 64;
   
   
   
@@ -1250,7 +1250,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         if (in_check) {
-            lmrReduction -= IN_CHECK_LMR_SCALER;
+            lmrReduction -= 256 + IN_CHECK_LMR_SCALER * depth * depth / 32;
         }
 
         lmrReduction /= 1024;
