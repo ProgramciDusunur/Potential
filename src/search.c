@@ -29,7 +29,7 @@
   int NMP_DEPTH = 3;
   int NMP_BASE_REDUCTION = 3;
   int NMP_REDUCTION_DEPTH_DIVISOR = 3;
-  int NMP_EVAL_DIVISOR = 400;
+  int NMP_EVAL_DIVISOR = 450;
   
   
   /*╔═══════════════════════╗
@@ -950,9 +950,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         prefetch_hash_entry(pos->hashKey);
 
-        int R = NMP_BASE_REDUCTION + depth / NMP_REDUCTION_DEPTH_DIVISOR;
+        int R = depth / NMP_REDUCTION_DEPTH_DIVISOR + 5;
 
-        R += myMIN((static_eval - beta) / NMP_EVAL_DIVISOR, 3);
+        R += myMIN((static_eval - beta) / NMP_EVAL_DIVISOR, 7);
 
         pos->move[myMIN(pos->ply, maxPly - 1)] = 0;
         pos->piece[myMIN(pos->ply, maxPly - 1)] = 0;
