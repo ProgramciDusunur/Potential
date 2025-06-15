@@ -50,6 +50,7 @@
   int CUT_NODE_LMR_SCALER = 1024;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
+  int IN_CHECK_LMR_SCALER = 1024;
   
   
   
@@ -1249,6 +1250,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
                 lmrReduction += QUIET_NON_PV_LMR_SCALER;
+            }
+
+            // Reduce Less
+            if (in_check) {
+                lmrReduction -= IN_CHECK_LMR_SCALER;
             }
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
