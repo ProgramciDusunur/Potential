@@ -27,7 +27,7 @@
     ║ Null Move Pruning     ║
     ╚═══════════════════════╝*/
   int NMP_DEPTH = 3;
-  int NMP_BASE_REDUCTION = 3;
+  int NMP_BASE_REDUCTION = 5;
   int NMP_REDUCTION_DEPTH_DIVISOR = 3;
   int NMP_EVAL_DIVISOR = 400;
   
@@ -961,7 +961,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         int R = NMP_BASE_REDUCTION + depth / NMP_REDUCTION_DEPTH_DIVISOR;
 
-        R += myMIN((static_eval - beta) / NMP_EVAL_DIVISOR, 3);
+        //R += myMIN((static_eval - beta) / NMP_EVAL_DIVISOR, 3);
 
         pos->move[myMIN(pos->ply, maxPly - 1)] = 0;
         pos->piece[myMIN(pos->ply, maxPly - 1)] = 0;
