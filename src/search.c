@@ -1182,6 +1182,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             else if (cutNode) {
                 extensions -= myMIN(depth / (SE_DEPTH * 2), 3);
             }
+
+            else if (depth <= 7 && !in_check && pos->staticEval[pos->ply] <= alpha - 30 && tt_flag == hashFlagAlpha) {
+                extensions++;                    
+            }
         }
 
 
