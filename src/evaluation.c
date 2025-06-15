@@ -373,8 +373,8 @@ int evaluate(const board* position) {
                                         }
                                 break;
                                 case B:
-                                        score_midgame += countBits(getBishopAttacks(square, position->occupancies[both])) * 10;
-                                        score_endgame += countBits(getBishopAttacks(square, position->occupancies[both])) * 10;
+                                        score_midgame += countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case R:
 
@@ -396,8 +396,8 @@ int evaluate(const board* position) {
                                         score_endgame += countBits(getRookAttacks(square, position->occupancies[both])) * 10;
                                         break;
                                 case b:
-                                        score_midgame -= countBits(getBishopAttacks(square, position->occupancies[both])) * 10;
-                                        score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both])) * 10;
+                                        score_midgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
                                         break;
                                 case r:
 
