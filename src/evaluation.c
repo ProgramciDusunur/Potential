@@ -337,6 +337,8 @@ int evaluate(const board* position) {
         const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
         const int blackKingSquare = getLS1BIndex(position->bitboards[k]);
 
+        int mobility = 0;
+
         int passed_pawn_count = 0;
 
         for (int piece = P; piece <= k; piece++) {
@@ -371,8 +373,8 @@ int evaluate(const board* position) {
                                         }
                                 break;
                                 case B:
-                                        score_midgame += countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        score_midgame += countBits(getBishopAttacks(square, position->occupancies[both])) * 10;
+                                        score_endgame += countBits(getBishopAttacks(square, position->occupancies[both])) * 10;
                                         break;
                                 case R:
 
@@ -390,10 +392,12 @@ int evaluate(const board* position) {
                                                 score_endgame += rook_open_file;
 
                                         }
+                                        score_midgame += countBits(getRookAttacks(square, position->occupancies[both])) * 10;
+                                        score_endgame += countBits(getRookAttacks(square, position->occupancies[both])) * 10;
                                         break;
                                 case b:
-                                        score_midgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        score_midgame -= countBits(getBishopAttacks(square, position->occupancies[both])) * 10;
+                                        score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both])) * 10;
                                         break;
                                 case r:
 
@@ -411,6 +415,8 @@ int evaluate(const board* position) {
                                                 score_endgame -= rook_open_file;
 
                                         }
+                                        score_midgame -= countBits(getRookAttacks(square, position->occupancies[both])) * 10;
+                                        score_endgame -= countBits(getRookAttacks(square, position->occupancies[both])) * 10;
                                         break;
                         }
                         popBit(bitboard, square);
