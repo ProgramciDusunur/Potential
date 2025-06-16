@@ -1161,7 +1161,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             // Negative Extensions
             else if (tt_score >= beta) {
-                extensions -= 1 + !pvNode;
+                extensions -= 2 + !pvNode;
                 cutNode = tt_score >= beta + DOUBLE_NEGATIVE_EXTENSION_MARGIN / 3;
                 // Double Negative Extension
                 if (!pvNode && tt_score >= beta + DOUBLE_NEGATIVE_EXTENSION_MARGIN) {
@@ -1169,12 +1169,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                     // High Depth Reduction
                     depth -= depth > 12;
-                }
-
-                // Triple Negative Extension
-                if (notTactical && tt_score - TRIPLE_NEGATIVE_EXTENSION_MARGIN >= beta) {
-                    extensions -= 1;
-                }
+                }                
 
             }
             
