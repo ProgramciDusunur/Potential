@@ -683,7 +683,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // read hash entry
     if (position->ply &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv))) {
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv)) &&
+                !pvNode) {
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
