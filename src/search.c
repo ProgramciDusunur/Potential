@@ -50,6 +50,7 @@
   int CUT_NODE_LMR_SCALER = 1024;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
+  int FAIL_HIGH_LMR_SCALER = 1024;
   
   
   
@@ -1244,6 +1245,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction += TT_PV_FAIL_LOW_LMR_SCALER;
         }
 
+        if (pos->failHighCount[pos->ply] >= 3) {
+            lmrReduction += FAIL_HIGH_LMR_SCALER;
+        }
+
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
@@ -1330,6 +1335,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
+                    pos->failHighCount[pos->ply]++;
                     if (notTactical) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
@@ -1430,6 +1436,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             position->staticEval[i] = noEval;
             position->piece[i] = 0;
             position->move[i] = 0;
+            position->failHighCount[i] = 0;
         }
 
         position->seldepth = 0;
