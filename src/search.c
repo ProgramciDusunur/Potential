@@ -807,7 +807,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
 
     // store hash entry with the score equal to alpha
-    writeHashEntry(bestScore, bestMove, 0, hashFlag, tt_pv, position);
+    writeHashEntry(position->hashKey, bestScore, bestMove, 0, hashFlag, tt_pv, position);
 
     // node (move) fails low
     return bestScore;
@@ -1382,7 +1382,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         // store hash entry with the score equal to alpha
-        writeHashEntry(bestScore, bestMove, depth, hashFlag, tt_pv, pos);
+        writeHashEntry(pos->hashKey, bestScore, bestMove, depth, hashFlag, tt_pv, pos);
     }
     // node (move) fails low
     return bestScore;
