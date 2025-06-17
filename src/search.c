@@ -1029,6 +1029,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // sort moves
     sort_moves(moveList, tt_move, pos);
 
+    pos->failHighCount[myMIN(pos->ply+1, maxPly - 1)] = 0;
+
     // number of moves searched in a move list
     int moves_searched = 0;
 
@@ -1245,7 +1247,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction += TT_PV_FAIL_LOW_LMR_SCALER;
         }
 
-        if (pos->failHighCount[pos->ply] >= 3) {
+        if (pos->failHighCount[myMIN(pos->ply+1, maxPly - 1)] >= 3) {
             lmrReduction += FAIL_HIGH_LMR_SCALER;
         }
 
