@@ -179,18 +179,25 @@ void writeHashEntry(int16_t score, int bestMove, uint8_t depth, uint8_t hashFlag
     // the scoring data for the current board position if available
     tt *hashEntry = &hashTable[get_hash_index(position->hashKey)];
 
-    // store score independent from the actual path
-    // from root node (position) to current node (position)
-    if (score < -mateScore) score -= position->ply;
-    if (score > mateScore) score += position->ply;
+    if (bestMove != 0 || hashEntry->hashKey != position->hashKey) {
+        hashEntry->bestMove = bestMove;
+    }
+
+    if (hashFlag == hashFlagExact || hashEntry->hashKey != position->hashKey || depth > hashEntry->depth) {
+        // store score independent from the actual path
+        // from root node (position) to current node (position)
+        if (score < -mateScore) score -= position->ply;
+        if (score > mateScore) score += position->ply;
 
 
-    hashEntry->hashKey = get_hash_low_bits(position->hashKey);
-    hashEntry->score = score;
-    hashEntry->flag = hashFlag;
-    hashEntry->depth = depth;
-    hashEntry->bestMove = bestMove;
-    hashEntry->ttPv = ttPv;
+        hashEntry->hashKey = get_hash_low_bits(position->hashKey);
+        hashEntry->score = score;
+        hashEntry->flag = hashFlag;
+        hashEntry->depth = depth;        
+        hashEntry->ttPv = ttPv;
+    }
+
+    
 }
 
 // read hash entry data
