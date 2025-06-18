@@ -174,7 +174,7 @@ void prefetch_hash_entry(uint64_t hash_key) {
 }
 
 
-void writeHashEntry(uint64_t key, int16_t score, int bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position) {
+void writeHashEntry(uint64_t key, int16_t score, int bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, bool cutNode, board* position) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
     tt *hashEntry = &hashTable[get_hash_index(position->hashKey)];
@@ -196,7 +196,7 @@ void writeHashEntry(uint64_t key, int16_t score, int bestMove, uint8_t depth, ui
         hashEntry->depth = depth;        
         hashEntry->ttPv = ttPv;
     } else if (hashEntry->depth >= 5 && hashFlag != hashFlagExact) {        
-        hashEntry->depth--;
+        hashEntry->depth -= 1 + cutNode;
     }
         
 

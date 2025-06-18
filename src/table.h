@@ -33,7 +33,7 @@ U64 generateHashKey(board* position);
 uint64_t get_hash_index(uint64_t hash);
 uint32_t get_hash_low_bits(uint64_t hash);
 void prefetch_hash_entry(uint64_t hash_key);
-void writeHashEntry(uint64_t key, int16_t score, int bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position);
+void writeHashEntry(uint64_t key, int16_t score, int bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, bool cutNode, board* position);
 int readHashEntry(board *position, int *move, int16_t *tt_score,
                   uint8_t *tt_depth, uint8_t *tt_flag, bool *tt_pv);
 U64 generatePawnKey(board* position);
