@@ -1243,10 +1243,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (tt_pv && tt_hit && tt_score <= alpha) {
             lmrReduction += TT_PV_FAIL_LOW_LMR_SCALER;
         }
-
-        if (!improving) {
-            lmrReduction += IMPROVING_LMR_SCALER;
-        }
+        
 
         if (notTactical) {
             // Reduce More
@@ -1262,6 +1259,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // Reduce Less
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER;
+        }
+
+        if (improving) {
+            lmrReduction -= IMPROVING_LMR_SCALER;
         }
 
         lmrReduction /= 1024;
