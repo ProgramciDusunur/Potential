@@ -36,6 +36,8 @@ typedef struct {
 
     int staticEval[maxPly];
 
+    int failHighCount[maxPly];
+
     int isSingularMove[maxPly];
 
     uint16_t piece[maxPly];

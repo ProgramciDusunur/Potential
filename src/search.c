@@ -50,6 +50,7 @@
   int CUT_NODE_LMR_SCALER = 1024;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
+  int FAIL_HIGH_LMR_SCALER = 1024;
   
   
   
@@ -682,7 +683,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // read hash entry
     if (position->ply &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv))) {
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv)) &&
+                !pvNode) {
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
@@ -1027,6 +1029,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // sort moves
     sort_moves(moveList, tt_move, pos);
 
+    pos->failHighCount[myMIN(pos->ply+1, maxPly - 1)] = 0;
+
     // number of moves searched in a move list
     int moves_searched = 0;
 
@@ -1243,6 +1247,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction += TT_PV_FAIL_LOW_LMR_SCALER;
         }
 
+        if (pos->failHighCount[myMIN(pos->ply+1, maxPly - 1)] >= 3) {
+            lmrReduction += FAIL_HIGH_LMR_SCALER;
+        }
+
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
@@ -1331,6 +1339,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
+                    pos->failHighCount[pos->ply]++;
                     if (notTactical) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
@@ -1431,6 +1440,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             position->staticEval[i] = noEval;
             position->piece[i] = 0;
             position->move[i] = 0;
+            position->failHighCount[i] = 0;
         }
 
         position->seldepth = 0;
