@@ -1247,7 +1247,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction += TT_PV_FAIL_LOW_LMR_SCALER;
         }
 
-        if (pos->failHighCount[myMIN(pos->ply+1, maxPly - 1)] >= 3) {
+        if (pos->failHighCount[myMIN(pos->ply+1, maxPly - 1)] >= 4) {
             lmrReduction += FAIL_HIGH_LMR_SCALER;
         }
 
@@ -1437,8 +1437,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             position->isSingularMove[i] = 0;
             position->staticEval[i] = noEval;
             position->piece[i] = 0;
-            position->move[i] = 0;
-            position->failHighCount[i] = 0;
+            position->move[i] = 0;            
         }
 
         position->seldepth = 0;
