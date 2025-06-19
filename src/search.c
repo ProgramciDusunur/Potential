@@ -1275,6 +1275,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 new_depth -= doShallower;
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
+                new_depth -= tt_pv;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             }
         }
