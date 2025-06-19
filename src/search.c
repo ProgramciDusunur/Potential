@@ -128,7 +128,6 @@
   uint64_t nodes_spent_table[4096] = {0};
 
 
-
   U64 searchNodes = 0;
 
 int counterMoves[2][maxPly][maxPly];
