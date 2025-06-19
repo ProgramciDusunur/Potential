@@ -686,7 +686,8 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
-            return tt_score;
+             return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
+                                          tt_score;
         }
     }
 
