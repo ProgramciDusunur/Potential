@@ -1060,7 +1060,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
       }
 
         prefetch_hash_entry(pos->hashKey);
-      legal_moves++;
+        legal_moves++;
 
 
         score = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
