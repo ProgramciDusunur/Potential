@@ -419,12 +419,13 @@ int evaluate(const board* position) {
 
 
         // king safety bonus
+        int materialFactor = game_phase_score / 1787;
 
         // White
 
         // King ring bonus
-        score_midgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_middlegame;
-        score_endgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_endgame;
+        score_midgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * (king_shield_bonus_middlegame + materialFactor);
+        score_endgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * (king_shield_bonus_endgame + materialFactor);
 
         // semi open file
         if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0) {
@@ -444,8 +445,8 @@ int evaluate(const board* position) {
         // Black
 
         // King ring bonus
-        score_midgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_middlegame;
-        score_endgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_endgame;
+        score_midgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * (king_shield_bonus_middlegame + materialFactor);
+        score_endgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * (king_shield_bonus_endgame + materialFactor);
 
         // semi open file penalty
         if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) {
