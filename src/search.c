@@ -125,6 +125,12 @@
   int ASP_WINDOW_MIN_DEPTH = 4;
   double ASP_WINDOW_MULTIPLIER = 1.8;
 
+
+  int TT_FAIL_MEDIUM = 512;
+
+
+
+
   uint64_t nodes_spent_table[4096] = {0};
 
 
@@ -872,8 +878,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
                 ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
-                return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
-                                          tt_score;
+                return tt_score >= beta ? 
+                (tt_score * (1024 - TT_FAIL_MEDIUM) + beta * TT_FAIL_MEDIUM) / 1024 :                
+                        tt_score;                
             }
         }
     }
