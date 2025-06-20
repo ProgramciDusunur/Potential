@@ -73,6 +73,7 @@
     ╚══════════════════════════════╝*/
   int RFP_MARGIN = 82;
   int RFP_IMPROVING_MARGIN = 65;
+  int RFP_MEDIUM_MARGIN = 512;
   int RFP_DEPTH = 6;
   
   
@@ -927,7 +928,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     if (!pos->isSingularMove[pos->ply] && !tt_pv &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
         ttAdjustedEval - rfpMargin >= beta)
-        return ttAdjustedEval;
+        return (ttAdjustedEval * RFP_MEDIUM_MARGIN + beta * (1024 - RFP_MEDIUM_MARGIN)) / 1024;
 
     // Null Move Pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
