@@ -1012,6 +1012,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             return razoringScore;
         }
     }
+    
 
     // create move list instance
     moves moveList[1], badQuiets[1];
