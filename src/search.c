@@ -906,7 +906,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
 
-    opponent_worsening = pos->ply > 0 && !in_check && static_eval + pos->staticEval[pos->ply - 1] > 10;
+    opponent_worsening = pos->ply > 0 && !in_check && static_eval + pos->staticEval[pos->ply - 1] > 30;
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
