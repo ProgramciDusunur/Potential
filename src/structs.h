@@ -30,6 +30,8 @@ typedef struct {
     U64 repetitionTable[1000];
     int repetitionIndex;
 
+    int failHighCount[maxPly];
+
     int pvLength[maxPly];
     int pvTable[maxPly][maxPly];
     int killerMoves[maxPly][2];
