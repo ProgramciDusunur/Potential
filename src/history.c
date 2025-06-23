@@ -76,6 +76,10 @@ void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisy
 
     captureHistory[piece][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);
 
+    
+}
+
+void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves) {
     for (int index = 0; index < noisyMoves->count; index++) {
         int noisyPiece = getMovePiece(noisyMoves->moves[index]);
         int noisyTo = getMoveTarget(noisyMoves->moves[index]);
@@ -83,11 +87,9 @@ void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisy
 
         
 
-        int noisyMoveScore = captureHistory[noisyPiece][noisyTo][noisyCapturedPiece];
+        int noisyMoveScore = captureHistory[noisyPiece][noisyTo][noisyCapturedPiece];        
 
-        if (noisyMoves->moves[index] == bestMove) continue;
-
-        captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] += scaledBonus(noisyMoveScore, -bonus, maxCaptureHistory);
+        captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] += scaledBonus(noisyMoveScore, -getHistoryBonus(depth), maxCaptureHistory);
     }
 }
 

@@ -36,6 +36,7 @@ extern int continuationHistory[12][64][12][64];
 int scaledBonus(int score, int bonus, int gravity);
 void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets);
 void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisyMoves);
+void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves);
 void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiets);
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus);
 void updateAllCH(board *pos, int move, int bonus);
