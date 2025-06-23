@@ -1345,9 +1345,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                         if (rootNode) {
                             updateRootHistory(pos, bestMove, depth, badQuiets);
                         }
-                    } else { // noisy moves
-                        updateCaptureHistory(pos, bestMove, depth, noisyMoves);
-                    }
+                    } 
+
+                    updateCaptureHistory(pos, bestMove, depth, noisyMoves);
 
                     // node (move) fails high
                     break;

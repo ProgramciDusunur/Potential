@@ -12,8 +12,8 @@ int quietHistory[2][64][64];
 int rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int continuationHistory[12][64][12][64];
-// captureHistory[side to move][fromSquare][toSquare]
-int captureHistory[2][64][64];
+// captureHistory[piece][toSquare][capturedPiece]
+int captureHistory[12][64][6];
 
 int getHistoryBonus(int depth) {
     return myMIN(10 + 200 * depth, 4096);
@@ -67,23 +67,27 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets)
 }
 
 void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisyMoves) {
-    int from = getMoveSource(bestMove);
+    int piece = getMovePiece(bestMove);
     int to = getMoveTarget(bestMove);
+    int capturedPiece = position->mailbox[getMoveTarget(bestMove)];
 
     int bonus = getHistoryBonus(depth);
-    int score = captureHistory[position->side][from][to];
+    int score = captureHistory[piece][to][capturedPiece];
 
-    captureHistory[position->side][from][to] += scaledBonus(score, bonus, maxCaptureHistory);
+    captureHistory[position->side][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);
 
     for (int index = 0; index < noisyMoves->count; index++) {
-        int noisyFrom = getMoveSource(noisyMoves->moves[index]);
+        int noisyPiece = getMovePiece(noisyMoves->moves[index]);
         int noisyTo = getMoveTarget(noisyMoves->moves[index]);
+        int noisyCapturedPiece = position->mailbox[getMoveTarget(noisyMoves->moves[index])];
 
-        int noisyMoveScore = captureHistory[position->side][noisyFrom][noisyTo];
+        
+
+        int noisyMoveScore = captureHistory[noisyPiece][noisyTo][noisyCapturedPiece];
 
         if (noisyMoves->moves[index] == bestMove) continue;
 
-        captureHistory[position->side][noisyFrom][noisyTo] += scaledBonus(noisyMoveScore, -bonus, maxCaptureHistory);
+        captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] += scaledBonus(noisyMoveScore, -bonus, maxCaptureHistory);
     }
 }
 

@@ -24,8 +24,8 @@ enum {
 
 // quietHistory[side to move][fromSquare][toSquare]
 extern int quietHistory[2][64][64];
-// captureHistory[side to move][fromSquare][toSquare]
-extern int captureHistory[2][64][64];
+// captureHistory[piece][toSquare][capturedPiece]
+extern int captureHistory[12][64][6];
 // rootHistory[side to move][fromSquare][toSquare]
 extern int rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
