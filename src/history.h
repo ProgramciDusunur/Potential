@@ -18,11 +18,14 @@
 
 
 enum {
-    maxQuietHistory = 16384
+    maxQuietHistory = 16384,
+    maxCaptureHistory = 16384
 };
 
 // quietHistory[side to move][fromSquare][toSquare]
 extern int quietHistory[2][64][64];
+// captureHistory[side to move][fromSquare][toSquare]
+extern int captureHistory[2][64][64];
 // rootHistory[side to move][fromSquare][toSquare]
 extern int rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
@@ -32,6 +35,7 @@ extern int continuationHistory[12][64][12][64];
 
 int scaledBonus(int score, int bonus, int gravity);
 void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets);
+void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisyMoves);
 void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiets);
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus);
 void updateAllCH(board *pos, int move, int bonus);

@@ -12,6 +12,8 @@ int quietHistory[2][64][64];
 int rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int continuationHistory[12][64][12][64];
+// captureHistory[side to move][fromSquare][toSquare]
+int captureHistory[2][64][64];
 
 int getHistoryBonus(int depth) {
     return myMIN(10 + 200 * depth, 4096);
@@ -61,6 +63,27 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets)
         if (badQuiets->moves[index] == bestMove) continue;
 
         quietHistory[side][badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
+    }
+}
+
+void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisyMoves) {
+    int from = getMoveSource(bestMove);
+    int to = getMoveTarget(bestMove);
+
+    int bonus = getHistoryBonus(depth);
+    int score = captureHistory[position->side][from][to];
+
+    captureHistory[position->side][from][to] += scaledBonus(score, bonus, maxCaptureHistory);
+
+    for (int index = 0; index < noisyMoves->count; index++) {
+        int noisyFrom = getMoveSource(noisyMoves->moves[index]);
+        int noisyTo = getMoveTarget(noisyMoves->moves[index]);
+
+        int noisyMoveScore = captureHistory[position->side][noisyFrom][noisyTo];
+
+        if (noisyMoves->moves[index] == bestMove) continue;
+
+        captureHistory[position->side][noisyFrom][noisyTo] += scaledBonus(noisyMoveScore, -bonus, maxCaptureHistory);
     }
 }
 
