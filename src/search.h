@@ -46,8 +46,6 @@ uint8_t justPawns(board *pos);
 void clearCounterMoves(void);
 int SEE(board *pos, int move, int threshold);
 uint64_t all_attackers_to_square(board *pos, uint64_t occupied, int sq);
-void updatePawnCorrectionHistory(board *position, const int depth, const int diff);
-void updateMinorCorrectionHistory(board *position, const int depth, const int diff);
 int quiescence(int alpha, int beta, board* position, time* time);
 void quiescence_sort_moves(moves *moveList, board* position);
 int quiescenceScoreMove(int move, board* position);
