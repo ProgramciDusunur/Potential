@@ -79,13 +79,13 @@ void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisy
     
 }
 
-void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves) {
+void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, int bestMove) {
     for (int index = 0; index < noisyMoves->count; index++) {
         int noisyPiece = getMovePiece(noisyMoves->moves[index]);
         int noisyTo = getMoveTarget(noisyMoves->moves[index]);
         int noisyCapturedPiece = position->mailbox[getMoveTarget(noisyMoves->moves[index])];
 
-        
+        if (noisyMoves->moves[index] == bestMove) continue;
 
         int noisyMoveScore = captureHistory[noisyPiece][noisyTo][noisyCapturedPiece];        
 
