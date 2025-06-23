@@ -98,7 +98,6 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
 }
 
 
-
 void clearQuietHistory(void) {
     memset(quietHistory, 0, sizeof(quietHistory));
 }
