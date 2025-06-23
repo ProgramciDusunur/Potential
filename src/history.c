@@ -74,7 +74,7 @@ void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisy
     int bonus = getHistoryBonus(depth);
     int score = captureHistory[piece][to][capturedPiece];
 
-    captureHistory[position->side][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);
+    captureHistory[piece][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);
 
     for (int index = 0; index < noisyMoves->count; index++) {
         int noisyPiece = getMovePiece(noisyMoves->moves[index]);
