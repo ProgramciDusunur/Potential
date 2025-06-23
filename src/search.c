@@ -1372,11 +1372,13 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             hashFlag = hashFlagBeta;
         }
 
-        if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
-            !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
-            !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
+        int averageEval = (raw_eval + static_eval) / 2;
 
-            int corrhistBonus = clamp(bestScore - static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
+        if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
+            !(hashFlag == hashFlagAlpha && bestScore <= averageEval) &&
+            !(hashFlag == hashFlagBeta && bestScore >= averageEval)) {
+
+            int corrhistBonus = clamp(bestScore - averageEval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
             updatePawnCorrectionHistory(pos, depth, corrhistBonus);
             updateMinorCorrectionHistory(pos, depth, corrhistBonus);
             update_non_pawn_corrhist(pos, depth, corrhistBonus);
