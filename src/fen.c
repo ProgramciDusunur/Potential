@@ -95,6 +95,7 @@ void parseFEN(char *fen, board* position) {
     position->hashKey = generateHashKey(position);
     position->pawnKey = generatePawnKey(position);
     position->minorKey = generateMinorKey(position);
+    position->majorKey = generateMajorKey(position);
     position->whiteNonPawnKey = generate_white_np_hash_key(position);
     position->blackNonPawnKey = generate_black_np_hash_key(position);
 }

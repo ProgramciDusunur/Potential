@@ -50,6 +50,7 @@ typedef struct {
     U64 hashKey;
     U64 pawnKey;
     U64 minorKey;
+    U64 majorKey;
     U64 whiteNonPawnKey;
     U64 blackNonPawnKey;
 
@@ -85,6 +86,7 @@ struct copyposition {
     U64 hashKeyCopy;
     U64 pawnKeyCopy;
     U64 minorKeyCopy;
+    U64 majorKeyCopy;
     U64 whiteNonPawnKeyCopy;
     U64 blackNonPawnKeyCopy;
 
