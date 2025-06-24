@@ -190,18 +190,12 @@ int scoreMove(int move, board* position) {
     if (getMoveCapture(move)) {
         int captureScore = 0;
 
-        // init target piece
-        int target_piece = P;
-
-        uint8_t bb_piece = position->mailbox[getMoveTarget(move)];
-        // if there's a piece on the target square
-        if (bb_piece != NO_PIECE &&
-            getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
-            target_piece = bb_piece;
-        }
+        int target_piece = position->mailbox[getMoveTarget(move)] > 5
+                       ? position->mailbox[getMoveTarget(move)] - 6
+                       : position->mailbox[getMoveTarget(move)];
 
         // score move by MVV LVA lookup [source piece][target piece]
-        captureScore += mvv[target_piece];
+        captureScore += mvv[target_piece > 5 ? target_piece - 6 : target_piece];
                         
         captureScore += captureHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
 
@@ -1346,7 +1340,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                             updateRootHistory(pos, bestMove, depth, badQuiets);
                         }
                     } else { // noisy moves
-                        updateCaptureHistory(pos, bestMove, depth, noisyMoves);
+                        updateCaptureHistory(pos, bestMove, depth);
                     }
 
                     // always penalize bad noisy moves

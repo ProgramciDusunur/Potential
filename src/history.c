@@ -66,7 +66,7 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets)
     }
 }
 
-void updateCaptureHistory(board *position, int bestMove, int depth, moves *noisyMoves) {
+void updateCaptureHistory(board *position, int bestMove, int depth) {
     int piece = getMovePiece(bestMove);
     int to = getMoveTarget(bestMove);
     int capturedPiece = position->mailbox[getMoveTarget(bestMove)];
