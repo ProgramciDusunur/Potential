@@ -50,6 +50,7 @@
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
+  int OPPONENT_WORSENING_LMR_SCALER = 1024;
   
   
   
@@ -921,6 +922,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     bool improving = false;
 
+    bool opponent_worsening = false;
+
     int pastStack = -1;
 
     pos->staticEval[pos->ply] = static_eval;
@@ -928,6 +931,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval  ?  pos->ply - 2 : -1;
 
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
+
+    opponent_worsening = pos->ply > 0 && !in_check && static_eval + pos->staticEval[pos->ply - 1] > 10;
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
@@ -1269,6 +1274,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         if (tt_pv && tt_hit && tt_score <= alpha) {
             lmrReduction += TT_PV_FAIL_LOW_LMR_SCALER;
+        }
+
+        if (opponent_worsening) {
+            lmrReduction += OPPONENT_WORSENING_LMR_SCALER;
         }
 
         if (notTactical) {
