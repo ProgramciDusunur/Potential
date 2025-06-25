@@ -433,7 +433,7 @@ void updateMinorCorrectionHistory(board *position, const int depth, const int di
 }
 
 void updateMajorCorrectionHistory(board *position, const int depth, const int diff) {
-    U64 majorKey = generateMajorKey(position);
+    U64 majorKey = position->majorKey;
 
     int entry = MAJOR_CORRECTION_HISTORY[position->side][majorKey % CORRHIST_SIZE];
 
