@@ -404,13 +404,13 @@ void clearCounterMoves(void) {
     }
 }
 
-void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
+void updatePawnCorrectionHistory(board *position, const int depth, const int diff, bool cutNode) {
     U64 pawnKey = position->pawnKey;
 
     int entry = PAWN_CORRECTION_HISTORY[position->side][pawnKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 2 * myMIN(depth + 1, 16);
+    const int newWeight = (2 - cutNode) * myMIN(depth + 1, 16);
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
@@ -418,13 +418,13 @@ void updatePawnCorrectionHistory(board *position, const int depth, const int dif
     PAWN_CORRECTION_HISTORY[position->side][pawnKey % CORRHIST_SIZE] = entry;
 }
 
-void updateMinorCorrectionHistory(board *position, const int depth, const int diff) {
+void updateMinorCorrectionHistory(board *position, const int depth, const int diff, bool cutNode) {
     U64 minorKey = position->minorKey;
 
     int entry = MINOR_CORRECTION_HISTORY[position->side][minorKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 2 * myMIN(depth + 1, 16);
+    const int newWeight = (2 - cutNode) * myMIN(depth + 1, 16);
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
@@ -432,13 +432,13 @@ void updateMinorCorrectionHistory(board *position, const int depth, const int di
     MINOR_CORRECTION_HISTORY[position->side][minorKey % CORRHIST_SIZE] = entry;
 }
 
-void updateMajorCorrectionHistory(board *position, const int depth, const int diff) {
-    U64 majorKey = generateMajorKey(position);
+void updateMajorCorrectionHistory(board *position, const int depth, const int diff, bool cutNode) {
+    U64 majorKey = position->majorKey;
 
     int entry = MAJOR_CORRECTION_HISTORY[position->side][majorKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 2 * myMIN(depth + 1, 16);
+    const int newWeight = (2 - cutNode) * myMIN(depth + 1, 16);
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
@@ -446,12 +446,12 @@ void updateMajorCorrectionHistory(board *position, const int depth, const int di
     MAJOR_CORRECTION_HISTORY[position->side][majorKey % CORRHIST_SIZE] = entry;
 }
 
-void update_non_pawn_corrhist(board *position, const int depth, const int diff) {
+void update_non_pawn_corrhist(board *position, const int depth, const int diff, bool cutNode) {
     U64 whiteKey = position->whiteNonPawnKey;
     U64 blackKey = position->blackNonPawnKey;
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 2 * myMIN(depth + 1, 16);
+    const int newWeight = (2 - cutNode) * myMIN(depth + 1, 16);
 
     int whiteEntry = NON_PAWN_CORRECTION_HISTORY[white][position->side][whiteKey % CORRHIST_SIZE];
 
@@ -1421,10 +1421,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
 
             int corrhistBonus = clamp(bestScore - static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
-            updatePawnCorrectionHistory(pos, depth, corrhistBonus);
-            updateMinorCorrectionHistory(pos, depth, corrhistBonus);
-            updateMajorCorrectionHistory(pos, depth, corrhistBonus);
-            update_non_pawn_corrhist(pos, depth, corrhistBonus);
+            updatePawnCorrectionHistory(pos, depth, corrhistBonus, cutNode);
+            updateMinorCorrectionHistory(pos, depth, corrhistBonus, cutNode);
+            updateMajorCorrectionHistory(pos, depth, corrhistBonus, cutNode);
+            update_non_pawn_corrhist(pos, depth, corrhistBonus, cutNode);
         }
 
         // store hash entry with the score equal to alpha

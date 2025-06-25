@@ -47,11 +47,12 @@ uint8_t justPawns(board *pos);
 void clearCounterMoves(void);
 int SEE(board *pos, int move, int threshold);
 uint64_t all_attackers_to_square(board *pos, uint64_t occupied, int sq);
-void updatePawnCorrectionHistory(board *position, const int depth, const int diff);
-void updateMinorCorrectionHistory(board *position, const int depth, const int diff);
-void updateMajorCorrectionHistory(board *position, const int depth, const int diff);
+void updatePawnCorrectionHistory(board *position, const int depth, const int diff, bool cutNode);
+void updateMinorCorrectionHistory(board *position, const int depth, const int diff, bool cutNode);
+void updateMajorCorrectionHistory(board *position, const int depth, const int diff, bool cutNode);
+void update_non_pawn_corrhist(board *position, const int depth, const int diff, bool cutNode);
 int adjustEvalWithCorrectionHistory(board *position, const int rawEval);
-void update_non_pawn_corrhist(board *position, const int depth, const int diff);
+
 int quiescence(int alpha, int beta, board* position, time* time);
 void quiescence_sort_moves(moves *moveList, board* position);
 int quiescenceScoreMove(int move, board* position);
