@@ -43,6 +43,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->hashKeyCopy = p->hashKey;
     cp->pawnKeyCopy = p->pawnKey;
     cp->minorKeyCopy = p->minorKey;
+    cp->majorKeyCopy = p->majorKey;
     cp->whiteNonPawnKeyCopy = p->whiteNonPawnKey;
     cp->blackNonPawnKeyCopy = p->blackNonPawnKey;
     cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
@@ -68,6 +69,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->hashKey = cp->hashKeyCopy;
     p->pawnKey = cp->pawnKeyCopy;
     p->minorKey = cp->minorKeyCopy;
+    p->majorKey = cp->majorKeyCopy;
     p->whiteNonPawnKey = cp->whiteNonPawnKeyCopy;
     p->blackNonPawnKey = cp->blackNonPawnKeyCopy;
     p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
@@ -162,6 +164,13 @@ bool isMinor (int piece) {
     return false;
 }
 
+bool isMajor (int piece) {
+    if (piece == Q || piece == q || piece == R || piece == r) {
+        return true;
+    }
+    return false;
+}
+
 // make move on chess board
 int makeMove(int move, int moveFlag, board* position) {
     int isLegalCapture = getMoveCapture(move);
@@ -212,6 +221,12 @@ int makeMove(int move, int moveFlag, board* position) {
         position->minorKey ^= pieceKeys[piece][targetSquare];
     }
 
+    if (isMajor(piece)) {
+        position->majorKey ^= pieceKeys[piece][sourceSquare];
+        position->majorKey ^= pieceKeys[piece][targetSquare];
+
+    }
+
 
     // handling capture moves
     if (capture) {
@@ -248,6 +263,11 @@ int makeMove(int move, int moveFlag, board* position) {
                 if (isMinor(bbPiece)) {
                     position->minorKey ^= pieceKeys[bbPiece][targetSquare];
                 }
+
+                if (isMajor(bbPiece)) {
+                    position->majorKey ^= pieceKeys[bbPiece][targetSquare];
+                }
+
                 break;
             }
         }
@@ -316,6 +336,11 @@ int makeMove(int move, int moveFlag, board* position) {
         if (isMinor(promotedPiece)) {
             position->minorKey ^= pieceKeys[promotedPiece][targetSquare];
         }
+
+        if (isMajor(promotedPiece)) {
+            position->majorKey ^= pieceKeys[promotedPiece][targetSquare];
+
+        }
     }
 
 
@@ -351,6 +376,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->hashKey ^= pieceKeys[R][f1];  // put rook on f1 into a hash key
                 position->whiteNonPawnKey ^= pieceKeys[R][h1];
                 position->whiteNonPawnKey ^= pieceKeys[R][f1];
+                position->majorKey ^= pieceKeys[R][h1];
+                position->majorKey ^= pieceKeys[R][f1];
                 break;
 
                 // white castles queen side
@@ -366,6 +393,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->hashKey ^= pieceKeys[R][d1];  // put rook on d1 into a hash key
                 position->whiteNonPawnKey ^= pieceKeys[R][a1];
                 position->whiteNonPawnKey ^= pieceKeys[R][d1];
+                position->majorKey ^= pieceKeys[R][a1];
+                position->majorKey ^= pieceKeys[R][d1];
                 break;
 
                 // black castles king side
@@ -381,6 +410,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->hashKey ^= pieceKeys[r][f8];  // put rook on f8 into a hash key
                 position->blackNonPawnKey ^= pieceKeys[r][h8];
                 position->blackNonPawnKey ^= pieceKeys[r][f8];
+                position->majorKey ^= pieceKeys[r][h8];
+                position->majorKey ^= pieceKeys[r][f8];
                 break;
 
                 // black castles queen side
@@ -396,6 +427,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->hashKey ^= pieceKeys[r][d8];  // put rook on d8 into a hash key
                 position->blackNonPawnKey ^= pieceKeys[r][a8];
                 position->blackNonPawnKey ^= pieceKeys[r][d8];
+                position->majorKey ^= pieceKeys[r][a8];
+                position->majorKey ^= pieceKeys[r][d8];
                 break;
         }
     }
@@ -442,7 +475,7 @@ int makeMove(int move, int moveFlag, board* position) {
         takeBack(position, &copyPosition);
         // return illegal move
         return 0;
-    }
+    }    
 
     return 1;
 }
