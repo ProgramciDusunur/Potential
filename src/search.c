@@ -71,7 +71,7 @@
   /*╔══════════════════════════════╗
     ║ Reverse Futility Pruning     ║
     ╚══════════════════════════════╝*/
-  int REVERSE_FUTILITY_PRUNING_OFFSET[] = {0, 82, 74, 67, 60, 54, 49, 44, 40};
+  int REVERSE_FUTILITY_PRUNING_OFFSET[] = {0, 56, 50, 46, 41, 37, 34, 30, 27};
   int RFP_MARGIN = 82;
   int RFP_IMPROVING_MARGIN = 65;
   int RFP_DEPTH = 8;
