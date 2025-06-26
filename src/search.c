@@ -71,9 +71,10 @@
   /*╔══════════════════════════════╗
     ║ Reverse Futility Pruning     ║
     ╚══════════════════════════════╝*/
+  int REVERSE_FUTILITY_PRUNING_OFFSET[] = {0, 82, 74, 67, 60, 54, 49, 44, 40};
   int RFP_MARGIN = 82;
   int RFP_IMPROVING_MARGIN = 65;
-  int RFP_DEPTH = 6;
+  int RFP_DEPTH = 8;
   
   
   /*╔══════════╗
@@ -968,7 +969,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && !tt_pv &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
-        ttAdjustedEval - rfpMargin >= beta)
+        ttAdjustedEval - (rfpMargin + REVERSE_FUTILITY_PRUNING_OFFSET[clamp(depth, 1, RFP_DEPTH)]) >= beta)
         return ttAdjustedEval;
 
     // Null Move Pruning
@@ -1117,7 +1118,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Futility Pruning
-                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth <= alpha) {
+                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, FP_DEPTH)]) + FP_MARGIN * lmrDepth <= alpha) {
                     continue;
                 }
                 // Quiet History Pruning
