@@ -910,7 +910,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         (tt_hit =
                 readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv)) &&
                 !pvNode) {
-        if (tt_depth >= depth + (tt_score >= beta)) {
+        if (tt_depth >= depth + (tt_score >= beta + 50)) {
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
                 ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
