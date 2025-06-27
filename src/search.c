@@ -1376,14 +1376,16 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
+                    // history bonus
+                    int historyDepth = depth + (bestScore > beta + 50);
                     if (notTactical) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
-                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
-                        updateContinuationHistory(pos, bestMove, depth, badQuiets);
+                        updateQuietMoveHistory(bestMove, pos->side, historyDepth, badQuiets);
+                        updateContinuationHistory(pos, bestMove, historyDepth, badQuiets);
 
                         if (rootNode) {
-                            updateRootHistory(pos, bestMove, depth, badQuiets);
+                            updateRootHistory(pos, bestMove, historyDepth, badQuiets);
                         }
                     }
 
