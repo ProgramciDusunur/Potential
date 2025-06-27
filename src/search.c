@@ -177,7 +177,7 @@ void initializeLMRTable(void) {
 */
 
 // score moves
-int scoreMove(int move, board* position) {
+int scoreMove(int move, board* position, int depth) {
     // make sure we are dealing with PV move
     if (position->scorePv && position->pvTable[0][position->ply] == move) {
         // disable score PV flag
@@ -247,17 +247,23 @@ int scoreMove(int move, board* position) {
         else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
 
-        return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)] +
+        int quietHistoryScore = quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)] +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
                         getContinuationHistoryScore(position, 4, move) +
                (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
+
+        if (depth >= 10) {
+            quietHistoryScore += getContinuationHistoryScore(position, 6, move);
+        }
+
+        return quietHistoryScore;
     }
     return 0;
 }
 
 
-void sort_moves(moves *moveList, int tt_move, board* position) {
+void sort_moves(moves *moveList, int tt_move, board* position, int depth) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -271,7 +277,7 @@ void sort_moves(moves *moveList, int tt_move, board* position) {
         if (tt_move == current_move)
             current_score = 2000000000;
         else
-        current_score = scoreMove(current_move, position);
+        current_score = scoreMove(current_move, position, depth);
 
         // Find the correct position to insert the current move
         int insert_pos = sorted_count;
@@ -1068,7 +1074,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         enable_pv_scoring(moveList, pos);
 
     // sort moves
-    sort_moves(moveList, tt_move, pos);
+    sort_moves(moveList, tt_move, pos, depth);
 
     // number of moves searched in a move list
     int moves_searched = 0;
