@@ -1372,6 +1372,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                     // adjust PV length
                     pos->pvLength[pos->ply] = pos->pvLength[pos->ply + 1];
+
+                    // Alpha raise reductions
+                    if (depth > 3 && depth < 12) {
+                        depth--;
+                    }
+                        
                 }
 
                 // fail-hard beta cutoff
