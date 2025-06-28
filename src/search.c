@@ -946,6 +946,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
 
+    improving |= pos->staticEval[pos->ply] >= beta + 100;
+
     // Internal Iterative Reductions
     if ((pvNode || cutNode || !improving) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
         depth--;
@@ -959,9 +961,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
          (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
 
         ttAdjustedEval = tt_score;
-    }
-
-    improving |= pos->staticEval[pos->ply] >= beta + 100;
+    }    
 
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
