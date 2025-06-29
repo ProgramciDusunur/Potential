@@ -122,7 +122,7 @@
   /*╔══════════════════════════════╗
     ║      Aspiration Windows      ║
     ╚══════════════════════════════╝*/
-  int ASP_WINDOW_BASE = 9;
+  int ASP_WINDOW_BASE = 36;
   int ASP_WINDOW_MIN_DEPTH = 4;
   double ASP_WINDOW_MULTIPLIER = 1.8;
 
