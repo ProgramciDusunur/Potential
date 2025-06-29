@@ -1371,12 +1371,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                         pos->pvTable[pos->ply][next_ply] = pos->pvTable[pos->ply + 1][next_ply];
 
                     // adjust PV length
-                    pos->pvLength[pos->ply] = pos->pvLength[pos->ply + 1];
-
-                    // Alpha raise reductions
-                    if (depth > 3 && depth < 12) {
-                        depth--;
-                    }
+                    pos->pvLength[pos->ply] = pos->pvLength[pos->ply + 1];                    
                         
                 }
 
@@ -1391,6 +1386,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                         if (rootNode) {
                             updateRootHistory(pos, bestMove, depth, badQuiets);
                         }
+                    }
+                    
+                    if (depth > 4 && depth < 13 && abs(bestScore) < mateScore) {
+                        depth--;
                     }
 
                     // node (move) fails high
