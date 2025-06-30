@@ -201,7 +201,7 @@ void writeHashEntry(uint64_t key, int16_t score, int bestMove, uint8_t depth, ui
     // the scoring data for the current board position if available
     tt *hashEntry = &hashTable[get_hash_index(position->hashKey)];
 
-    if (bestMove != 0 || key != position->hashKey) {
+    if (bestMove != 0 || key != position->hashKey || depth > hashEntry->depth + 4) {
         hashEntry->bestMove = bestMove;
     }
 
