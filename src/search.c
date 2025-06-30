@@ -86,7 +86,7 @@
   /*╔═════════════════════╗
     ║ Singular Extensions ║
     ╚═════════════════════╝*/
-  int SE_DEPTH = 5;
+  int SE_DEPTH = 4;
   int SE_TT_DEPTH_SUBTRACTOR = 3;
   // Positive Extensions
   int DOUBLE_EXTENSION_MARGIN = 20;
