@@ -760,7 +760,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
     // sort moves
     if (moveList->count > 0) {
-        quiescence_sort_moves(moveList, position);
+        sort_moves(moveList, tt_move, position);
     }
 
 
