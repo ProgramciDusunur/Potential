@@ -1176,7 +1176,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Triple Extension
-                if (!getMoveCapture(currentMove) && singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
+                if (singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
                     extensions++;
                 }
             // ╔═══════════════════════════╗
@@ -1216,7 +1216,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Triple Negative Extension
-                if (notTactical && tt_score - TRIPLE_NEGATIVE_EXTENSION_MARGIN >= beta) {
+                if (tt_score - TRIPLE_NEGATIVE_EXTENSION_MARGIN >= beta) {
                     extensions -= 1;
                 }
 
