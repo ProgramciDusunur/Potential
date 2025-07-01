@@ -473,7 +473,7 @@ int evaluate(const board* position) {
         if (countBits(position->bitboards[b]) == 2) {
                 score_midgame -= bishop_pair_bonus_midgame;
                 score_endgame -= bishop_pair_bonus_endgame;
-        }
+        }        
 
         int winnableScore = 0;
         // winnable
@@ -483,6 +483,8 @@ int evaluate(const board* position) {
         winnableScore +=  6 * passed_pawn_count +
                 8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]))
         ;
+        
+        winnableScore += game_phase_score / 128;
 
         score_midgame += winnableScore;
         score_endgame += winnableScore;
