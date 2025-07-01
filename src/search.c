@@ -404,13 +404,14 @@ void clearCounterMoves(void) {
     }
 }
 
-void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
+void updatePawnCorrectionHistory(board *position, const int depth, const int diff, uint8_t flag, bool tt_pv, bool tt_hit) {
     U64 pawnKey = position->pawnKey;
 
     int entry = PAWN_CORRECTION_HISTORY[position->side][pawnKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 2 * myMIN(depth + 1, 16);
+    int tt_pv_weight = flag != hashFlagExact && tt_pv && tt_hit ? 3 : 1;
+    const int newWeight = (2 * myMIN(depth + 1, 16)) / tt_pv_weight;
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
@@ -418,13 +419,14 @@ void updatePawnCorrectionHistory(board *position, const int depth, const int dif
     PAWN_CORRECTION_HISTORY[position->side][pawnKey % CORRHIST_SIZE] = entry;
 }
 
-void updateMinorCorrectionHistory(board *position, const int depth, const int diff) {
+void updateMinorCorrectionHistory(board *position, const int depth, const int diff, uint8_t flag, bool tt_pv, bool tt_hit) {
     U64 minorKey = position->minorKey;
 
     int entry = MINOR_CORRECTION_HISTORY[position->side][minorKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 2 * myMIN(depth + 1, 16);
+    int tt_pv_weight = flag != hashFlagExact && tt_pv && tt_hit ? 3 : 1;
+    const int newWeight = (2 * myMIN(depth + 1, 16)) / tt_pv_weight;
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
@@ -432,13 +434,14 @@ void updateMinorCorrectionHistory(board *position, const int depth, const int di
     MINOR_CORRECTION_HISTORY[position->side][minorKey % CORRHIST_SIZE] = entry;
 }
 
-void updateMajorCorrectionHistory(board *position, const int depth, const int diff) {
+void updateMajorCorrectionHistory(board *position, const int depth, const int diff, uint8_t flag, bool tt_pv, bool tt_hit) {
     U64 majorKey = position->majorKey;
 
     int entry = MAJOR_CORRECTION_HISTORY[position->side][majorKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 2 * myMIN(depth + 1, 16);
+    int tt_pv_weight = flag != hashFlagExact && tt_pv && tt_hit ? 3 : 1;
+    const int newWeight = (2 * myMIN(depth + 1, 16)) / tt_pv_weight;
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
@@ -446,12 +449,13 @@ void updateMajorCorrectionHistory(board *position, const int depth, const int di
     MAJOR_CORRECTION_HISTORY[position->side][majorKey % CORRHIST_SIZE] = entry;
 }
 
-void update_non_pawn_corrhist(board *position, const int depth, const int diff) {
+void update_non_pawn_corrhist(board *position, const int depth, const int diff, uint8_t flag, bool tt_pv, bool tt_hit) {
     U64 whiteKey = position->whiteNonPawnKey;
     U64 blackKey = position->blackNonPawnKey;
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 2 * myMIN(depth + 1, 16);
+    int tt_pv_weight = flag != hashFlagExact && tt_pv && tt_hit ? 3 : 1;
+    const int newWeight = (2 * myMIN(depth + 1, 16)) / tt_pv_weight;
 
     int whiteEntry = NON_PAWN_CORRECTION_HISTORY[white][position->side][whiteKey % CORRHIST_SIZE];
 
@@ -1421,10 +1425,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
 
             int corrhistBonus = clamp(bestScore - static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
-            updatePawnCorrectionHistory(pos, depth, corrhistBonus);
-            updateMinorCorrectionHistory(pos, depth, corrhistBonus);
-            updateMajorCorrectionHistory(pos, depth, corrhistBonus);
-            update_non_pawn_corrhist(pos, depth, corrhistBonus);
+            updatePawnCorrectionHistory(pos, depth, corrhistBonus, tt_flag, tt_pv, tt_hit);
+            updateMinorCorrectionHistory(pos, depth, corrhistBonus, tt_flag, tt_pv, tt_hit);
+            updateMajorCorrectionHistory(pos, depth, corrhistBonus, tt_flag, tt_pv, tt_hit);
+            update_non_pawn_corrhist(pos, depth, corrhistBonus, tt_flag, tt_pv, tt_hit);
         }
 
         // store hash entry with the score equal to alpha
