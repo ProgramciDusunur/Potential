@@ -961,7 +961,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         ttAdjustedEval = tt_score;
     }
 
-    improving |= pos->staticEval[pos->ply] >= beta + 100;
+    improving |= pos->staticEval[pos->ply] >= beta + 100 + 25 * tt_pv;
 
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
