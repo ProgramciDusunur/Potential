@@ -177,7 +177,7 @@ void initializeLMRTable(void) {
 */
 
 // score moves
-int scoreMove(int move, board* position) {
+int scoreMove(int move, board* position, uint64_t threats) {
     // make sure we are dealing with PV move
     if (position->scorePv && position->pvTable[0][position->ply] == move) {
         // disable score PV flag
@@ -247,7 +247,7 @@ int scoreMove(int move, board* position) {
         else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
 
-        return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)] +
+        return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)][getBit(threats, getMoveSource(move))][getBit(threats, getMoveTarget(move))] +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
                         getContinuationHistoryScore(position, 4, move) +
@@ -257,7 +257,7 @@ int scoreMove(int move, board* position) {
 }
 
 
-void sort_moves(moves *moveList, int tt_move, board* position) {
+void sort_moves(moves *moveList, int tt_move, board* position, uint64_t threats) {
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -271,7 +271,7 @@ void sort_moves(moves *moveList, int tt_move, board* position) {
         if (tt_move == current_move)
             current_score = 2000000000;
         else
-        current_score = scoreMove(current_move, position);
+        current_score = scoreMove(current_move, position, threats);
 
         // Find the correct position to insert the current move
         int insert_pos = sorted_count;
@@ -690,6 +690,73 @@ void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int
                 evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
 }
 
+int get_attacked_squares(int side, board* pos) {
+    uint64_t attack_map = 0;
+    uint64_t bb;
+
+    uint64_t kingBB;
+    uint64_t knightBB;
+    uint64_t bishopBB;
+    uint64_t rookBB;
+    uint64_t queenBB;
+    uint64_t pawnBB;
+
+    if (side == white) {
+        kingBB = pos->bitboards[K];
+        knightBB = pos->bitboards[N];
+        bishopBB = pos->bitboards[B];
+        rookBB = pos->bitboards[R];
+        queenBB = pos->bitboards[Q];
+        pawnBB = pos->bitboards[p];
+    } else {
+        kingBB = pos->bitboards[k];
+        knightBB = pos->bitboards[n];
+        bishopBB = pos->bitboards[b];
+        rookBB = pos->bitboards[r];
+        queenBB = pos->bitboards[q];
+        pawnBB = pos->bitboards[P];
+
+    }
+    // Calculate King attacks
+    attack_map |= getKingAttacks(getLS1BIndex(kingBB));
+
+    // Calculate Knight attacks
+    while (knightBB) {
+        int knightSquare = getLS1BIndex(knightBB);
+        attack_map |= getKnightAttacks(knightSquare);
+        popBit(knightBB, knightSquare);
+    }
+
+    // Calculate Bishop attacks
+    while (bishopBB) {
+        int bishopSquare = getLS1BIndex(bishopBB);
+        attack_map |= getBishopAttacks(bishopSquare, pos->occupancies[both]);
+        popBit(bishopBB, bishopSquare);
+    }
+
+    // Calculate Rook attacks
+    while (rookBB) {    
+        int rookSquare = getLS1BIndex(rookBB);
+        attack_map |= getRookAttacks(rookSquare, pos->occupancies[both]);
+        popBit(rookBB, rookSquare);
+    }
+
+    // Calculate Queen attacks
+    while (queenBB) {   
+        int queenSquare = getLS1BIndex(queenBB);
+        attack_map |= getQueenAttacks(queenSquare, pos->occupancies[both]);
+        popBit(queenBB, queenSquare);
+    }
+    // Calculate Pawn attacks
+    while (pawnBB) { 
+        int pawnSquare = getLS1BIndex(pawnBB);
+        attack_map |= getPawnAttacks(side, pawnSquare);
+        popBit(pawnBB, pawnSquare);
+    }    
+
+    return attack_map;
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, time* time) {
     if ((searchNodes & 2047) == 0) {
@@ -1067,8 +1134,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // enable PV move scoring
         enable_pv_scoring(moveList, pos);
 
+    // Calculate all squares opponent is controlling
+    uint64_t threats = get_attacked_squares(1 - pos->side, pos);
+
     // sort moves
-    sort_moves(moveList, tt_move, pos);
+    sort_moves(moveList, tt_move, pos, threats);
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -1098,7 +1168,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
-        int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)] +
+        int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
+                                        [getBit(threats, getMoveSource(currentMove))][getBit(threats, getMoveTarget(currentMove))] +
                 getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + moveHistory / 8192);
@@ -1379,7 +1450,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     if (notTactical) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
-                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
+                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, threats);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets);
 
                         if (rootNode) {

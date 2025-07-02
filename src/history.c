@@ -6,8 +6,8 @@
 
 #include "utils.h"
 
-// quietHistory[side to move][fromSquare][toSquare]
-int quietHistory[2][64][64];
+// quietHistory[side to move][fromSquare][toSquare][threatFrom][threatTo]
+int quietHistory[2][64][64][2][2];
 // rootHistory[side to move][fromSquare][toSquare]
 int rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
@@ -43,24 +43,26 @@ void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiet
     }
 }
 
-void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets) {
+void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets, uint64_t threats) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
     int bonus = getHistoryBonus(depth);
-    int score = quietHistory[side][from][to];
+    int score = quietHistory[side][from][to][getBit(threats, getMoveSource(bestMove))][getBit(threats, getMoveTarget(bestMove))];
 
-    quietHistory[side][from][to] += scaledBonus(score, bonus, maxQuietHistory);
+    quietHistory[side][from][to][getBit(threats, getMoveSource(bestMove))][getBit(threats, getMoveTarget(bestMove))] += scaledBonus(score, bonus, maxQuietHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
+        int badQuietThreatFrom = getBit(threats, getMoveSource(badQuiets->moves[index]));
+        int badQuietThreatTo = getBit(threats, getMoveTarget(badQuiets->moves[index]));
 
-        int badQuietScore = quietHistory[side][badQuietFrom][badQuietTo];
+        int badQuietScore = quietHistory[side][badQuietFrom][badQuietTo][badQuietThreatFrom][badQuietThreatTo];
 
         if (badQuiets->moves[index] == bestMove) continue;
 
-        quietHistory[side][badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
+        quietHistory[side][badQuietFrom][badQuietTo][badQuietThreatFrom][badQuietThreatTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
     }
 }
 
