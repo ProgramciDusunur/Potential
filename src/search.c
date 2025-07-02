@@ -750,7 +750,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // evaluate position
     int evaluation = evaluate(position);
 
-    evaluation = adjustEvalWithCorrectionHistory(position, evaluation, 0);
+    evaluation = adjustEvalWithCorrectionHistory(position, evaluation, position->ply - 1 >= 0 ? position->counterMoves[position->ply - 1] : 0);
 
     score = bestScore = tt_hit ? tt_score : evaluation;
 
@@ -812,6 +812,10 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
             // skip to next move
             continue;
+        }
+
+        if (position-> ply > 0) {
+            position->counterMoves[position->ply - 1] = moveList->moves[count];
         }
 
         //legal_moves++;
@@ -1267,7 +1271,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             continue;
         }
 
-        pos->counterMoves[pos->ply - 1] = currentMove;
+        if (pos->ply > 0) {
+            pos->counterMoves[pos->ply - 1] = currentMove;
+        }
+
+        
 
 
         // increment nodes count
@@ -1441,7 +1449,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             updateMinorCorrectionHistory(pos, depth, corrhistBonus);
             updateMajorCorrectionHistory(pos, depth, corrhistBonus);
             update_non_pawn_corrhist(pos, depth, corrhistBonus);
-            update_counter_move_correction_history(depth, corrhistBonus, pos->counterMoves[pos->ply - 1]);
+            update_counter_move_correction_history(depth, corrhistBonus, pos->ply - 1 >= 0 ? pos->counterMoves[pos->ply - 1] : 0);
         }
 
         // store hash entry with the score equal to alpha
