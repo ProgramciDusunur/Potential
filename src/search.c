@@ -1267,7 +1267,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             continue;
         }
 
-        pos->counterMoves[pos->ply - 1 >= 0 ? pos->ply - 1 : 0] = currentMove;
+        pos->counterMoves[pos->ply - 1] = currentMove;
 
 
         // increment nodes count
@@ -1441,7 +1441,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             updateMinorCorrectionHistory(pos, depth, corrhistBonus);
             updateMajorCorrectionHistory(pos, depth, corrhistBonus);
             update_non_pawn_corrhist(pos, depth, corrhistBonus);
-            update_counter_move_correction_history(depth, corrhistBonus, pos->counterMoves[pos->ply - 1 >= 0 ? pos->ply - 1 : 0]);
+            update_counter_move_correction_history(depth, corrhistBonus, pos->counterMoves[pos->ply - 1]);
         }
 
         // store hash entry with the score equal to alpha
