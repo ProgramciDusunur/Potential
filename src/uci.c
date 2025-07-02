@@ -471,6 +471,7 @@ void uciProtocol(int argc, char *argv[], board *position, time *time_ctrl) {
             memset(MINOR_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
             memset(MAJOR_CORRECTION_HISTORY, 0, sizeof(MAJOR_CORRECTION_HISTORY));
             memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
+            memset(COUNTER_MOVE_CORRECTION_HISTORY, 0, sizeof(COUNTER_MOVE_CORRECTION_HISTORY));
 
             // call parse position function
             parse_position("position startpos", position);

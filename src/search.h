@@ -34,6 +34,7 @@ extern int PAWN_CORRECTION_HISTORY[2][16384];
 extern int MINOR_CORRECTION_HISTORY[2][16384];
 extern int NON_PAWN_CORRECTION_HISTORY[2][2][16384];
 extern int MAJOR_CORRECTION_HISTORY[2][16384];
+extern int COUNTER_MOVE_CORRECTION_HISTORY[12][64];
 
 int isRepetition(board* position);
 uint8_t isMaterialDraw(board *pos);
