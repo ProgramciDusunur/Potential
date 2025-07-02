@@ -1316,9 +1316,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
                 bool historyReduction = moveHistory / 16384;
                 bool doShallower = score < bestScore + new_depth;
+                bool ttpvFailLow = tt_pv && tt_hit && tt_score <= alpha;
                 new_depth -= doShallower;
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
+                new_depth += ttpvFailLow;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             }
         }
