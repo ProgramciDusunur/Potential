@@ -63,8 +63,8 @@
   /*╔════════════════════╗
     ║ Futility Pruning   ║
     ╚════════════════════╝*/
-  int FUTILITY_PRUNING_OFFSET[] = {0, 82, 41, 20, 10, 5};
-  int FP_DEPTH = 5;
+  int FUTILITY_PRUNING_OFFSET[] = {0, 82, 74, 67, 60, 54, 49, 44, 40, 36};
+  int FP_DEPTH = 9;
   int FP_MARGIN = 82;
   
   
@@ -1117,7 +1117,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Futility Pruning
-                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth <= alpha) {
+                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, FP_DEPTH)]) + FP_MARGIN * lmrDepth <= alpha) {
                     continue;
                 }
                 // Quiet History Pruning
