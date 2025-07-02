@@ -472,7 +472,7 @@ void update_counter_move_correction_history(const int depth, const int diff,  co
     int entry = COUNTER_MOVE_CORRECTION_HISTORY[getMovePiece(counterMove)][getMoveTarget(counterMove)];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 2 * myMIN(depth + 1, 16);
+    const int newWeight = myMIN(depth + 1, 16);
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
