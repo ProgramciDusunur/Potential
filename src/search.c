@@ -110,7 +110,8 @@
   int PAWN_CORRECTION_HISTORY[2][16384];
   int MINOR_CORRECTION_HISTORY[2][16384];
   int MAJOR_CORRECTION_HISTORY[2][16384];
-  int NON_PAWN_CORRECTION_HISTORY[2][2][16384];  
+  int NON_PAWN_CORRECTION_HISTORY[2][2][16384];
+  int COUNTER_MOVE_CORRECTION_HISTORY[12][64];
   
   
   /*╔═══════════════════════════════╗
@@ -467,7 +468,19 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff) 
     NON_PAWN_CORRECTION_HISTORY[black][position->side][blackKey % CORRHIST_SIZE] = blackEntry;
 }
 
-int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
+void update_counter_move_correction_history(const int depth, const int diff,  const int counterMove) {
+    int entry = COUNTER_MOVE_CORRECTION_HISTORY[getMovePiece(counterMove)][getMoveTarget(counterMove)];
+
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = 2 * myMIN(depth + 1, 16);
+
+    entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+    entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
+
+    COUNTER_MOVE_CORRECTION_HISTORY[getMovePiece(counterMove)][getMoveTarget(counterMove)] = entry;
+}
+
+int adjustEvalWithCorrectionHistory(board *position, const int rawEval, int counterMove) {
     U64 pawnKey = position->pawnKey;
     U64 minorKey = position->minorKey;
     U64 majorKey = position->majorKey;
@@ -482,9 +495,11 @@ int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
     U64 blackNPKey = position->blackNonPawnKey;
     int blackNPEntry = NON_PAWN_CORRECTION_HISTORY[black][position->side][blackNPKey % CORRHIST_SIZE];
 
+    int counterMoveEntry = COUNTER_MOVE_CORRECTION_HISTORY[getMovePiece(counterMove)][getMoveTarget(counterMove)];
+
     int mateFound = mateValue - maxPly;
 
-    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry;
+    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry + counterMoveEntry;
 
     return clamp(rawEval + adjust / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
 }
@@ -735,7 +750,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // evaluate position
     int evaluation = evaluate(position);
 
-    evaluation = adjustEvalWithCorrectionHistory(position, evaluation);
+    evaluation = adjustEvalWithCorrectionHistory(position, evaluation, 0);
 
     score = bestScore = tt_hit ? tt_score : evaluation;
 
@@ -934,7 +949,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // get static evaluation score
     int raw_eval = evaluate(pos);
 
-    int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
+    int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval, pos->move[myMIN(pos->ply, pos->ply - 1)]);
 
     bool improving = false;
 
@@ -1424,6 +1439,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             updateMinorCorrectionHistory(pos, depth, corrhistBonus);
             updateMajorCorrectionHistory(pos, depth, corrhistBonus);
             update_non_pawn_corrhist(pos, depth, corrhistBonus);
+            update_counter_move_correction_history(depth, corrhistBonus, pos->move[myMIN(pos->ply, pos->ply - 1)]);
         }
 
         // store hash entry with the score equal to alpha
