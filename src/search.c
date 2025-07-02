@@ -1267,6 +1267,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             continue;
         }
 
+        pos->counterMoves[pos->ply - 1 >= 0 ? pos->ply - 1 : 0] = currentMove;
+
 
         // increment nodes count
         searchNodes++;
@@ -1439,7 +1441,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             updateMinorCorrectionHistory(pos, depth, corrhistBonus);
             updateMajorCorrectionHistory(pos, depth, corrhistBonus);
             update_non_pawn_corrhist(pos, depth, corrhistBonus);
-            update_counter_move_correction_history(depth, corrhistBonus, pos->move[myMIN(pos->ply, pos->ply - 1)]);
+            update_counter_move_correction_history(depth, corrhistBonus, pos->counterMoves[pos->ply - 1 >= 0 ? pos->ply - 1 : 0]);
         }
 
         // store hash entry with the score equal to alpha
@@ -1492,6 +1494,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             position->staticEval[i] = noEval;
             position->piece[i] = 0;
             position->move[i] = 0;
+            position->counterMoves[i] = 0;
         }
 
         position->seldepth = 0;
