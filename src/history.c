@@ -46,23 +46,25 @@ void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiet
 void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets, uint64_t threats) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
+    bool isThreatFrom = (getBit(threats, getMoveSource(bestMove)) != 0);
+    bool isThreatTo   = (getBit(threats, getMoveTarget(bestMove)) != 0);
 
     int bonus = getHistoryBonus(depth);
-    int score = quietHistory[side][from][to][getBit(threats, getMoveSource(bestMove))][getBit(threats, getMoveTarget(bestMove))];
+    int score = quietHistory[side][from][to][isThreatFrom][isThreatTo];
 
-    quietHistory[side][from][to][getBit(threats, getMoveSource(bestMove))][getBit(threats, getMoveTarget(bestMove))] += scaledBonus(score, bonus, maxQuietHistory);
+    quietHistory[side][from][to][isThreatFrom][isThreatTo] += scaledBonus(score, bonus, maxQuietHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
-        int badQuietThreatFrom = getBit(threats, getMoveSource(badQuiets->moves[index]));
-        int badQuietThreatTo = getBit(threats, getMoveTarget(badQuiets->moves[index]));
+        bool badQuietIsThreatFrom = (getBit(threats, getMoveSource(badQuiets->moves[index])) != 0);
+        bool badQuietIsThreatTo = (getBit(threats, getMoveTarget(badQuiets->moves[index])) != 0);
 
-        int badQuietScore = quietHistory[side][badQuietFrom][badQuietTo][badQuietThreatFrom][badQuietThreatTo];
+        int badQuietScore = quietHistory[side][badQuietFrom][badQuietTo][badQuietIsThreatFrom][badQuietIsThreatTo];
 
         if (badQuiets->moves[index] == bestMove) continue;
 
-        quietHistory[side][badQuietFrom][badQuietTo][badQuietThreatFrom][badQuietThreatTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
+        quietHistory[side][badQuietFrom][badQuietTo][badQuietIsThreatFrom][badQuietIsThreatTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
     }
 }
 

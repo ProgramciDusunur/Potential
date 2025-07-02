@@ -247,7 +247,10 @@ int scoreMove(int move, board* position, uint64_t threats) {
         else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
 
-        return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)][getBit(threats, getMoveSource(move))][getBit(threats, getMoveTarget(move))] +
+        bool isThreatFrom = (getBit(threats, getMoveSource(move)) != 0);
+        bool isThreatTo   = (getBit(threats, getMoveTarget(move)) != 0);
+
+        return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)][isThreatFrom][isThreatTo] +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
                         getContinuationHistoryScore(position, 4, move) +
@@ -1168,8 +1171,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
+        bool isThreatFrom = (getBit(threats, getMoveSource(currentMove)) != 0);
+        bool isThreatTo   = (getBit(threats, getMoveTarget(currentMove)) != 0);
+
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                                        [getBit(threats, getMoveSource(currentMove))][getBit(threats, getMoveTarget(currentMove))] +
+                                        [isThreatFrom][isThreatTo] +
                 getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + moveHistory / 8192);
