@@ -812,11 +812,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
             // skip to next move
             continue;
-        }
-
-        if (position-> ply > 0) {
-            position->counterMoves[position->ply - 1] = moveList->moves[count];
-        }
+        }       
 
         //legal_moves++;
 
