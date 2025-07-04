@@ -1043,7 +1043,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             pos->nmpPly = 0;
 
             if (verificationScore >= beta) {
-                return (ttAdjustedEval * 3 + beta) / 4;
+                return (verificationScore * 3 + beta) / 4;
             }
         }
     }    
