@@ -1007,6 +1007,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         R += myMIN((ttAdjustedEval - beta) / NMP_EVAL_DIVISOR, 3);
 
+        R -= tt_pv;
+
         pos->move[myMIN(pos->ply, maxPly - 1)] = 0;
         pos->piece[myMIN(pos->ply, maxPly - 1)] = 0;
 
