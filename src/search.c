@@ -1075,18 +1075,13 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // number of moves searched in a move list
     int moves_searched = 0;
 
-    int bestScore = -infinity;
-
-    //bool skipQuiet = false;
+    int bestScore = -infinity;    
 
     // legal moves counter
     int legal_moves = 0;
 
     // quiet move counter
-    int quietMoves = 0;
-
-    // capture move counter
-    //int captureMoves = 0;
+    int quietMoves = 0;    
 
     const int originalAlpha = alpha;
 
@@ -1101,7 +1096,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
+                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 2, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + moveHistory / 8192);
 
