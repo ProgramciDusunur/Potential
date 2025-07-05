@@ -50,8 +50,7 @@
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
-  int CORRPLEXITY_LMR_DIVISOR = 1024;
-  int CORRPLEXITY_LMR_SCALER = 64;
+  int CORRPLEXITY_LMR_DIVISOR = 8192;  
 
   
   
@@ -498,13 +497,12 @@ int squaredCorrectionTerms(board *pos) {
     int majorEntry = MAJOR_CORRECTION_HISTORY[pos->side][pos->majorKey % CORRHIST_SIZE];    
     int whiteNPEntry = NON_PAWN_CORRECTION_HISTORY[white][pos->side][pos->whiteNonPawnKey % CORRHIST_SIZE];    
     int blackNPEntry = NON_PAWN_CORRECTION_HISTORY[black][pos->side][pos->blackNonPawnKey % CORRHIST_SIZE];
-
-    int mateFound = mateValue - maxPly;
+    
 
     int corrhistEntry = (pawnEntry * pawnEntry) + (minorEntry * minorEntry) + (majorEntry * majorEntry) +
                  (whiteNPEntry * whiteNPEntry) + (blackNPEntry * blackNPEntry);
 
-    return clamp(corrhistEntry / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
+    return corrhistEntry / (CORRHIST_GRAIN * 8);
 }
 
 uint8_t justPawns(board *pos) {
@@ -1329,8 +1327,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER;
         }
-        
-        lmrReduction -= corrplexity / (CORRPLEXITY_LMR_DIVISOR * 5) * CORRPLEXITY_LMR_SCALER;
+        //printf("Corrplexity: %d Divided %d\n", corrplexity, corrplexity / (CORRPLEXITY_LMR_DIVISOR * 5));
+        lmrReduction -= corrplexity / (CORRPLEXITY_LMR_DIVISOR * 5);
         
 
         lmrReduction /= 1024;
