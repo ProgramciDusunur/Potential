@@ -502,7 +502,7 @@ int squaredCorrectionTerms(board *pos) {
     int corrhistEntry = (pawnEntry * pawnEntry) + (minorEntry * minorEntry) + (majorEntry * majorEntry) +
                  (whiteNPEntry * whiteNPEntry) + (blackNPEntry * blackNPEntry);
 
-    return corrhistEntry / (CORRHIST_GRAIN * 8);
+    return corrhistEntry / (CORRHIST_GRAIN * 16);
 }
 
 uint8_t justPawns(board *pos) {
