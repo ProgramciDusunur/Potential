@@ -489,6 +489,17 @@ int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
     return clamp(rawEval + adjust / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
 }
 
+int squaredCorrectionTerms(board *pos) {
+    int pawnEntry = PAWN_CORRECTION_HISTORY[pos->side][pos->pawnKey % CORRHIST_SIZE];
+    int minorEntry = MINOR_CORRECTION_HISTORY[pos->side][pos->minorKey % CORRHIST_SIZE];
+    int majorEntry = MAJOR_CORRECTION_HISTORY[pos->side][pos->majorKey % CORRHIST_SIZE];    
+    int whiteNPEntry = NON_PAWN_CORRECTION_HISTORY[white][pos->side][pos->whiteNonPawnKey % CORRHIST_SIZE];    
+    int blackNPEntry = NON_PAWN_CORRECTION_HISTORY[black][pos->side][pos->blackNonPawnKey % CORRHIST_SIZE];    
+
+    return abs(pawnEntry) + abs(minorEntry) + abs(majorEntry) + abs(whiteNPEntry) + abs(blackNPEntry);
+}
+
+
 uint8_t justPawns(board *pos) {
     return !((pos->bitboards[N] | pos->bitboards[n] | pos->bitboards[B] |
               pos->bitboards[b] | pos->bitboards[R] | pos->bitboards[r] |
@@ -936,6 +947,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
 
+    const int corrplexity = squaredCorrectionTerms(pos);
+
     bool improving = false;
 
     int pastStack = -1;
@@ -1304,6 +1317,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER;
         }
+
+        lmrReduction -= corrplexity / 16384;
 
         lmrReduction /= 1024;
 
