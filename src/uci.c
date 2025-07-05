@@ -534,6 +534,8 @@ void uciProtocol(int argc, char *argv[], board *position, time *time_ctrl) {
             printf("option name Threads type spin default %d min %d max %d\n", 1, 1,
                    1);
             printf("uciok\n");
+        } else if (strncmp(input, "eval", 4) == 0) {
+            printf("Evaluation: %d\n", evaluate(position));
         } else if (strncmp(input, "perft", 5) == 0) {
             perftSuite();
         }
