@@ -247,7 +247,33 @@ int scoreMove(int move, board* position) {
         else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
 
-        return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)] +
+        int quietHistoryScore = quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)];
+
+        int piece = getMovePiece(move);
+        int from = getMoveSource(move);
+        int to = getMoveTarget(move);
+
+        if (piece == Q || piece == q) {
+            // Queen is the most valuable second piece, so everything will threat her
+            uint64_t queenThreats = position->pieceThreats.pawnThreats | position->pieceThreats.knightThreats |
+                                  position->pieceThreats.bishopThreats | position->pieceThreats.rookThreats;
+
+            quietHistoryScore += (getBit(queenThreats, from) ? 12228 : 0);
+            quietHistoryScore -= (getBit(queenThreats, to) ? 11264 : 0);
+
+        } else if (piece == R || piece == r) {           
+            uint64_t rookThreats = position->pieceThreats.pawnThreats | position->pieceThreats.knightThreats |
+                                  position->pieceThreats.bishopThreats;
+
+            quietHistoryScore += (getBit(rookThreats, from) ? 10240 : 0);
+            quietHistoryScore -= (getBit(rookThreats, to) ? 9216 : 0);                                  
+        } else if ((piece == B || piece == b) || (piece == N || piece == n)) {
+            uint64_t bishopAndKnightThreats = position->pieceThreats.pawnThreats;                                  
+            quietHistoryScore += (getBit(bishopAndKnightThreats, from) ? 8192 : 0);
+            quietHistoryScore -= (getBit(bishopAndKnightThreats, to) ? 7168 : 0);
+        }
+
+        return quietHistoryScore +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
                         getContinuationHistoryScore(position, 4, move) +
@@ -690,6 +716,50 @@ void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int
                 evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
 }
 
+void get_attacked_squares(int side, board* pos) {
+    
+    uint64_t bb;
+    
+    uint64_t knightBB;
+    uint64_t bishopBB;
+    uint64_t rookBB;    
+    uint64_t pawnBB;
+
+    // init piece bitboards
+    knightBB = pos->bitboards[side == white ? N : n];
+    bishopBB = pos->bitboards[side == white ? B : b];
+    rookBB = pos->bitboards[side == white ? R : r];        
+    pawnBB = pos->bitboards[side == white ? P : p];    
+
+    // Calculate Knight attacks
+    while (knightBB) {
+        int knightSquare = getLS1BIndex(knightBB);
+        pos->pieceThreats.knightThreats |= getKnightAttacks(knightSquare);
+        popBit(knightBB, knightSquare);
+    }
+
+    // Calculate Bishop attacks
+    while (bishopBB) {
+        int bishopSquare = getLS1BIndex(bishopBB);
+        pos->pieceThreats.bishopThreats |= getBishopAttacks(bishopSquare, pos->occupancies[both]);
+        popBit(bishopBB, bishopSquare);
+    }
+
+    // Calculate Rook attacks
+    while (rookBB) {    
+        int rookSquare = getLS1BIndex(rookBB);
+        pos->pieceThreats.rookThreats |= getRookAttacks(rookSquare, pos->occupancies[both]);
+        popBit(rookBB, rookSquare);
+    }
+  
+    // Calculate Pawn attacks
+    while (pawnBB) { 
+        int pawnSquare = getLS1BIndex(pawnBB);
+        pos->pieceThreats.pawnThreats |= getPawnAttacks(side, pawnSquare);
+        popBit(pawnBB, pawnSquare);
+    }    
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, time* time) {
     if ((searchNodes & 2047) == 0) {
@@ -1068,6 +1138,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     if (pos->followPv)
         // enable PV move scoring
         enable_pv_scoring(moveList, pos);
+
+    get_attacked_squares(pos->side ^ 1, pos);
 
     // sort moves
     sort_moves(moveList, tt_move, pos);

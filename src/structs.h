@@ -15,6 +15,14 @@
 
 #define maxPly 256
 
+typedef struct  {
+    uint64_t pawnThreats;
+    uint64_t knightThreats;
+    uint64_t bishopThreats;
+    uint64_t rookThreats;
+} threats;
+
+
 typedef struct {
     U64 bitboards[12];
     U64 occupancies[3];
@@ -33,6 +41,8 @@ typedef struct {
     int pvLength[maxPly];
     int pvTable[maxPly][maxPly];
     int killerMoves[maxPly][2];
+
+    threats pieceThreats;
 
     int staticEval[maxPly];
 
