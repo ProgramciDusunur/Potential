@@ -752,11 +752,24 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         alpha = evaluation;
     }
 
+
+    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
+                                    getLS1BIndex(position->bitboards[k]),
+                                    position->side ^ 1, position);
+
+
     // create move list instance
     moves moveList[1];
 
+    
+
     // generate moves
-    noisyGenerator(moveList, position);
+    if (in_check) {
+        moveGenerator(moveList, position);
+    } else {
+        noisyGenerator(moveList, position);
+    }
+    
 
     // sort moves
     if (moveList->count > 0) {
@@ -767,7 +780,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
 
     // legal moves counter
-    //int legal_moves = 0;
+    int legal_moves = 0;
 
 
     // loop over moves within a movelist
@@ -788,7 +801,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
         // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], onlyCaptures, position) == 0) {
+        if (makeMove(moveList->moves[count], in_check ? allMoves : onlyCaptures, position) == 0) {
             // decrement ply
             position->ply--;
 
@@ -799,7 +812,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             continue;
         }
 
-        //legal_moves++;
+        legal_moves++;
 
         // increment nodes count
         searchNodes++;
@@ -837,6 +850,12 @@ int quiescence(int alpha, int beta, board* position, time* time) {
                 break;
             }
         }
+    }
+
+        // we don't have any legal moves to make in the current postion
+    if (legal_moves == 0 && in_check) {                
+        // return mating score (assuming closest distance to mating pos)
+        return -mateValue + position->ply;     
     }
 
     uint8_t hashFlag = hashFlagNone;
