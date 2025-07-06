@@ -258,19 +258,19 @@ int scoreMove(int move, board* position) {
             uint64_t queenThreats = position->pieceThreats.pawnThreats | position->pieceThreats.knightThreats |
                                   position->pieceThreats.bishopThreats | position->pieceThreats.rookThreats;
 
-            quietHistoryScore += (getBit(queenThreats, from) ? 8192 : 0);
-            quietHistoryScore -= (getBit(queenThreats, to) ? 4196 : 0);
-
+            quietHistoryScore += (queenThreats & from) != 0 ? 12228 : 0;
+            quietHistoryScore -= (queenThreats & to) != 0 ? 11264 : 0;
         } else if (piece == R || piece == r) {           
             uint64_t rookThreats = position->pieceThreats.pawnThreats | position->pieceThreats.knightThreats |
                                   position->pieceThreats.bishopThreats;
 
-            quietHistoryScore += (getBit(rookThreats, from) ? 4196 : 0);
-            quietHistoryScore -= (getBit(rookThreats, to) ? 2048 : 0);                                  
+            quietHistoryScore += (rookThreats & from) != 0 ? 10240 : 0;
+            quietHistoryScore -= (rookThreats & to) != 0 ? 9216 : 0;            
         } else if ((piece == B || piece == b) || (piece == N || piece == n)) {
-            uint64_t bishopAndKnightThreats = position->pieceThreats.pawnThreats;                                  
-            quietHistoryScore += (getBit(bishopAndKnightThreats, from) ? 2048 : 0);
-            quietHistoryScore -= (getBit(bishopAndKnightThreats, to) ? 1024 : 0);
+            uint64_t bishopAndKnightThreats = position->pieceThreats.pawnThreats; 
+
+            quietHistoryScore += (bishopAndKnightThreats & from) != 0 ? 8192 : 0;
+            quietHistoryScore -= (bishopAndKnightThreats & to) != 0 ? 7168 : 0;               
         }
 
 
