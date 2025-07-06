@@ -472,12 +472,22 @@ int evaluate(board* position) {
 
         if (position->side == white) {
             uint64_t blackMajorPieces = position->bitboards[r] | position->bitboards[q];
-            score_midgame += (position->pieceThreats.knightThreats & blackMajorPieces) * 5;
-            score_endgame += (position->pieceThreats.knightThreats & blackMajorPieces) * 5;
+            // Knight Threats
+            score_midgame += (position->pieceThreats.knightThreats & blackMajorPieces) * 3;
+            score_endgame += (position->pieceThreats.knightThreats & blackMajorPieces) * 3;
+
+            // Bishop Threats
+            score_midgame += (position->pieceThreats.knightThreats & blackMajorPieces) * 3;
+            score_endgame += (position->pieceThreats.knightThreats & blackMajorPieces) * 3;
         } else {
             uint64_t whiteMajorPieces = position->bitboards[R] | position->bitboards[Q];
-            score_midgame -= (position->pieceThreats.knightThreats & whiteMajorPieces) * 5;
-            score_endgame -= (position->pieceThreats.knightThreats & whiteMajorPieces) * 5;        
+            // Knight Threats
+            score_midgame -= (position->pieceThreats.knightThreats & whiteMajorPieces) * 3;
+            score_endgame -= (position->pieceThreats.knightThreats & whiteMajorPieces) * 3;        
+
+            // Bishop Threats            
+            score_midgame -= (position->pieceThreats.bishopThreats & whiteMajorPieces) * 3;
+            score_endgame -= (position->pieceThreats.bishopThreats & whiteMajorPieces) * 3;
         }
         
         
