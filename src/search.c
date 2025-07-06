@@ -786,7 +786,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
 
-        if (!SEE(position, moveList->moves[count], QS_SEE_THRESHOLD)) {
+        if (!in_check && !SEE(position, moveList->moves[count], QS_SEE_THRESHOLD)) {
             continue;
         }
         struct copyposition copyPosition;
@@ -857,8 +857,6 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         if (in_check) {
             // return mating score (assuming closest distance to mating pos)
             return -mateValue + position->ply;     
-        } else {
-            return 0; // stalemate
         }
         
     }
