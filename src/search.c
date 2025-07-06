@@ -853,9 +853,14 @@ int quiescence(int alpha, int beta, board* position, time* time) {
     }
 
         // we don't have any legal moves to make in the current postion
-    if (legal_moves == 0 && in_check) {                
-        // return mating score (assuming closest distance to mating pos)
-        return -mateValue + position->ply;     
+    if (legal_moves == 0) {                
+        if (in_check) {
+            // return mating score (assuming closest distance to mating pos)
+            return -mateValue + position->ply;     
+        } else {
+            return 0; // stalemate
+        }
+        
     }
 
     uint8_t hashFlag = hashFlagNone;
