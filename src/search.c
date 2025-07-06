@@ -258,19 +258,24 @@ int scoreMove(int move, board* position) {
             uint64_t queenThreats = position->pieceThreats.pawnThreats | position->pieceThreats.knightThreats |
                                   position->pieceThreats.bishopThreats | position->pieceThreats.rookThreats;
 
-            quietHistoryScore += (getBit(queenThreats, from) ? 0 : 12228);
-            quietHistoryScore -= (getBit(queenThreats, to) ? 11264 : 0);
+            bool didThePieceEscapeFromThreats = getBit(queenThreats, from) && 
+                                               getBit(queenThreats, to) == 0;                                  
+
+            quietHistoryScore += (didThePieceEscapeFromThreats ? 0 : 12228);            
 
         } else if (piece == R || piece == r) {           
             uint64_t rookThreats = position->pieceThreats.pawnThreats | position->pieceThreats.knightThreats |
                                   position->pieceThreats.bishopThreats;
+            bool didThePieceEscapeFromThreats = getBit(rookThreats, from) && 
+                                    getBit(rookThreats, to) == 0;     
 
-            quietHistoryScore += (getBit(rookThreats, from) ? 0 : 10240);
-            quietHistoryScore -= (getBit(rookThreats, to) ? 9216 : 0);                                  
+            quietHistoryScore += didThePieceEscapeFromThreats ? 0 : 10240;
         } else if ((piece == B || piece == b) || (piece == N || piece == n)) {
             uint64_t bishopAndKnightThreats = position->pieceThreats.pawnThreats;                                  
-            quietHistoryScore += (getBit(bishopAndKnightThreats, from) ? 0 : 8192);
-            quietHistoryScore -= (getBit(bishopAndKnightThreats, to) ? 7168 : 0);
+
+            bool didThePieceEscapeFromThreats = getBit(bishopAndKnightThreats, from) && 
+                                    getBit(bishopAndKnightThreats, to) == 0;     
+            quietHistoryScore += didThePieceEscapeFromThreats ? 0 : 8192;            
         }
 
         return quietHistoryScore +
