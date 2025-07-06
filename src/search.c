@@ -258,24 +258,24 @@ int scoreMove(int move, board* position) {
             uint64_t queenThreats = position->pieceThreats.pawnThreats | position->pieceThreats.knightThreats |
                                   position->pieceThreats.bishopThreats | position->pieceThreats.rookThreats;
 
-            bool didThePieceEscapeFromThreats = getBit(queenThreats, from) && 
-                                               getBit(queenThreats, to) == 0;                                  
+            bool didThePieceEscapeFromThreats = (getBit(queenThreats, from)) && 
+                                               (getBit(queenThreats, to) & 0);                                  
 
-            quietHistoryScore += (didThePieceEscapeFromThreats ? 0 : 12228);            
+            quietHistoryScore += (didThePieceEscapeFromThreats ? 12228 : 0);            
 
         } else if (piece == R || piece == r) {           
             uint64_t rookThreats = position->pieceThreats.pawnThreats | position->pieceThreats.knightThreats |
                                   position->pieceThreats.bishopThreats;
-            bool didThePieceEscapeFromThreats = getBit(rookThreats, from) && 
-                                    getBit(rookThreats, to) == 0;     
+            bool didThePieceEscapeFromThreats = (getBit(rookThreats, from)) && 
+                                    (getBit(rookThreats, to) & 0);     
 
-            quietHistoryScore += didThePieceEscapeFromThreats ? 0 : 10240;
+            quietHistoryScore += didThePieceEscapeFromThreats ? 10240 : 0;
         } else if ((piece == B || piece == b) || (piece == N || piece == n)) {
             uint64_t bishopAndKnightThreats = position->pieceThreats.pawnThreats;                                  
 
-            bool didThePieceEscapeFromThreats = getBit(bishopAndKnightThreats, from) && 
-                                    getBit(bishopAndKnightThreats, to) == 0;     
-            quietHistoryScore += didThePieceEscapeFromThreats ? 0 : 8192;            
+            bool didThePieceEscapeFromThreats = (getBit(bishopAndKnightThreats, from)) && 
+                                    (getBit(bishopAndKnightThreats, to) & 0);     
+            quietHistoryScore += didThePieceEscapeFromThreats ? 8192 : 0;            
         }
 
         return quietHistoryScore +
