@@ -108,8 +108,9 @@ extern int eg_table[12][64]; // [piece][square] -> endgame score
 
 
 int get_game_phase_score(const board* position);
+void get_threats(int side, board* pos);
 void init_tables();
-int evaluate(const board* position);
+int evaluate(board* position);
 void clearStaticEvaluationHistory(board* position);
 
 #endif //POTENTIAL_EVALUATION_H

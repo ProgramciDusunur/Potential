@@ -297,6 +297,50 @@ void init_tables() {
         }
 }
 
+void get_threats(int side, board* pos) {
+
+    uint64_t bb;
+
+    uint64_t knightBB;
+    uint64_t bishopBB;
+    uint64_t rookBB;    
+    uint64_t pawnBB;
+
+    // init piece bitboards
+    knightBB = pos->bitboards[side == white ? N : n];
+    bishopBB = pos->bitboards[side == white ? B : b];
+    rookBB = pos->bitboards[side == white ? R : r];        
+    pawnBB = pos->bitboards[side == white ? P : p];    
+
+    // Calculate Knight attacks
+    while (knightBB) {
+        int knightSquare = getLS1BIndex(knightBB);
+        pos->pieceThreats.knightThreats |= getKnightAttacks(knightSquare);
+        popBit(knightBB, knightSquare);
+    }
+
+    // Calculate Bishop attacks
+    while (bishopBB) {
+        int bishopSquare = getLS1BIndex(bishopBB);
+        pos->pieceThreats.bishopThreats |= getBishopAttacks(bishopSquare, pos->occupancies[both]);
+        popBit(bishopBB, bishopSquare);
+    }
+
+    // Calculate Rook attacks
+    while (rookBB) {    
+        int rookSquare = getLS1BIndex(rookBB);
+        pos->pieceThreats.rookThreats |= getRookAttacks(rookSquare, pos->occupancies[both]);
+        popBit(rookBB, rookSquare);
+    }
+
+    // Calculate Pawn attacks
+    while (pawnBB) { 
+        int pawnSquare = getLS1BIndex(pawnBB);
+        pos->pieceThreats.pawnThreats |= getPawnAttacks(side, pawnSquare);
+        popBit(pawnBB, pawnSquare);
+    }    
+}
+
 // get game phase score
 int get_game_phase_score(const board* position) {
     /*
@@ -329,10 +373,17 @@ int get_game_phase_score(const board* position) {
 }
 
 
-int evaluate(const board* position) {
+int evaluate(board* position) {
         const int game_phase_score = get_game_phase_score(position);
 
         int score_midgame = 0, score_endgame = 0;
+
+        position->pieceThreats.pawnThreats = 0;
+        position->pieceThreats.knightThreats = 0;
+        position->pieceThreats.bishopThreats = 0;
+        position->pieceThreats.rookThreats = 0;
+
+        get_threats(position->side, position);
 
         const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
         const int blackKingSquare = getLS1BIndex(position->bitboards[k]);
@@ -416,6 +467,20 @@ int evaluate(const board* position) {
                         popBit(bitboard, square);
                 }
         }
+
+        
+
+        if (position->side == white) {
+            uint64_t blackMajorPieces = position->bitboards[r] | position->bitboards[q];
+            score_midgame += (position->pieceThreats.knightThreats & blackMajorPieces) * 5;
+            score_endgame += (position->pieceThreats.knightThreats & blackMajorPieces) * 5;
+        } else {
+            uint64_t whiteMajorPieces = position->bitboards[R] | position->bitboards[Q];
+            score_midgame -= (position->pieceThreats.knightThreats & whiteMajorPieces) * 5;
+            score_endgame -= (position->pieceThreats.knightThreats & whiteMajorPieces) * 5;        
+        }
+        
+        
 
 
         // king safety bonus
