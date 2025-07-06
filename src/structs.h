@@ -20,6 +20,7 @@ typedef struct  {
     uint64_t knightThreats;
     uint64_t bishopThreats;
     uint64_t rookThreats;
+    uint64_t queenThreats;
 } threats;
 
 typedef struct {
