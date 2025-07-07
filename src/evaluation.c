@@ -480,38 +480,44 @@ int evaluate(board* position) {
         
         if (position->side == white) {
             uint64_t blackKingRing = kingAttacks[blackKingSquare];
+            // Pawn Threats
+            score_midgame += ((position->pieceThreats.pawnThreats & blackKingRing) != 0) * 3;
+            score_endgame += ((position->pieceThreats.pawnThreats & blackKingRing) != 0) * 3;
             // Knight Threats
-            score_midgame += ((position->pieceThreats.knightThreats & blackKingRing) != 0) * 5;
-            score_endgame += ((position->pieceThreats.knightThreats & blackKingRing) != 0) * 5;
+            score_midgame += ((position->pieceThreats.knightThreats & blackKingRing) != 0) * 8;
+            score_endgame += ((position->pieceThreats.knightThreats & blackKingRing) != 0) * 8;
 
             // Bishop Threats
-            score_midgame += ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 5;
-            score_endgame += ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 5;
+            score_midgame += ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 8;
+            score_endgame += ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 8;
 
             // Rook Threats
-            score_midgame += ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 10;
-            score_endgame += ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 10;
+            score_midgame += ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 12;
+            score_endgame += ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 12;
             // Queen Threats
-            score_midgame += ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 20;
-            score_endgame += ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 20;
+            score_midgame += ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 25;
+            score_endgame += ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 25;
 
         } else {
             uint64_t whiteKingRing = kingAttacks[whiteKingSquare];
+            // Pawn Threats
+            score_midgame -= ((position->pieceThreats.pawnThreats & whiteKingRing) != 0) * 3;
+            score_endgame -= ((position->pieceThreats.pawnThreats & whiteKingRing) != 0) * 3;
             // Knight Threats
-            score_midgame -= ((position->pieceThreats.knightThreats & whiteKingRing) != 0) * 5;
-            score_endgame -= ((position->pieceThreats.knightThreats & whiteKingRing) != 0) * 5;        
+            score_midgame -= ((position->pieceThreats.knightThreats & whiteKingRing) != 0) * 8;
+            score_endgame -= ((position->pieceThreats.knightThreats & whiteKingRing) != 0) * 8;        
 
             // Bishop Threats            
-            score_midgame -= ((position->pieceThreats.bishopThreats & whiteKingRing) != 0) * 5;
-            score_endgame -= ((position->pieceThreats.bishopThreats & whiteKingRing) != 0) * 5;
+            score_midgame -= ((position->pieceThreats.bishopThreats & whiteKingRing) != 0) * 8;
+            score_endgame -= ((position->pieceThreats.bishopThreats & whiteKingRing) != 0) * 8;
 
             // Rook Threats
-            score_midgame -= ((position->pieceThreats.rookThreats & whiteKingRing) != 0) * 10;
-            score_endgame -= ((position->pieceThreats.rookThreats & whiteKingRing) != 0) * 10;
+            score_midgame -= ((position->pieceThreats.rookThreats & whiteKingRing) != 0) * 12;
+            score_endgame -= ((position->pieceThreats.rookThreats & whiteKingRing) != 0) * 12;
 
             // Queen Threats
-            score_midgame -= ((position->pieceThreats.queenThreats & whiteKingRing) != 0) * 20;
-            score_endgame -= ((position->pieceThreats.queenThreats & whiteKingRing) != 0) * 20;
+            score_midgame -= ((position->pieceThreats.queenThreats & whiteKingRing) != 0) * 25;
+            score_endgame -= ((position->pieceThreats.queenThreats & whiteKingRing) != 0) * 25;
         }                
 
         // king safety bonus
