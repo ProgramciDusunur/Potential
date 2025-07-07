@@ -297,6 +297,59 @@ void init_tables() {
         }
 }
 
+void get_threats(int side, board* pos) {
+
+    uint64_t bb;
+
+    uint64_t knightBB;
+    uint64_t bishopBB;
+    uint64_t rookBB;
+    uint64_t queenBB;
+    uint64_t pawnBB;
+
+    // init piece bitboards
+    knightBB = pos->bitboards[side == white ? N : n];
+    bishopBB = pos->bitboards[side == white ? B : b];
+    rookBB = pos->bitboards[side == white ? R : r];
+    queenBB = pos->bitboards[side == white ? Q : q];     
+    pawnBB = pos->bitboards[side == white ? P : p];    
+
+    // Calculate Knight attacks
+    while (knightBB) {
+        int knightSquare = getLS1BIndex(knightBB);
+        pos->pieceThreats.knightThreats |= getKnightAttacks(knightSquare);
+        popBit(knightBB, knightSquare);
+    }
+
+    // Calculate Bishop attacks
+    while (bishopBB) {
+        int bishopSquare = getLS1BIndex(bishopBB);
+        pos->pieceThreats.bishopThreats |= getBishopAttacks(bishopSquare, pos->occupancies[both]);
+        popBit(bishopBB, bishopSquare);
+    }
+
+    // Calculate Rook attacks
+    while (rookBB) {    
+        int rookSquare = getLS1BIndex(rookBB);
+        pos->pieceThreats.rookThreats |= getRookAttacks(rookSquare, pos->occupancies[both]);
+        popBit(rookBB, rookSquare);
+    }
+
+    // Calculate Pawn attacks
+    while (pawnBB) { 
+        int pawnSquare = getLS1BIndex(pawnBB);
+        pos->pieceThreats.pawnThreats |= getPawnAttacks(side, pawnSquare);
+        popBit(pawnBB, pawnSquare);
+    }
+    
+    // Calculate Queen attacks
+    while (queenBB) {
+        int queenSquare = getLS1BIndex(queenBB);
+        pos->pieceThreats.queenThreats |= getQueenAttacks(queenSquare, pos->occupancies[both]);
+        popBit(queenBB, queenSquare);
+    }
+}
+
 // get game phase score
 int get_game_phase_score(const board* position) {
     /*
@@ -329,10 +382,18 @@ int get_game_phase_score(const board* position) {
 }
 
 
-int evaluate(const board* position) {
+int evaluate(board* position) {
         const int game_phase_score = get_game_phase_score(position);
 
         int score_midgame = 0, score_endgame = 0;
+
+        position->pieceThreats.pawnThreats = 0;
+        position->pieceThreats.knightThreats = 0;
+        position->pieceThreats.bishopThreats = 0;
+        position->pieceThreats.rookThreats = 0;
+        position->pieceThreats.queenThreats = 0;
+
+        get_threats(position->side, position);
 
         const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
         const int blackKingSquare = getLS1BIndex(position->bitboards[k]);
@@ -416,7 +477,48 @@ int evaluate(const board* position) {
                         popBit(bitboard, square);
                 }
         }
+        
+        if (position->side == white) {
+            uint64_t blackKingRing = kingAttacks[blackKingSquare];
+            // Pawn Threats
+            score_midgame += ((position->pieceThreats.pawnThreats & blackKingRing) != 0) * 3;
+            score_endgame += ((position->pieceThreats.pawnThreats & blackKingRing) != 0) * 3;
+            // Knight Threats
+            score_midgame += ((position->pieceThreats.knightThreats & blackKingRing) != 0) * 8;
+            score_endgame += ((position->pieceThreats.knightThreats & blackKingRing) != 0) * 8;
 
+            // Bishop Threats
+            score_midgame += ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 8;
+            score_endgame += ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 8;
+
+            // Rook Threats
+            score_midgame += ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 12;
+            score_endgame += ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 12;
+            // Queen Threats
+            score_midgame += ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 25;
+            score_endgame += ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 25;
+
+        } else {
+            uint64_t whiteKingRing = kingAttacks[whiteKingSquare];
+            // Pawn Threats
+            score_midgame -= ((position->pieceThreats.pawnThreats & whiteKingRing) != 0) * 3;
+            score_endgame -= ((position->pieceThreats.pawnThreats & whiteKingRing) != 0) * 3;
+            // Knight Threats
+            score_midgame -= ((position->pieceThreats.knightThreats & whiteKingRing) != 0) * 8;
+            score_endgame -= ((position->pieceThreats.knightThreats & whiteKingRing) != 0) * 8;        
+
+            // Bishop Threats            
+            score_midgame -= ((position->pieceThreats.bishopThreats & whiteKingRing) != 0) * 8;
+            score_endgame -= ((position->pieceThreats.bishopThreats & whiteKingRing) != 0) * 8;
+
+            // Rook Threats
+            score_midgame -= ((position->pieceThreats.rookThreats & whiteKingRing) != 0) * 12;
+            score_endgame -= ((position->pieceThreats.rookThreats & whiteKingRing) != 0) * 12;
+
+            // Queen Threats
+            score_midgame -= ((position->pieceThreats.queenThreats & whiteKingRing) != 0) * 25;
+            score_endgame -= ((position->pieceThreats.queenThreats & whiteKingRing) != 0) * 25;
+        }                
 
         // king safety bonus
 

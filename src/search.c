@@ -690,6 +690,7 @@ void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int
                 evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
 }
 
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, time* time) {
     if ((searchNodes & 2047) == 0) {
