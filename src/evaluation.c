@@ -487,6 +487,14 @@ int evaluate(board* position) {
             // Bishop Threats
             score_midgame += ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 3;
             score_endgame += ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 3;
+
+            // Rook Threats
+            score_midgame += ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 5;
+            score_endgame += ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 5;
+            // Queen Threats
+            score_midgame += ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 10;
+            score_endgame += ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 10;
+
         } else {
             uint64_t whiteKingRing = kingAttacks[whiteKingSquare];
             // Knight Threats
@@ -496,6 +504,14 @@ int evaluate(board* position) {
             // Bishop Threats            
             score_midgame -= ((position->pieceThreats.bishopThreats & whiteKingRing) != 0) * 3;
             score_endgame -= ((position->pieceThreats.bishopThreats & whiteKingRing) != 0) * 3;
+
+            // Rook Threats
+            score_midgame -= ((position->pieceThreats.rookThreats & whiteKingRing) != 0) * 5;
+            score_endgame -= ((position->pieceThreats.rookThreats & whiteKingRing) != 0) * 5;
+
+            // Queen Threats
+            score_midgame -= ((position->pieceThreats.queenThreats & whiteKingRing) != 0) * 10;
+            score_endgame -= ((position->pieceThreats.queenThreats & whiteKingRing) != 0) * 10;
         }                
 
         // king safety bonus
