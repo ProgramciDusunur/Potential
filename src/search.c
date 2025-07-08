@@ -1319,10 +1319,18 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
                 bool historyReduction = moveHistory / 16384;
                 bool doShallower = score < bestScore + new_depth;
-                new_depth -= doShallower;
-                new_depth += doDeeper;
-                new_depth -= historyReduction;
-                score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+
+                int postLmrReduction = new_depth;
+
+                postLmrReduction -= doShallower;
+                postLmrReduction += doDeeper;
+                postLmrReduction -= historyReduction;
+
+                score = -negamax(-alpha - 1, -alpha, postLmrReduction, pos, time, !cutNode);
+
+                if (score > bestScore && postLmrReduction > 0) {
+                    score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+                }
             }
         }
         else if (!pvNode || legal_moves > 1) {
