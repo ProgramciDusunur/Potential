@@ -1315,13 +1315,15 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
 
-            if (score > alpha && lmrReduction != 0) {
-                bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
-                bool historyReduction = moveHistory / 16384;
-                bool doShallower = score < bestScore + new_depth;
-                new_depth -= doShallower;
-                new_depth += doDeeper;
-                new_depth -= historyReduction;
+            if (score > alpha && lmrReduction != 0) {                                
+                // Do Shallower
+                new_depth -= score < bestScore + new_depth;                
+                // History Reduction
+                new_depth -= moveHistory / 16384;
+                // Do Deeper
+                new_depth += score > bestScore + DEEPER_LMR_MARGIN;
+                // TT PV Fail High
+                new_depth -= (tt_pv && tt_hit && tt_score >= beta + 30);
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             }
         }
