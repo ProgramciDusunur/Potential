@@ -1328,7 +1328,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 score = -negamax(-alpha - 1, -alpha, postLmrReduction, pos, time, !cutNode);
 
-                if (score > bestScore && postLmrReduction > 0) {
+                if (score > alpha) {
                     score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
                 }
             }
