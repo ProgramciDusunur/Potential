@@ -1410,7 +1410,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     }
 
     // Sf pvs fail firm
-    if (bestScore >= beta && abs(bestScore) < mateScore && abs(alpha) < mateScore) {
+    if (bestScore >= beta && abs(bestScore) < mateValue && abs(alpha) < mateValue) {
         bestScore = (bestScore * depth + beta) / (depth + 1);
     }
         
