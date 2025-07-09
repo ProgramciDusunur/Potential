@@ -1409,6 +1409,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             return 0;
     }
 
+    // Sf pvs fail firm
+    if (bestScore >= beta && abs(bestScore) < mateScore && abs(alpha) < mateScore) {
+        bestScore = (bestScore * depth + beta) / (depth + 1);
+    }
+        
+
     if (!pos->isSingularMove[pos->ply]) {
 
         uint8_t hashFlag = hashFlagExact;
