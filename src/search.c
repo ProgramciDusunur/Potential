@@ -55,8 +55,8 @@
   /*╔═══════════════════════╗
     ║ Late Move Pruning     ║
     ╚═══════════════════════╝*/
-  int LMP_BASE = 4;
-  int LMP_MULTIPLIER = 3;
+  int LMP_BASE = 3;
+  int LMP_MULTIPLIER = 2;
   
   
   /*╔════════════════════╗
@@ -250,6 +250,7 @@ int scoreMove(int move, board* position) {
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
                         getContinuationHistoryScore(position, 4, move) +
+                            getContinuationHistoryScore(position, 6, move) +
                (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
     }
     return 0;
