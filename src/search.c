@@ -1384,7 +1384,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
-                    pos->failHighCount[pos->ply]++;
+                    if (score >= beta + 30) {
+                        pos->failHighCount[pos->ply]++;
+                    }
+                    
                     if (notTactical) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
