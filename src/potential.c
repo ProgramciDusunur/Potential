@@ -67,7 +67,7 @@ void initAll(void) {
 
 int main(int argc, char* argv[]) {
     initAll();
-    int debug = 0;
+    int debug = 1;
     if (debug) {
         /*board position;
         parseFEN(startPosition, &position);
@@ -79,6 +79,8 @@ int main(int argc, char* argv[]) {
 
         //perftRoot(7, &position);
         //printf("Nodes: %llu", perftNodes);
+
+        maskOuterKingRing(e4);
         
 
     } else {

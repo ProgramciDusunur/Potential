@@ -99,6 +99,10 @@ const U64 notAFileAndHRank = 35887507618889599ULL;
 const U64 not8RankAndAFile = 18374403900871474688ULL;
 const U64 not8RankAndHFile = 9187201950435737344ULL;
 const U64 not1RankAndAFile = 71775015237779198ULL;
+// masks for the outer king ring
+const U64 outerKingNorthMask = 18446744073709486080ULL;
+const U64 outerKingSouthMask = 281474976710655ULL;
+const U64 outerKingSouthEastMask = 69540876599103ULL;
 
 int get_rank[64] = {
         7, 7, 7, 7, 7, 7, 7, 7,

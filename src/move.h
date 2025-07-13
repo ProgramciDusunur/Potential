@@ -51,6 +51,8 @@ extern U64 pawnAttacks[2][64];
 extern U64 knightAttacks[64];
 // King attack masks kingAttacks[square]
 extern U64 kingAttacks[64];
+// Outer king ring masks
+extern U64 outerKingRing[64];
 // Bishop attack table [square][occupancies]
 extern U64 bishopAttacks[64][512];
 // Rook attack table [square][occupancies]

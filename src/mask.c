@@ -76,6 +76,41 @@ U64 maskKnightAttacks(int square) {
     return attacks;
 }
 
+U64 maskOuterKingRing(int square) {
+    U64 attacks = 0ULL;
+
+    U64 bitboard = 0ULL;
+
+    setBit(bitboard, square);
+
+    //if (bitboard & outerKingNorthMask) { attacks |= bitboard >> 16; }
+    //if (bitboard & outerKingSouthMask) { attacks |= bitboard << 16; }
+    //if (bitboard & outerKingSouthEastMask) { attacks |= bitboard << 18; }
+
+    attacks |= bitboard >> 18;
+    
+
+    /*U64 setSouthEast = not1And2Rank;
+
+    popBit(setSouthEast, h8);
+    popBit(setSouthEast, h7);
+    popBit(setSouthEast, h6);
+    popBit(setSouthEast, h5);
+    popBit(setSouthEast, h4);
+    popBit(setSouthEast, h3);
+    
+    popBit(setSouthEast, g8);
+    popBit(setSouthEast, g7);
+    popBit(setSouthEast, g6);
+    popBit(setSouthEast, g5);
+    popBit(setSouthEast, g4);
+    popBit(setSouthEast, g3);*/
+
+    printBitboard(attacks);
+
+    return attacks;
+}
+
 U64 maskKingAttacks(int square) {
     U64 attacks = 0ULL;
 

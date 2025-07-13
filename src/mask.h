@@ -37,6 +37,7 @@ extern U64 bishopMask[64];
 U64 maskPawnAttacks(int isWhite, int square);
 U64 maskKnightAttacks(int square);
 U64 maskKingAttacks(int square);
+U64 maskOuterKingRing(int square);
 U64 maskBishopAttacks(int square);
 U64 bishopAttack(int square, U64 block);
 U64 maskRookAttacks(int square);

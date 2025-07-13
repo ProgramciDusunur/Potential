@@ -75,6 +75,10 @@ extern const U64 notAFileAndHRank;
 extern const U64 not8RankAndAFile;
 extern const U64 not8RankAndHFile;
 extern const U64 not1RankAndAFile;
+// Outer king ring masks
+extern const U64 outerKingNorthMask;
+extern const U64 outerKingSouthMask;
+extern const U64 outerKingSouthEastMask;
 extern int get_rank[64];
 
 
