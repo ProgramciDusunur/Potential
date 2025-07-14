@@ -1378,7 +1378,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                         pos->killerMoves[pos->ply][0] = bestMove;
 
                         // history bonus
-                        int historyDepth = depth + (bestScore > beta + 50);
+                        int historyDepth = depth + (tt_hit && tt_pv);
 
                         updateQuietMoveHistory(bestMove, pos->side, historyDepth, badQuiets);
                         updateContinuationHistory(pos, bestMove, historyDepth, badQuiets);
