@@ -90,8 +90,9 @@ void parse_position(char *command, board* position) {
     if (strncmp(command, "startpos", 8) == 0)
         // init chess board with start position
         parseFEN(startPosition, position);
-
-        // parse UCI "fen" command
+    else if (strncmp(command, "kiwipete", 8) == 0)
+        // init chess board with kiwipete position
+        parseFEN(kiwipete, position);
     else {
         // make sure "fen" command is available within command string
         current_char = strstr(command, "fen");

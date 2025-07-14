@@ -678,15 +678,16 @@ uint8_t isMaterialDraw(board *pos) {
     return 0;
 }
 
-void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int move) {
+void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int move, double complexity) {
     double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
+    double compScale = myMAX(0.7 + clamp(complexity, 0.0, 200.0) / 400.0, 1.0);
     double not_bm_nodes_fraction = 
        (double)nodes_spent_table[move & 4095] / (double)searchNodes;
     double node_scaling_factor = (1.5f - not_bm_nodes_fraction) * 1.35f;
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
-                evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
+                evalScale[evalStability] * node_scaling_factor * compScale, time->maxTime + time->starttime);    
 }
 
 
@@ -1486,6 +1487,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
 
         int window = ASP_WINDOW_BASE;
         int aspirationWindowDepth = current_depth;
+        int evaluation = evaluate(position);
 
         while (true) {
 
@@ -1547,8 +1549,15 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             evalStability = 0;
         }
 
+        // Tarnished TM Idea
+        double complexity = 0;
+        if (abs(score) < mateScore) {
+            complexity = 0.2 * abs(evaluation - score) * log(depth);
+            printf("Complexity: %f\n", complexity);
+        }
+
         if (time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0]);
+            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0], complexity);
         }
 
         int endTime = getTimeMiliSecond();
