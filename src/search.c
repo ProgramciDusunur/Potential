@@ -1194,8 +1194,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // ╚═══════════════════════════╝
 
                 // ~~~~ Quadruple Extension ~~~~ //
-                if (singularScore <= singularBeta - QUADRUPLE_EXTENSION_MARGIN) {
+                if (singularScore <= singularBeta - QUADRUPLE_EXTENSION_MARGIN) {                    
                     extensions++;
+
+                    // High Depth Extension
+                    depth += depth >= 15;
                 }
 
             }
