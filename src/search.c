@@ -947,8 +947,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
 
     // Hindsight extension
-    if (!rootNode && !in_check && !pos->isSingularMove[pos->ply] && pos->ply > 0 && pos->staticEval[pos->ply - 1] != noEval && pos->lmrReductionHistory[pos->ply - 1] >= 13 &&
-        static_eval + pos->staticEval[pos->ply - 1] < -50) {
+    if (!rootNode && !in_check && !pos->isSingularMove[pos->ply] && pos->ply > 0 && pos->staticEval[pos->ply - 1] != noEval && pos->lmrReductionHistory[pos->ply - 1] >= 10 &&
+        static_eval + pos->staticEval[pos->ply - 1] < -100) {
             depth += 1;            
     }
 
@@ -1482,8 +1482,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             position->isSingularMove[i] = 0;
             position->staticEval[i] = noEval;
             position->piece[i] = 0;
-            position->move[i] = 0;
-            position->lmrReductionHistory[i] = 0;
+            position->move[i] = 0;            
         }
 
         position->seldepth = 0;
