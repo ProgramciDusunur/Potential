@@ -947,7 +947,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
 
     // Hindsight extension
-    if (!rootNode && !in_check && !pos->isSingularMove[pos->ply] && pos->ply > 0 && pos->staticEval[pos->ply - 1] != noEval && pos->lmrReductionHistory[pos->ply - 1] >= 10 &&
+    if (!rootNode && !in_check && !pos->isSingularMove[pos->ply] && pos->ply > 0 && pos->staticEval[pos->ply - 1] != noEval && pos->lmrReductionHistory[pos->ply - 1] >= 13 &&
         static_eval + pos->staticEval[pos->ply - 1] < -100) {
             depth += 1;            
     }
