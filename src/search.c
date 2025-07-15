@@ -1552,7 +1552,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
         // Tarnished TM Idea
         double complexity = 0;
         if (abs(score) < mateScore) {
-            complexity = 0.2 * abs(evaluation - score) * log(depth);            
+            complexity = 0.6 * abs(evaluation - score) * log(depth);            
         }
 
         if (time->timeset && current_depth > 6) {
