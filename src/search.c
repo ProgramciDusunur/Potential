@@ -948,7 +948,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     // Hindsight extension
     if (!rootNode && !in_check && !pos->isSingularMove[pos->ply] && pos->ply > 0 && pos->staticEval[pos->ply - 1] != noEval && pos->lmrReductionHistory[pos->ply - 1] >= 13 &&
-        static_eval + pos->staticEval[pos->ply - 1] < 0) {
+        static_eval + pos->staticEval[pos->ply - 1] < -50) {
             depth += 1;            
     }
 
