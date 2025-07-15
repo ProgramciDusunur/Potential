@@ -946,6 +946,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
 
+    // Hindsight extension
+    if (!rootNode && !in_check && !pos->isSingularMove[pos->ply] && pos->ply > 0 && pos->staticEval[pos->ply - 1] != noEval && pos->lmrReductionHistory[pos->ply - 1] >= 14 &&
+        static_eval + pos->staticEval[pos->ply - 1] < 0) {
+            depth += 1;            
+    }
+
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
         depth--;
@@ -1302,13 +1308,16 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         lmrReduction /= 1024;
-
+        
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
+        pos->lmrReductionHistory[pos->ply] = reduced_depth;
+        
 
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
+            pos->lmrReductionHistory[pos->ply] = 0;
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
@@ -1474,6 +1483,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             position->staticEval[i] = noEval;
             position->piece[i] = 0;
             position->move[i] = 0;
+            position->lmrReductionHistory[i] = 0;
         }
 
         position->seldepth = 0;

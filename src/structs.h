@@ -41,6 +41,7 @@ typedef struct {
     int pvLength[maxPly];
     int pvTable[maxPly][maxPly];
     int killerMoves[maxPly][2];
+    int lmrReductionHistory[maxPly];
     threats pieceThreats;
 
     int staticEval[maxPly];
