@@ -481,33 +481,41 @@ int evaluate(board* position) {
         }
         
         if (position->side == white) {
-            uint64_t blackKingRing = kingAttacks[blackKingSquare] | outerKingRing[blackKingSquare];
+            uint64_t blackKingRing = kingAttacks[blackKingSquare];
+            uint64_t outerBlackKingRing = outerKingRing[blackKingSquare];
         
             int how_heavy_threats = 0;
+            int outer_king_threats = 0;
 
             // Pawn Threats
             int pawn_threat_bonus = ((position->pieceThreats.pawnThreats & blackKingRing) != 0) * 3;            
+            int outer_king_ptb = ((position->pieceThreats.pawnThreats & outerBlackKingRing) != 0) * 1;
+            
 
             how_heavy_threats += pawn_threat_bonus;            
 
             // Knight Threats
             int knight_threat_bonus = ((position->pieceThreats.knightThreats & blackKingRing) != 0) * 8;            
+            int outer_king_ktb = ((position->pieceThreats.knightThreats & outerBlackKingRing) != 0) * 4;
 
             how_heavy_threats += knight_threat_bonus;
 
             // Bishop Threats
-            int bishop_threat_bonus = ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 8;            
+            int bishop_threat_bonus = ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 8;
+            int outer_king_btb = ((position->pieceThreats.bishopThreats & outerBlackKingRing) != 0) * 4;
 
             how_heavy_threats += bishop_threat_bonus;
             
 
             // Rook Threats
-            int rook_threat_bonus = ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 12;            
+            int rook_threat_bonus = ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 12;
+            int outer_king_rtb = ((position->pieceThreats.rookThreats & outerBlackKingRing) != 0) * 6;
 
             how_heavy_threats += rook_threat_bonus;
 
             // Queen Threats
-            int queen_threat_bonus = ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 25;            
+            int queen_threat_bonus = ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 25;
+            int outer_king_qtb = ((position->pieceThreats.queenThreats & outerBlackKingRing) != 0) * 12;
 
             how_heavy_threats += queen_threat_bonus;
 
@@ -520,33 +528,39 @@ int evaluate(board* position) {
 
             how_heavy_threats += how_heavy_threats > 25 ? how_heavy_threats / 8 * 4 : 0;
 
-            score_midgame += how_heavy_threats;
-            score_endgame += how_heavy_threats;
+            score_midgame += how_heavy_threats + outer_king_ptb + outer_king_ktb + outer_king_btb + outer_king_rtb + outer_king_qtb;
+            score_endgame += how_heavy_threats + outer_king_ptb + outer_king_ktb + outer_king_btb + outer_king_rtb + outer_king_qtb;
         } else {
-            uint64_t whiteKingRing = kingAttacks[whiteKingSquare] | outerKingRing[blackKingSquare];
+            uint64_t whiteKingRing = kingAttacks[whiteKingSquare];
+            uint64_t outerWhiteKingRing = outerKingRing[whiteKingSquare];
 
             int how_heavy_threats = 0;
 
             // Pawn Threats
             int pawn_threat_bonus = ((position->pieceThreats.pawnThreats & whiteKingRing) != 0) * 3;
+            int outer_king_ptb = ((position->pieceThreats.pawnThreats & outerWhiteKingRing) != 0) * 1;
             how_heavy_threats += pawn_threat_bonus;
             
             // Knight Threats
             int knight_threat_bonus = ((position->pieceThreats.knightThreats & whiteKingRing) != 0) * 8;
+            int outer_king_ktb = ((position->pieceThreats.knightThreats & outerWhiteKingRing) != 0) * 4;
             how_heavy_threats += knight_threat_bonus;                    
 
             // Bishop Threats            
             int bishop_threat_bonus = ((position->pieceThreats.bishopThreats & whiteKingRing) != 0) * 8;
+            int outer_king_btb = ((position->pieceThreats.bishopThreats & outerWhiteKingRing) != 0) * 4;
             how_heavy_threats += bishop_threat_bonus;
             
 
             // Rook Threats
             int rook_threat_bonus = ((position->pieceThreats.rookThreats & whiteKingRing) != 0) * 12;
+            int outer_king_rtb = ((position->pieceThreats.rookThreats & outerWhiteKingRing) != 0) * 6;
             how_heavy_threats += rook_threat_bonus;
             
 
             // Queen Threats
             int queen_threat_bonus = ((position->pieceThreats.queenThreats & whiteKingRing) != 0) * 25;
+            int outer_king_qtb = ((position->pieceThreats.queenThreats & outerWhiteKingRing) != 0) * 12;
             how_heavy_threats += queen_threat_bonus;
 
             // Heavy Threats
@@ -558,8 +572,8 @@ int evaluate(board* position) {
 
             how_heavy_threats += how_heavy_threats > 25 ? how_heavy_threats / 8 * 4 : 0;
 
-            score_midgame -= how_heavy_threats;
-            score_endgame -= how_heavy_threats;
+            score_midgame -= how_heavy_threats - outer_king_ptb - outer_king_ktb - outer_king_btb - outer_king_rtb - outer_king_qtb;
+            score_endgame -= how_heavy_threats - outer_king_ptb - outer_king_ktb - outer_king_btb - outer_king_rtb - outer_king_qtb;
 
         }                
 
