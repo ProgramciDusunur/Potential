@@ -80,8 +80,10 @@ extern const int queen_mobility_middlegame;
 extern const int queen_mobility_endgame;
 
 // King's Bonuses
-extern const int king_shield_bonus_middlegame ;
+extern const int king_shield_bonus_middlegame;
 extern const int king_shield_bonus_endgame;
+extern const int king_extended_shield_bonus_middlegame;
+extern const int king_extended_shield_bonus_endgame;
 extern const int king_distance_bonus;
 
 // Game Phase Scores

@@ -79,6 +79,11 @@ extern const U64 not1RankAndAFile;
 extern const U64 outerKingNorthMask;
 extern const U64 outerKingSouthMask;
 extern const U64 outerKingSouthEastMask;
+extern const U64 outerKingNorthWestMask;
+extern const U64 outerKingNorthEastMask;
+extern const U64 outerKingSouthWestMask;
+extern const U64 outerKingWestMask;
+extern const U64 outerKingEastMask;
 extern int get_rank[64];
 
 

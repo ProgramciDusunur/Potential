@@ -1166,6 +1166,9 @@ void initLeaperAttacks(void) {
 
         // init king attacks
         kingAttacks[square] = maskKingAttacks(square);
+
+        // init outer king ring
+        outerKingRing[square] = maskOuterKingRing(square);
     }
 }
 

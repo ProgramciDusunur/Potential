@@ -83,30 +83,14 @@ U64 maskOuterKingRing(int square) {
 
     setBit(bitboard, square);
 
-    //if (bitboard & outerKingNorthMask) { attacks |= bitboard >> 16; }
-    //if (bitboard & outerKingSouthMask) { attacks |= bitboard << 16; }
-    //if (bitboard & outerKingSouthEastMask) { attacks |= bitboard << 18; }
-
-    attacks |= bitboard >> 18;
-    
-
-    /*U64 setSouthEast = not1And2Rank;
-
-    popBit(setSouthEast, h8);
-    popBit(setSouthEast, h7);
-    popBit(setSouthEast, h6);
-    popBit(setSouthEast, h5);
-    popBit(setSouthEast, h4);
-    popBit(setSouthEast, h3);
-    
-    popBit(setSouthEast, g8);
-    popBit(setSouthEast, g7);
-    popBit(setSouthEast, g6);
-    popBit(setSouthEast, g5);
-    popBit(setSouthEast, g4);
-    popBit(setSouthEast, g3);*/
-
-    printBitboard(attacks);
+    if (bitboard & outerKingNorthMask) { attacks |= bitboard >> 16; }
+    if (bitboard & outerKingSouthMask) { attacks |= bitboard << 16; }
+    if (bitboard & outerKingSouthEastMask) { attacks |= bitboard << 18; }
+    if (bitboard & outerKingNorthWestMask) { attacks |= bitboard >> 18; }
+    if (bitboard & outerKingNorthEastMask) { attacks |= bitboard >> 14; }
+    if (bitboard & outerKingSouthWestMask) { attacks |= bitboard << 14; }
+    if (bitboard & outerKingWestMask) { attacks |= bitboard >> 2; }
+    if (bitboard & outerKingEastMask) { attacks |= bitboard << 2; }
 
     return attacks;
 }

@@ -103,6 +103,11 @@ const U64 not1RankAndAFile = 71775015237779198ULL;
 const U64 outerKingNorthMask = 18446744073709486080ULL;
 const U64 outerKingSouthMask = 281474976710655ULL;
 const U64 outerKingSouthEastMask = 69540876599103ULL;
+const U64 outerKingNorthWestMask = 18229723555195256832ULL;
+const U64 outerKingNorthEastMask = 4557430888798814208ULL;
+const U64 outerKingSouthWestMask = 278163506396412ULL;
+const U64 outerKingWestMask = 18229723555195321596ULL;
+const U64 outerKingEastMask = 4557430888798830399ULL;
 
 int get_rank[64] = {
         7, 7, 7, 7, 7, 7, 7, 7,

@@ -252,6 +252,8 @@ const int queen_mobility_endgame = 2;
 // King's Bonuses
 const int king_shield_bonus_middlegame = 6;
 const int king_shield_bonus_endgame = 2;
+const int king_extended_shield_bonus_middlegame = 3;
+const int king_extended_shield_bonus_endgame = 1;
 const int king_distance_bonus = 2;
 
 // Game Phase Scores
@@ -569,6 +571,10 @@ int evaluate(board* position) {
         score_midgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_middlegame;
         score_endgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_endgame;
 
+        // Extended king ring bonus
+        score_midgame += countBits(outerKingRing[whiteKingSquare] & position->occupancies[white]) * king_extended_shield_bonus_middlegame;
+        score_endgame += countBits(outerKingRing[whiteKingSquare] & position->occupancies[white]) * king_extended_shield_bonus_endgame;
+
         // semi open file
         if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0) {
                 // add semi open file penalty
@@ -589,6 +595,10 @@ int evaluate(board* position) {
         // King ring bonus
         score_midgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_middlegame;
         score_endgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_endgame;
+
+        // Extended king ring bonus
+        score_midgame -= countBits(outerKingRing[blackKingSquare] & position->occupancies[black]) * king_extended_shield_bonus_middlegame;
+        score_endgame -= countBits(outerKingRing[blackKingSquare] & position->occupancies[black]) * king_extended_shield_bonus_endgame;
 
         // semi open file penalty
         if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) {
