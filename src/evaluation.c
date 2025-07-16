@@ -250,10 +250,10 @@ const int queen_mobility_middlegame = 1;
 const int queen_mobility_endgame = 2;
 
 // King's Bonuses
-const int king_shield_bonus_middlegame = 6;
-const int king_shield_bonus_endgame = 2;
-const int king_extended_shield_bonus_middlegame = 3;
-const int king_extended_shield_bonus_endgame = 1;
+const int king_shield_bonus_middlegame = 12;
+const int king_shield_bonus_endgame = 4;
+const int king_extended_shield_bonus_middlegame = 6;
+const int king_extended_shield_bonus_endgame = 2;
 const int king_distance_bonus = 2;
 
 // Game Phase Scores
