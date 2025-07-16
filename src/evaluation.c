@@ -481,7 +481,7 @@ int evaluate(board* position) {
         }
         
         if (position->side == white) {
-            uint64_t blackKingRing = kingAttacks[blackKingSquare];
+            uint64_t blackKingRing = kingAttacks[blackKingSquare] | outerKingRing[blackKingSquare];
         
             int how_heavy_threats = 0;
 
@@ -523,7 +523,7 @@ int evaluate(board* position) {
             score_midgame += how_heavy_threats;
             score_endgame += how_heavy_threats;
         } else {
-            uint64_t whiteKingRing = kingAttacks[whiteKingSquare];
+            uint64_t whiteKingRing = kingAttacks[whiteKingSquare] | outerKingRing[blackKingSquare];
 
             int how_heavy_threats = 0;
 
@@ -568,8 +568,8 @@ int evaluate(board* position) {
         // White
 
         // King ring bonus
-        score_midgame += countBits((kingAttacks[whiteKingSquare] | outerKingRing[whiteKingSquare]) & position->occupancies[white]) * king_shield_bonus_middlegame;
-        score_endgame += countBits((kingAttacks[whiteKingSquare] | outerKingRing[whiteKingSquare]) & position->occupancies[white]) * king_shield_bonus_endgame;        
+        score_midgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_middlegame;
+        score_endgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_endgame;        
 
         // semi open file
         if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0) {
@@ -588,8 +588,8 @@ int evaluate(board* position) {
         // Black
 
         // King ring bonus
-        score_midgame -= countBits((kingAttacks[blackKingSquare] | outerKingRing[blackKingSquare]) & position->occupancies[black]) * king_shield_bonus_middlegame;
-        score_endgame -= countBits((kingAttacks[blackKingSquare] | outerKingRing[blackKingSquare]) & position->occupancies[black]) * king_shield_bonus_endgame;        
+        score_midgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_middlegame;
+        score_endgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_endgame;        
 
         // semi open file penalty
         if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) {
