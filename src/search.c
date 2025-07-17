@@ -944,17 +944,17 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval  ?  pos->ply - 2 : -1;
 
-    improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
+    improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];    
+
+    // Internal Iterative Reductions
+    if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
+        depth--;
+    }
 
     // Hindsight extension
     if (!rootNode && !in_check && !pos->isSingularMove[pos->ply] && pos->ply > 0 && pos->staticEval[pos->ply - 1] != noEval && pos->lmrReductionHistory[pos->ply - 1] >= 3 &&
         static_eval + pos->staticEval[pos->ply - 1] < 0) {
             depth += 1;            
-    }
-
-    // Internal Iterative Reductions
-    if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
-        depth--;
     }
 
     int ttAdjustedEval = static_eval;
