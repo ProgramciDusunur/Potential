@@ -44,6 +44,7 @@ typedef struct {
     threats pieceThreats;
 
     int staticEval[maxPly];
+    int rootDelta;
 
     int isSingularMove[maxPly];
 

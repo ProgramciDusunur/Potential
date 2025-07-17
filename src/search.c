@@ -1301,6 +1301,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction -= TT_PV_LMR_SCALER;
         }
 
+        lmrReduction -= pvNode * 1024 * (beta - alpha > pos->rootDelta / 4);
+
         lmrReduction /= 1024;
 
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
@@ -1501,6 +1503,8 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
                 alpha = myMAX(-infinity, score - window);
                 beta = myMIN(infinity, score + window);
             }
+
+            position->rootDelta = beta - alpha;
 
             position->followPv = 1;
             // find best move within a given position
