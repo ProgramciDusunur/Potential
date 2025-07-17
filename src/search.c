@@ -889,7 +889,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
-    bool tt_pv = pvNode;
+    bool tt_was_pv = pvNode;
 
     if (!rootNode) {
 
@@ -908,7 +908,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // read hash entry
     if (!pos->isSingularMove[pos->ply] && !rootNode &&
         (tt_hit =
-                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv)) &&
+                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_was_pv)) &&
                 !pvNode) {
         if (tt_depth >= depth) {
             if ((tt_flag == hashFlagExact) ||
@@ -965,7 +965,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
-    bool rfp_tt_pv_decision = !tt_pv || (tt_pv && tt_hit && tt_score >= beta + 90 - 15 * ((tt_depth + depth) / 2));
+    bool rfp_tt_pv_decision = !tt_was_pv || (tt_was_pv && tt_hit && tt_score >= beta + 90 - 15 * ((tt_depth + depth) / 2));
 
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
@@ -1119,7 +1119,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
 
             // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
+            if (lmrDepth <= FP_DEPTH && !pvNode && !tt_was_pv && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
                 continue;
             }
             // Quiet History Pruning
@@ -1138,7 +1138,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         int extensions = 0;
 
         // Singular Extensions
-        if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
+        if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_was_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateScore) {
             const int singularBeta = tt_score - depth * 5 / 8;
@@ -1281,7 +1281,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction += CUT_NODE_LMR_SCALER;
         }
 
-        if (tt_pv && tt_hit && tt_score <= alpha) {
+        if (tt_was_pv && tt_hit && tt_score <= alpha) {
             lmrReduction += TT_PV_FAIL_LOW_LMR_SCALER;
         }
 
@@ -1297,7 +1297,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         // Reduce Less
-        if (tt_pv) {
+        if (tt_was_pv) {
             lmrReduction -= TT_PV_LMR_SCALER;
         }
 
@@ -1425,7 +1425,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         // store hash entry with the score equal to alpha
-        writeHashEntry(pos->hashKey, bestScore, bestMove, depth, hashFlag, tt_pv, pos);
+        writeHashEntry(pos->hashKey, bestScore, bestMove, depth, hashFlag, tt_was_pv, pos);
     }
     // node (move) fails low
     return bestScore;
