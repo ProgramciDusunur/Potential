@@ -1372,7 +1372,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 }
 
                 // Alpha-raise reduction
-                if (depth > 2 && depth < 12 && abs(alpha) < mateScore && notTactical && moveHistory >= 8192) {
+                if (depth > 6 && depth < 16 && abs(alpha) < mateScore && notTactical && moveHistory >= 2048) {
                     depth -= 1;
                 }
 
