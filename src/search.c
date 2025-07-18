@@ -1371,6 +1371,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     pos->pvLength[pos->ply] = pos->pvLength[pos->ply + 1];
                 }
 
+                // Alpha-raise reduction
+                if (depth > 2 && depth < 12 && abs(alpha) < mateScore && notTactical) {
+                    depth -= 1;
+                }
+
                 // fail-hard beta cutoff
                 if (score >= beta) {
                     if (notTactical) {
