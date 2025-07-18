@@ -951,10 +951,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         depth--;
     }
 
-    // Hindsight extension
-    if (pvNode && !in_check && !pos->isSingularMove[pos->ply] && pos->ply > 0 && pos->staticEval[pos->ply - 1] != noEval && pos->lmrReductionHistory[pos->ply - 1] >= 3 &&
-        static_eval + pos->staticEval[pos->ply - 1] < 0) {
-            depth += 1;            
+    // Hindsight Reduction
+    if (!pvNode && !in_check && !rootNode && !pos->isSingularMove[pos->ply] && depth >= 2 && pos->ply > 0 && pos->staticEval[pos->ply - 1] != noEval && pos->lmrReductionHistory[pos->ply - 1] >= 1 &&
+        static_eval + pos->staticEval[pos->ply - 1] > 80) {
+            depth--;            
     }
 
     int ttAdjustedEval = static_eval;
@@ -1308,10 +1308,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         lmrReduction /= 1024;
-        pos->lmrReductionHistory[pos->ply] = lmrReduction;
-        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
-        
 
+        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
+
+        pos->lmrReductionHistory[pos->ply] = reduced_depth;
+        
 
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
