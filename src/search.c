@@ -1202,7 +1202,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
             // Multicut
             else if (singularBeta >= beta) {
-                return singularBeta;
+                return (singularBeta * 3 + beta) / 4;
             }
 
             // Negative Extensions
