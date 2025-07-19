@@ -72,7 +72,7 @@
     ╚══════════════════════════════╝*/
   int RFP_MARGIN = 82;
   int RFP_IMPROVING_MARGIN = 65;
-  int RFP_DEPTH = 9;
+  int RFP_DEPTH = 11;
   
   
   /*╔══════════╗
@@ -1175,12 +1175,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
                     // Low Depth Extension
                     depth += depth < 10;
-                }
-
-                int tripleMargin = TRIPLE_EXTENSION_MARGIN - 5 * pvNode;
+                }                
 
                 // Triple Extension
-                if (singularScore + tripleMargin < singularBeta) {
+                if (singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
                     extensions++;
                 }
                 // ╔═══════════════════════════╗
