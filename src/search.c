@@ -62,8 +62,8 @@
   /*╔════════════════════╗
     ║ Futility Pruning   ║
     ╚════════════════════╝*/
-  int FUTILITY_PRUNING_OFFSET[] = {0, 82, 41, 20, 10, 5};
-  int FP_DEPTH = 5;
+  int FUTILITY_PRUNING_OFFSET[] = {0, 82, 74, 67, 60, 54, 49, 44, 40, 36};
+  int FP_DEPTH = 9;
   int FP_MARGIN = 82;
   
   
@@ -1119,7 +1119,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
 
             // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
+            if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 9)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
                 continue;
             }
             // Quiet History Pruning
@@ -1191,12 +1191,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 // ║    Scaling STC / LTC      ║
                 // ║   STC:  0.93  +-  1.94    ║
                 // ║   LTC: 14.05  +-  7.19    ║
-                // ╚═══════════════════════════╝
-
-                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN - 15 * pvNode;
+                // ╚═══════════════════════════╝                
 
                 // ~~~~ Quadruple Extension ~~~~ //
-                if (singularScore <= singularBeta - quadrupleMargin) {
+                if (singularScore <= singularBeta - QUADRUPLE_EXTENSION_MARGIN) {
                     extensions++;
                 }
 
