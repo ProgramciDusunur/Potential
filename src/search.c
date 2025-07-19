@@ -1177,24 +1177,28 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     depth += depth < 10;
                 }
 
+                int tripleMargin = TRIPLE_EXTENSION_MARGIN - 15 * pvNode;
+
                 // Triple Extension
-                if (singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
+                if (singularScore + tripleMargin < singularBeta) {
                     extensions++;
                 }
-            // ╔═══════════════════════════╗
-            // ║            /\             ║
-            // ║           /  \            ║
-            // ║         <SCALER>          ║
-            // ║           \  /            ║
-            // ║            \/             ║
-            // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
-            // ║    Scaling STC / LTC      ║
-            // ║   STC:  0.93  +-  1.94    ║
-            // ║   LTC: 14.05  +-  7.19    ║
-            // ╚═══════════════════════════╝
+                // ╔═══════════════════════════╗
+                // ║            /\             ║
+                // ║           /  \            ║
+                // ║         <SCALER>          ║
+                // ║           \  /            ║
+                // ║            \/             ║
+                // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
+                // ║    Scaling STC / LTC      ║
+                // ║   STC:  0.93  +-  1.94    ║
+                // ║   LTC: 14.05  +-  7.19    ║
+                // ╚═══════════════════════════╝
+
+                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN - 15 * pvNode;
 
                 // ~~~~ Quadruple Extension ~~~~ //
-                if (singularScore <= singularBeta - QUADRUPLE_EXTENSION_MARGIN) {
+                if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
 
