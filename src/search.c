@@ -228,6 +228,8 @@ int scoreMove(int move, board* position) {
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[getMovePiece(move)][target_piece];
 
+        captureScore += captureHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
+
         captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
 
         return captureScore;
@@ -1058,8 +1060,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     }
 
     // create move list instance
-    moves moveList[1], badQuiets[1];
+    moves moveList[1], badQuiets[1], noisyMoves[1];;
     badQuiets->count = 0;
+    noisyMoves->count = 0;
 
     // generate moves
     moveGenerator(moveList, pos);
@@ -1257,6 +1260,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             quietMoves++;
         } else {
             //captureMoves++;
+            addMoveToHistoryList(noisyMoves, currentMove);
         }
 
         uint64_t nodes_before_search = searchNodes;
@@ -1373,7 +1377,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                         if (rootNode) {
                             updateRootHistory(pos, bestMove, depth, badQuiets);
                         }
+                    } else { // noisy moves
+                        updateCaptureHistory(pos, bestMove, depth);
                     }
+
+                    // always penalize bad noisy moves
+                    updateCaptureHistoryMalus(pos, depth, noisyMoves, bestMove);
 
                     // node (move) fails high
                     break;
