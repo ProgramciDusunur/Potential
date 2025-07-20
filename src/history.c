@@ -122,7 +122,7 @@ void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, in
 
         int noisyMoveScore = captureHistory[noisyPiece][noisyTo][noisyCapturedPiece];        
 
-        captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] -= scaledBonus(noisyMoveScore, getHistoryBonus(depth), maxCaptureHistory);
+        captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] += scaledBonus(noisyMoveScore, -getHistoryBonus(depth), maxCaptureHistory);
     }
 }
 
