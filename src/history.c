@@ -19,6 +19,10 @@ int getHistoryBonus(int depth) {
     return myMIN(10 + 200 * depth, 4096);
 }
 
+int getCaptureHistoryBonus(int depth) {
+    return myMIN(16 * depth * depth + 32 * depth + 16, 4096);
+}
+
 int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
 }
@@ -104,7 +108,7 @@ void updateCaptureHistory(board *position, int bestMove, int depth) {
     int to = getMoveTarget(bestMove);
     int capturedPiece = position->mailbox[getMoveTarget(bestMove)];
 
-    int bonus = getHistoryBonus(depth);
+    int bonus = getCaptureHistoryBonus(depth);
     int score = captureHistory[piece][to][capturedPiece];
 
     captureHistory[piece][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);
@@ -122,7 +126,7 @@ void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, in
 
         int noisyMoveScore = captureHistory[noisyPiece][noisyTo][noisyCapturedPiece];        
 
-        captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] -= scaledBonus(noisyMoveScore, getHistoryBonus(depth), maxCaptureHistory);
+        captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] -= scaledBonus(noisyMoveScore, getCaptureHistoryBonus(depth), maxCaptureHistory);
     }
 }
 
