@@ -18,7 +18,8 @@
 
 
 enum {
-    maxQuietHistory = 16384
+    maxQuietHistory = 16384,
+    maxPawnHistory = 16384
 };
 
 // quietHistory[side to move][fromSquare][toSquare]
@@ -27,12 +28,14 @@ extern int quietHistory[2][64][64];
 extern int rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 extern int continuationHistory[12][64][12][64];
-
+// pawnHistory [pawnKey][piece][to]
+extern int pawnHistory[32768][12][64];
 
 
 int scaledBonus(int score, int bonus, int gravity);
 void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets);
 void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiets);
+void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets);
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus);
 void updateAllCH(board *pos, int move, int bonus);
 int getHistoryBonus(int depth);
