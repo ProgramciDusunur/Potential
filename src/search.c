@@ -250,6 +250,7 @@ int scoreMove(int move, board* position) {
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
                         getContinuationHistoryScore(position, 4, move) +
+                            pawnHistory[position->pawnKey % 32767][position->mailbox[getMoveSource(move)]][getMoveTarget(move)] +
                (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
     }
     return 0;
@@ -1369,6 +1370,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                         pos->killerMoves[pos->ply][0] = bestMove;
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets);
+                        updatePawnHistory(pos, bestMove, depth, badQuiets);
 
                         if (rootNode) {
                             updateRootHistory(pos, bestMove, depth, badQuiets);
