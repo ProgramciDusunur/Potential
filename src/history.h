@@ -29,7 +29,7 @@ extern int rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 extern int continuationHistory[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
-extern int pawnHistory[32768][12][64];
+extern int16_t pawnHistory[2048][12][64];
 
 
 int scaledBonus(int score, int bonus, int gravity);

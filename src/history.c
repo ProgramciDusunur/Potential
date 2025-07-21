@@ -13,7 +13,7 @@ int rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int continuationHistory[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
-int pawnHistory[32768][12][64];
+int16_t pawnHistory[2048][12][64];
 
 int getHistoryBonus(int depth) {
     return myMIN(10 + 200 * depth, 4096);
@@ -71,9 +71,9 @@ void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
     int to = getMoveTarget(bestMove);
 
     int bonus = getHistoryBonus(depth);
-    int score = pawnHistory[pos->pawnKey % 32767][pos->mailbox[from]][to];
+    int score = pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to];
 
-    pawnHistory[pos->pawnKey % 32767][pos->mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
+    pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
@@ -81,7 +81,7 @@ void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
-        pawnHistory[pos->pawnKey % 32767][pos->mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
+        pawnHistory[pos->pawnKey % 2048][pos->mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
     }
 
 
