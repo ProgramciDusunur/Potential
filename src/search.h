@@ -29,7 +29,6 @@ extern int CORRHIST_MAX;
 extern U64 searchNodes;
 
 extern int LMR_TABLE[2][maxPly][maxPly];
-extern int counterMoves[2][maxPly][maxPly];
 extern int PAWN_CORRECTION_HISTORY[2][16384];
 extern int MINOR_CORRECTION_HISTORY[2][16384];
 extern int NON_PAWN_CORRECTION_HISTORY[2][2][16384];
@@ -44,7 +43,6 @@ void enable_pv_scoring(moves *moveList, board* position);
 void printMove(int move);
 int getLmrReduction(int depth, int moveNumber, bool isQuiet);
 uint8_t justPawns(board *pos);
-void clearCounterMoves(void);
 int SEE(board *pos, int move, int threshold);
 uint64_t all_attackers_to_square(board *pos, uint64_t occupied, int sq);
 void updatePawnCorrectionHistory(board *position, const int depth, const int diff);

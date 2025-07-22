@@ -7,11 +7,11 @@
 #include "utils.h"
 
 // quietHistory[side to move][fromSquare][toSquare]
-int quietHistory[2][64][64];
+int16_t quietHistory[2][64][64];
 // rootHistory[side to move][fromSquare][toSquare]
-int rootHistory[2][64][64];
+int16_t rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-int continuationHistory[12][64][12][64];
+int16_t continuationHistory[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
 int16_t pawnHistory[2048][12][64];
 
@@ -88,7 +88,7 @@ void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
 }
 
 
-int getContinuationHistoryScore(board *pos, int offSet, int move) {
+int16_t getContinuationHistoryScore(board *pos, int offSet, int move) {
     const int ply = pos->ply - offSet;
     return ply >= 0 ? continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
                               [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] : 0;

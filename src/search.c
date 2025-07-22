@@ -130,10 +130,6 @@
 
   U64 searchNodes = 0;
 
-int counterMoves[2][maxPly][maxPly];
-
-
-
 // position repetition detection
 int isRepetition(board* position) {
     // loop over repetition indicies range
@@ -392,16 +388,6 @@ void printMove(int move) {
 
 int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
     return LMR_TABLE[isQuiet][myMIN(63, depth)][myMIN(63, moveNumber)];
-}
-
-void clearCounterMoves(void) {
-    for (int m = 0;m < 2;m++) {
-        for (int i = 0;i < 64;i++) {
-            for (int j = 0;j < 64;j++) {
-                counterMoves[m][i][j] = 0;
-            }
-        }
-    }
 }
 
 void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
