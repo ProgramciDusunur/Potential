@@ -177,6 +177,9 @@ void initializeLMRTable(void) {
 
 // score moves
 int scoreMove(int move, board* position) {
+    int source = getMoveSource(move);
+    int target = getMoveTarget(move);
+
     // make sure we are dealing with PV move
     if (position->scorePv && position->pvTable[0][position->ply] == move) {
         // disable score PV flag
@@ -246,12 +249,14 @@ int scoreMove(int move, board* position) {
         else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
             return 700000000;*/
 
-        return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)] +
+        return quietHistory[position->side][source][target] +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
                         getContinuationHistoryScore(position, 4, move) +
-                            pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)] +
-               (position->ply == 0 * rootHistory[position->side][getMoveSource(move)][getMoveTarget(move)] * 4);
+                            pawnHistory[position->pawnKey % 2048][position->mailbox[source]][target] +
+                            nonPawnHistory[position->side][position->side ? position->blackNonPawnKey % 512 : position->whiteNonPawnKey % 512]
+                            [position->mailbox[source]][target] +
+               (position->ply == 0 * rootHistory[position->side][source][target] * 4);
     }
     return 0;
 }
@@ -1371,6 +1376,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);
+                        updateNonPawnHistory(pos, bestMove, depth, badQuiets);
 
                         if (rootNode) {
                             updateRootHistory(pos, bestMove, depth, badQuiets);
