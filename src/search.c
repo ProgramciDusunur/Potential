@@ -1264,7 +1264,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         int new_depth = depth - 1 + extensions;
 
-        int lmrReduction = getLmrReduction(depth, legal_moves, notTactical) * 1024;
+        uint8_t reductionDivisor = !tt_hit ? 2 : 1;
+
+        int lmrReduction = (getLmrReduction(depth, legal_moves, notTactical) / reductionDivisor) * 1024;
 
         /* All Moves */
 
