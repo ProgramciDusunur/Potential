@@ -1293,6 +1293,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction -= TT_PV_LMR_SCALER;
         }
 
+        
+        lmrReduction -= abs(raw_eval - static_eval) > 82;
+
         lmrReduction /= 1024;
 
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
