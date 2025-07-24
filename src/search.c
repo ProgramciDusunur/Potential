@@ -1133,7 +1133,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // SEE PVS Pruning
         int seeThreshold =
                 notTactical ? SEE_QUIET_THRESHOLD * lmrDepth : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
-        if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
+        if (lmrDepth <= SEE_DEPTH && !tt_pv && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
         int extensions = 0;
