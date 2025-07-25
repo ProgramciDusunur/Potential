@@ -973,7 +973,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
         ttAdjustedEval - rfpMargin >= beta)
-        return ttAdjustedEval;
+        return (ttAdjustedEval * 3 + beta) / 4;
 
     // Null Move Pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
@@ -1195,8 +1195,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             // ║   LTC: 14.05  +-  7.19    ║
             // ╚═══════════════════════════╝
 
+
+                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN - 15 * pvNode;
+
                 // ~~~~ Quadruple Extension ~~~~ //
-                if (singularScore <= singularBeta - QUADRUPLE_EXTENSION_MARGIN) {
+                if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
 
