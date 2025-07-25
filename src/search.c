@@ -50,6 +50,7 @@
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
+  int CORRPLEXITY_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -72,7 +73,7 @@
     ╚══════════════════════════════╝*/
   int RFP_MARGIN = 82;
   int RFP_IMPROVING_MARGIN = 65;
-  int RFP_DEPTH = 9;
+  int RFP_DEPTH = 11;
   
   
   /*╔══════════╗
@@ -1292,6 +1293,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER;
         }
+
+        // Corrplexity LMR
+        lmrReduction -= (abs(raw_eval - static_eval) > 82) * 1024;
 
         lmrReduction /= 1024;
 
