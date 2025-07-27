@@ -50,6 +50,7 @@
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
+  int CORRPLEXITY_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -939,6 +940,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     bool improving = false;
 
+    bool corrplexity = abs(raw_eval - static_eval) > 82;
+
     int pastStack = -1;
 
     pos->staticEval[pos->ply] = static_eval;
@@ -971,7 +974,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
-        ttAdjustedEval - rfpMargin >= beta)
+        ttAdjustedEval - rfpMargin >= beta + corrplexity * 18)
         return ttAdjustedEval;
 
     // Null Move Pruning
@@ -1292,6 +1295,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER;
         }
+
+        // LMR Corrplexity
+        lmrReduction -= (abs(raw_eval - static_eval) > 82) * 1024;
 
         lmrReduction /= 1024;
 
