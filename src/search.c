@@ -19,7 +19,7 @@
   int QS_SEE_THRESHOLD = 0;
   int SEE_MOVE_ORDERING_THRESHOLD = -82;
   int SEE_QUIET_THRESHOLD = -67;
-  int SEE_NOISY_THRESHOLD = -32;
+  int SEE_NOISY_THRESHOLD = -64;
   int SEE_DEPTH = 10;
   
   
@@ -1132,7 +1132,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         // SEE PVS Pruning
         int seeThreshold =
-                notTactical ? SEE_QUIET_THRESHOLD * lmrDepth : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
+                notTactical ? SEE_QUIET_THRESHOLD * lmrDepth : SEE_NOISY_THRESHOLD * lmrDepth;
         if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
