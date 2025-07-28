@@ -764,17 +764,18 @@ int quiescence(int alpha, int beta, board* position, time* time) {
         quiescence_sort_moves(moveList, position);
     }
 
-
-
-
     // legal moves counter
-    //int legal_moves = 0;
+    int legal_moves = 0;
 
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
 
         if (!SEE(position, moveList->moves[count], QS_SEE_THRESHOLD)) {
+            continue;
+        }
+
+        if (legal_moves > 2 && !SEE(position, moveList->moves[count], 246)) {
             continue;
         }
         struct copyposition copyPosition;
@@ -800,7 +801,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
             continue;
         }
 
-        //legal_moves++;
+        legal_moves++;
 
         // increment nodes count
         searchNodes++;
