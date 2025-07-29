@@ -1199,17 +1199,25 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     extensions++;
                 }
 
-            }
-
-            // Multicut
-            else if (singularBeta >= beta) {
-                return singularBeta;
-            }
+            }            
 
             // Negative Extensions
             else if (tt_score >= beta) {
                 extensions -= 2 + !pvNode;
             }
+
+             // Double Negative Extension
+                if (!pvNode && tt_score >= beta + 60) {
+                    extensions -= 1;
+
+                    // High Depth Reduction
+                    depth -= depth > 12;
+                }
+
+                // Triple Negative Extension
+                if (notTactical && tt_score - 90 >= beta) {
+                    extensions -= 1;
+                }
             
             // Cut Node Extension
             else if (cutNode) {
