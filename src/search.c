@@ -47,7 +47,7 @@
   int QUIET_HISTORY_LMR_MINIMUM_SCALER = 3072;
   int QUIET_HISTORY_LMR_MAXIMUM_SCALER = 3072;
   int QUIET_NON_PV_LMR_SCALER = 1024;
-  int CUT_NODE_LMR_SCALER = 3072;
+  int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   
@@ -1184,20 +1184,22 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 if (singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
                     extensions++;
                 }
-            // ╔═══════════════════════════╗
-            // ║            /\             ║
-            // ║           /  \            ║
-            // ║         <SCALER>          ║
-            // ║           \  /            ║
-            // ║            \/             ║
-            // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
-            // ║    Scaling STC / LTC      ║
-            // ║   STC:  0.93  +-  1.94    ║
-            // ║   LTC: 14.05  +-  7.19    ║
-            // ╚═══════════════════════════╝
+                // ╔═══════════════════════════╗
+                // ║            /\             ║
+                // ║           /  \            ║
+                // ║         <SCALER>          ║
+                // ║           \  /            ║
+                // ║            \/             ║
+                // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
+                // ║    Scaling STC / LTC      ║
+                // ║   STC:  0.93  +-  1.94    ║
+                // ║   LTC: 14.05  +-  7.19    ║
+                // ╚═══════════════════════════╝
+
+                 int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN - 15 * pvNode;
 
                 // ~~~~ Quadruple Extension ~~~~ //
-                if (singularScore <= singularBeta - QUADRUPLE_EXTENSION_MARGIN) {
+                if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
 
@@ -1207,7 +1209,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             else if (tt_score >= beta) {
                 extensions -= 2 + !pvNode;
 
-                 // Double Negative Extension
+                 // Triple Negative Extension
                 if (!pvNode && tt_score >= beta + 60) {
                     extensions -= 1;
 
@@ -1215,7 +1217,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                     depth -= depth > 12;
                 }
 
-                // Triple Negative Extension
+                // Quadruple Negative Extension
                 if (notTactical && tt_score - 90 >= beta) {
                     extensions -= 1;
                 }
@@ -1279,7 +1281,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         /* All Moves */
 
         // Reduce More
-        if (!tt_pv && cutNode) {
+        if (cutNode) {
             lmrReduction += CUT_NODE_LMR_SCALER;
         }
 
