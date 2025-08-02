@@ -1307,10 +1307,18 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
                 bool historyReduction = moveHistory / 16384;
-                bool doShallower = score < bestScore + new_depth;
+                bool doShallower = score < bestScore + new_depth;                
                 new_depth -= doShallower;
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
+                // Adaptive re-search depth based on how much LMR exceeded alpha
+                int reSearchAdjustment = 0;
+                if (score > alpha + 100 + 20 * depth) {
+                    reSearchAdjustment = 1; // much higher than alpha, search deeper
+                } else if (score < alpha + 25) {
+                    reSearchAdjustment = -1; // slightly above alpha, search shallower
+                }
+                new_depth += reSearchAdjustment;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             }
         }
