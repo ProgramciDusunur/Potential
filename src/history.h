@@ -23,11 +23,11 @@ enum {
 };
 
 // quietHistory[side to move][fromSquare][toSquare]
-extern int quietHistory[2][64][64];
+extern int16_t quietHistory[2][64][64];
 // rootHistory[side to move][fromSquare][toSquare]
-extern int rootHistory[2][64][64];
+extern int16_t rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-extern int continuationHistory[12][64][12][64];
+extern int16_t continuationHistory[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
 extern int16_t pawnHistory[2048][12][64];
 
