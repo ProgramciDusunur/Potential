@@ -1271,7 +1271,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         /* All Moves */
 
         // Reduce More
-        if (cutNode) {
+        if (!tt_pv && cutNode) {
             lmrReduction += CUT_NODE_LMR_SCALER;
         }
 
