@@ -1065,7 +1065,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         // Update the static eval after razoring fails
-        if (tt_hit && depth <= 2) {
+        if (!tt_hit && depth <= 2) {
             static_eval = razoringScore;
         }
     }
