@@ -1046,7 +1046,6 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 return score;
             }
                 
-
             pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
             int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, false);
             pos->nmpPly = 0;
