@@ -1047,7 +1047,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
                 
             pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
-            int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, false);
+
+            // Use a slightly deeper depth for verification than the NMP search itself
+            int verificationDepth = myMIN(depth - 1, depth - R / 2);
+
+            int verificationScore = -negamax(beta - 1, beta, verificationDepth, pos, time, false);            
             pos->nmpPly = 0;
 
             if (verificationScore >= beta) {
