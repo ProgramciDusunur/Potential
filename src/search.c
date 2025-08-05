@@ -1042,7 +1042,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
 
              // Skip verification if null move score is much above beta (scaled by depth)
-            if (score >= beta + depth) {
+            if (score >= beta + depth + 20) {
                 return score;
             }
                 
