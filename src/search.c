@@ -1291,7 +1291,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
-            int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
+             int moveHistoryReduction = (moveHistory + tt_move ? 512 : 0) // Trust history score more if it aligns with the TT move
+                                        / QUIET_HISTORY_LMR_DIVISOR;
             lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
         }
 
