@@ -50,6 +50,7 @@
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
+  int IN_CHECK_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -1293,6 +1294,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         // Reduce Less
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode);
+        }
+
+        if (in_check) {
+            lmrReduction -= IN_CHECK_LMR_SCALER;
         }
 
         lmrReduction /= 1024;
