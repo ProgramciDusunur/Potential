@@ -50,6 +50,7 @@
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
+  int FUTILITY_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -1280,7 +1281,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         // Futility LMR
-        lmrReduction += static_eval + 50 + 50 * depth <= alpha;
+        lmrReduction += (static_eval + 50 + 50 * depth <= alpha) * FUTILITY_LMR_SCALER;
 
         if (notTactical) {
             // Reduce More
