@@ -1515,8 +1515,15 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             }
 
             else if (score >= beta) {
+                int exceed = score - beta;
+
                 beta = myMIN(infinity, beta + window);
                 aspirationWindowDepth = myMAX(aspirationWindowDepth - 1, current_depth - 5);
+
+                // If we failed high significantly (at least delta), increase delta more
+                if (exceed) {
+                    window += window / 4;
+                }
 
             } else {
                 break;
