@@ -50,6 +50,7 @@
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
+  int TT_CAPTURE_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -1279,6 +1280,10 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             lmrReduction += TT_PV_FAIL_LOW_LMR_SCALER;
         }
 
+        if (tt_hit && getMoveCapture(tt_move)) {
+            lmrReduction += TT_CAPTURE_LMR_SCALER;
+        }
+
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
@@ -1294,6 +1299,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode);
         }
+        
 
         lmrReduction /= 1024;
 
