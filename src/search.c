@@ -967,6 +967,13 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     improving |= pos->staticEval[pos->ply] >= beta + 100;
 
+    // Hindsight Reduction
+    if (depth >= 2 && pos->ply > 0 && !in_check && !pos->isSingularMove[pos->ply] && !pvNode &&
+        pos->reduction[pos->ply-1] >= 1 && pos->staticEval[pos->ply-1] != noEval && 
+        pos->staticEval[pos->ply] + pos->staticEval[pos->ply-1] >= 150) {
+            depth --;
+    }
+
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
     bool rfp_tt_pv_decision = !tt_pv || (tt_pv && tt_hit && tt_score >= beta + 90 - 15 * ((tt_depth + depth) / 2));    
@@ -1304,11 +1311,13 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         lmrReduction /= 1024;
 
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
+        pos->reduction[pos->ply] = lmrReduction;
 
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
+            pos->reduction[pos->ply] = 0;
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
@@ -1475,6 +1484,7 @@ void searchPosition(int depth, board* position, bool benchmark, time* time) {
             position->staticEval[i] = noEval;
             position->piece[i] = 0;
             position->move[i] = 0;
+            position->reduction[i] = 0;
         }
 
         position->seldepth = 0;
