@@ -51,6 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+  int TT_PV_FAIL_LOW_TT_CAPTURE_FACTORIZED_LMR_SCALER = 512;
   
   
   /*╔═══════════════════════╗
@@ -1271,17 +1272,27 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
         /* All Moves */
 
+        // Factorized LMR
+        bool tt_pv_fail_low = tt_pv && tt_hit && tt_score <= alpha;
+        bool tt_move_capture = tt_hit && getMoveCapture(tt_move);
+
         // Reduce More
         if (cutNode) {
             lmrReduction += CUT_NODE_LMR_SCALER;
         }
 
-        if (tt_pv && tt_hit && tt_score <= alpha) {
+        if (tt_pv_fail_low) {
             lmrReduction += TT_PV_FAIL_LOW_LMR_SCALER;
         }
 
-        if (tt_hit && getMoveCapture(tt_move)) {
+        if (tt_move_capture) {
             lmrReduction += TT_CAPTURE_LMR_SCALER;
+        }
+
+        // Factorized LMR Reduce More
+        if (tt_pv_fail_low && tt_move_capture) {
+            lmrReduction += TT_PV_FAIL_LOW_TT_CAPTURE_FACTORIZED_LMR_SCALER;
+
         }
 
         if (notTactical) {
