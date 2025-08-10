@@ -968,8 +968,8 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     improving |= pos->staticEval[pos->ply] >= beta + 100;
 
     // Hindsight Reduction
-    if (depth >= 2 && pos->ply > 0 && !in_check && !pos->isSingularMove[pos->ply] && !pvNode &&
-        pos->reduction[pos->ply-1] >= 1 && pos->staticEval[pos->ply-1] != noEval && 
+    if (depth >= 3 && pos->ply > 0 && !in_check && !pos->isSingularMove[pos->ply] && !pvNode &&
+        pos->reduction[pos->ply-1] >= 3 && pos->staticEval[pos->ply-1] != noEval && 
         pos->staticEval[pos->ply] + pos->staticEval[pos->ply-1] >= 150) {
             depth --;
     }
