@@ -1331,7 +1331,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                 pvsReduction += PVS_CUT_NODE_REDUCTION;
             }
 
-            score = -negamax(-alpha - 1, -alpha, new_depth-pvsReduction, pos, time, !cutNode);            
+            int reduced_depth = myMAX(1, myMIN(new_depth - pvsReduction, new_depth));
+
+            score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, !cutNode);            
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
