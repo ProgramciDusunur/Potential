@@ -51,6 +51,11 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+
+  /*╔════════════════════════════╗
+    ║ Principle Variation Search ║
+    ╚════════════════════════════╝*/
+    int PVS_CUT_NODE_REDUCTION = 1;
   
   
   /*╔═══════════════════════╗
@@ -1320,7 +1325,13 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
             }
         }
         else if (!pvNode || legal_moves > 1) {
-            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+            int pvsReduction = 0;
+
+            if (cutNode) {
+                pvsReduction += PVS_CUT_NODE_REDUCTION;
+            }
+
+            score = -negamax(-alpha - 1, -alpha, new_depth-pvsReduction, pos, time, !cutNode);            
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
