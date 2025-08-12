@@ -631,7 +631,7 @@ int evaluate(board* position) {
         score_endgame += winnableScore;
 
 
-        int score;
+        int score, tempo = 10;
         if (game_phase_score > opening_phase_score)
                 score = score_midgame;
         else if (game_phase_score < endgame_phase_score)
@@ -640,7 +640,7 @@ int evaluate(board* position) {
                 score = (score_midgame * game_phase_score + score_endgame * (opening_phase_score - game_phase_score))
                        / opening_phase_score;
 
-        return (position->side == white) ? score : -score;
+        return (position->side == white) ? score + tempo : -(score + tempo);
 }
 
 
