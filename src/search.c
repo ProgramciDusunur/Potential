@@ -51,6 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+  int CORRPLEXITY_LMR_SCALER = 1536;
   
   
   /*╔═══════════════════════╗
@@ -1298,6 +1299,9 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode);
         }
+
+        // LMR Corrplexity
+        lmrReduction -= corrplexity * CORRPLEXITY_LMR_SCALER;
         
 
         lmrReduction /= 1024;
