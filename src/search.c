@@ -51,7 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
-  int CORRPLEXITY_LMR_SCALER = 1536;
+  int CORRPLEXITY_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
