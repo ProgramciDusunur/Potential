@@ -51,6 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+  int QUIET_IMPROVING_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -1284,9 +1285,14 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         }
 
         if (notTactical) {
+
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
                 lmrReduction += QUIET_NON_PV_LMR_SCALER;
+            }
+
+            if (!improving) {
+                lmrReduction += QUIET_IMPROVING_LMR_SCALER;
             }
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
