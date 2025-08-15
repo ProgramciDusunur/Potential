@@ -366,15 +366,15 @@ int get_game_phase_score(const board* position) {
     // white & black game phase scores
     int white_piece_scores = 0, black_piece_scores = 0;
 
-    // loop over white pieces
-    for (int piece = N; piece <= Q; piece++)
-        white_piece_scores += countBits(position->bitboards[piece]) * material_score[opening][piece];
+    white_piece_scores += countBits(position->bitboards[N]) * material_score[opening][N];
+    white_piece_scores += countBits(position->bitboards[B]) * material_score[opening][B];
+    white_piece_scores += countBits(position->bitboards[R]) * material_score[opening][R];
+    white_piece_scores += countBits(position->bitboards[Q]) * material_score[opening][Q];
 
-
-    // loop over white pieces
-    for (int piece = n; piece <= q; piece++)
-        black_piece_scores += countBits(position->bitboards[piece]) * -material_score[opening][piece];
-
+    black_piece_scores += countBits(position->bitboards[n]) * -material_score[opening][n];
+    black_piece_scores += countBits(position->bitboards[b]) * -material_score[opening][b];
+    black_piece_scores += countBits(position->bitboards[r]) * -material_score[opening][r];
+    black_piece_scores += countBits(position->bitboards[q]) * -material_score[opening][q];
 
 
     // return game phase score
@@ -477,89 +477,51 @@ int evaluate(board* position) {
                         popBit(bitboard, square);
                 }
         }
-        
-        if (position->side == white) {
-            uint64_t blackKingRing = kingAttacks[blackKingSquare];
-        
-            int how_heavy_threats = 0;
 
-            // Pawn Threats
-            int pawn_threat_bonus = ((position->pieceThreats.pawnThreats & blackKingRing) != 0) * 3;            
+        // King Threats
 
-            how_heavy_threats += pawn_threat_bonus;            
+        uint64_t kingRing = position->side == white ? kingAttacks[blackKingSquare] : kingAttacks[whiteKingSquare];
 
-            // Knight Threats
-            int knight_threat_bonus = ((position->pieceThreats.knightThreats & blackKingRing) != 0) * 8;            
+         int how_heavy_threats = 0;
 
-            how_heavy_threats += knight_threat_bonus;
+        // Pawn Threats
+        int pawn_threat_bonus = ((position->pieceThreats.pawnThreats & kingRing) != 0) * 3;            
 
-            // Bishop Threats
-            int bishop_threat_bonus = ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 8;            
+        how_heavy_threats += pawn_threat_bonus;            
 
-            how_heavy_threats += bishop_threat_bonus;
+        // Knight Threats
+        int knight_threat_bonus = ((position->pieceThreats.knightThreats & kingRing) != 0) * 8;            
+
+        how_heavy_threats += knight_threat_bonus;
+
+        // Bishop Threats
+        int bishop_threat_bonus = ((position->pieceThreats.bishopThreats & kingRing) != 0) * 8;            
+
+        how_heavy_threats += bishop_threat_bonus;
             
 
-            // Rook Threats
-            int rook_threat_bonus = ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 12;            
+        // Rook Threats
+        int rook_threat_bonus = ((position->pieceThreats.rookThreats & kingRing) != 0) * 12;            
 
-            how_heavy_threats += rook_threat_bonus;
+        how_heavy_threats += rook_threat_bonus;
 
-            // Queen Threats
-            int queen_threat_bonus = ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 25;            
+        // Queen Threats
+        int queen_threat_bonus = ((position->pieceThreats.queenThreats & kingRing) != 0) * 25;            
 
-            how_heavy_threats += queen_threat_bonus;
+        how_heavy_threats += queen_threat_bonus;
 
-            // Heavy Threats
+        // Heavy Threats
 
-            // if our threats are heavy give it some bonus, like:
-            // One queen almost doing nothing, but with a minor or major piece
-            // it can be a heavy and dangerous threat
-            // so we can add a bonus to the score
+        // if our threats are heavy give it some bonus, like:
+        // One queen almost doing nothing, but with a minor or major piece
+        // it can be a heavy and dangerous threat
+        // so we can add a bonus to the score
 
-            how_heavy_threats += how_heavy_threats > 25 ? how_heavy_threats / 8 * 4 : 0;
+        how_heavy_threats += how_heavy_threats > 25 ? how_heavy_threats / 8 * 4 : 0;
 
-            score_midgame += how_heavy_threats;
-            score_endgame += how_heavy_threats;
-        } else {
-            uint64_t whiteKingRing = kingAttacks[whiteKingSquare];
+        score_midgame += position->side == white ? how_heavy_threats : -how_heavy_threats;
+        score_endgame += position->side == white ? how_heavy_threats : -how_heavy_threats;
 
-            int how_heavy_threats = 0;
-
-            // Pawn Threats
-            int pawn_threat_bonus = ((position->pieceThreats.pawnThreats & whiteKingRing) != 0) * 3;
-            how_heavy_threats += pawn_threat_bonus;
-            
-            // Knight Threats
-            int knight_threat_bonus = ((position->pieceThreats.knightThreats & whiteKingRing) != 0) * 8;
-            how_heavy_threats += knight_threat_bonus;                    
-
-            // Bishop Threats            
-            int bishop_threat_bonus = ((position->pieceThreats.bishopThreats & whiteKingRing) != 0) * 8;
-            how_heavy_threats += bishop_threat_bonus;
-            
-
-            // Rook Threats
-            int rook_threat_bonus = ((position->pieceThreats.rookThreats & whiteKingRing) != 0) * 12;
-            how_heavy_threats += rook_threat_bonus;
-            
-
-            // Queen Threats
-            int queen_threat_bonus = ((position->pieceThreats.queenThreats & whiteKingRing) != 0) * 25;
-            how_heavy_threats += queen_threat_bonus;
-
-            // Heavy Threats
-            
-            // if our threats are heavy give it some bonus, like:
-            // One queen almost doing nothing, but with a minor or major piece
-            // it can be a heavy and dangerous threat
-            // so we can add a bonus to the score
-
-            how_heavy_threats += how_heavy_threats > 25 ? how_heavy_threats / 8 * 4 : 0;
-
-            score_midgame -= how_heavy_threats;
-            score_endgame -= how_heavy_threats;
-
-        }                
 
         // king safety bonus
 
