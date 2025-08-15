@@ -106,6 +106,10 @@ extern const int bishop_pair_bonus[];
 extern int mg_table[12][64]; // [piece][square] -> midgame score
 extern int eg_table[12][64]; // [piece][square] -> endgame score
 
+#define S(mg, eg) ((int)((unsigned int)(eg) << 16) + (mg))
+#define MgScore(s) ((int16_t)((uint16_t)((unsigned)((s)))))
+#define EgScore(s) ((int16_t)((uint16_t)((unsigned)((s) + 0x8000) >> 16)))
+
 
 int get_game_phase_score(const board* position);
 void get_threats(int side, board* pos);
