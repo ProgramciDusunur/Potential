@@ -13,6 +13,12 @@
 #include "values.h"
 #include <stdbool.h>
 
+// Packed Score from Weiss engine: 
+// https://github.com/TerjeKir/weiss/blob/master/src/evaluate.h#L46-L48
+#define S(mg, eg) ((int)((unsigned int)(eg) << 16) + (mg)) // pack midgame and endgame scores
+#define MgScore(s) ((int16_t)((uint16_t)((unsigned)((s))))) // extract midgame score
+#define EgScore(s) ((int16_t)((uint16_t)((unsigned)((s) + 0x8000) >> 16))) // extract endgame score
+
 
 /**********************************\
  ==================================
@@ -29,8 +35,6 @@
     ♗ =   350   = ♙ * 3 + ♙ * 0.5
     ♖ =   500   = ♙ * 5
     ♕ =   1000  = ♙ * 10
-    ♔ =   10000 = ♙ * 100
-
 */
 
 
@@ -105,10 +109,6 @@ extern const int bishop_pair_bonus[];
 
 extern int mg_table[12][64]; // [piece][square] -> midgame score
 extern int eg_table[12][64]; // [piece][square] -> endgame score
-
-#define S(mg, eg) ((int)((unsigned int)(eg) << 16) + (mg))
-#define MgScore(s) ((int16_t)((uint16_t)((unsigned)((s)))))
-#define EgScore(s) ((int16_t)((uint16_t)((unsigned)((s) + 0x8000) >> 16)))
 
 
 int get_game_phase_score(const board* position);
