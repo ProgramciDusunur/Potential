@@ -1393,15 +1393,21 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
     // we don't have any legal moves to make in the current postion
     if (legal_moves == 0) {
-        // king is in check
-        if (in_check)
+        if (pos->isSingularMove[pos->ply]) {
+            return alpha;
+
+        } else {
+            // king is in check
+            if (in_check)
             // return mating score (assuming closest distance to mating pos)
             return -mateValue + pos->ply;
 
             // king is not in check
-        else
-            // return stalemate score
+            else
+                // return stalemate score
             return 0;
+        }
+        
     }
 
     if (!pos->isSingularMove[pos->ply]) {
