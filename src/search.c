@@ -691,7 +691,6 @@ void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int
                 evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
 }
 
-
 // quiescence search
 int quiescence(int alpha, int beta, board* position, time* time) {
     if ((searchNodes & 2047) == 0) {
@@ -898,11 +897,19 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
 
+    // Check for fifty-move rule
+    if (pos->fifty >= 100) {
+        if (!in_check) {
+            // return draw by fifty-move rule
+            return 0;
+        }       
+    }
+
     if (!rootNode) {
 
-        if (isRepetition(pos) || isMaterialDraw(pos) || (pos->fifty >= 100 && !in_check)) {
+        if (isRepetition(pos) || isMaterialDraw(pos)) {
             return 0;
-        }
+        }        
 
 
         // Mate distance pruning
@@ -929,7 +936,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
 
     // recursion escapre condition
-    if (depth <= 0)
+    if (depth <= 0 && pos->fifty < 99)
         // run quiescence search
         return quiescence(alpha, beta, pos, time);
     
