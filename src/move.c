@@ -39,6 +39,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->occupanciesCopy[0] = p->occupancies[0];
     cp->occupanciesCopy[1] = p->occupancies[1];
     cp->occupanciesCopy[2] = p->occupancies[2];
+    cp->fiftyCopy = p->fifty;
     memcpy(cp->mailboxCopy, p->mailbox, 64);
     cp->hashKeyCopy = p->hashKey;
     cp->pawnKeyCopy = p->pawnKey;
@@ -65,6 +66,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->occupancies[0] = cp->occupanciesCopy[0];
     p->occupancies[1] = cp->occupanciesCopy[1];
     p->occupancies[2] = cp->occupanciesCopy[2];
+    p->fifty = cp->fiftyCopy;
     memcpy(p->mailbox, cp->mailboxCopy, 64);
     p->hashKey = cp->hashKeyCopy;
     p->pawnKey = cp->pawnKeyCopy;
@@ -202,9 +204,13 @@ int makeMove(int move, int moveFlag, board* position) {
     position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
     position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
 
+    // increment fifty move rule counter
+    position->fifty++;
+
     if (piece == P || piece == p) {
         position->pawnKey ^= pieceKeys[piece][sourceSquare];
         position->pawnKey ^= pieceKeys[piece][targetSquare];
+        position->fifty = 0; // reset fifty move rule counter
     } else { // non pawn key
 
         if (position->side == white) {
@@ -230,7 +236,9 @@ int makeMove(int move, int moveFlag, board* position) {
 
     // handling capture moves
     if (capture) {
-
+        // reset fifty move rule counter
+        position->fifty = 0;
+        
         int startPiece, endPiece;
         if (position->side == white) {
             startPiece = p;
@@ -470,7 +478,7 @@ int makeMove(int move, int moveFlag, board* position) {
     position->hashKey ^= sideKey;
 
     // make sure that king has not been exposed into a check
-    if (isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[k]) : getLS1BIndex(position->bitboards[K]), position->side, position)) {
+    if (isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[k]) : getLS1BIndex(position->bitboards[K]), position->side, position)) {        
         // take move back
         takeBack(position, &copyPosition);
         // return illegal move

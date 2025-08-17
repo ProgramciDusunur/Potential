@@ -74,7 +74,10 @@ void parseFEN(char *fen, board* position) {
         }
         fen++;
     }
-    fen++;
+
+    fen++;    
+
+
     if (*fen != '-') {
         int file = fen[0] - 'a';
         int rank = 8 - (fen[1] - '0');
@@ -82,6 +85,13 @@ void parseFEN(char *fen, board* position) {
     } else {
         position->enpassant = no_sq;
     }
+
+    // go to parsing half move counter (increment pointer to FEN string)
+    fen++;
+
+    // parse half move counter to init fifty move counter
+    position->fifty = atoi(fen);
+
     for (int piece = P; piece <= K; piece++) {
         position->occupancies[white] |= position->bitboards[piece];
     }

@@ -893,9 +893,14 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     uint8_t tt_flag = hashFlagExact;
     bool tt_pv = pvNode;
 
+    // is king in check
+    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
+                                    getLS1BIndex(pos->bitboards[k]),
+                                    pos->side ^ 1, pos);
+
     if (!rootNode) {
 
-        if (isRepetition(pos) || isMaterialDraw(pos)) {
+        if (isRepetition(pos) || isMaterialDraw(pos) || (pos->fifty >= 100 && !in_check)) {
             return 0;
         }
 
@@ -927,11 +932,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     if (depth <= 0)
         // run quiescence search
         return quiescence(alpha, beta, pos, time);
-
-    // is king in check
-    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
-                                    getLS1BIndex(pos->bitboards[k]),
-                                    pos->side ^ 1, pos);
+    
 
     // get static evaluation score
     int raw_eval = evaluate(pos);
