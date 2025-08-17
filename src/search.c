@@ -965,6 +965,11 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
         ttAdjustedEval = tt_score;
     }
 
+    // Corrplexity Extension
+    if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+        depth++;
+    }
+
     improving |= pos->staticEval[pos->ply] >= beta + 100;
 
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
