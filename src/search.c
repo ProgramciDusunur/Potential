@@ -890,15 +890,13 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
-    bool tt_pv = pvNode;
-
-    // is king in check
-    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
-                                    getLS1BIndex(pos->bitboards[k]),
-                                    pos->side ^ 1, pos);
+    bool tt_pv = pvNode;    
 
     // Check for fifty-move rule
     if (pos->fifty >= 100) {
+        int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
+                                    getLS1BIndex(pos->bitboards[k]),
+                                    pos->side ^ 1, pos);
         if (!in_check) {
             // return draw by fifty-move rule
             return 0;
@@ -938,7 +936,12 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     // recursion escapre condition
     if (depth <= 0 && pos->fifty < 99)
         // run quiescence search
-        return quiescence(alpha, beta, pos, time);
+        return quiescence(alpha, beta, pos, time);        
+
+    // is king in check
+    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
+                                    getLS1BIndex(pos->bitboards[k]),
+                                    pos->side ^ 1, pos);
     
 
     // get static evaluation score
