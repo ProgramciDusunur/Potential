@@ -152,7 +152,7 @@ void parse_position(char *command, board* position) {
 
 
 
-void goCommand(char *command, board* position, time* time) {
+void goCommand(char *command, board* position, my_time* time) {
 
     // reset time control
     resetTimeControl(time);
@@ -321,7 +321,7 @@ int areSubStringsEqual(char *command, char *uciCommand, int stringSize) {
 
 
 // read GUI/user input
-void read_input(time* time, board* pos) {
+void read_input(my_time* time, board* pos) {
     // bytes to read holder
     int bytes;
 
@@ -365,7 +365,7 @@ void read_input(time* time, board* pos) {
     }
 }
 
-void communicate(time* time, board *pos) {
+void communicate(my_time* time, board *pos) {
     // if time is up break here
     if (time->timeset == 1 && getTimeMiliSecond() > time->hardLimit && pos->pvTable[0][0] != 0) {
         // tell engine to stop calculating
@@ -375,7 +375,7 @@ void communicate(time* time, board *pos) {
 }
 
 
-void uciProtocol(int argc, char *argv[], board *position, time *time_ctrl) {
+void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
     //board *position = (board *)malloc(sizeof(board));
 
     position->ply = 0;

@@ -61,7 +61,7 @@ char* benchmarkfens[52] = {
         "7k/8/7P/5B2/5K2/8/8/8 b - - 0 175"
 };
 
-void benchmark(int depth, board* position, time* time) {
+void benchmark(int depth, board* position, my_time* time) {
     U64 totalNodes = 0;
     position->benchmark = true;
 

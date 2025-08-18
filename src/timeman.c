@@ -2,10 +2,9 @@
 // Created by erena on 13.09.2024.
 //
 
-#include "time.h"
+#include "timeman.h"
 
-
-void initTimeControl(time* time) {
+void initTimeControl(my_time* time) {
     // init timing
     time->quit = 0;
     time->movestogo = 20;
@@ -21,7 +20,7 @@ void initTimeControl(time* time) {
 }
 
 // reset time control variables
-void resetTimeControl(time* time) {
+void resetTimeControl(my_time* time) {
     // reset timing
     time->quit = 0;
     time->movestogo = 20;
@@ -44,7 +43,7 @@ int getTimeMiliSecond(void) {
             gettimeofday(&time_value, NULL);
             return time_value.tv_sec * 1000 + time_value.tv_usec / 1000;
     #endif
-    }
+}
 
 int input_waiting(void) {
     #ifndef WIN32

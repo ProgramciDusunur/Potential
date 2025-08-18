@@ -1,7 +1,3 @@
-//
-// Created by erena on 13.09.2024.
-//
-
 #ifndef POTENTIAL_TIME_H
 #define POTENTIAL_TIME_H
 
@@ -23,8 +19,8 @@
 
 #endif
 
-void initTimeControl(time* time);
-void resetTimeControl(time* time);
+void initTimeControl(my_time* time);
+void resetTimeControl(my_time* time);
 int getTimeMiliSecond();
 int input_waiting();
 

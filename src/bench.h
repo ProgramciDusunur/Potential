@@ -10,10 +10,10 @@
 #include "bit_manipulation.h"
 #include <stdio.h>
 #include "search.h"
-#include "time.h"
+#include "timeman.h"
 #include "fen.h"
 
 extern char* benchmarkfens[52];
-void benchmark(int depth, board* position, time* time);
+void benchmark(int depth, board* position, my_time* time);
 
 #endif //POTENTIAL_BENCH_H

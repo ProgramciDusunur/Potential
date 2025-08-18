@@ -144,7 +144,7 @@ typedef struct {
 
     // variable to flag when the time is up
     int stopped;
-} time;
+} my_time;
 
 typedef struct  {
     char *fen;

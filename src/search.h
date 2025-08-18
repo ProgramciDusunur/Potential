@@ -8,7 +8,7 @@
 #pragma once
 
 #include "structs.h"
-#include "time.h"
+#include "timeman.h"
 #include "values.h"
 #include "history.h"
 #include "math.h"
@@ -52,10 +52,10 @@ void updateMinorCorrectionHistory(board *position, const int depth, const int di
 void updateMajorCorrectionHistory(board *position, const int depth, const int diff);
 int adjustEvalWithCorrectionHistory(board *position, int rawEval);
 void update_non_pawn_corrhist(board *position, const int depth, const int diff);
-int quiescence(int alpha, int beta, board* position, time* time);
+int quiescence(int alpha, int beta, board* position, my_time* time);
 void quiescence_sort_moves(moves *moveList, board* position);
 int quiescenceScoreMove(int move, board* position);
-int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode);
-void searchPosition(int depth, board* position, bool benchmark, time* time);
+int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutNode);
+void searchPosition(int depth, board* position, bool benchmark, my_time* time);
 
 #endif //POTENTIAL_SEARCH_H
