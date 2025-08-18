@@ -3,7 +3,6 @@
 //
 
 #include "timeman.h"
-#include <psdk_inc/_fd_types.h>
 
 
 void initTimeControl(my_time* time) {
