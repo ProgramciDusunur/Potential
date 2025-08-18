@@ -43,6 +43,8 @@ typedef struct {
     int killerMoves[maxPly][2];
     threats pieceThreats;
 
+    int fifty;
+
     int staticEval[maxPly];
 
     int isSingularMove[maxPly];
@@ -98,6 +100,8 @@ struct copyposition {
     U64 majorKeyCopy;
     U64 whiteNonPawnKeyCopy;
     U64 blackNonPawnKeyCopy;
+
+    int fiftyCopy;
 
     int sideCopy;
     int enpassantCopy;

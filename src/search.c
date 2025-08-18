@@ -240,13 +240,7 @@ int scoreMove(int move, board* position) {
         // score 1st killer move
         if (position->killerMoves[position->ply][0] == move)
             return 900000000;
-        /*
-        // score 2nd killer move
-        else if (position->killerMoves[position->ply][1] == move)
-            return 800000000;
-        else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
-            return 700000000;*/
-
+                   
         return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)] +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
@@ -468,7 +462,7 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff) 
     NON_PAWN_CORRECTION_HISTORY[black][position->side][blackKey % CORRHIST_SIZE] = blackEntry;
 }
 
-int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
+int adjustEvalWithCorrectionHistory(board *position, int rawEval) {    
     U64 pawnKey = position->pawnKey;
     U64 minorKey = position->minorKey;
     U64 majorKey = position->majorKey;
@@ -691,7 +685,6 @@ void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int
                 evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
 }
 
-
 // quiescence search
 int quiescence(int alpha, int beta, board* position, time* time) {
     if ((searchNodes & 2047) == 0) {
@@ -891,13 +884,24 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
-    bool tt_pv = pvNode;
+    bool tt_pv = pvNode;    
+
+    // Check for fifty-move rule
+    if (pos->fifty >= 100) {
+        int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
+                                    getLS1BIndex(pos->bitboards[k]),
+                                    pos->side ^ 1, pos);
+        if (!in_check) {
+            // return draw by fifty-move rule
+            return 0;
+        }       
+    }
 
     if (!rootNode) {
 
         if (isRepetition(pos) || isMaterialDraw(pos)) {
             return 0;
-        }
+        }        
 
 
         // Mate distance pruning
@@ -924,14 +928,15 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 
 
     // recursion escapre condition
-    if (depth <= 0)
+    if (depth <= 0 && pos->fifty < 99)
         // run quiescence search
-        return quiescence(alpha, beta, pos, time);
+        return quiescence(alpha, beta, pos, time);        
 
     // is king in check
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
+    
 
     // get static evaluation score
     int raw_eval = evaluate(pos);

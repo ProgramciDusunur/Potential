@@ -58,6 +58,9 @@ void pBoard(board* position) {
 
     // print hash key
     printf("    Hash key:  %llx\n\n", position->hashKey);
+
+    // fifty move rule counter
+    printf("     Fifty move: %d\n\n", position->fifty);
 }
 
 void printMailbox(const board *position) {
