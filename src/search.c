@@ -468,7 +468,10 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff) 
     NON_PAWN_CORRECTION_HISTORY[black][position->side][blackKey % CORRHIST_SIZE] = blackEntry;
 }
 
-int adjustEvalWithCorrectionHistory(board *position, const int rawEval) {
+int adjustEvalWithCorrectionHistory(board *position, int rawEval) {
+    const float fifty_move_scaler = (float)((200 - (float)position->fifty) / 200);
+    rawEval = rawEval * fifty_move_scaler;
+
     U64 pawnKey = position->pawnKey;
     U64 minorKey = position->minorKey;
     U64 majorKey = position->majorKey;
