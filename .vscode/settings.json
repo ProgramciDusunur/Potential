@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "time.h": "c",
-        "bench.h": "c",
-        "bit_manipulation.h": "c"
-    }
-}
