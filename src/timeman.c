@@ -2,10 +2,11 @@
 // Created by erena on 13.09.2024.
 //
 
-#include "time.h"
+#include "timeman.h"
+#include <psdk_inc/_fd_types.h>
 
 
-void initTimeControl(time* time) {
+void initTimeControl(my_time* time) {
     // init timing
     time->quit = 0;
     time->movestogo = 20;
@@ -21,7 +22,7 @@ void initTimeControl(time* time) {
 }
 
 // reset time control variables
-void resetTimeControl(time* time) {
+void resetTimeControl(my_time* time) {
     // reset timing
     time->quit = 0;
     time->movestogo = 20;

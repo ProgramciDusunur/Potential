@@ -17,35 +17,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-/*void perft(int depth, board* position);
-
-int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
-
-void pBoard(board* position);
-
-void printMoveList(moves *moveList);
-
-void initAll();
-
-void uciProtocol(int argc, char* argv[]);
-
-void goCommand(char *command, board* position, time* time);
-
-void perftRoot(int depth, board* position);
-
-void perftChild(int depth, board* position);
-
-void initRandomKeys();*/
-
 void initAll(void) {
     initLeaperAttacks();
     initMagicNumbers();
@@ -83,7 +54,7 @@ int main(int argc, char* argv[]) {
 
     } else {
         board *position = (board *)malloc(sizeof(board));
-        time *time_ctrl = (time *)malloc(sizeof(time));
+        my_time *time_ctrl = (my_time *)malloc(sizeof(my_time));
         uciProtocol(argc, argv, position, time_ctrl);
         free(position);
         free(time_ctrl);

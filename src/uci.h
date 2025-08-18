@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "move.h"
-#include "time.h"
+#include "timeman.h"
 #include "search.h"
 #include "fen.h"
 #include "bench.h"
@@ -21,14 +21,14 @@
 #include <unistd.h>
 #endif
 
-void uciProtocol(int argc, char *argv[], board *position, time *time_ctrl);
+void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl);
 int parse_move(char *move_string, board* position);
 void parse_position(char *command, board* position);
-void goCommand(char *command, board* position, time* time);
+void goCommand(char *command, board* position, my_time* time);
 void printMoveList(moves *moveList);
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
-void read_input(time* time, board* pos);
-void communicate(time* time, board *pos);
+void read_input(my_time* time, board* pos);
+void communicate(my_time* time, board *pos);
 
 
 

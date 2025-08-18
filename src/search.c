@@ -680,7 +680,7 @@ uint8_t isMaterialDraw(board *pos) {
     return 0;
 }
 
-void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int move) {
+void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, int move) {
     double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
     double not_bm_nodes_fraction = 
@@ -693,7 +693,7 @@ void scaleTime(time* time, uint8_t bestMoveStability, uint8_t evalStability, int
 
 
 // quiescence search
-int quiescence(int alpha, int beta, board* position, time* time) {
+int quiescence(int alpha, int beta, board* position, my_time* time) {
     if ((searchNodes & 2047) == 0) {
         communicate(time, position);
     }
@@ -858,7 +858,7 @@ int quiescence(int alpha, int beta, board* position, time* time) {
 
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode) {
+int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutNode) {
     if ((searchNodes & 2047) == 0) {
         communicate(time, pos);
     }
@@ -1437,7 +1437,7 @@ int negamax(int alpha, int beta, int depth, board* pos, time* time, bool cutNode
 }
 
 // search position for the best move
-void searchPosition(int depth, board* position, bool benchmark, time* time) {
+void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
     // define best score variable
     int score = 0;
 

@@ -23,8 +23,8 @@
 
 #endif
 
-void initTimeControl(time* time);
-void resetTimeControl(time* time);
+void initTimeControl(my_time* time);
+void resetTimeControl(my_time* time);
 int getTimeMiliSecond();
 int input_waiting();
 
