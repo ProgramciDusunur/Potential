@@ -4,7 +4,6 @@
 
 #include "timeman.h"
 
-
 void initTimeControl(my_time* time) {
     // init timing
     time->quit = 0;

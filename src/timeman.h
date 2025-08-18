@@ -1,7 +1,3 @@
-//
-// Created by erena on 13.09.2024.
-//
-
 #ifndef POTENTIAL_TIME_H
 #define POTENTIAL_TIME_H
 
