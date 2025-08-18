@@ -1049,7 +1049,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
 
             if (pos->nmpPly || depth < 15) {
-                return score;
+                return (score * 2 + beta) / 3;
             }
 
              // Skip verification if null move score is much above beta (scaled by depth)
@@ -1062,7 +1062,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             pos->nmpPly = 0;
 
             if (verificationScore >= beta) {
-                return score;
+                return (score * 2 + beta) / 3;
             }
         }
     }    
