@@ -240,13 +240,7 @@ int scoreMove(int move, board* position) {
         // score 1st killer move
         if (position->killerMoves[position->ply][0] == move)
             return 900000000;
-        /*
-        // score 2nd killer move
-        else if (position->killerMoves[position->ply][1] == move)
-            return 800000000;
-        else if (counterMoves[position->side][getMoveSource(move)][getMoveTarget(move)] == move)
-            return 700000000;*/
-
+                   
         return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)] +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
@@ -468,10 +462,7 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff) 
     NON_PAWN_CORRECTION_HISTORY[black][position->side][blackKey % CORRHIST_SIZE] = blackEntry;
 }
 
-int adjustEvalWithCorrectionHistory(board *position, int rawEval) {
-    const float fifty_move_scaler = (float)((200 - (float)position->fifty) / 200);
-    rawEval = rawEval * fifty_move_scaler;
-
+int adjustEvalWithCorrectionHistory(board *position, int rawEval) {    
     U64 pawnKey = position->pawnKey;
     U64 minorKey = position->minorKey;
     U64 majorKey = position->majorKey;
