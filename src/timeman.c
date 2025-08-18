@@ -43,7 +43,7 @@ int getTimeMiliSecond(void) {
             gettimeofday(&time_value, NULL);
             return time_value.tv_sec * 1000 + time_value.tv_usec / 1000;
     #endif
-    }
+}
 
 int input_waiting(void) {
     #ifndef WIN32
