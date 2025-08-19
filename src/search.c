@@ -1230,7 +1230,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
         }
 
-
+        int lmrReduction = getLmrReduction(depth, legal_moves, notTactical) * 1024;
+        
+        if (pos->fifty > 80 && (!notTactical || getMovePiece(currentMove) == PAWN)) {
+            lmrReduction -= 1024;
+        }
+        
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(pos, &copyPosition);
@@ -1274,9 +1279,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         uint64_t nodes_before_search = searchNodes;
 
-        int new_depth = depth - 1 + extensions;
-
-        int lmrReduction = getLmrReduction(depth, legal_moves, notTactical) * 1024;
+        int new_depth = depth - 1 + extensions;        
 
         /* All Moves */
 
