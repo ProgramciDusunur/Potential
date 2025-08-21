@@ -51,6 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+  int CORRPLEXITY_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -947,7 +948,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     bool improving = false;
 
-    bool corrplexity = abs(raw_eval - static_eval) > 82;
+    bool corrplexity = abs(raw_eval - static_eval) > 82;    
 
     int pastStack = -1;
 
@@ -973,7 +974,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     }
 
     // Corrplexity Extension
-    if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+    bool corrplexityExtension = corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit);
+    if (corrplexityExtension) {
         depth++;
     }
 
@@ -1293,6 +1295,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         if (tt_hit && getMoveCapture(tt_move)) {
             lmrReduction += TT_CAPTURE_LMR_SCALER;
+        }
+
+        if (!corrplexityExtension) {
+            lmrReduction += CORRPLEXITY_LMR_SCALER;
         }
 
         if (notTactical) {
