@@ -1295,11 +1295,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         if (tt_hit && getMoveCapture(tt_move)) {
             lmrReduction += TT_CAPTURE_LMR_SCALER;
-        }
-
-        if (depth >= tt_depth) {
-            lmrReduction += TT_DEPTH_LMR_SCALER;
-        }
+        }        
 
         if (notTactical) {
             // Reduce More
@@ -1315,6 +1311,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // Reduce Less
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode);
+        }
+
+        if (tt_depth >= depth) {
+            lmrReduction -= TT_DEPTH_LMR_SCALER;
         }
         
 
