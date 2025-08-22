@@ -51,6 +51,8 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+  int TT_DEPTH_LMR_SCALER = 1024;
+
   
   
   /*╔═══════════════════════╗
@@ -1293,6 +1295,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         if (tt_hit && getMoveCapture(tt_move)) {
             lmrReduction += TT_CAPTURE_LMR_SCALER;
+        }
+
+        if (depth >= tt_depth) {
+            lmrReduction += TT_DEPTH_LMR_SCALER;
         }
 
         if (notTactical) {
