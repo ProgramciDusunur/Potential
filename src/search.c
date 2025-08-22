@@ -978,7 +978,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         ttAdjustedEval = tt_score;
     }
 
-    if (priorReduction >= 2 && pos->ply - 1 > 0 && depth >= 3 && pos->staticEval[pos->ply] + pos->staticEval[pos->ply - 1] > 164) {
+    if (priorReduction >= 3 && pos->ply - 1 > 0 && !in_check && pos->staticEval[pos->ply - 1] != noEval && depth >= 2 && pos->staticEval[pos->ply] + pos->staticEval[pos->ply - 1] > 164) {
         depth--;
     }
 
