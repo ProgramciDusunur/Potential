@@ -1329,7 +1329,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
-            pos->prevLmrReduction[pos->ply] = reduced_depth;
+            pos->prevLmrReduction[pos->ply] = lmrReduction;
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
             pos->prevLmrReduction[pos->ply] = 0;
 
