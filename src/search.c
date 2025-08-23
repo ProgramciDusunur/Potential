@@ -1159,7 +1159,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         int extensions = 0;
 
         // Singular Extensions
-        if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
+        if (!rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateScore) {
             const int singularBeta = tt_score - depth * 5 / 8;
@@ -1223,7 +1223,20 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // Negative Extensions
             else if (tt_score >= beta) {
-                extensions -= 2 + !pvNode;
+                extensions -= 2 + pvNode;
+
+                // Triple Negative Extension
+                if (!pvNode && tt_score >= beta + 60) {
+                    extensions -= 1;
+
+                    // High Depth Reduction
+                    depth -= depth > 12;
+                }
+
+                // Quadruple Negative Extension
+                if (notTactical && tt_score - 90 >= beta) {
+                    extensions -= 1;
+                }
             }
             
             // Cut Node Extension

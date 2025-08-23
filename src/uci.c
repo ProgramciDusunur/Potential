@@ -411,7 +411,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..\n");
-        benchmark(15, position, time_ctrl);
+        benchmark(10, position, time_ctrl);
         printf("\n");
         fflush(NULL);
         return;
@@ -541,7 +541,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             perftSuite();
         }
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(15, position, time_ctrl);
+            benchmark(10, position, time_ctrl);
         }
     }
 }
