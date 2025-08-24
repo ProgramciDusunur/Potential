@@ -979,7 +979,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         depth++;
     }
 
-    if (!corrplexity && tt_depth + 3 < depth && !pvNode && !in_check) {
+    if (!corrplexity && tt_depth + 3 < depth && depth >= 3 && !pvNode && !in_check && !rootNode) {
         depth--;
     }
 
