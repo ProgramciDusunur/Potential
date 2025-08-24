@@ -962,6 +962,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
         depth--;
     }
+    
 
     int ttAdjustedEval = static_eval;
 
@@ -971,13 +972,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
          (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
 
         ttAdjustedEval = tt_score;
-    }    
+    }        
 
     // Corrplexity Extension
     if (ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
         if (corrplexity) {
             depth++;
-        } else if (correctionValue <= -41 && depth >= 3) {            
+        }
+        if (correctionValue <= -100 && depth >= 3) {            
             // Negative Corrplexity Extension            
             depth--;
         }
