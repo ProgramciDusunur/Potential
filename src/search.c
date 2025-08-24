@@ -978,7 +978,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     if (ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
         if (corrplexity) {
             depth++;
-        } else if (correctionValue <= -41 && depth >= 7) {
+        } else if (correctionValue <= -82) {
             // Negative Corrplexity Extension            
             depth--;
         }
