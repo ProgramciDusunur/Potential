@@ -303,8 +303,8 @@ void init_hash_table(int mb) {
             attempts++;
         } else {
             // clear hash table
-            clearHashTable();
-            printf("Hash table is initialied with %llu entries\n", hash_entries);
+            clearHashTable();                                                
+            printf("Hash is initialized with %d MB\n", mb);
             return;
         }
     }

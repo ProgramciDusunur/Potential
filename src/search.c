@@ -131,8 +131,6 @@
 
   U64 searchNodes = 0;
 
-int counterMoves[2][maxPly][maxPly];
-
 
 
 // position repetition detection
@@ -387,16 +385,6 @@ void printMove(int move) {
 
 int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
     return LMR_TABLE[isQuiet][myMIN(63, depth)][myMIN(63, moveNumber)];
-}
-
-void clearCounterMoves(void) {
-    for (int m = 0;m < 2;m++) {
-        for (int i = 0;i < 64;i++) {
-            for (int j = 0;j < 64;j++) {
-                counterMoves[m][i][j] = 0;
-            }
-        }
-    }
 }
 
 void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
@@ -972,7 +960,19 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         ttAdjustedEval = tt_score;
     }
 
-    // Corrplexity Extension
+    // ╔═══════════════════════════╗
+    // ║            /\             ║
+    // ║           /  \            ║
+    // ║         <SCALER>          ║
+    // ║           \  /            ║
+    // ║            \/             ║
+    // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
+    // ║    Scaling STC / LTC      ║
+    // ║   STC: -2.28  +-  6.28    ║
+    // ║   LTC:  9.15  +-  5.46    ║
+    // ╚═══════════════════════════╝
+
+    // ~~~~ Corrplexity Extension ~~~~ //
     if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
         depth++;
     }
@@ -1202,17 +1202,17 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 if (singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
                     extensions++;
                 }
-            // ╔═══════════════════════════╗
-            // ║            /\             ║
-            // ║           /  \            ║
-            // ║         <SCALER>          ║
-            // ║           \  /            ║
-            // ║            \/             ║
-            // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
-            // ║    Scaling STC / LTC      ║
-            // ║   STC:  0.93  +-  1.94    ║
-            // ║   LTC: 14.05  +-  7.19    ║
-            // ╚═══════════════════════════╝
+                // ╔═══════════════════════════╗
+                // ║            /\             ║
+                // ║           /  \            ║
+                // ║         <SCALER>          ║
+                // ║           \  /            ║
+                // ║            \/             ║
+                // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
+                // ║    Scaling STC / LTC      ║
+                // ║   STC:  0.93  +-  1.94    ║
+                // ║   LTC: 14.05  +-  7.19    ║
+                // ╚═══════════════════════════╝
 
                 // ~~~~ Quadruple Extension ~~~~ //
                 if (singularScore <= singularBeta - QUADRUPLE_EXTENSION_MARGIN) {

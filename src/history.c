@@ -83,10 +83,7 @@ void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
 
         pawnHistory[pos->pawnKey % 2048][pos->mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
     }
-
-
 }
-
 
 int getContinuationHistoryScore(board *pos, int offSet, int move) {
     const int ply = pos->ply - offSet;
@@ -119,7 +116,6 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
         updateAllCH(pos, badQuiets->moves[index], -bonus);
     }
 }
-
 
 void clearQuietHistory(void) {
     memset(quietHistory, 0, sizeof(quietHistory));

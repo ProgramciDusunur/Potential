@@ -6,6 +6,8 @@
 
 #include "perft.h"
 
+#define VERSION "3.0.0"
+
 double DEF_TIME_MULTIPLIER = 0.054;
 double DEF_INC_MULTIPLIER = 0.85;
 double MAX_TIME_MULTIPLIER = 0.76;
@@ -407,7 +409,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
     char input[10000];
 
     // print engine info
-    printf("Potential by ProgramciDusunur\n");
+    printf("Potential %s by Eren Araz\n", VERSION); 
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..\n");
@@ -456,10 +458,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             clearQuietHistory();
 
             //clear static eval history
-            clearStaticEvaluationHistory(position);
-
-            //clear counter moves
-            clearCounterMoves();
+            clearStaticEvaluationHistory(position);            
         }
             // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0) {
@@ -483,10 +482,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             clearQuietHistory();
 
             //clear static eval history
-            clearStaticEvaluationHistory(position);
-
-            //clear counter moves
-            clearCounterMoves();
+            clearStaticEvaluationHistory(position);            
         }
             // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0) {
@@ -500,10 +496,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             clearQuietHistory();
 
             //clear static eval history
-            clearStaticEvaluationHistory(position);
-
-            //clear counter moves
-            clearCounterMoves();
+            clearStaticEvaluationHistory(position);            
         }
         else if (!strncmp(input, "setoption name Hash value ", 26)) {
             // init MB

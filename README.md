@@ -8,8 +8,9 @@
 
 | Version | [CCRL 40/15][ccrl-4015] | [CCRL Blitz][ccrl-blitz] | [UBC][ubc] |
 |:-------:|:-----------------------:|:------------------------:|:----------:|
-| [2.0.0] |           2882          |            -             |    2966    |
-| [1.0.0] |           2629          |            -             |    2719    |
+| [3.0.0] |           ----          |            ----          |    ----    |
+| [2.0.0] |           2882          |            2923          |    2966    |
+| [1.0.0] |           2629          |            ----          |    2719    |
 ---
 
 ## Search
@@ -35,6 +36,7 @@ The search function explores possible moves and evaluates their outcomes to find
 - Cut Node
 - Quiescence Search
 - Move Ordering
+- Corrplexity Extension
 ---
 
 ## Time Control
@@ -69,6 +71,7 @@ This project has been shaped and inspired by the valuable support and thoughtful
 - [**Zuppa**](https://github.com/PGG106)
 - [**Shawn**](https://github.com/xu-shawn)
 - [**Dan**](https://github.com/kelseyde)
+- [**Swedishchef**](https://github.com/JonathanHallstrom)
 ---
 
 

@@ -1,20 +1,11 @@
-//
-// Created by erena on 13.09.2024.
-//
-
 #ifndef POTENTIAL_BIT_MANIPULATION_H
 #define POTENTIAL_BIT_MANIPULATION_H
 
-//
-// Created by erena on 20.04.2024.
-//
 #pragma once
 
 #include <stdio.h>
 
 
-//#define max(x, y) ((x) > (y) ? (x) : (y))
-//#define min(x, y) ((x) < (y) ? (x) : (y))
 #define myAbs(x) ((x) < 0 ? -(x) : (x))
 
 
@@ -32,4 +23,4 @@ U64 setOccupancy(int index, int bitsInMask, U64 attackMask);
 
 
 
-#endif //POTENTIAL_BIT_MANIPULATION_H
+#endif

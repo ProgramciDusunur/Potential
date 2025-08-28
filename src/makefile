@@ -142,6 +142,12 @@ ifeq ($(build), x86-64-avx512)
 	CFLAGS   += $(AVX512FLAGS)
 endif
 
+ifeq ($(build), haswell)
+    NATIVE    = -march=haswell
+    ARCH      = -x86-64-haswell
+    CFLAGS   += $(BMI2FLAGS)
+endif
+
 ifeq ($(build), debug)
 	CFLAGS = -O3 -g3 -fno-omit-frame-pointer -std=gnu++2a
 	NATIVE   = -msse -msse3 -mpopcnt
