@@ -1549,7 +1549,6 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
         }
 
-
         averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
 
 
