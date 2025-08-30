@@ -20,8 +20,7 @@ const int mirrorScore[128] =
                 a8, b8, c8, d8, e8, f8, g8, h8
         };
 
-// Paketlenmiş Materyal Skorları
-const int packed_material_score[6] = {
+const int32_t packed_material_score[6] = {
     S(82, 94),    // (P)
     S(337, 281),  // (N)
     S(365, 297),  // (B)
@@ -47,7 +46,7 @@ const int material_score[2][12] = {
 const int seeMaterial[12] = {100, 300, 300, 500, 900, 12000, -100, -300, -300, -500, -900, -12000};
 
 /// positional piece scores [piece][square]
-const int packed_positional_score[6][64] = {
+const int32_t packed_positional_score[6][64] = {
     { // pawn
         S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0),
         S(98, 178), S(134, 173), S(61, 158), S(95, 134), S(68, 147), S(126, 132), S(34, 165), S(-11, 187),
@@ -220,21 +219,32 @@ const int bishop_pair_bonus[] = {0, 8, 15, 23, 30, 38};
 int mg_table[12][64]; // [piece][square] -> midgame score
 int eg_table[12][64]; // [piece][square] -> endgame score
 
+int32_t evaluate_board[12][64]; // [piece][square] -> evaluation score
+
 void init_tables() {
-        /*// White pieces (P, N, B, R, Q, K)
-        for (int piece = P; piece <= K; piece++) {
+        // White pieces (P, N, B, R, Q, K)
+        /*for (int piece = P; piece <= K; piece++) {
                 for (int square = 0; square < 64; square++) {
                         mg_table[piece][square] = material_score[opening][piece]
                                                 + positional_score[opening][piece][square];
                         eg_table[piece][square] = material_score[endgame][piece]
                                                 + positional_score[endgame][piece][square];
                 }
-        }
+        }*/
+
+        /*for (int piece = P; piece <= K; piece++) {
+                for (int square = 0; square < 64; square++) {
+                        evaluate_board[piece][square] = S(
+                                material_score[opening][piece] + positional_score[opening][piece - P][square],
+                                material_score[endgame][piece] + positional_score[endgame][piece - P][square]
+                        );
+                }
+        }*/
 
 
 
         // Black pieces (p, n, b, r, q, k)
-        for (int piece = p; piece <= k; piece++) {
+        /*for (int piece = p; piece <= k; piece++) {
                 int piece_type = piece - p; // 0-5 (Pawn, Knight,... King)
                 for (int square = 0; square < 64; square++) {
                         int mirrored_sq = mirrorScore[square];
@@ -351,14 +361,14 @@ int evaluate(board* position) {
                 U64 bitboard = position->bitboards[piece];
 
                 while (bitboard) {
-                        const int square = getLS1BIndex(bitboard);                       
-        
+                        const int square = getLS1BIndex(bitboard);
+                        
                         popBit(bitboard, square);
                 }
         }
 
-        int score_midgame = MgScore(packed_score);
-        int score_endgame = EgScore(packed_score);
+        int32_t score_midgame = MgScore(packed_score);
+        int32_t score_endgame = EgScore(packed_score);
               
         int final_score = (score_midgame * game_phase_score + score_endgame * (opening_phase_score - game_phase_score)) 
                         / opening_phase_score;
