@@ -13,6 +13,12 @@
 #include "values.h"
 #include <stdbool.h>
 
+// Packed Score from Weiss engine: 
+// https://github.com/TerjeKir/weiss/blob/master/src/evaluate.h#L46-L48
+#define S(mg, eg) ((int)((unsigned int)(eg) << 16) + (mg)) // pack midgame and endgame scores
+#define MgScore(s) ((int16_t)((uint16_t)((unsigned)((s))))) // extract midgame score
+#define EgScore(s) ((int16_t)((uint16_t)((unsigned)((s) + 0x8000) >> 16))) // extract endgame score
+
 
 /**********************************\
  ==================================
@@ -29,8 +35,6 @@
     ♗ =   350   = ♙ * 3 + ♙ * 0.5
     ♖ =   500   = ♙ * 5
     ♕ =   1000  = ♙ * 10
-    ♔ =   10000 = ♙ * 100
-
 */
 
 
@@ -52,9 +56,6 @@ extern const int material_score[2][12];
 
 // SEE Material Array
 extern const int seeMaterial[12];
-
-// Positional Piece Scores
-extern const int positional_score[2][6][64];
 
 // Pawn Penalties and Bonuses
 extern const int double_pawn_penalty_opening;

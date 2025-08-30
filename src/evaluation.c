@@ -20,145 +20,94 @@ const int mirrorScore[128] =
                 a8, b8, c8, d8, e8, f8, g8, h8
         };
 
-// Material Scores
-const int material_score[2][12] =
-        {
-                // Opening material score
-                {82, 337, 365, 477, 1025, 0, -82, -337, -365, -477, -1025, 0},
+// Paketlenmiş Materyal Skorları
+const int packed_material_score[6] = {
+    S(82, 94),    // (P)
+    S(337, 281),  // (N)
+    S(365, 297),  // (B)
+    S(477, 512),  // (R)
+    S(1025, 936), // (Q)
+    S(0, 0)       // (K)
+};
 
-                // Endgame material score
-                {94, 281, 297, 512, 936, 0, -94, -281, -297, -512, -936, 0}
-        };
+const int opening_material_score[12] = {
+        82, 337, 365, 477, 1025, 0, -82, -337, -365, -477, -1025, 0
+};
+
+// Material Scores
+const int material_score[2][12] = {
+        // Opening material score
+        {82, 337, 365, 477, 1025, 0, -82, -337, -365, -477, -1025, 0},
+
+        // Endgame material score
+        {94, 281, 297, 512, 936, 0, -94, -281, -297, -512, -936, 0}
+};
 
 // SEE Material Array
 const int seeMaterial[12] = {100, 300, 300, 500, 900, 12000, -100, -300, -300, -500, -900, -12000};
 
-/// positional piece scores [game phase][piece][square]
-const int positional_score[2][6][64] = {
-        {   // Opening positional piece scores
-                {   // pawn
-                        0, 0, 0, 0, 0, 0, 0, 0,
-                        98, 134, 61, 95, 68, 126, 34, -11,
-                        -6, 7, 26, 31, 65, 56, 25, -20,
-                        -14, 13, 6, 21, 23, 12, 17, -23,
-                        -27, -2, -5, 12, 17, 6, 10, -25,
-                        -26, -4, -4, -10, 3, 3, 33, -12,
-                        -35, -1, -20, -23, -15, 24, 38, -22,
-                        0, 0, 0, 0, 0, 0, 0, 0
-                },
-                {   // knight
-                        -167, -89, -34, -49, 61, -97, -15, -107,
-                        -73, -41, 72, 36, 23, 62, 7, -17,
-                        -47, 60, 37, 65, 84, 129, 73, 44,
-                        -9, 17, 19, 53, 37, 69, 18, 22,
-                        -13, 4, 16, 13, 28, 19, 21, -8,
-                        -23, -9, 12, 10, 19, 17, 25, -16,
-                        -29, -53, -12, -3, -1, 18, -14, -19,
-                        -105, -21, -58, -33, -17, -28, -19, -23
-                },
-                {   // bishop
-                        -29, 4, -82, -37, -25, -42, 7, -8,
-                        -26, 16, -18, -13, 30, 59, 18, -47,
-                        -16, 37, 43, 40, 35, 50, 37, -2,
-                        -4, 5, 19, 50, 37, 37, 7, -2,
-                        -6, 13, 13, 26, 34, 12, 10, 4,
-                        0, 15, 15, 15, 14, 27, 18, 10,
-                        4, 15, 16, 0, 7, 21, 33, 1,
-                        -33, -3, -14, -21, -13, -12, -39, -21
-                },
-                {   // rook
-                        32, 42, 32, 51, 63, 9, 31, 43,
-                        27, 32, 58, 62, 80, 67, 26, 44,
-                        -5, 19, 26, 36, 17, 45, 61, 16,
-                        -24, -11, 7, 26, 24, 35, -8, -20,
-                        -36, -26, -12, -1, 9, -7, 6, -23,
-                        -45, -25, -16, -17, 3, 0, -5, -33,
-                        -44, -16, -20, -9, -1, 11, -6, -71,
-                        -19, -13, 1, 17, 16, 7, -37, -26
-                },
-                {   // queen
-                        -28, 0, 29, 12, 59, 44, 43, 45,
-                        -24, -39, -5, 1, -16, 57, 28, 54,
-                        -13, -17, 7, 8, 29, 56, 47, 57,
-                        -27, -27, -16, -16, -1, 17, -2, 1,
-                        -9, -26, -9, -10, -2, -4, 3, -3,
-                        -14, 2, -11, -2, -5, 2, 14, 5,
-                        -35, -8, 11, 2, 8, 15, -3, 1,
-                        -1, -18, -9, 10, -15, -25, -31, -50
-                },
-                {   // king
-                        -65, 23, 16, -15, -56, -34, 2, 13,
-                        29, -1, -20, -7, -8, -4, -38, -29,
-                        -9, 24, 2, -16, -20, 6, 22, -22,
-                        -17, -20, -12, -27, -30, -25, -14, -36,
-                        -49, -1, -27, -39, -46, -44, -33, -51,
-                        -14, -14, -22, -46, -44, -30, -15, -27,
-                        1, 7, -8, -64, -43, -16, 9, 8,
-                        -15, 36, 12, -54, 8, -28, 24, 14
-                }
-        },
-        {   // Endgame positional piece scores
-                {   // pawn
-                        0, 0, 0, 0, 0, 0, 0, 0,
-                        178, 173, 158, 134, 147, 132, 165, 187,
-                        94, 100, 85, 67, 56, 53, 82, 84,
-                        32, 24, 13, 5, -2, 4, 17, 17,
-                        13, 9, -3, -7, -7, -8, 3, -1,
-                        4, 7, -6, 1, 0, -5, -1, -8,
-                        13, 8, 8, 10, 13, 0, 2, -7,
-                        0, 0, 0, 0, 0, 0, 0, 0
-                },
-                {   // knight
-                        -58, -38, -13, -28, -31, -27, -63, -99,
-                        -25, -8, -25, -2, -9, -25, -24, -52,
-                        -24, -20, 10, 9, -1, -9, -19, -41,
-                        -17, 3, 22, 22, 22, 11, 8, -18,
-                        -18, -6, 16, 25, 16, 17, 4, -18,
-                        -23, -3, -1, 15, 10, -3, -20, -22,
-                        -42, -20, -10, -5, -2, -20, -23, -44,
-                        -29, -51, -23, -15, -22, -18, -50, -64
-                },
-                {   // bishop
-                        -14, -21, -11, -8, -7, -9, -17, -24,
-                        -8, -4, 7, -12, -3, -13, -4, -14,
-                        2, -8, 0, -1, -2, 6, 0, 4,
-                        -3, 9, 12, 9, 14, 10, 3, 2,
-                        -6, 3, 13, 19, 7, 10, -3, -9,
-                        -12, -3, 8, 10, 13, 3, -7, -15,
-                        -14, -18, -7, -1, 4, -9, -15, -27,
-                        -23, -9, -23, -5, -9, -16, -5, -17
-                },
-                {   // rook
-                        13, 10, 18, 15, 12, 12, 8, 5,
-                        11, 13, 13, 11, -3, 3, 8, 3,
-                        7, 7, 7, 5, 4, -3, -5, -3,
-                        4, 3, 13, 1, 2, 1, -1, 2,
-                        3, 5, 8, 4, -5, -6, -8, -11,
-                        -4, 0, -5, -1, -7, -12, -8, -16,
-                        -6, -6, 0, 2, -9, -9, -11, -3,
-                        -9, 2, 3, -1, -5, -13, 4, -20
-                },
-                {   // queen
-                        -9, 22, 22, 27, 27, 19, 10, 20,
-                        -17, 20, 32, 41, 58, 25, 30, 0,
-                        -20, 6, 9, 49, 47, 35, 19, 9,
-                        3, 22, 24, 45, 57, 40, 57, 36,
-                        -18, 28, 19, 47, 31, 34, 39, 23,
-                        -16, -27, 15, 6, 9, 17, 10, 5,
-                        -22, -23, -30, -16, -16, -23, -36, -32,
-                        -33, -28, -22, -43, -5, -32, -20, -41
-                },
-                {   // king
-                        -74, -35, -18, -18, -11, 15, 4, -17,
-                        -12, 17, 14, 17, 17, 38, 23, 11,
-                        10, 17, 23, 15, 20, 45, 44, 13,
-                        -8, 22, 24, 27, 26, 33, 26, 3,
-                        -18, -4, 21, 24, 27, 23, 9, -11,
-                        -19, -3, 11, 21, 23, 16, 7, -9,
-                        -27, -11, 4, 13, 14, 4, -5, -17,
-                        -53, -34, -21, -11, -28, -14, -24, -43
-                }
-        }
+/// positional piece scores [piece][square]
+const int packed_positional_score[6][64] = {
+    { // pawn
+        S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0),
+        S(98, 178), S(134, 173), S(61, 158), S(95, 134), S(68, 147), S(126, 132), S(34, 165), S(-11, 187),
+        S(-6, 94), S(7, 100), S(26, 85), S(31, 67), S(65, 56), S(56, 53), S(25, 82), S(-20, 84),
+        S(-14, 32), S(13, 24), S(6, 13), S(21, 5), S(23, -2), S(12, 4), S(17, 17), S(-23, 17),
+        S(-27, 13), S(-2, 9), S(-5, -3), S(12, -7), S(17, -7), S(6, -8), S(10, 3), S(-25, -1),
+        S(-26, 4), S(-4, 7), S(-4, -6), S(-10, 1), S(3, 0), S(3, -5), S(33, -1), S(-12, -8),
+        S(-35, 13), S(-1, 8), S(-20, 8), S(-23, 10), S(-15, 13), S(24, 0), S(38, 2), S(-22, -7),
+        S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0)
+    },
+    { // knight
+        S(-167, -58), S(-89, -38), S(-34, -13), S(-49, -28), S(61, -31), S(-97, -27), S(-15, -63), S(-107, -99),
+        S(-73, -25), S(-41, -8), S(72, -25), S(36, -2), S(23, -9), S(62, -25), S(7, -24), S(-17, -52),
+        S(-47, -24), S(60, -20), S(37, 10), S(65, 9), S(84, -1), S(129, -9), S(73, -19), S(44, -41),
+        S(-9, -17), S(17, 3), S(19, 22), S(53, 22), S(37, 22), S(69, 11), S(18, 8), S(22, -18),
+        S(-13, -18), S(4, -6), S(16, 16), S(13, 25), S(28, 16), S(19, 17), S(21, 4), S(-8, -18),
+        S(-23, -23), S(-9, -3), S(12, -1), S(10, 15), S(19, 10), S(17, -3), S(25, -20), S(-16, -22),
+        S(-29, -42), S(-53, -20), S(-12, -10), S(-3, -5), S(-1, -2), S(18, -20), S(-14, -23), S(-19, -44),
+        S(-105, -29), S(-21, -51), S(-58, -23), S(-33, -15), S(-17, -22), S(-28, -18), S(-19, -50), S(-23, -64)
+    },
+    { // bishop
+        S(-29, -14), S(4, -21), S(-82, -11), S(-37, -8), S(-25, -7), S(-42, -9), S(7, -17), S(-8, -24),
+        S(-26, -8), S(16, -4), S(-18, 7), S(-13, -12), S(30, -3), S(59, -13), S(18, -4), S(-47, -14),
+        S(-16, 2), S(37, -8), S(43, 0), S(40, -1), S(35, -2), S(50, 6), S(37, 0), S(-2, 4),
+        S(-4, -3), S(5, 9), S(19, 12), S(50, 9), S(37, 14), S(37, 10), S(7, 3), S(-2, 2),
+        S(-6, -6), S(13, 3), S(13, 13), S(26, 19), S(34, 7), S(12, 10), S(10, -3), S(4, -9),
+        S(0, -12), S(15, -3), S(15, 8), S(15, 10), S(14, 13), S(27, 3), S(18, -7), S(10, -15),
+        S(4, -14), S(15, -18), S(16, -7), S(0, -1), S(7, 4), S(21, -9), S(33, -15), S(1, -27),
+        S(-33, -23), S(-3, -9), S(-14, -23), S(-21, -5), S(-13, -9), S(-12, -16), S(-39, -5), S(-21, -17)
+    },
+    { // rook
+        S(32, 13), S(42, 10), S(32, 18), S(51, 15), S(63, 12), S(9, 12), S(31, 8), S(43, 5),
+        S(27, 11), S(32, 13), S(58, 13), S(62, 11), S(80, -3), S(67, 3), S(26, 8), S(44, 3),
+        S(-5, 7), S(19, 7), S(26, 7), S(36, 5), S(17, 4), S(45, -3), S(61, -5), S(16, -3),
+        S(-24, 4), S(-11, 3), S(7, 13), S(26, 1), S(24, 2), S(35, 1), S(-8, -1), S(-20, 2),
+        S(-36, 3), S(-26, 5), S(-12, 8), S(-1, 4), S(9, -5), S(-7, -6), S(6, -8), S(-23, -11),
+        S(-45, -4), S(-25, 0), S(-16, -5), S(-17, -1), S(3, -7), S(0, -12), S(-5, -8), S(-33, -16),
+        S(-44, -6), S(-16, -6), S(-20, 0), S(-9, 2), S(-1, -9), S(11, -9), S(-6, -11), S(-71, -3),
+        S(-19, -9), S(-13, 2), S(1, 3), S(17, -1), S(16, -5), S(7, -13), S(-37, 4), S(-26, -20)
+    },
+    { // queen
+        S(-28, -9), S(0, 22), S(29, 22), S(12, 27), S(59, 27), S(44, 19), S(43, 10), S(45, 20),
+        S(-24, -17), S(-39, 20), S(-5, 32), S(1, 41), S(-16, 58), S(57, 25), S(28, 30), S(54, 0),
+        S(-13, -20), S(-17, 6), S(7, 9), S(8, 49), S(29, 47), S(56, 35), S(47, 19), S(57, 9),
+        S(-27, 3), S(-27, 22), S(-16, 24), S(-16, 45), S(-1, 57), S(17, 40), S(-2, 57), S(1, 36),
+        S(-9, -18), S(-26, 28), S(-9, 19), S(-10, 47), S(-2, 31), S(-4, 34), S(3, 39), S(-3, 23),
+        S(-14, -16), S(2, -27), S(-11, 15), S(-2, 6), S(-5, 9), S(2, 17), S(14, 10), S(5, 5),
+        S(-35, -22), S(-8, -23), S(11, -30), S(2, -16), S(8, -16), S(15, -23), S(-3, -36), S(1, -32),
+        S(-1, -33), S(-18, -28), S(-9, -22), S(10, -43), S(-15, -5), S(-25, -32), S(-31, -20), S(-50, -41)
+    },
+    { // king
+        S(-65, -74), S(23, -35), S(16, -18), S(-15, -18), S(-56, -11), S(-34, 15), S(2, 4), S(13, -17),
+        S(29, -12), S(-1, 17), S(-20, 14), S(-7, 17), S(-8, 17), S(-4, 38), S(-38, 23), S(-29, 11),
+        S(-9, 10), S(24, 17), S(2, 23), S(-16, 15), S(-20, 20), S(6, 45), S(22, 44), S(-22, 13),
+        S(-17, -8), S(-20, 22), S(-12, 24), S(-27, 27), S(-30, 26), S(-25, 33), S(-14, 26), S(-36, 3),
+        S(-49, -18), S(-1, -4), S(-27, 21), S(-39, 24), S(-46, 27), S(-44, 23), S(-33, 9), S(-51, -11),
+        S(-14, -19), S(-14, -3), S(-22, 11), S(-46, 21), S(-44, 23), S(-30, 16), S(-15, 7), S(-27, -9),
+        S(1, -27), S(7, -11), S(-8, 4), S(-64, 13), S(-43, 14), S(-16, 4), S(9, -5), S(8, -17),
+        S(-15, -53), S(36, -34), S(12, -21), S(-54, -11), S(8, -28), S(-28, -14), S(24, -24), S(14, -43)
+    }
 };
 
 
@@ -272,7 +221,7 @@ int mg_table[12][64]; // [piece][square] -> midgame score
 int eg_table[12][64]; // [piece][square] -> endgame score
 
 void init_tables() {
-        // White pieces (P, N, B, R, Q, K)
+        /*// White pieces (P, N, B, R, Q, K)
         for (int piece = P; piece <= K; piece++) {
                 for (int square = 0; square < 64; square++) {
                         mg_table[piece][square] = material_score[opening][piece]
@@ -294,7 +243,7 @@ void init_tables() {
                         eg_table[piece][square] = material_score[endgame][piece]
                                                 - positional_score[endgame][piece_type][mirrored_sq];
                 }
-        }
+        }*/
 }
 
 void get_threats(int side, board* pos) {
@@ -368,12 +317,12 @@ int get_game_phase_score(const board* position) {
 
     // loop over white pieces
     for (int piece = N; piece <= Q; piece++)
-        white_piece_scores += countBits(position->bitboards[piece]) * material_score[opening][piece];
+        white_piece_scores += countBits(position->bitboards[piece]) * opening_material_score[piece];
 
 
     // loop over white pieces
     for (int piece = n; piece <= q; piece++)
-        black_piece_scores += countBits(position->bitboards[piece]) * -material_score[opening][piece];
+        black_piece_scores += countBits(position->bitboards[piece]) * -opening_material_score[piece];
 
 
 
@@ -385,7 +334,7 @@ int get_game_phase_score(const board* position) {
 int evaluate(board* position) {
         const int game_phase_score = get_game_phase_score(position);
 
-        int score_midgame = 0, score_endgame = 0;
+        int packed_score = 0;        
 
         position->pieceThreats.pawnThreats = 0;
         position->pieceThreats.knightThreats = 0;
@@ -396,251 +345,26 @@ int evaluate(board* position) {
         get_threats(position->side, position);
 
         const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
-        const int blackKingSquare = getLS1BIndex(position->bitboards[k]);
-
-        int passed_pawn_count = 0;
+        const int blackKingSquare = getLS1BIndex(position->bitboards[k]);        
 
         for (int piece = P; piece <= k; piece++) {
                 U64 bitboard = position->bitboards[piece];
 
                 while (bitboard) {
-                        const int square = getLS1BIndex(bitboard);
-                        score_midgame += mg_table[piece][square];
-                        score_endgame += eg_table[piece][square];
-
-                        switch (piece) {
-                                case P:
-                                        if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
-                                                passed_pawn_count += 1;
-
-                                                // passed pawn can move bonus
-                                                if (!(getBit(position->occupancies[both], (square - 8)))) {
-                                                        score_midgame += passedCanMoveBonus;
-                                                        score_endgame += passedCanMoveBonus;
-                                                }
-                                        }
-                                break;
-                                case p:
-                                        if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
-                                                passed_pawn_count -= 1;
-
-                                                // passed pawn can move bonus
-                                                if (!(getBit(position->occupancies[both], (square + 8)))) {
-                                                        score_midgame -= passedCanMoveBonus;
-                                                        score_endgame -= passedCanMoveBonus;
-                                                }
-                                        }
-                                break;
-                                case B:
-                                        score_midgame += countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        break;
-                                case R:
-
-                                        // Semi Open File Bonus
-                                        if ((position->bitboards[P] & fileMasks[square]) == 0) {
-                                                // add semi open file bonus
-                                                score_midgame += semi_open_file_score;
-                                                score_endgame += semi_open_file_score;
-                                        }
-
-                                        // open file
-                                        if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) {
-                                                // add open file bonus
-                                                score_midgame += rook_open_file;
-                                                score_endgame += rook_open_file;
-
-                                        }
-                                        break;
-                                case b:
-                                        score_midgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        break;
-                                case r:
-
-                                        // Semi Open File Bonus
-                                        if ((position->bitboards[p] & fileMasks[square]) == 0) {
-                                                // add semi open file bonus
-                                                score_midgame -= semi_open_file_score;
-                                                score_endgame -= semi_open_file_score;
-                                        }
-
-                                        // open file
-                                        if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) {
-                                                // add open file bonus
-                                                score_midgame -= rook_open_file;
-                                                score_endgame -= rook_open_file;
-
-                                        }
-                                        break;
-                        }
+                        const int square = getLS1BIndex(bitboard);                       
+        
                         popBit(bitboard, square);
                 }
         }
-        
-        if (position->side == white) {
-            uint64_t blackKingRing = kingAttacks[blackKingSquare];
-        
-            int how_heavy_threats = 0;
 
-            // Pawn Threats
-            int pawn_threat_bonus = ((position->pieceThreats.pawnThreats & blackKingRing) != 0) * 3;            
-
-            how_heavy_threats += pawn_threat_bonus;            
-
-            // Knight Threats
-            int knight_threat_bonus = ((position->pieceThreats.knightThreats & blackKingRing) != 0) * 8;            
-
-            how_heavy_threats += knight_threat_bonus;
-
-            // Bishop Threats
-            int bishop_threat_bonus = ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 8;            
-
-            how_heavy_threats += bishop_threat_bonus;
-            
-
-            // Rook Threats
-            int rook_threat_bonus = ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 12;            
-
-            how_heavy_threats += rook_threat_bonus;
-
-            // Queen Threats
-            int queen_threat_bonus = ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 25;            
-
-            how_heavy_threats += queen_threat_bonus;
-
-            // Heavy Threats
-
-            // if our threats are heavy give it some bonus, like:
-            // One queen almost doing nothing, but with a minor or major piece
-            // it can be a heavy and dangerous threat
-            // so we can add a bonus to the score
-
-            how_heavy_threats += how_heavy_threats > 25 ? how_heavy_threats / 8 * 4 : 0;
-
-            score_midgame += how_heavy_threats;
-            score_endgame += how_heavy_threats;
-        } else {
-            uint64_t whiteKingRing = kingAttacks[whiteKingSquare];
-
-            int how_heavy_threats = 0;
-
-            // Pawn Threats
-            int pawn_threat_bonus = ((position->pieceThreats.pawnThreats & whiteKingRing) != 0) * 3;
-            how_heavy_threats += pawn_threat_bonus;
-            
-            // Knight Threats
-            int knight_threat_bonus = ((position->pieceThreats.knightThreats & whiteKingRing) != 0) * 8;
-            how_heavy_threats += knight_threat_bonus;                    
-
-            // Bishop Threats            
-            int bishop_threat_bonus = ((position->pieceThreats.bishopThreats & whiteKingRing) != 0) * 8;
-            how_heavy_threats += bishop_threat_bonus;
-            
-
-            // Rook Threats
-            int rook_threat_bonus = ((position->pieceThreats.rookThreats & whiteKingRing) != 0) * 12;
-            how_heavy_threats += rook_threat_bonus;
-            
-
-            // Queen Threats
-            int queen_threat_bonus = ((position->pieceThreats.queenThreats & whiteKingRing) != 0) * 25;
-            how_heavy_threats += queen_threat_bonus;
-
-            // Heavy Threats
-            
-            // if our threats are heavy give it some bonus, like:
-            // One queen almost doing nothing, but with a minor or major piece
-            // it can be a heavy and dangerous threat
-            // so we can add a bonus to the score
-
-            how_heavy_threats += how_heavy_threats > 25 ? how_heavy_threats / 8 * 4 : 0;
-
-            score_midgame -= how_heavy_threats;
-            score_endgame -= how_heavy_threats;
-
-        }                
-
-        // king safety bonus
-
-        // White
-
-        // King ring bonus
-        score_midgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_middlegame;
-        score_endgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_endgame;
-
-        // semi open file
-        if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0) {
-                // add semi open file penalty
-                score_midgame -= king_semi_open_file_score;
-                score_endgame -= king_semi_open_file_score;
-        }
-
-        // open file penalty
-        if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[whiteKingSquare]) == 0) {
-                // add open file penalty
-                score_midgame -= king_open_file_score;
-                score_endgame -= king_open_file_score;
-        }
+        int score_midgame = MgScore(packed_score);
+        int score_endgame = EgScore(packed_score);
+              
+        int final_score = (score_midgame * game_phase_score + score_endgame * (opening_phase_score - game_phase_score)) 
+                        / opening_phase_score;
 
 
-        // Black
-
-        // King ring bonus
-        score_midgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_middlegame;
-        score_endgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_endgame;
-
-        // semi open file penalty
-        if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) {
-                // add semi open file penalty
-                score_midgame += king_semi_open_file_score;
-                score_endgame += king_semi_open_file_score;
-        }
-
-        // open file penalty
-        if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[blackKingSquare]) == 0) {
-                // add semi open file penalty
-                score_midgame += king_open_file_score;
-                score_endgame += king_open_file_score;
-        }
-
-        // bishop pair bonus
-
-        // White
-        if (countBits(position->bitboards[B]) == 2) {
-                score_midgame += bishop_pair_bonus_midgame;
-                score_endgame += bishop_pair_bonus_endgame;
-        }
-
-        // Black
-        if (countBits(position->bitboards[b]) == 2) {
-                score_midgame -= bishop_pair_bonus_midgame;
-                score_endgame -= bishop_pair_bonus_endgame;
-        }
-
-        int winnableScore = 0;
-        // winnable
-        //winnableScore += (position->side && (get_rank[getLS1BIndex(position->bitboards[k])] < 2)) * -20;
-        //winnableScore += (!position->side && (get_rank[getLS1BIndex(position->bitboards[K])] > 5)) * 20;
-
-        winnableScore +=  6 * passed_pawn_count +
-                8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]))
-        ;
-
-        score_midgame += winnableScore;
-        score_endgame += winnableScore;
-
-
-        int score;
-        if (game_phase_score > opening_phase_score)
-                score = score_midgame;
-        else if (game_phase_score < endgame_phase_score)
-                score = score_endgame;
-        else
-                score = (score_midgame * game_phase_score + score_endgame * (opening_phase_score - game_phase_score))
-                       / opening_phase_score;
-
-        return (position->side == white) ? score : -score;
+        return (position->side == white) ? final_score : -final_score;
 }
 
 
