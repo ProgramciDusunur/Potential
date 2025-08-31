@@ -932,6 +932,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int raw_eval = evaluate(pos);
 
     int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
+    int correctionValue = raw_eval - static_eval;
 
     bool improving = false;
 
@@ -973,8 +974,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
-    if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
-        depth++;
+    if (ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+        if (corrplexity) {
+            depth++;
+        } else if (correctionValue <= -82 && depth >= 3) {
+            // Negative Corrplexity Extension            
+            depth--;
+        }
     }
 
     improving |= pos->staticEval[pos->ply] >= beta + 100;
