@@ -1223,9 +1223,16 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // Negative Extensions
             else if (tt_score >= beta) {
-                extensions -= 2 + !pvNode;
+                extensions -= 2 + pvNode;
+
+                 // Triple Negative Extension
+                if (tt_score >= beta + 100) {
+                    extensions -= 1;
+
+                    // High Depth Reduction
+                    depth -= depth >= 15;
+                }
             }
-            
             // Cut Node Extension
             else if (cutNode) {
                 extensions -= 2;
