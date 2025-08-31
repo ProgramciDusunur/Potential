@@ -973,7 +973,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
-    if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+    if (pos->ply < pos->rootDepth && corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
         depth++;
     }
 
@@ -1469,6 +1469,8 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
     int beta = infinity;
 
     int totalTime = 0;
+    // set root depth to 0
+    position->rootDepth = 0;
 
     int previousBestMove = 0;
     uint8_t bestMoveStability = 0;
@@ -1489,6 +1491,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
         }
 
         position->seldepth = 0;
+        position->rootDepth = current_depth;
 
         int startTime = getTimeMiliSecond();
 

@@ -42,6 +42,7 @@ typedef struct {
     int pvTable[maxPly][maxPly];
     int killerMoves[maxPly][2];
     threats pieceThreats;
+    uint8_t rootDepth;
 
     int fifty;
 
