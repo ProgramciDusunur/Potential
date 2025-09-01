@@ -1300,9 +1300,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             if (!pvNode && quietMoves >= 4) {
                 lmrReduction += QUIET_NON_PV_LMR_SCALER;
             }
+            int ttMoveTrust = tt_move ? 64 + depth * 16 : 0;
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
-            int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
+            int moveHistoryReduction = moveHistory / (QUIET_HISTORY_LMR_DIVISOR - ttMoveTrust);
             lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
         }
 
