@@ -1310,6 +1310,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
         }
+
+        // LMR Corrplexity
+        lmrReduction -= (abs(raw_eval - static_eval) > 82) * 1024;
         
 
         lmrReduction /= 1024;
