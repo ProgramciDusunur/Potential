@@ -979,7 +979,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
     // Corrplexity Reduction
-    if (raw_eval - static_eval <= -164 && !tt_hit && !pos->isSingularMove[pos->ply]) {
+    if (raw_eval - static_eval <= -164 && !tt_hit && !pvNode && !in_check && !pos->isSingularMove[pos->ply]) {
         depth--;
     }
 
