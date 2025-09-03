@@ -1081,7 +1081,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // legal moves counter
     int legal_moves = 0;
 
-    int probcut_beta = beta + 300;
+    int probcut_beta = beta + 200;
     if (depth >= 7 && abs(beta) < mateScore &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
