@@ -1439,6 +1439,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // store hash entry with the score equal to alpha
         writeHashEntry(pos->hashKey, bestScore, bestMove, depth, hashFlag, tt_pv, pos);
     }
+
+    if (bestScore >= beta && abs(bestScore) < mateScore &&
+        abs(beta) < mateScore) {
+        bestScore = (bestScore * depth + beta) / (depth + 1);
+    }
     // node (move) fails low
     return bestScore;
 }
