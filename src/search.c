@@ -1097,10 +1097,16 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             for (int count = 0; count < capture_promos->count; count++) {
             int move = capture_promos->moves[count];
+
+            if (!SEE(pos, move, pc_see)) {
+                continue;
+            }
+            
             if (move == pos->isSingularMove[pos->ply]  ||
                 !(getMovePromoted(move) || getMoveCapture(move))) {
                 continue;
             }
+
 
         struct copyposition copyPosition;
         // preserve board state
@@ -1151,6 +1157,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
     }
 
+    // reset legal move count after probcut
+    legal_moves = 0;
+
     // create move list instance
     moves moveList[1], badQuiets[1];
     badQuiets->count = 0;
@@ -1167,7 +1176,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     sort_moves(moveList, tt_move, pos);
 
     // number of moves searched in a move list
-    int moves_searched = 0;
+    int moves_searched = 0;    
 
     int bestScore = -infinity;  
 
