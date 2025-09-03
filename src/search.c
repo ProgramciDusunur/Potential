@@ -977,6 +977,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         depth++;
     }
 
+
+    // Corrplexity Reduction
+    if (raw_eval - static_eval <= -164 && !tt_hit && !pos->isSingularMove[pos->ply]) {
+        depth--;
+    }
+
     improving |= pos->staticEval[pos->ply] >= beta + 100;
 
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
