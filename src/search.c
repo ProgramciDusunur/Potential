@@ -1097,11 +1097,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             for (int count = 0; count < capture_promos->count; count++) {
             int move = capture_promos->moves[count];
-
-            if (!SEE(pos, move, pc_see)) {
-                continue;
-            }
             
+
             if (move == pos->isSingularMove[pos->ply]  ||
                 !(getMovePromoted(move) || getMoveCapture(move))) {
                 continue;
