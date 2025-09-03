@@ -973,7 +973,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
-    if (pos->ply < pos->rootDepth && corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+    if (pos->ply < pos->rootDepth * 2 && corrplexity && ttAdjustedEval != static_eval) {
         depth++;
     }
 
