@@ -1214,8 +1214,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // ║   LTC: 14.05  +-  7.19    ║
                 // ╚═══════════════════════════╝
 
+                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN - 3 * pvNode * depth;
+
                 // ~~~~ Quadruple Extension ~~~~ //
-                if (singularScore <= singularBeta - QUADRUPLE_EXTENSION_MARGIN) {
+                if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
 
