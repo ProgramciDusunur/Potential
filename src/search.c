@@ -749,7 +749,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     }
 
 
-
+    int futilityValue = bestScore + 100;
 
     // legal moves counter
     //int legal_moves = 0;
@@ -757,8 +757,13 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
+        int move = moveList->moves[count];
+        if (!SEE(position, move, QS_SEE_THRESHOLD)) {
+            continue;
+        }
 
-        if (!SEE(position, moveList->moves[count], QS_SEE_THRESHOLD)) {
+        if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
+            bestScore = myMAX(bestScore, futilityValue);
             continue;
         }
         struct copyposition copyPosition;
