@@ -749,7 +749,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     }
 
 
-    int futilityValue = bestScore + 100;
+    int futilityValue = bestScore + 164;
 
     // legal moves counter
     //int legal_moves = 0;
