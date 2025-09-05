@@ -1220,7 +1220,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                     // Adjust correction history
                     if (!in_check && singularScore > pos->staticEval[pos->ply]) {
-                        int corrhistBonus = clamp(((bestScore - pos->staticEval[pos->ply]) * singularDepth / 100) * 512 / 1024, 
+                        int corrhistBonus = clamp(((singularBeta - singularScore) * singularDepth / 100) * 512 / 1024, 
                         -CORRHIST_LIMIT / 4, CORRHIST_LIMIT / 4);
                         updatePawnCorrectionHistory(pos, depth, corrhistBonus);
                         updateMinorCorrectionHistory(pos, depth, corrhistBonus);
