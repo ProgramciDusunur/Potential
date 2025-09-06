@@ -131,7 +131,6 @@
   U64 searchNodes = 0;
 
 
-
 // position repetition detection
 int isRepetition(board* position) {
     // loop over repetition indicies range
