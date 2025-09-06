@@ -14,6 +14,8 @@ int16_t rootHistory[2][64][64];
 int16_t continuationHistory[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
 int16_t pawnHistory[2048][12][64];
+// captureHistory[piece][toSquare][capturedPiece]
+int16_t captureHistory[12][64][6];
 
 int getHistoryBonus(int depth) {
     return myMIN(10 + 200 * depth, 4096);
@@ -82,6 +84,31 @@ void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
         pawnHistory[pos->pawnKey % 2048][pos->mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
+    }
+}
+
+void updateCaptureHistory(board *position, int bestMove, int depth) {
+    int piece = getMovePiece(bestMove);
+    int to = getMoveTarget(bestMove);
+    int capturedPiece = position->mailbox[getMoveTarget(bestMove)];
+
+    int bonus = getHistoryBonus(depth);
+    int score = captureHistory[piece][to][capturedPiece];
+
+    captureHistory[piece][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);
+}
+
+void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, int bestMove) {
+    for (int index = 0; index < noisyMoves->count; index++) {
+        int noisyPiece = getMovePiece(noisyMoves->moves[index]);
+        int noisyTo = getMoveTarget(noisyMoves->moves[index]);
+        int noisyCapturedPiece = position->mailbox[getMoveTarget(noisyMoves->moves[index])];
+
+        if (noisyMoves->moves[index] == bestMove) continue;
+
+        int noisyMoveScore = captureHistory[noisyPiece][noisyTo][noisyCapturedPiece];        
+
+        captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] += scaledBonus(noisyMoveScore, -getHistoryBonus(depth), maxCaptureHistory);
     }
 }
 
