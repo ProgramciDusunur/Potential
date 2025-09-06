@@ -1322,6 +1322,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
 
+        // Late Move Reduction (LMR)
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
@@ -1337,10 +1338,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             }
         }
+        // PVS Search
         else if (!pvNode || legal_moves > 1) {
             score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
         }
-
+        // Full Window Search
         if (pvNode && (legal_moves == 1 || score > alpha)) {
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, new_depth, pos, time, false);
