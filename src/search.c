@@ -1071,8 +1071,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
-        !pvNode && !in_check && depth <= RAZORING_DEPTH && static_eval + RAZORING_MARGIN * depth < alpha) {
-        int razoringScore = quiescence(alpha, beta, pos, time);
+        !pvNode && !in_check && depth <= RAZORING_DEPTH && static_eval + RAZORING_MARGIN * depth < alpha) {        
+        int razoringScore = ttAdjustedEval != static_eval ? ttAdjustedEval : quiescence(alpha, beta, pos, time);
         if (razoringScore <= alpha) {
             return razoringScore;
         }
