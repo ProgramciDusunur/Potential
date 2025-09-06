@@ -52,7 +52,6 @@
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
   
-  
   /*╔═══════════════════════╗
     ║ Late Move Pruning     ║
     ╚═══════════════════════╝*/
