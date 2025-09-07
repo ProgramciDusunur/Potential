@@ -46,7 +46,9 @@
   int QUIET_HISTORY_LMR_DIVISOR = 4096;
   int QUIET_HISTORY_LMR_MINIMUM_SCALER = 3072;
   int QUIET_HISTORY_LMR_MAXIMUM_SCALER = 3072;
-  int NOISY_HISTORY_LMR_DIVISOR = 8192;
+  int NOISY_HISTORY_LMR_DIVISOR = 4096;
+  int NOISY_HISTORY_LMR_MINIMUM_SCALER = 3072;
+  int NOISY_HISTORY_LMR_MAXIMUM_SCALER = 3072;
   int QUIET_NON_PV_LMR_SCALER = 1024;
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
@@ -1309,11 +1311,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
-            int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
-            lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
+            int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR * 1024;
+            lmrReduction -= clamp(moveHistoryReduction, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
         } else { // Tactical/Noisy Moves
-            // Noisy History LMR            
-            lmrReduction -= (moveHistory / NOISY_HISTORY_LMR_DIVISOR) * 1024;            
+            // Noisy History LMR
+            int noisyMoveHistoryReduction = moveHistory / NOISY_HISTORY_LMR_DIVISOR * 1024;
+            lmrReduction -= clamp(noisyMoveHistoryReduction, -NOISY_HISTORY_LMR_MINIMUM_SCALER, NOISY_HISTORY_LMR_MINIMUM_SCALER);        
         }
 
         // Reduce Less
