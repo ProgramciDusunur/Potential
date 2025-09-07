@@ -1133,23 +1133,31 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         bool isNotMated = bestScore > -mateScore;
 
-        if (!rootNode && notTactical && isNotMated) {
+        if (!rootNode && isNotMated) {
+            // Quiet Moves
+            if (notTactical) {
+                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
 
-            int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
+                // Quiet Late Move Pruning (LMP)
+                if (legal_moves>= lmpThreshold) {
+                    continue;
+                }
 
-            // Late Move Pruning
-            if (legal_moves>= lmpThreshold) {
-                continue;
+                // Futility Pruning
+                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
+                    continue;
+                }
+                // Quiet History Pruning
+                if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
+                    break;
+                }
+            } else { // Noisy Moves      
+                // Noisy Late Move Pruning (LMP)          
+                if (legal_moves >= 6 + 4 * depth * depth) {
+                    continue;
+                }
             }
-
-            // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
-                continue;
-            }
-            // Quiet History Pruning
-            if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
-                break;
-            }
+            
 
         }
 
