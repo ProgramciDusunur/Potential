@@ -1156,7 +1156,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             } else { // Noisy Moves                
                 // Noisy History Pruning
-                if (depth <= 4 && !in_check && moveHistory < depth * depth * -2048) {
+                if (depth <= 4 && !in_check && moveHistory < depth * depth * -4096) {                    
                     break;
                 }
             }
