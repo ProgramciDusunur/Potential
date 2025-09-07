@@ -1152,7 +1152,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
             } else { // Noisy Moves
                 // Noisy Futility Pruning
-                if (depth <= 4 && !in_check && !pvNode && static_eval + 164 + 82 * depth <= alpha) {
+                if (depth <= 6 && !in_check && !pvNode && static_eval + 365 + 164 * depth <= alpha) {
                     continue;
                 }
             }
