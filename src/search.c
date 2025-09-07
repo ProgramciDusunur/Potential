@@ -1125,7 +1125,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
+                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
+                captureHistory[getMovePiece(currentMove)][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + moveHistory / 8192);
 
@@ -1133,24 +1134,34 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         bool isNotMated = bestScore > -mateScore;
 
-        if (!rootNode && notTactical && isNotMated) {
+        if (!rootNode && isNotMated) {
 
-            int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
+            // Quiet Moves
+            if (notTactical) {
+                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
 
-            // Late Move Pruning
-            if (legal_moves>= lmpThreshold) {
-                continue;
+                // Late Move Pruning
+                if (legal_moves>= lmpThreshold) {
+                    continue;
+                }
+
+                // Futility Pruning
+                if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
+                    continue;
+                }
+                // Quiet History Pruning
+                if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
+                    break;
+                }
+
+            } else { // Noisy Moves                
+                // Noisy History Pruning
+                if (depth <= 4 && !in_check && moveHistory < depth * depth * -2048) {
+                    break;
+                }
             }
 
-            // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
-                continue;
-            }
-            // Quiet History Pruning
-            if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
-                break;
-            }
-
+            
         }
 
         // SEE PVS Pruning
