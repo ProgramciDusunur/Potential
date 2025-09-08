@@ -941,11 +941,22 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     int pastStack = -1;
 
+    int priorReduction = 0;
+
+    if (pos->ply > 0) {
+        priorReduction = pos->ply > 0 ? pos->prevLmrReduction[pos->ply - 1] : 0;
+        pos->prevLmrReduction[pos->ply - 1] = 0;
+    }
+
     pos->staticEval[pos->ply] = static_eval;
 
     pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval  ?  pos->ply - 2 : -1;
 
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
+
+    if (priorReduction >= 2 && pos->ply - 1 > 0 && depth >= 3 && pos->staticEval[pos->ply] + pos->staticEval[pos->ply - 1] > 164) {
+        depth--;
+    }
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
@@ -1320,10 +1331,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
 
+        // LMR (Late Move Reduction)
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
+            pos->prevLmrReduction[pos->ply] = reduced_depth;
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
+            pos->prevLmrReduction[pos->ply] = 0;
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
