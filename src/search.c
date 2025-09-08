@@ -1153,10 +1153,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             } else { // Noisy Moves
                 // Noisy Futility Pruning
                 int noisyFPMargin = static_eval + 365 + 164 * depth;
-                if (depth <= 7 && !in_check && !pvNode && noisyFPMargin <= alpha) {
-                    if (abs(bestScore) < mateScore && bestScore <= noisyFPMargin) {
-                        bestScore = static_eval + noisyFPMargin;
-                    }
+                if (depth <= 7 && !in_check && noisyFPMargin <= alpha) {                   
                     continue;
                 }
             }
