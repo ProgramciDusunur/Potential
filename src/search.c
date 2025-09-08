@@ -1153,7 +1153,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
             } else { // Noisy Moves      
                 // Noisy Late Move Pruning (LMP)          
-                if (legal_moves >= 4 + 4 * depth * depth && depth >= 3) {
+                if (legal_moves >= 3 + 3 * depth * depth) {
                     continue;
                 }
             }
