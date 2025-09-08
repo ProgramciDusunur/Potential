@@ -1318,7 +1318,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         // If the position just have pawns then reduce less
         if (justPawns(pos)) {
-            lmrReduction -= JUST_PAWN_MATERIAL_LMR_SCALER + 768 * tt_pv;
+            lmrReduction -= JUST_PAWN_MATERIAL_LMR_SCALER + 256 * tt_pv;
         }
         
 
