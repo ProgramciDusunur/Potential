@@ -46,7 +46,7 @@
   int QUIET_HISTORY_LMR_DIVISOR = 4096;
   int QUIET_HISTORY_LMR_MINIMUM_SCALER = 3072;
   int QUIET_HISTORY_LMR_MAXIMUM_SCALER = 3072;
-  int NOISY_HISTORY_LMR_DIVISOR = 24;
+  int NOISY_HISTORY_LMR_DIVISOR = 8192;
   int QUIET_NON_PV_LMR_SCALER = 1024;
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
@@ -1313,7 +1313,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction -= clamp(moveHistoryReduction, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
         } else { // Tactical/Noisy Moves        
             // Noisy History LMR            
-            lmrReduction -= moveHistory / NOISY_HISTORY_LMR_DIVISOR;
+            lmrReduction -= moveHistory / NOISY_HISTORY_LMR_DIVISOR * 1024;
         }
 
         // Reduce Less
@@ -1333,7 +1333,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
-                bool historyReduction = moveHistory / 16384;
+                bool historyReduction = notTactical ? moveHistory / 16384 : 0;
                 bool doShallower = score < bestScore + new_depth;
                 new_depth -= doShallower;
                 new_depth += doDeeper;
