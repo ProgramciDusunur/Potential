@@ -677,6 +677,11 @@ void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, 
                 evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
 }
 
+bool isEasyCapture(board *pos) {
+    return pos->side == white ? pos->pieceThreats.pawnThreats & (pos->bitboards[n] | pos->bitboards[b])
+                            : pos->pieceThreats.pawnThreats & (pos->bitboards[N] | pos->bitboards[B]);
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, my_time* time) {
     if ((searchNodes & 2047) == 0) {
@@ -979,9 +984,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         depth++;
     }
 
-    improving |= pos->staticEval[pos->ply] >= beta + 100;
+    improving |= pos->staticEval[pos->ply] >= beta + 100;    
 
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
+
+    rfpMargin += 20 * isEasyCapture(pos);
 
     bool rfp_tt_pv_decision = !tt_pv || (tt_pv && tt_hit && tt_score >= beta + 90 - 15 * ((tt_depth + depth) / 2));    
 

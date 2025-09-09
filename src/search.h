@@ -36,6 +36,7 @@ extern int NON_PAWN_CORRECTION_HISTORY[2][2][16384];
 extern int MAJOR_CORRECTION_HISTORY[2][16384];
 
 int isRepetition(board* position);
+bool isEasyCapture(board *pos);
 uint8_t isMaterialDraw(board *pos);
 void initializeLMRTable(void);
 int scoreMove(int move, board* position);
