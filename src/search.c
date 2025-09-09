@@ -47,6 +47,7 @@
   int QUIET_HISTORY_LMR_MINIMUM_SCALER = 3072;
   int QUIET_HISTORY_LMR_MAXIMUM_SCALER = 3072;
   int QUIET_NON_PV_LMR_SCALER = 1024;
+  int NOISY_NON_PV_LMR_SCALER = 1024;
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
@@ -1110,7 +1111,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int quietMoves = 0;
 
     // capture move counter
-    //int captureMoves = 0;
+    int captureMoves = 0;
 
     const int originalAlpha = alpha;
 
@@ -1274,7 +1275,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
         } else {
-            //captureMoves++;
+            captureMoves++;
             addMoveToHistoryList(noisyMoves, currentMove);
         }
 
@@ -1299,6 +1300,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += TT_CAPTURE_LMR_SCALER;
         }
 
+        // Quiet Moves
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
@@ -1308,6 +1310,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
             int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
             lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
+        } else { // Noisy Moves
+            // Reduce More
+            if (!pvNode && captureMoves >= 4) {
+                lmrReduction += NOISY_NON_PV_LMR_SCALER;
+            }
         }
 
         // Reduce Less
