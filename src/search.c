@@ -51,6 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+  int KING_SAFETY_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -1303,6 +1304,16 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
                 lmrReduction += QUIET_NON_PV_LMR_SCALER;
+            }
+
+            // King Safety LMR
+            U64 threats = pos->pieceThreats.pawnThreats | pos->pieceThreats.knightThreats |
+                          pos->pieceThreats.bishopThreats | pos->pieceThreats.rookThreats |
+                          pos->pieceThreats.queenThreats;
+            bool kingSafetyLMR = pos->side == white ? threats & pos->bitboards[k] : threats & pos->bitboards[K];                                
+
+            if (kingSafetyLMR) {
+                lmrReduction += KING_SAFETY_LMR_SCALER;
             }
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
