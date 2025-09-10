@@ -1310,7 +1310,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             U64 threats = pos->pieceThreats.pawnThreats | pos->pieceThreats.knightThreats |
                           pos->pieceThreats.bishopThreats | pos->pieceThreats.rookThreats |
                           pos->pieceThreats.queenThreats;
-            bool kingSafetyLMR = pos->side == white ? threats & pos->bitboards[k] : threats & pos->bitboards[K];                                
+            bool kingSafetyLMR = pos->side == white ? threats & kingAttacks[getLS1BIndex(pos->bitboards[k])] : threats & kingAttacks[getLS1BIndex(pos->bitboards[K])];
 
             if (kingSafetyLMR) {
                 lmrReduction += KING_SAFETY_LMR_SCALER;
