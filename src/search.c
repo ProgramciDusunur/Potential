@@ -729,6 +729,9 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     // fail-hard beta cutoff
     if (evaluation >= beta) {
         // node (move) fails high
+        if (!tt_hit) {
+            writeHashEntry(position->hashKey, bestScore, bestMove, 0, hashFlagAlpha, tt_pv, position);
+        }
         return evaluation;
     }
 
