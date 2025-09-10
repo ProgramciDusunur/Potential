@@ -395,7 +395,7 @@ void updatePawnCorrectionHistory(board *position, const int depth, const int dif
     int entry = PAWN_CORRECTION_HISTORY[position->side][pawnKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
+    const int newWeight = 6 * myMIN(depth + 1, 16);
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
@@ -409,7 +409,7 @@ void updateMinorCorrectionHistory(board *position, const int depth, const int di
     int entry = MINOR_CORRECTION_HISTORY[position->side][minorKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
+    const int newWeight = 6 * myMIN(depth + 1, 16);
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
@@ -423,7 +423,7 @@ void updateMajorCorrectionHistory(board *position, const int depth, const int di
     int entry = MAJOR_CORRECTION_HISTORY[position->side][majorKey % CORRHIST_SIZE];
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
+    const int newWeight = 6 * myMIN(depth + 1, 16);
 
     entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
     entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
@@ -436,7 +436,7 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff) 
     U64 blackKey = position->blackNonPawnKey;
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
+    const int newWeight = 6 * myMIN(depth + 1, 16);
 
     int whiteEntry = NON_PAWN_CORRECTION_HISTORY[white][position->side][whiteKey % CORRHIST_SIZE];
 
