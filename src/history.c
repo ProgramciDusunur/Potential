@@ -12,10 +12,13 @@ int16_t quietHistory[2][64][64];
 int16_t rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t continuationHistory[12][64][12][64];
+// continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+int16_t contCorrhist[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
 int16_t pawnHistory[2048][12][64];
 // captureHistory[piece][toSquare][capturedPiece]
 int16_t captureHistory[12][64][6];
+
 
 int getHistoryBonus(int depth) {
     return myMIN(10 + 200 * depth, 4096);
