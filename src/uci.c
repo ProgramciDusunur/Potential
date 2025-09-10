@@ -6,7 +6,8 @@
 
 #include "perft.h"
 
-#define VERSION "3.0.0"
+#define VERSION "3.0.2"
+#define BENCH_DEPTH 15
 
 double DEF_TIME_MULTIPLIER = 0.054;
 double DEF_INC_MULTIPLIER = 0.85;
@@ -413,7 +414,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..\n");
-        benchmark(15, position, time_ctrl);
+        benchmark(BENCH_DEPTH, position, time_ctrl);
         printf("\n");
         fflush(NULL);
         return;
@@ -536,7 +537,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             perftSuite();
         }
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(15, position, time_ctrl);
+            benchmark(BENCH_DEPTH, position, time_ctrl);
         }
     }
 }
