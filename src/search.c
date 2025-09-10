@@ -466,6 +466,14 @@ void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const in
     }
 }
 
+int adjust_single_cont_corrhist_entry(board *pos, const int pliesBack) {
+    if (pos->ply >= pliesBack && pos->move[pos->ply - (pliesBack - 1)] && pos->move[pos->ply - pliesBack]) {
+        return contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(pos->move[pos->ply - (pliesBack - 1)])]
+                    [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])];
+    }
+    return 0;
+}
+
 void update_continuation_corrhist(board *pos, const int depth, const int diff) {
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
@@ -491,11 +499,13 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
     U64 blackNPKey = pos->blackNonPawnKey;
     int blackNPEntry = NON_PAWN_CORRECTION_HISTORY[black][pos->side][blackNPKey % CORRHIST_SIZE];
 
-    int contCorrhistEntry = 0;
-    if (pos->ply >= 2 && pos->move[pos->ply - 1] && pos->move[pos->ply - 2]) {
+    int contCorrhistEntry = adjust_single_cont_corrhist_entry(pos, 2) +
+                            adjust_single_cont_corrhist_entry(pos, 4);
+    
+    /*if (pos->ply >= 2 && pos->move[pos->ply - 1] && pos->move[pos->ply - 2]) {
         contCorrhistEntry = contCorrhist[pos->piece[pos->ply - 1]][getMoveTarget(pos->move[pos->ply - 1])]
                     [pos->piece[pos->ply - 2]][getMoveTarget(pos->move[pos->ply - 2])];
-    }
+    }*/
 
     int mateFound = mateValue - maxPly;
 

@@ -50,6 +50,7 @@ void updatePawnCorrectionHistory(board *position, const int depth, const int dif
 void updateMinorCorrectionHistory(board *position, const int depth, const int diff);
 void updateMajorCorrectionHistory(board *position, const int depth, const int diff);
 void update_continuation_corrhist(board *pos, const int depth, const int diff);
+int adjust_single_cont_corrhist_entry(board *pos, const int pliesBack);
 int adjustEvalWithCorrectionHistory(board *position, int rawEval);
 void update_non_pawn_corrhist(board *position, const int depth, const int diff);
 int quiescence(int alpha, int beta, board* position, my_time* time);
