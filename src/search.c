@@ -452,21 +452,26 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff) 
     NON_PAWN_CORRECTION_HISTORY[black][position->side][blackKey % CORRHIST_SIZE] = blackEntry;
 }
 
-void update_continuation_corrhist(board *pos, const int depth, const int diff) {
-    if (pos->ply >= 2 && pos->move[pos->ply - 1] && pos->move[pos->ply - 2]) {
-        int contCorrhistEntry = contCorrhist[pos->piece[pos->ply - 1]][getMoveTarget(pos->move[pos->ply - 1])]
-                    [pos->piece[pos->ply - 2]][getMoveTarget(pos->move[pos->ply - 2])];
-
-        const int scaledDiff = diff * CORRHIST_GRAIN;
-        const int newWeight = 4 * myMIN(depth + 1, 16);
-
+void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int scaledDiff, const int newWeight) {
+    if (pos->ply >= pliesBack && pos->move[pos->ply - (pliesBack - 1)] && pos->move[pos->ply - pliesBack]) {
+        int contCorrhistEntry = contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(pos->move[pos->ply - (pliesBack - 1)])]
+                    [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])];
+        
         contCorrhistEntry = (contCorrhistEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
         contCorrhistEntry = clamp(contCorrhistEntry, -CORRHIST_MAX, CORRHIST_MAX);
 
-        contCorrhist[pos->piece[pos->ply - 1]][getMoveTarget(pos->move[pos->ply - 1])]
-                    [pos->piece[pos->ply - 2]][getMoveTarget(pos->move[pos->ply - 2])] = contCorrhistEntry;
+        contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(pos->move[pos->ply - (pliesBack - 1)])]
+                    [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])] = contCorrhistEntry;
 
     }
+}
+
+void update_continuation_corrhist(board *pos, const int depth, const int diff) {
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = 4 * myMIN(depth + 1, 16);
+
+    update_single_cont_corrhist_entry(pos, 2, scaledDiff, newWeight);
+    update_single_cont_corrhist_entry(pos, 4, scaledDiff, newWeight);
 }
 
 int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {   
