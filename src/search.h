@@ -49,6 +49,7 @@ uint64_t all_attackers_to_square(board *pos, uint64_t occupied, int sq);
 void updatePawnCorrectionHistory(board *position, const int depth, const int diff);
 void updateMinorCorrectionHistory(board *position, const int depth, const int diff);
 void updateMajorCorrectionHistory(board *position, const int depth, const int diff);
+void update_continuation_corrhist(board *pos, const int depth, const int diff);
 int adjustEvalWithCorrectionHistory(board *position, int rawEval);
 void update_non_pawn_corrhist(board *position, const int depth, const int diff);
 int quiescence(int alpha, int beta, board* position, my_time* time);
