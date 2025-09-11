@@ -232,6 +232,8 @@ int scoreMove(int move, board* position) {
 
         captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
 
+        captureScore += position->ply == 0 * noisyRootHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]] * 4;
+
         return captureScore;
 
     }
@@ -1158,8 +1160,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
-                captureHistory[getMovePiece(currentMove)][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + moveHistory / 8192);
 
@@ -1344,11 +1345,6 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
             // Quiet History LMR
             lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
-        } else { // Noisy Moves
-            // Reduce Less
-
-            // Noisy History LMR
-            lmrReduction -= moveHistory / NOISY_HISTORY_LMR_DIVISOR * 1024;
         }
 
         // Reduce Less
@@ -1368,7 +1364,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
-                bool historyReduction = notTactical ? moveHistory / 16384 : 0;
+                bool historyReduction = moveHistory / 16384;
                 bool doShallower = score < bestScore + new_depth;
                 new_depth -= doShallower;
                 new_depth += doDeeper;
@@ -1440,6 +1436,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                             updateRootHistory(pos, bestMove, depth, badQuiets);
                         }
                     } else { // noisy moves
+                        if (rootNode) {                            
+                            updateNoisyRootHistory(pos, bestMove, depth);
+                            updateNoisyHistoryMalus(pos, depth, noisyMoves, bestMove);
+                        }
                         updateCaptureHistory(pos, bestMove, depth);
                     }
 

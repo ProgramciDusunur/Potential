@@ -27,6 +27,8 @@ enum {
 extern int16_t quietHistory[2][64][64];
 // rootHistory[side to move][fromSquare][toSquare]
 extern int16_t rootHistory[2][64][64];
+// noisyRootHistory[piece][toSquare][capturedPiece]
+extern int16_t noisyRootHistory[12][64][6];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 extern int16_t continuationHistory[12][64][12][64];
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
@@ -48,6 +50,8 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
 int getContinuationHistoryScore(board *pos, int offSet, int move);
 void updateCaptureHistory(board *position, int bestMove, int depth);
 void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, int bestMove);
+void updateNoisyRootHistory(board *position, int bestMove, int depth);
+void updateNoisyHistoryMalus(board *position, int depth, moves *noisyMoves, int bestMove);
 void clearQuietHistory(void);
 
 
