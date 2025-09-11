@@ -453,22 +453,23 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff) 
 }
 
 void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int scaledDiff, const int newWeight) {
-    if (pos->ply >= pliesBack && pos->move[pos->ply - (pliesBack - 1)] && pos->move[pos->ply - pliesBack]) {
-        int contCorrhistEntry = contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(pos->move[pos->ply - (pliesBack - 1)])]
+    if (pos->ply >= pliesBack && pos->move[pos->ply - 1] && pos->move[pos->ply - pliesBack]) {
+
+        int contCorrhistEntry = contCorrhist[pos->piece[pos->ply - 1]][getMoveTarget(pos->move[pos->ply - 1])]
                     [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])];
         
         contCorrhistEntry = (contCorrhistEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
         contCorrhistEntry = clamp(contCorrhistEntry, -CORRHIST_MAX, CORRHIST_MAX);
 
-        contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(pos->move[pos->ply - (pliesBack - 1)])]
+        contCorrhist[pos->piece[pos->ply - 1]][getMoveTarget(pos->move[pos->ply - 1])]
                     [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])] = contCorrhistEntry;
 
     }
 }
 
 int adjust_single_cont_corrhist_entry(board *pos, const int pliesBack) {
-    if (pos->ply >= pliesBack && pos->move[pos->ply - (pliesBack - 1)] && pos->move[pos->ply - pliesBack]) {
-        return contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(pos->move[pos->ply - (pliesBack - 1)])]
+    if (pos->ply >= pliesBack && pos->move[pos->ply - 1] && pos->move[pos->ply - pliesBack]) {
+        return contCorrhist[pos->piece[pos->ply - 1]][getMoveTarget(pos->move[pos->ply - 1])]
                     [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])];
     }
     return 0;
