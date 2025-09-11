@@ -464,8 +464,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0) {
 
-            memset(quietHistory, 0, sizeof(quietHistory));
-            memset(rootHistory, 0, sizeof(rootHistory));
+            memset(quietHistory, 0, sizeof(quietHistory));            
             memset(captureHistory, 0, sizeof(captureHistory));
             memset(PAWN_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
             memset(pawnHistory, 0, sizeof(pawnHistory));
