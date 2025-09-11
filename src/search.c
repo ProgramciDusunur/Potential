@@ -499,13 +499,7 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
     U64 blackNPKey = pos->blackNonPawnKey;
     int blackNPEntry = NON_PAWN_CORRECTION_HISTORY[black][pos->side][blackNPKey % CORRHIST_SIZE];
 
-    int contCorrhistEntry = adjust_single_cont_corrhist_entry(pos, 2) +
-                            adjust_single_cont_corrhist_entry(pos, 4);
-    
-    /*if (pos->ply >= 2 && pos->move[pos->ply - 1] && pos->move[pos->ply - 2]) {
-        contCorrhistEntry = contCorrhist[pos->piece[pos->ply - 1]][getMoveTarget(pos->move[pos->ply - 1])]
-                    [pos->piece[pos->ply - 2]][getMoveTarget(pos->move[pos->ply - 2])];
-    }*/
+    int contCorrhistEntry = adjust_single_cont_corrhist_entry(pos, 2);        
 
     int mateFound = mateValue - maxPly;
 
