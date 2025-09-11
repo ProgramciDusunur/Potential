@@ -481,8 +481,7 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
 
     update_single_cont_corrhist_entry(pos, 2, scaledDiff, newWeight);
     update_single_cont_corrhist_entry(pos, 4, scaledDiff, newWeight);
-    update_single_cont_corrhist_entry(pos, 6, scaledDiff, newWeight);
-    update_single_cont_corrhist_entry(pos, 8, scaledDiff, newWeight);
+    update_single_cont_corrhist_entry(pos, 6, scaledDiff, newWeight);    
 }
 
 int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {   
