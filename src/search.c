@@ -1425,6 +1425,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);                       
+                        
                     } else { // noisy moves
                         updateCaptureHistory(pos, bestMove, depth);
                     }
