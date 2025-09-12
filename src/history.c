@@ -15,7 +15,7 @@ int16_t contCorrhist[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
 int16_t pawnHistory[2048][12][64];
 // captureHistory[piece][toSquare][capturedPiece]
-int16_t captureHistory[12][64][6];
+int16_t captureHistory[12][64][12];
 
 
 int getHistoryBonus(int depth) {
