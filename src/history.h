@@ -9,7 +9,6 @@
 #pragma once
 
 
-
 #include "structs.h"
 #include "bit_manipulation.h"
 #include "move.h"
