@@ -25,8 +25,6 @@ enum {
 
 // quietHistory[side to move][fromSquare][toSquare]
 extern int16_t quietHistory[2][64][64];
-// rootHistory[side to move][fromSquare][toSquare]
-extern int16_t rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 extern int16_t continuationHistory[12][64][12][64];
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
@@ -39,7 +37,6 @@ extern int16_t captureHistory[12][64][6];
 
 int scaledBonus(int score, int bonus, int gravity);
 void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets);
-void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiets);
 void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets);
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus);
 void updateAllCH(board *pos, int move, int bonus);

@@ -8,8 +8,6 @@
 
 // quietHistory[side to move][fromSquare][toSquare]
 int16_t quietHistory[2][64][64];
-// rootHistory[side to move][fromSquare][toSquare]
-int16_t rootHistory[2][64][64];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t continuationHistory[12][64][12][64];
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
@@ -26,28 +24,6 @@ int getHistoryBonus(int depth) {
 
 int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
-}
-
-void updateRootHistory(board *position, int bestMove, int depth, moves *badQuiets) {
-    int from = getMoveSource(bestMove);
-    int to = getMoveTarget(bestMove);
-
-    int bonus = getHistoryBonus(depth);
-
-    int score = rootHistory[position->side][from][to];
-
-    rootHistory[position->side][from][to] += scaledBonus(score, bonus, maxQuietHistory);
-
-    for (int index = 0; index < badQuiets->count; index++) {
-        if (badQuiets->moves[index] == bestMove) continue;
-
-        int badQuietFrom = getMoveSource(badQuiets->moves[index]);
-        int badQuietTo = getMoveTarget(badQuiets->moves[index]);
-
-        int badQuietScore = rootHistory[position->side][badQuietFrom][badQuietTo];
-        
-        rootHistory[position->side][badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
-    }
 }
 
 void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets) {
