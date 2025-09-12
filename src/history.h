@@ -32,7 +32,7 @@ extern int16_t contCorrhist[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
 extern int16_t pawnHistory[2048][12][64];
 // captureHistory[piece][toSquare][capturedPiece]
-extern int16_t captureHistory[12][64][12];
+extern int16_t captureHistory[12][64][13];
 
 
 int scaledBonus(int score, int bonus, int gravity);
