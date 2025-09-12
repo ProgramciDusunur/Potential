@@ -1258,6 +1258,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // Negative Extensions
             else if (tt_score >= beta) {
                 extensions -= 2 + !pvNode;
+
+                // Triple Negative Extension
+                if (notTactical && tt_score - 120 >= beta) {
+                    extensions -= 1;
+                }
             }
             
             // Cut Node Extension
