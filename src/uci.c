@@ -6,7 +6,7 @@
 
 #include "perft.h"
 
-#define VERSION "3.0.4"
+#define VERSION "3.0.5"
 #define BENCH_DEPTH 15
 
 double DEF_TIME_MULTIPLIER = 0.054;
@@ -14,7 +14,6 @@ double DEF_INC_MULTIPLIER = 0.85;
 double MAX_TIME_MULTIPLIER = 0.76;
 double HARD_LIMIT_MULTIPLIER = 3.04;
 double SOFT_LIMIT_MULTIPLIER = 0.76;
-
 
 // parse user/GUI move string input (e.g. "e7e8q")
 int parse_move(char *move_string, board* position) {
