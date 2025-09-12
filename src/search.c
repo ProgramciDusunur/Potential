@@ -1454,7 +1454,6 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     }
 
     if (!pos->isSingularMove[pos->ply]) {
-
         uint8_t hashFlag = hashFlagExact;
         if (alpha >= beta) {
             hashFlag = hashFlagAlpha;
