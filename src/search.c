@@ -1419,19 +1419,20 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
+                    int historyDepth = depth + (bestScore > beta + 50);
                     if (notTactical) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
-                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
-                        updateContinuationHistory(pos, bestMove, depth, badQuiets);
-                        updatePawnHistory(pos, bestMove, depth, badQuiets);                       
+                        updateQuietMoveHistory(bestMove, pos->side, historyDepth, badQuiets);
+                        updateContinuationHistory(pos, bestMove, historyDepth, badQuiets);
+                        updatePawnHistory(pos, bestMove, historyDepth, badQuiets);                       
                         
                     } else { // noisy moves
-                        updateCaptureHistory(pos, bestMove, depth);
+                        updateCaptureHistory(pos, bestMove, historyDepth);
                     }
 
                     // always penalize bad noisy moves
-                    updateCaptureHistoryMalus(pos, depth, noisyMoves, bestMove);
+                    updateCaptureHistoryMalus(pos, historyDepth, noisyMoves, bestMove);
 
                     // node (move) fails high
                     break;
