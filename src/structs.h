@@ -51,6 +51,8 @@ typedef struct {
 
     uint16_t piece[maxPly];
     int move[maxPly];
+    uint16_t noisyPiece[maxPly];
+    int noisyMove[maxPly];
 
     bool benchmark;
 

@@ -33,6 +33,8 @@ extern int16_t contCorrhist[12][64][12][64];
 extern int16_t pawnHistory[2048][12][64];
 // captureHistory[piece][toSquare][capturedPiece]
 extern int16_t captureHistory[12][64][6];
+// capture Continuation History [piece][toSquare][capturedPiece][previousPiece][previousToSquare][previousCapturedPiece]
+extern int16_t captureConthist[12][64][6][12][64][6];
 
 
 int scaledBonus(int score, int bonus, int gravity);
@@ -45,6 +47,8 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
 int getContinuationHistoryScore(board *pos, int offSet, int move);
 void updateCaptureHistory(board *position, int bestMove, int depth);
 void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, int bestMove);
+void updateCaptureConthist(board *pos, int bestMove, int depth, moves *noisyMoves);
+int getCaptureConthistScore(board *pos, int offSet, int move);
 void clearQuietHistory(void);
 
 

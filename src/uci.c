@@ -469,6 +469,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             memset(PAWN_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
             memset(pawnHistory, 0, sizeof(pawnHistory));
             memset(continuationHistory, 0, sizeof(continuationHistory));
+            memset(captureConthist, 0, sizeof(captureConthist));
             memset(MINOR_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
             memset(MAJOR_CORRECTION_HISTORY, 0, sizeof(MAJOR_CORRECTION_HISTORY));
             memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));

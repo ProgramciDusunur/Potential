@@ -6,16 +6,23 @@
 
 #include "utils.h"
 
-// quietHistory[side to move][fromSquare][toSquare]
+// Quiet History [side to move][fromSquare][toSquare]
 int16_t quietHistory[2][64][64];
-// continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+
+// Continuation History [previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t continuationHistory[12][64][12][64];
-// continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+
+// Continuation Correction History [previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t contCorrhist[12][64][12][64];
-// pawnHistory [pawnKey][piece][to]
+
+// Pawn History [pawnKey][piece][to]
 int16_t pawnHistory[2048][12][64];
-// captureHistory[piece][toSquare][capturedPiece]
+
+// Capture History [piece][toSquare][capturedPiece]
 int16_t captureHistory[12][64][6];
+
+// Capture Continuation History [previousPiece][previousToSquare][previousCapturedPiece][piece][toSquare][capturedPiece]
+int16_t captureConthist[12][64][6][12][64][6];
 
 
 int getHistoryBonus(int depth) {
@@ -121,6 +128,33 @@ void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQu
         if (badQuiets->moves[index] == bestMove) continue;
         updateAllCH(pos, badQuiets->moves[index], -bonus);
     }
+}
+
+int getCaptureConthistScore(board *pos, int offSet, int move) {
+    const int ply = pos->ply - offSet;
+    return ply >= 0 ? captureConthist[pos->noisyPiece[ply]][getMoveTarget(pos->noisyMove[ply])][pos->mailbox[getMoveTarget(pos->noisyMove[ply])]]
+                                                       [getMovePiece(move)][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]] : 0;
+}
+
+void updateSingleCCHScore(board *pos, int move, const int offSet, const int bonus) {
+    const int ply = pos->ply - offSet;
+    if (ply >= 0) {               
+        const int scaledBonus = bonus - getCaptureConthistScore(pos, offSet, move) * myAbs(bonus) / maxCaptureHistory;
+
+        captureConthist[pos->noisyPiece[ply]][getMoveTarget(pos->noisyMove[ply])][pos->mailbox[getMoveTarget(pos->noisyMove[ply])]]
+                                                       [getMovePiece(move)][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]] += scaledBonus;
+    }
+}
+
+void updateCaptureConthist(board *pos, int bestMove, int depth, moves *noisyMoves) {
+    int bonus = getHistoryBonus(depth);
+    
+    updateSingleCCHScore(pos, bestMove, 1, bonus);
+
+    for (int index = 0; index < noisyMoves->count; index++) {
+        if (noisyMoves->moves[index] == bestMove) continue;
+        updateSingleCCHScore(pos, noisyMoves->moves[index], 1, -bonus);
+    }       
 }
 
 void clearQuietHistory(void) {

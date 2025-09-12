@@ -229,6 +229,8 @@ int scoreMove(int move, board* position) {
 
         captureScore += captureHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
 
+        captureScore += getCaptureConthistScore(position, 1, move);
+
         captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
 
         return captureScore;
@@ -1305,6 +1307,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
         } else {
+            pos->noisyMove[myMIN(pos->ply, maxPly - 1)] = currentMove;
+            pos->noisyPiece[myMIN(pos->ply, maxPly - 1)] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
             //captureMoves++;
             addMoveToHistoryList(noisyMoves, currentMove);
         }
@@ -1426,8 +1430,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                         updateContinuationHistory(pos, bestMove, depth, badQuiets);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);                       
                         
-                    } else { // noisy moves
+                    } else { // noisy moves                        
                         updateCaptureHistory(pos, bestMove, depth);
+                        updateCaptureConthist(pos, bestMove, depth, noisyMoves);
                     }
 
                     // always penalize bad noisy moves
