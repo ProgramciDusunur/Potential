@@ -620,7 +620,7 @@ int evaluate(board* position) {
 
 
 
-        int adjusted_endgame_phase_score = 16 * passed_pawn_count + endgame_phase_score;
+        int adjusted_endgame_phase_score = position->side ? 16 * passed_pawn_count + endgame_phase_score : -16 * passed_pawn_count + endgame_phase_score ;
 
         int winnableScore = 0;
         // winnable
