@@ -907,7 +907,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
-    bool tt_pv = pvNode;    
+    bool tt_pv = pvNode;
+    int raw_eval = noEval;
+    int static_eval = noEval;
 
     // Check for fifty-move rule
     if (pos->fifty >= 100) {
@@ -960,11 +962,16 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
     
+    // don't eval when in check
+    if (in_check) {
+        raw_eval = noEval;
+        static_eval = noEval;
+    } else {
+        // get static evaluation score
+        raw_eval = evaluate(pos);
 
-    // get static evaluation score
-    int raw_eval = evaluate(pos);
-
-    int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
+        static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
+    }
 
     bool improving = false;
 
