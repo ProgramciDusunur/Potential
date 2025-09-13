@@ -1367,6 +1367,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
         }
         else if (!pvNode || legal_moves > 1) {
+             if (!pvNode && quietMoves >= 4 && notTactical) {
+                new_depth--;
+            }
+
             score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
         }
 
