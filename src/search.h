@@ -45,6 +45,7 @@ void printMove(int move);
 int getLmrReduction(int depth, int moveNumber, bool isQuiet);
 uint8_t justPawns(board *pos);
 int SEE(board *pos, int move, int threshold);
+bool isEasyCapture(board *pos);
 uint64_t all_attackers_to_square(board *pos, uint64_t occupied, int sq);
 void updatePawnCorrectionHistory(board *position, const int depth, const int diff);
 void updateMinorCorrectionHistory(board *position, const int depth, const int diff);
