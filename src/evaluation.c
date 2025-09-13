@@ -619,7 +619,7 @@ int evaluate(board* position) {
         }
 
         // Adjusted endgame phase score
-        int adjusted_endgame_phase_score = passed_pawn_count >= 0 ? 32 * passed_pawn_count + endgame_phase_score : 32 * (passed_pawn_count * -1) + endgame_phase_score;        
+        int adjusted_endgame_phase_score = passed_pawn_count >= 0 ? 16 * passed_pawn_count + endgame_phase_score : 16 * (passed_pawn_count * -1) + endgame_phase_score;        
 
         int winnableScore = 0;
         // winnable
