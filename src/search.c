@@ -241,7 +241,7 @@ int scoreMove(int move, board* position) {
         if (position->killerMoves[position->ply][0] == move)
             return 900000000;
                    
-        return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)] +
+        return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)][is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))] +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
                         getContinuationHistoryScore(position, 4, move) +
@@ -1155,7 +1155,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
-        int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)] +
+        int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)][is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
                 getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + moveHistory / 8192);
@@ -1422,7 +1422,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                     if (notTactical) {
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
-                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets);
+                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);                       
                         

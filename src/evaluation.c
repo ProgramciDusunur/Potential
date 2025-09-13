@@ -350,6 +350,15 @@ void get_threats(int side, board* pos) {
     }
 }
 
+uint8_t is_square_threatened(board *pos, int square) {
+        U64 squareBB = 1ULL << square;
+        return !!(squareBB & (pos->pieceThreats.pawnThreats |
+                           pos->pieceThreats.knightThreats |
+                           pos->pieceThreats.bishopThreats |
+                           pos->pieceThreats.rookThreats |
+                           pos->pieceThreats.queenThreats));
+}
+
 // get game phase score
 int get_game_phase_score(const board* position) {
     /*

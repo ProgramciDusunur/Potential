@@ -3,11 +3,11 @@
 //
 
 #include "history.h"
-
+#include "evaluation.h"
 #include "utils.h"
 
-// quietHistory[side to move][fromSquare][toSquare]
-int16_t quietHistory[2][64][64];
+// quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
+int16_t quietHistory[2][64][64][2][2];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t continuationHistory[12][64][12][64];
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
@@ -26,14 +26,14 @@ int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
 }
 
-void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets) {
+void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets, board *pos) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
     int bonus = getHistoryBonus(depth);
-    int score = quietHistory[side][from][to];
+    int score = quietHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)];
 
-    quietHistory[side][from][to] += scaledBonus(score, bonus, maxQuietHistory);
+    quietHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)] += scaledBonus(score, bonus, maxQuietHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
@@ -41,9 +41,9 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets)
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
-        int badQuietScore = quietHistory[side][badQuietFrom][badQuietTo];        
+        int badQuietScore = quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)];        
 
-        quietHistory[side][badQuietFrom][badQuietTo] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
+        quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)] += scaledBonus(badQuietScore, -bonus, maxQuietHistory);
     }
 }
 
