@@ -618,10 +618,14 @@ int evaluate(board* position) {
                 score_endgame -= bishop_pair_bonus_endgame;
         }
 
+
+
+        int adjusted_endgame_phase_score = 16 * passed_pawn_count + endgame_phase_score;
+
         int winnableScore = 0;
         // winnable
         //winnableScore += (position->side && (get_rank[getLS1BIndex(position->bitboards[k])] < 2)) * -20;
-        //winnableScore += (!position->side && (get_rank[getLS1BIndex(position->bitboards[K])] > 5)) * 20;
+        //winnableScore += (!position->side && (get_rank[getLS1BIndex(position->bitboards[K])] > 5)) * 20;        
 
         winnableScore +=  6 * passed_pawn_count +
                 8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]))
@@ -634,7 +638,7 @@ int evaluate(board* position) {
         int score;
         if (game_phase_score > opening_phase_score)
                 score = score_midgame;
-        else if (game_phase_score < endgame_phase_score)
+        else if (game_phase_score < adjusted_endgame_phase_score)
                 score = score_endgame;
         else
                 score = (score_midgame * game_phase_score + score_endgame * (opening_phase_score - game_phase_score))
