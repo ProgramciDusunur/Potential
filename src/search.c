@@ -74,7 +74,7 @@
     ╚══════════════════════════════╝*/
   int RFP_MARGIN = 82;
   int RFP_IMPROVING_MARGIN = 65;
-  int RFP_DEPTH = 14;
+  int RFP_DEPTH = 11;
   
   
   /*╔══════════╗
