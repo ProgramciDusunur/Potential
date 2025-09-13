@@ -51,7 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
-  int QUIET_STRIKE_LMR_SCALER = 1024;
+  int QUIET_STRIKE_LMR_SCALER = 48;
   
   
   /*╔═══════════════════════╗
@@ -74,7 +74,7 @@
     ╚══════════════════════════════╝*/
   int RFP_MARGIN = 82;
   int RFP_IMPROVING_MARGIN = 65;
-  int RFP_DEPTH = 11;
+  int RFP_DEPTH = 14;
   
   
   /*╔══════════╗
@@ -1342,8 +1342,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 lmrReduction += QUIET_NON_PV_LMR_SCALER;
             }
 
-            if (!pvNode && quietMoveStrike >= 3) {
-                lmrReduction += QUIET_STRIKE_LMR_SCALER;
+            if (!pvNode && quietMoveStrike >= 4) {
+                lmrReduction += QUIET_STRIKE_LMR_SCALER * depth;
             }
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
