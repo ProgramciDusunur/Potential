@@ -618,9 +618,8 @@ int evaluate(board* position) {
                 score_endgame -= bishop_pair_bonus_endgame;
         }
 
-
-
-        int adjusted_endgame_phase_score = position->side ? 16 * passed_pawn_count + endgame_phase_score : -16 * passed_pawn_count + endgame_phase_score ;
+        // Adjusted endgame phase score
+        int adjusted_endgame_phase_score = passed_pawn_count >= 0 ? 32 * passed_pawn_count + endgame_phase_score : 32 * (passed_pawn_count * -1) + endgame_phase_score;        
 
         int winnableScore = 0;
         // winnable
