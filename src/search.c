@@ -484,7 +484,7 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
 void update_threats_corrhist(board *pos, const int depth, const int diff) {
     U64 murmurHash3 = (pos->pieceThreats.pawnThreats | pos->pieceThreats.knightThreats |
                      pos->pieceThreats.bishopThreats| pos->pieceThreats.rookThreats |
-                     pos->pieceThreats.queenThreats) & pos->occupancies[pos->side];
+                     pos->pieceThreats.queenThreats) & pos->occupancies[!pos->side];
 
     U64 threatsKey = murmur_hash_3(murmurHash3);
 
@@ -521,7 +521,7 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
 
     U64 murmurHash3 = (pos->pieceThreats.pawnThreats | pos->pieceThreats.knightThreats |
                      pos->pieceThreats.bishopThreats| pos->pieceThreats.rookThreats |
-                     pos->pieceThreats.queenThreats) & pos->occupancies[pos->side];
+                     pos->pieceThreats.queenThreats) & pos->occupancies[!pos->side];
     U64 threatsKey = murmur_hash_3(murmurHash3);
     int threatsEntry = threatsHistory[pos->side][threatsKey % 16384];
 
@@ -1490,7 +1490,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
 
             int corrhistBonus = clamp(bestScore - static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
-            
+
             updatePawnCorrectionHistory(pos, depth, corrhistBonus);
             updateMinorCorrectionHistory(pos, depth, corrhistBonus);
             updateMajorCorrectionHistory(pos, depth, corrhistBonus);
