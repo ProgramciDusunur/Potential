@@ -1100,7 +1100,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 return score;
             }
         }
-    }    
+    }
+
+    // Improving IIR    
+    if (improving && depth >= 4 && !tt_move) {
+        depth--;
+    }
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
