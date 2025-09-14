@@ -702,7 +702,7 @@ void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, 
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
     double not_bm_nodes_fraction = 
        (double)nodes_spent_table[move & 4095] / (double)searchNodes;
-    double node_scaling_factor = (2.0f - not_bm_nodes_fraction) * 1.85f;
+    double node_scaling_factor = myMAX(0.5, (2.0f - not_bm_nodes_fraction) * (100.0 / 54.038));
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
                 evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
