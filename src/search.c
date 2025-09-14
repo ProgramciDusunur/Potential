@@ -1103,7 +1103,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     }
 
     // Improving IIR    
-    if (improving && depth >= 4 && !tt_move) {
+    if (!improving && depth >= 4 && !tt_move) {
         depth--;
     }
 
