@@ -969,7 +969,6 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     bool improving = false;
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
-    int correctionValue = raw_eval - static_eval;
 
     int pastStack = -1;
 
@@ -1019,11 +1018,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // ~~~~ Corrplexity Extension ~~~~ //
     if (ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
-        if (corrplexity) {
-            depth++;
-        } else if (correctionValue <= -82 && depth >= 3 && priorReduction >= 3) {
-            depth--;
-        }        
+        depth++;
     }
 
     improving |= pos->staticEval[pos->ply] >= beta + 100;
@@ -1031,7 +1026,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
     bool rfp_tt_pv_decision = !tt_pv || (tt_pv && tt_hit && tt_score >= beta + 90 - 15 * ((tt_depth + depth) / 2));    
-
+    
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
@@ -1039,9 +1034,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         return ttAdjustedEval;
 
     // Null Move Pruning
+    int previous_lmr_margin = priorReduction * 10;
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
-            ttAdjustedEval >= beta &&
+            ttAdjustedEval + previous_lmr_margin >= beta &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
