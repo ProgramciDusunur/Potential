@@ -366,7 +366,7 @@ void get_threats(int side, board* pos) {
 
 }
 
-uint8_t is_square_threatened(board *pos, int square) {
+bool is_square_threatened(board *pos, int square) {
         U64 squareBB = 1ULL << square;
         return !!(squareBB & pos->pieceThreats.allThreats);
 }
@@ -413,6 +413,8 @@ int evaluate(board* position) {
         position->pieceThreats.bishopThreats = 0;
         position->pieceThreats.rookThreats = 0;
         position->pieceThreats.queenThreats = 0;
+        position->pieceThreats.kingThreats = 0;
+        position->pieceThreats.allThreats = 0;
 
         get_threats(position->side, position);
 
