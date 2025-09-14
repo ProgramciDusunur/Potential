@@ -21,6 +21,8 @@ typedef struct  {
     uint64_t bishopThreats;
     uint64_t rookThreats;
     uint64_t queenThreats;
+    uint64_t kingThreats;
+    uint64_t allThreats;
 } threats;
 
 typedef struct {
