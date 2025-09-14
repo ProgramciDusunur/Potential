@@ -986,7 +986,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
 
     // Internal Iterative Reductions
-    if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
+    if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR || priorReduction >= 3)) {
         depth--;
     }
 
@@ -1000,9 +1000,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         ttAdjustedEval = tt_score;
     }
 
-    if (priorReduction >= 3 && pos->ply - 1 > 0 && depth >= 3 && pos->staticEval[pos->ply] + pos->staticEval[pos->ply - 1] > 164) {
+    /*if (priorReduction >= 3 && pos->ply - 1 > 0 && depth >= 3 && pos->staticEval[pos->ply] + pos->staticEval[pos->ply - 1] > 164) {
         depth--;
-    }
+    }*/
 
     // ╔═══════════════════════════╗
     // ║            /\             ║
