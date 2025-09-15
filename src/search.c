@@ -51,6 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+  int ALPHA_RAISES_LMR_SCALER = 512;
   
   
   /*╔═══════════════════════╗
@@ -1140,6 +1141,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // quiet move counter
     int quietMoves = 0;
 
+    int alphaRaises = 0;
+
     // capture move counter
     //int captureMoves = 0;
 
@@ -1330,6 +1333,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += TT_CAPTURE_LMR_SCALER;
         }
 
+        lmrReduction += alphaRaises * ALPHA_RAISES_LMR_SCALER;
+
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
@@ -1415,6 +1420,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                     // adjust PV length
                     pos->pvLength[pos->ply] = pos->pvLength[pos->ply + 1];
+
+                    alphaRaises++;
                 }
 
                 // fail-hard beta cutoff
