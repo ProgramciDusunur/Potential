@@ -770,22 +770,27 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         alpha = evaluation;
     }
 
+    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
+                                    getLS1BIndex(position->bitboards[k]),
+                                    position->side ^ 1, position);
+
     // create move list instance
     moves moveList[1];
 
     // generate moves
-    noisyGenerator(moveList, position);
-
-    // sort moves
-    if (moveList->count > 0) {
-        quiescence_sort_moves(moveList, position);
-    }
-
-
+    if (in_check) {
+        moveGenerator(moveList, position);
+        sort_moves(moveList, tt_move, position);
+    } else {
+        noisyGenerator(moveList, position);
+        if (moveList->count > 0) {
+            quiescence_sort_moves(moveList, position);
+        }        
+    }            
 
 
     // legal moves counter
-    //int legal_moves = 0;
+    int legal_moves = 0;
 
 
     // loop over moves within a movelist
@@ -817,7 +822,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
             continue;
         }
 
-        //legal_moves++;
+        legal_moves++;
 
         // increment nodes count
         searchNodes++;
@@ -855,6 +860,14 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
                 break;
             }
         }
+    }
+
+    // we don't have any legal moves to make in the current postion
+    if (legal_moves == 0) {
+        // king is in check
+        if (in_check)
+            // return mating score (assuming closest distance to mating pos)
+            return -mateValue + position->ply;     
     }
 
     uint8_t hashFlag = hashFlagNone;
