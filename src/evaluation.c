@@ -316,12 +316,8 @@ void get_threats(int side, board* pos) {
     kingBB = pos->bitboards[side == white ? K : k];
 
     // Calculate Knight attacks
-    while (knightBB) {
-        int knightSquare = getLS1BIndex(knightBB);
-        pos->pieceThreats.knightThreats |= getKnightAttacks(knightSquare);
-        pos->pieceThreats.stmThreats[pos->side] |= pos->pieceThreats.knightThreats;
-        popBit(knightBB, knightSquare);
-    }
+    pos->pieceThreats.knightThreats |= knight_threats(knightBB);
+    pos->pieceThreats.stmThreats[pos->side] |= pos->pieceThreats.knightThreats;
 
     // Calculate Bishop attacks
     while (bishopBB) {
@@ -340,11 +336,7 @@ void get_threats(int side, board* pos) {
     }
 
     // Calculate Pawn attacks
-    U64 forward_pawns = side == white ? (pawnBB >> 8) : (pawnBB << 8);
-    U64 left_attacks =  forward_pawns << 1 & not_a_file;
-    U64 right_attacks = forward_pawns >> 1 & not_h_file;
-
-    pos->pieceThreats.pawnThreats |= left_attacks | right_attacks;
+    pos->pieceThreats.pawnThreats |= pawn_threats(pawnBB, side);
     pos->pieceThreats.stmThreats[pos->side] |= pos->pieceThreats.pawnThreats;
     
     // Calculate Queen attacks
