@@ -788,15 +788,24 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         }        
     }            
 
-
     // legal moves counter
     int legal_moves = 0;
+
+    int futilityValue = bestScore + 82;
 
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
 
-        if (!SEE(position, moveList->moves[count], QS_SEE_THRESHOLD)) {
+        int move = moveList->moves[count];
+
+        if (!SEE(position, move, QS_SEE_THRESHOLD)) {
+            continue;
+        }
+
+        // Futility Pruning
+        if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
+            bestScore = myMAX(bestScore, futilityValue);
             continue;
         }
         struct copyposition copyPosition;
@@ -811,7 +820,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
         // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], allMoves, position) == 0) {
+        if (makeMove(move, allMoves, position) == 0) {
             // decrement ply
             position->ply--;
 
@@ -867,10 +876,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         // king is in check
         if (in_check)
             // return mating score (assuming closest distance to mating pos)
-            return -mateValue + position->ply;    
-        else
-            // return stalemate score
-            return 0; 
+            return -mateValue + position->ply;       
     }
 
     uint8_t hashFlag = hashFlagNone;
