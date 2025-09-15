@@ -867,7 +867,10 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         // king is in check
         if (in_check)
             // return mating score (assuming closest distance to mating pos)
-            return -mateValue + position->ply;     
+            return -mateValue + position->ply;    
+        else
+            // return stalemate score
+            return 0; 
     }
 
     uint8_t hashFlag = hashFlagNone;
