@@ -811,7 +811,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
         // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], onlyCaptures, position) == 0) {
+        if (makeMove(moveList->moves[count], allMoves, position) == 0) {
             // decrement ply
             position->ply--;
 
