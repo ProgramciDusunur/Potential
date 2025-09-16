@@ -353,6 +353,10 @@ void get_threats(int side, board* pos) {
 
 }
 
+bool is_square_threatened(board *pos, int square) {
+    return (pos->pieceThreats.stmThreats[!pos->side] & (1ULL << square)) != 0;
+}
+
 // get game phase score
 int get_game_phase_score(const board* position) {
     /*
