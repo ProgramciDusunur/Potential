@@ -1202,3 +1202,23 @@ void addMoveToHistoryList(moves* list, int move) {
         list->count += 1;
     }
 }
+
+U64 pawn_threats(U64 pawnBitboard, int side) {    
+    U64 forward_pawns = side == white ? (pawnBitboard >> 8) : (pawnBitboard << 8);
+    U64 left_attacks =  forward_pawns << 1 & not_a_file;
+    U64 right_attacks = forward_pawns >> 1 & not_h_file;
+
+    return left_attacks | right_attacks;
+}
+
+U64 knight_threats (U64 knightBB) {
+    U64 attacks =  (knightBB & not8And7RankHFile)  >> 15 |
+                   (knightBB & not1And2RanksAFile) << 15 |
+                   (knightBB & not8And7RankAFile)  >> 17 |
+                   (knightBB & not1And2RankHFile)  << 17 |
+                   (knightBB & not8RankAndABFile)  >> 10 |
+                   (knightBB & not1RankAndGHFile)  << 10 |
+                   (knightBB & not8RankAndGHFile)  >> 6  |
+                   (knightBB & not1RankAndABFile)  << 6  ;    
+    return attacks;
+}
