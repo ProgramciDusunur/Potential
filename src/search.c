@@ -51,6 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+  int QUIET_STRIKE_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -1143,6 +1144,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // capture move counter
     //int captureMoves = 0;
 
+    // quiet move strike
+    int quietMoveStrike = 0;
+
     const int originalAlpha = alpha;
 
     // loop over moves within a movelist
@@ -1305,8 +1309,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             pos->piece[myMIN(pos->ply, maxPly - 1)] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
             addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
+            quietMoveStrike++;
         } else {
             //captureMoves++;
+            quietMoveStrike = 0;
             addMoveToHistoryList(noisyMoves, currentMove);
         }
 
@@ -1335,6 +1341,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
                 lmrReduction += QUIET_NON_PV_LMR_SCALER;
+            }
+
+            if (!pvNode && quietMoveStrike >= 3) {
+                lmrReduction += QUIET_STRIKE_LMR_SCALER;
             }
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
