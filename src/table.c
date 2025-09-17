@@ -182,6 +182,15 @@ U64 generate_black_np_hash_key(board *position) {
     return final_key;
 }
 
+U64 murmur_hash_3(uint64_t key) {
+    key ^= key >> 33;
+    key *= 0xff51afd7ed558ccd;
+    key ^= key >> 33;
+    key *= 0xc4ceb9fe1a85ec53;
+    key ^= key >> 33;
+    return key;
+}
+
 uint64_t get_hash_index(uint64_t hash) {
     return ((uint128_t)hash * (uint128_t)hash_entries) >> 64;
 }

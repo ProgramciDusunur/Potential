@@ -481,6 +481,23 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
     update_single_cont_corrhist_entry(pos, 4, scaledDiff, newWeight);
 }
 
+void update_threats_corrhist(board *pos, const int depth, const int diff) {
+    U64 murmurHash3Key = pos->pieceThreats.stmThreats[!pos->side] & pos->occupancies[pos->side];
+
+    U64 threatsKey = murmur_hash_3(murmurHash3Key);
+
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = 4 * myMIN(depth + 1, 16);
+
+    int threatsEntry = threatsHistory[pos->side][threatsKey % 16384];
+
+    threatsEntry = (threatsEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+    threatsEntry = clamp(threatsEntry, -CORRHIST_MAX, CORRHIST_MAX);
+
+    threatsHistory[pos->side][threatsKey % 16384] = threatsEntry;
+
+}
+
 int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {   
     rawEval = rawEval * (300 - pos->fifty) / 300;
     
@@ -498,11 +515,15 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
     U64 blackNPKey = pos->blackNonPawnKey;
     int blackNPEntry = NON_PAWN_CORRECTION_HISTORY[black][pos->side][blackNPKey % CORRHIST_SIZE];
 
-    int contCorrhistEntry = adjust_single_cont_corrhist_entry(pos, 2);        
+    int contCorrhistEntry = adjust_single_cont_corrhist_entry(pos, 2);     
+    
+    U64 murmurHash3Key = pos->pieceThreats.stmThreats[!pos->side] & pos->occupancies[pos->side];    
+    U64 threatsKey = murmur_hash_3(murmurHash3Key);
+    int threatsEntry = threatsHistory[pos->side][threatsKey % 16384];
 
     int mateFound = mateValue - maxPly;
 
-    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry + contCorrhistEntry;
+    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry + contCorrhistEntry + threatsEntry;
 
     return clamp(rawEval + adjust / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
 }
@@ -1472,6 +1493,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             updateMajorCorrectionHistory(pos, depth, corrhistBonus);
             update_non_pawn_corrhist(pos, depth, corrhistBonus);
             update_continuation_corrhist(pos, depth, corrhistBonus);
+            update_threats_corrhist(pos, depth, corrhistBonus);
         }
 
         // store hash entry with the score equal to alpha

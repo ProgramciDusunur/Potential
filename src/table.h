@@ -43,6 +43,7 @@ U64 generate_white_np_hash_key(board *position);
 U64 generate_black_np_hash_key(board *position);
 void clearHashTable(void);
 void init_hash_table(int mb);
+U64 murmur_hash_3(uint64_t key);
 void initRandomKeys(void);
 
 
