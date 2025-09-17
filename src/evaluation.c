@@ -424,7 +424,7 @@ int evaluate(board* position) {
                                                 passed_pawn_count += 1;
 
                                                 // passed pawn can move bonus
-                                                if (!(getBit(position->occupancies[both], (square - 8)))) {
+                                                if (position->pieceThreats.stmThreats[position->side] & (square - 8)) {
                                                         score_midgame += passedCanMoveBonus;
                                                         score_endgame += passedCanMoveBonus;
                                                 }
@@ -435,7 +435,7 @@ int evaluate(board* position) {
                                                 passed_pawn_count -= 1;
 
                                                 // passed pawn can move bonus
-                                                if (!(getBit(position->occupancies[both], (square + 8)))) {
+                                                if (position->pieceThreats.stmThreats[position->side] & (square + 8)) {
                                                         score_midgame -= passedCanMoveBonus;
                                                         score_endgame -= passedCanMoveBonus;
                                                 }
