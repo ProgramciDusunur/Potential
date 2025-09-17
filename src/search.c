@@ -482,7 +482,7 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
 }
 
 void update_king_ring_corrhist(board *pos, const int depth, const int diff) {
-    U64 murmurHash3Key = kingAttacks[getLS1BIndex(pos->bitboards[pos->side ? k : K])] & pos->occupancies[pos->side];
+    U64 murmurHash3Key = kingAttacks[getLS1BIndex(pos->bitboards[pos->side ? k : K])] & pos->pieceThreats.stmThreats[pos->side];
 
     U64 kingRingKey = murmur_hash_3(murmurHash3Key);
 
@@ -517,7 +517,7 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
 
     int contCorrhistEntry = adjust_single_cont_corrhist_entry(pos, 2);     
     
-    U64 murmurHash3Key = kingAttacks[getLS1BIndex(pos->bitboards[pos->side ? k : K])] & pos->occupancies[pos->side];
+    U64 murmurHash3Key = kingAttacks[getLS1BIndex(pos->bitboards[pos->side ? k : K])] & pos->pieceThreats.stmThreats[pos->side];
     U64 kingRingKey = murmur_hash_3(murmurHash3Key);
     int kingRingEntry = kingRingHistory[pos->side][kingRingKey % 16384];
 
