@@ -482,7 +482,7 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
 }
 
 void update_threats_corrhist(board *pos, const int depth, const int diff) {
-    U64 murmurHash3Key = pos->pieceThreats.stmThreats[!pos->side] & pos->occupancies[pos->side];
+    U64 murmurHash3Key = pos->pieceThreats.stmThreats[pos->side] & pos->occupancies[pos->side];
 
     U64 threatsKey = murmur_hash_3(murmurHash3Key);
 
@@ -517,7 +517,7 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
 
     int contCorrhistEntry = adjust_single_cont_corrhist_entry(pos, 2);     
     
-    U64 murmurHash3Key = pos->pieceThreats.stmThreats[!pos->side] & pos->occupancies[pos->side];    
+    U64 murmurHash3Key = pos->pieceThreats.stmThreats[pos->side] & pos->occupancies[pos->side];    
     U64 threatsKey = murmur_hash_3(murmurHash3Key);
     int threatsEntry = threatsHistory[pos->side][threatsKey % 16384];
 
