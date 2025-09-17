@@ -8,8 +8,8 @@
 
 // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
 int16_t quietHistory[2][64][64][2][2];
-// continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-int16_t continuationHistory[12][64][12][64];
+// continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq][threatSource][threatTarget]
+int16_t continuationHistory[12][64][12][64][2][2];
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t contCorrhist[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
@@ -95,7 +95,7 @@ void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, in
 int getContinuationHistoryScore(board *pos, int offSet, int move) {
     const int ply = pos->ply - offSet;
     return ply >= 0 ? continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
-                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] : 0;
+                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][is_square_threatened(pos, getMoveSource(move))][is_square_threatened(pos, getMoveTarget(move))] : 0;
 }
 
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus) {
@@ -103,7 +103,7 @@ void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus
     if (ply >= 0) {
         const int scaledBonus = bonus - getContinuationHistoryScore(pos, offSet, move) * abs(bonus) / maxQuietHistory;
         continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
-                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
+                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][is_square_threatened(pos, getMoveSource(move))][is_square_threatened(pos, getMoveTarget(move))] += scaledBonus;
     }
 }
 
