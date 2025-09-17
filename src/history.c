@@ -14,9 +14,10 @@ int16_t continuationHistory[12][64][12][64];
 int16_t contCorrhist[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
 int16_t pawnHistory[2048][12][64];
-// captureHistory[piece][toSquare][capturedPiece]
+// captureHistory [piece][toSquare][capturedPiece]
 int16_t captureHistory[12][64][13];
-
+// kingRookPawn Correction History [side to move][key]
+int16_t krpCorrhist[2][16384];
 
 int getHistoryBonus(int depth) {
     return myMIN(10 + 200 * depth, 4096);
