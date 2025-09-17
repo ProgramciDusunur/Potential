@@ -51,6 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+  int ALPHA_RAISES_LMR_SCALER = 512;
   
   
   /*╔═══════════════════════╗
@@ -1143,6 +1144,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // capture move counter
     //int captureMoves = 0;
 
+    int alphaRaises = 0;
+
     const int originalAlpha = alpha;
 
     // loop over moves within a movelist
@@ -1331,6 +1334,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += TT_CAPTURE_LMR_SCALER;
         }
 
+        // Alpha Raise LMR
+        lmrReduction += alphaRaises * ALPHA_RAISES_LMR_SCALER;
+
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
@@ -1406,6 +1412,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 alpha = score;
 
                 if (pvNode) {
+                    alphaRaises++;
                     // write PV move
                     pos->pvTable[pos->ply][pos->ply] = currentMove;
 
