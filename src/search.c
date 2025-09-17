@@ -487,7 +487,7 @@ void update_threats_corrhist(board *pos, const int depth, const int diff) {
     U64 threatsKey = murmur_hash_3(murmurHash3Key);
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
+    const int newWeight = myMIN(depth + 1, 16);
 
     int threatsEntry = threatsHistory[pos->side][threatsKey % 16384];
 
