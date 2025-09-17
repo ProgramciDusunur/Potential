@@ -47,6 +47,7 @@
   int QUIET_HISTORY_LMR_MINIMUM_SCALER = 3072;
   int QUIET_HISTORY_LMR_MAXIMUM_SCALER = 3072;
   int QUIET_NON_PV_LMR_SCALER = 1024;
+  int NOISY_HISTORY_LMR_DIVISOR = 10240;
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
@@ -227,7 +228,7 @@ int scoreMove(int move, board* position) {
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[getMovePiece(move)][target_piece];
 
-        captureScore += captureHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
+        captureScore += getCaptureHistoryScore(position, move);
 
         captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
 
@@ -1157,7 +1158,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
+                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
+                getCaptureHistoryScore(pos, currentMove);
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + moveHistory / 8192);
 
@@ -1331,6 +1333,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += TT_CAPTURE_LMR_SCALER;
         }
 
+        // Quiet Moves
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
@@ -1340,6 +1343,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
             int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
             lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
+        } else { // Noisy Moves
+            // Noisy History LMR            
+            lmrReduction -= moveHistory / NOISY_HISTORY_LMR_DIVISOR * 1024;   
         }
 
         // Reduce Less
@@ -1359,7 +1365,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
-                bool historyReduction = moveHistory / 16384;
+                bool historyReduction = notTactical ? moveHistory / 16384 : 0;
                 bool doShallower = score < bestScore + new_depth;
                 new_depth -= doShallower;
                 new_depth += doDeeper;

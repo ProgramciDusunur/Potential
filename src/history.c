@@ -92,6 +92,10 @@ void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, in
     }
 }
 
+int getCaptureHistoryScore(board *pos, int move) {
+    return captureHistory[getMovePiece(move)][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
+}
+
 int getContinuationHistoryScore(board *pos, int offSet, int move) {
     const int ply = pos->ply - offSet;
     return ply >= 0 ? continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
