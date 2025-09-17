@@ -472,7 +472,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             memset(MAJOR_CORRECTION_HISTORY, 0, sizeof(MAJOR_CORRECTION_HISTORY));
             memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
             memset(contCorrhist, 0, sizeof(contCorrhist));
-            memset(threatsHistory, 0, sizeof(threatsHistory));
+            memset(kingRingHistory, 0, sizeof(kingRingHistory));
 
             // call parse position function
             parse_position("position startpos", position);

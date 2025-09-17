@@ -481,20 +481,20 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
     update_single_cont_corrhist_entry(pos, 4, scaledDiff, newWeight);
 }
 
-void update_threats_corrhist(board *pos, const int depth, const int diff) {
-    U64 murmurHash3Key = pos->pieceThreats.stmThreats[pos->side] & pos->occupancies[pos->side];
+void update_king_ring_corrhist(board *pos, const int depth, const int diff) {
+    U64 murmurHash3Key = kingAttacks[getLS1BIndex(pos->bitboards[pos->side ? k : K])] & pos->occupancies[pos->side];
 
-    U64 threatsKey = murmur_hash_3(murmurHash3Key);
+    U64 kingRingKey = murmur_hash_3(murmurHash3Key);
 
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
 
-    int threatsEntry = threatsHistory[pos->side][threatsKey % 16384];
+    int kingRingEntry = kingRingHistory[pos->side][kingRingKey % 16384];
 
-    threatsEntry = (threatsEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
-    threatsEntry = clamp(threatsEntry, -CORRHIST_MAX, CORRHIST_MAX);
+    kingRingEntry = (kingRingEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+    kingRingEntry = clamp(kingRingEntry, -CORRHIST_MAX, CORRHIST_MAX);
 
-    threatsHistory[pos->side][threatsKey % 16384] = threatsEntry;
+    kingRingHistory[pos->side][kingRingKey % 16384] = kingRingEntry;
 
 }
 
@@ -517,13 +517,13 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
 
     int contCorrhistEntry = adjust_single_cont_corrhist_entry(pos, 2);     
     
-    U64 murmurHash3Key = pos->pieceThreats.stmThreats[pos->side] & pos->occupancies[pos->side];    
-    U64 threatsKey = murmur_hash_3(murmurHash3Key);
-    int threatsEntry = threatsHistory[pos->side][threatsKey % 16384];
+    U64 murmurHash3Key = kingAttacks[getLS1BIndex(pos->bitboards[pos->side ? k : K])] & pos->occupancies[pos->side];
+    U64 kingRingKey = murmur_hash_3(murmurHash3Key);
+    int kingRingEntry = kingRingHistory[pos->side][kingRingKey % 16384];
 
     int mateFound = mateValue - maxPly;
 
-    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry + contCorrhistEntry + threatsEntry;
+    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry + contCorrhistEntry + kingRingEntry;
 
     return clamp(rawEval + adjust / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
 }
