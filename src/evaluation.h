@@ -107,7 +107,7 @@ extern int mg_table[12][64]; // [piece][square] -> midgame score
 extern int eg_table[12][64]; // [piece][square] -> endgame score
 
 
-int get_game_phase_score(const board* position);
+int get_game_phase_score(board* position);
 void get_threats(int side, board* pos);
 void init_tables();
 int evaluate(board* position);

@@ -26,6 +26,10 @@ typedef struct  {
 } threats;
 
 typedef struct {
+    int16_t material_scaling;
+} evaluation;
+
+typedef struct {
     U64 bitboards[12];
     U64 occupancies[3];
     uint8_t mailbox[64];
@@ -44,6 +48,7 @@ typedef struct {
     int pvTable[maxPly][maxPly];
     int killerMoves[maxPly][2];
     threats pieceThreats;
+    evaluation eval;
 
     int fifty;
 

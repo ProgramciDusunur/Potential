@@ -267,6 +267,14 @@ const int bishop_pair_bonus_endgame = 48;
 
 const int bishop_pair_bonus[] = {0, 8, 15, 23, 30, 38};
 
+const int MATERIAL_SCALE_BASE = 1500;
+const int MATERIAL_SCALE_DIV = 8600;
+
+const int KNIGHT_MAT_SCALE = 50;
+const int BISHOP_MAT_SCALE = 55;
+const int ROOK_MAT_SCALE = 100;
+const int QUEEN_MAT_SCALE = 180;
+
 // Pre-interpolated tables
 int mg_table[12][64]; // [piece][square] -> midgame score
 int eg_table[12][64]; // [piece][square] -> endgame score
@@ -358,7 +366,7 @@ bool is_square_threatened(board *pos, int square) {
 }
 
 // get game phase score
-int get_game_phase_score(const board* position) {
+int get_game_phase_score(board* position) {
     /*
         The game phase score of the game is derived from the pieces
         (not counting pawns and kings) that are still on the board.
@@ -374,13 +382,19 @@ int get_game_phase_score(const board* position) {
     int white_piece_scores = 0, black_piece_scores = 0;
 
     // loop over white pieces
-    for (int piece = N; piece <= Q; piece++)
+    for (int piece = N; piece <= Q; piece++) {
+        //position->eval.material_scaling = material_scaling_score[piece];
         white_piece_scores += countBits(position->bitboards[piece]) * material_score[opening][piece];
+    }
+        
 
 
     // loop over white pieces
-    for (int piece = n; piece <= q; piece++)
+    for (int piece = n; piece <= q; piece++) {
+        //position->eval.material_scaling = material_scaling_score[piece];
         black_piece_scores += countBits(position->bitboards[piece]) * -material_score[opening][piece];
+    }
+        
 
 
 
@@ -390,7 +404,10 @@ int get_game_phase_score(const board* position) {
 
 
 int evaluate(board* position) {
+        //position->eval.material_scaling = 0;
         const int game_phase_score = get_game_phase_score(position);
+
+        
 
         int score_midgame = 0, score_endgame = 0;
 
@@ -640,7 +657,10 @@ int evaluate(board* position) {
         score_midgame += winnableScore;
         score_endgame += winnableScore;
 
-
+        int material_score = (countBits(position->bitboards[N] - countBits(position->bitboards[n]))) * KNIGHT_MAT_SCALE +
+                             (countBits(position->bitboards[B] - countBits(position->bitboards[b]))) * BISHOP_MAT_SCALE +
+                             (countBits(position->bitboards[R] - countBits(position->bitboards[r]))) * ROOK_MAT_SCALE   +
+                             (countBits(position->bitboards[Q] - countBits(position->bitboards[q]))) * QUEEN_MAT_SCALE ;
         int score;
         if (game_phase_score > opening_phase_score)
                 score = score_midgame;
@@ -649,6 +669,8 @@ int evaluate(board* position) {
         else
                 score = (score_midgame * game_phase_score + score_endgame * (opening_phase_score - game_phase_score))
                        / opening_phase_score;
+
+        score = score * (MATERIAL_SCALE_BASE + material_score) / MATERIAL_SCALE_DIV;                       
 
         return (position->side == white) ? score : -score;
 }
