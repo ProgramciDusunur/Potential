@@ -77,6 +77,7 @@ int mvvLva[12][12] = {
 
 int minorPieces[6] = {B, b, N, n, K, k};
 int majorPieces[4] = {R, r, Q, q};
+int krpPieces[6] = {K, k, R, r, P, p};
 int whiteNonPawnPieces[5] = { R, N, B, Q, K };
 int blackNonPawnPieces[5] = {r, n, b, q, k };
 
