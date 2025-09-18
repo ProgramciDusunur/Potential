@@ -1233,8 +1233,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                     depth += depth < 10;
                 }
 
+                int tripleMargin = TRIPLE_EXTENSION_MARGIN - 15 * pvNode;
+
                 // Triple Extension
-                if (singularScore + TRIPLE_EXTENSION_MARGIN < singularBeta) {
+                if (singularScore + tripleMargin < singularBeta) {
                     extensions++;
                 }
                 // ╔═══════════════════════════╗
