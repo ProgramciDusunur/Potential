@@ -1343,7 +1343,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
 
             // tt move history lmr
-            lmrReduction -= tt_move_history / 8192 * 1024;
+            lmrReduction += tt_move_history / 8192 * 1024;
         }
 
         // Reduce Less
