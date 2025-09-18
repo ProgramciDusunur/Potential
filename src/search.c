@@ -978,6 +978,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
 
+    int tt_move_history = tt_hit ? getQuietHistoryScore(pos, tt_move) : 0;
+
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
         depth--;
@@ -1155,8 +1157,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
-        int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
+        int moveHistory = notTactical ? getQuietHistoryScore(pos, currentMove) +
                 getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + moveHistory / 8192);
@@ -1340,6 +1341,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
             int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
             lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
+
+            // tt move history lmr
+            lmrReduction -= tt_move_history / 8192 * 1024;
         }
 
         // Reduce Less
