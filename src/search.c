@@ -1254,6 +1254,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                     extensions++;
                 }
 
+                // Corrplexity based extension
+                if (corrplexity && ttAdjustedEval != static_eval) {
+                    extensions++;
+                }
+
             }            
 
             // Negative Extensions
