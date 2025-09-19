@@ -1161,7 +1161,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
                 getCaptureHistoryScore(pos, currentMove);
 
-        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + moveHistory / 8192);
+        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (notTactical ? moveHistory / 8192 : 0));
 
 
 
