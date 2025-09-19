@@ -51,6 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+  int MOVE_GIVES_CHECK_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -695,6 +696,12 @@ uint8_t isMaterialDraw(board *pos) {
         }
     }
     return 0;
+}
+
+bool stm_in_check(board *pos) {
+    return isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
+                                    getLS1BIndex(pos->bitboards[k]),
+                                    pos->side ^ 1, pos);
 }
 
 void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, int move) {
@@ -1345,6 +1352,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // Reduce Less
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
+        }
+
+        if (stm_in_check(pos)) {
+            lmrReduction -= MOVE_GIVES_CHECK_LMR_SCALER;
         }
         
 
