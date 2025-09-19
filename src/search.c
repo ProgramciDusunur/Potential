@@ -1255,7 +1255,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
 
                 // Corrplexity based extension
-                if (corrplexity && ttAdjustedEval != static_eval) {
+                if (singularScore <= abs(raw_eval - static_eval) && corrplexity && ttAdjustedEval != static_eval) {
                     extensions++;
                 }
 
