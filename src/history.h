@@ -40,6 +40,7 @@ void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets);
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus);
 void updateAllCH(board *pos, int move, int bonus);
 int getHistoryBonus(int depth);
+void updateSinglePawnhistEntry(board *pos, int move, int bonus);
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets);
 int getContinuationHistoryScore(board *pos, int offSet, int move);
 void updateCaptureHistory(board *position, int bestMove, int depth);

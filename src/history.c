@@ -67,6 +67,14 @@ void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
     }
 }
 
+void updateSinglePawnhistEntry(board *pos, int move, int bonus) {
+    int from = getMoveSource(move);
+    int to = getMoveTarget(move);
+    int score = pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to];
+
+    pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
+}
+
 void updateCaptureHistory(board *position, int bestMove, int depth) {
     int piece = getMovePiece(bestMove);
     int to = getMoveTarget(bestMove);
