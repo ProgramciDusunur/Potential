@@ -1388,6 +1388,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
+
+            // if we have chance about to dive into quiescence search then extend
+            if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
+                new_depth = myMAX(new_depth, 1);
+            }
+
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, new_depth, pos, time, false);
         }
@@ -1524,6 +1530,8 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
     int beta = infinity;
 
     int totalTime = 0;
+    // set root depth
+    position->rootDepth = 0;
 
     int previousBestMove = 0;
     uint8_t bestMoveStability = 0;
@@ -1544,6 +1552,8 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
         }
 
         position->seldepth = 0;
+        position->rootDepth = current_depth;
+
 
         int startTime = getTimeMiliSecond();
 
