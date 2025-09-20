@@ -47,6 +47,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->majorKeyCopy = p->majorKey;
     cp->whiteNonPawnKeyCopy = p->whiteNonPawnKey;
     cp->blackNonPawnKeyCopy = p->blackNonPawnKey;
+    cp->krpKeyCopy = p->krpKey;
     cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
 }
 
@@ -74,6 +75,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->majorKey = cp->majorKeyCopy;
     p->whiteNonPawnKey = cp->whiteNonPawnKeyCopy;
     p->blackNonPawnKey = cp->blackNonPawnKeyCopy;
+    p->krpKey = cp->krpKeyCopy;
     p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
 }
 
@@ -173,6 +175,13 @@ bool isMajor (int piece) {
     return false;
 }
 
+bool isKRP(int piece) {
+    if (piece == K || piece == k || piece == R || piece == r) {
+        return true;
+    }
+    return false;
+}
+
 // make move on chess board
 int makeMove(int move, int moveFlag, board* position) {
     int isLegalCapture = getMoveCapture(move);
@@ -209,6 +218,9 @@ int makeMove(int move, int moveFlag, board* position) {
     if (piece == P || piece == p) {
         position->pawnKey ^= pieceKeys[piece][sourceSquare];
         position->pawnKey ^= pieceKeys[piece][targetSquare];
+        position->krpKey ^= pieceKeys[piece][sourceSquare];
+        position->krpKey ^= pieceKeys[piece][targetSquare];
+
         position->fifty = 0; // reset fifty move rule counter
     } else { // non pawn key
 
@@ -229,7 +241,11 @@ int makeMove(int move, int moveFlag, board* position) {
     if (isMajor(piece)) {
         position->majorKey ^= pieceKeys[piece][sourceSquare];
         position->majorKey ^= pieceKeys[piece][targetSquare];
+    }
 
+    if (isKRP(piece)) {
+        position->krpKey ^= pieceKeys[piece][sourceSquare];
+        position->krpKey ^= pieceKeys[piece][targetSquare];
     }
 
 
@@ -257,6 +273,7 @@ int makeMove(int move, int moveFlag, board* position) {
                 if (bbPiece == P || bbPiece ==  p) {
 
                     position->pawnKey ^= pieceKeys[bbPiece][targetSquare];
+                    position->krpKey ^= pieceKeys[bbPiece][targetSquare];
 
                 } else { // non pawn key
 
@@ -275,6 +292,10 @@ int makeMove(int move, int moveFlag, board* position) {
                     position->majorKey ^= pieceKeys[bbPiece][targetSquare];
                 }
 
+                if (isKRP(piece)) {
+                    position->krpKey ^= pieceKeys[bbPiece][targetSquare];
+                }
+
                 break;
             }
         }
@@ -291,6 +312,7 @@ int makeMove(int move, int moveFlag, board* position) {
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[p][targetSquare + 8];
             position->pawnKey ^= pieceKeys[p][targetSquare + 8];
+            position->krpKey  ^= pieceKeys[p][targetSquare + 8];
         }
 
             // black to move
@@ -302,6 +324,7 @@ int makeMove(int move, int moveFlag, board* position) {
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[P][targetSquare - 8];
             position->pawnKey ^= pieceKeys[P][targetSquare - 8];
+            position->krpKey  ^= pieceKeys[P][targetSquare - 8];
         }
 
     }
@@ -318,6 +341,7 @@ int makeMove(int move, int moveFlag, board* position) {
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[P][targetSquare];
             position->pawnKey ^= pieceKeys[P][targetSquare];
+            position->krpKey ^= pieceKeys[P][targetSquare];
             position->whiteNonPawnKey ^= pieceKeys[promotedPiece][targetSquare];
         }
 
@@ -329,6 +353,7 @@ int makeMove(int move, int moveFlag, board* position) {
             // remove pawn from hash key
             position->hashKey ^= pieceKeys[p][targetSquare];
             position->pawnKey ^= pieceKeys[p][targetSquare];
+            position->krpKey ^= pieceKeys[p][targetSquare];
             position->blackNonPawnKey ^= pieceKeys[promotedPiece][targetSquare];
         }
 
@@ -348,6 +373,10 @@ int makeMove(int move, int moveFlag, board* position) {
             position->majorKey ^= pieceKeys[promotedPiece][targetSquare];
 
         }
+
+        if (isKRP(promotedPiece)) {
+            position->krpKey ^= pieceKeys[promotedPiece][targetSquare];
+        }
     }
 
 
@@ -358,7 +387,7 @@ int makeMove(int move, int moveFlag, board* position) {
     position->enpassant = no_sq;
 
     // handle double pawn push
-    if (doublePush) {        
+    if (doublePush) {
         // set enpassant square
         position->enpassant = targetSquare + enPassantSquares[position->side];
 
@@ -385,6 +414,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->whiteNonPawnKey ^= pieceKeys[R][f1];
                 position->majorKey ^= pieceKeys[R][h1];
                 position->majorKey ^= pieceKeys[R][f1];
+                position->krpKey ^= pieceKeys[R][h1];
+                position->krpKey ^= pieceKeys[R][f1];
                 break;
 
                 // white castles queen side
@@ -402,6 +433,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->whiteNonPawnKey ^= pieceKeys[R][d1];
                 position->majorKey ^= pieceKeys[R][a1];
                 position->majorKey ^= pieceKeys[R][d1];
+                position->krpKey ^= pieceKeys[R][a1];
+                position->krpKey ^= pieceKeys[R][d1];
                 break;
 
                 // black castles king side
@@ -419,6 +452,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->blackNonPawnKey ^= pieceKeys[r][f8];
                 position->majorKey ^= pieceKeys[r][h8];
                 position->majorKey ^= pieceKeys[r][f8];
+                position->krpKey ^= pieceKeys[r][h8];
+                position->krpKey ^= pieceKeys[r][f8];
                 break;
 
                 // black castles queen side
@@ -436,6 +471,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->blackNonPawnKey ^= pieceKeys[r][d8];
                 position->majorKey ^= pieceKeys[r][a8];
                 position->majorKey ^= pieceKeys[r][d8];
+                position->krpKey ^= pieceKeys[r][a8];
+                position->krpKey ^= pieceKeys[r][d8];
                 break;
         }
     }

@@ -64,9 +64,10 @@ typedef struct {
     U64 hashKey;
     U64 pawnKey;
     U64 minorKey;
-    U64 majorKey;
+    U64 majorKey;    
     U64 whiteNonPawnKey;
     U64 blackNonPawnKey;
+    U64 krpKey;
 
     int gamePhase;
 } board;
@@ -103,6 +104,7 @@ struct copyposition {
     U64 majorKeyCopy;
     U64 whiteNonPawnKeyCopy;
     U64 blackNonPawnKeyCopy;
+    U64 krpKeyCopy;
 
     int fiftyCopy;
 

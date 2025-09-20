@@ -481,16 +481,32 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
     update_single_cont_corrhist_entry(pos, 4, scaledDiff, newWeight);
 }
 
+void update_king_rook_pawn_corrhist(board *position, const int depth, const int diff) {
+    U64 kingRookPawnKey = position->krpKey;
+
+    int entry = krpCorrhist[position->side][kingRookPawnKey % CORRHIST_SIZE];
+
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = 4 * myMIN(depth + 1, 16);
+
+    entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+    entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
+
+    krpCorrhist[position->side][kingRookPawnKey % CORRHIST_SIZE] = entry;
+}
+
 int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {   
     rawEval = rawEval * (300 - pos->fifty) / 300;
     
     U64 pawnKey = pos->pawnKey;
     U64 minorKey = pos->minorKey;
     U64 majorKey = pos->majorKey;
+    U64 krpKey = pos->krpKey;
 
     int pawnEntry = PAWN_CORRECTION_HISTORY[pos->side][pawnKey % CORRHIST_SIZE];
     int minorEntry = MINOR_CORRECTION_HISTORY[pos->side][minorKey % CORRHIST_SIZE];
     int majorEntry = MAJOR_CORRECTION_HISTORY[pos->side][majorKey % CORRHIST_SIZE];
+    int krpEntry = krpCorrhist[pos->side][krpKey % CORRHIST_SIZE];
 
     U64 whiteNPKey = pos->whiteNonPawnKey;
     int whiteNPEntry = NON_PAWN_CORRECTION_HISTORY[white][pos->side][whiteNPKey % CORRHIST_SIZE];
@@ -502,7 +518,7 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
 
     int mateFound = mateValue - maxPly;
 
-    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry + contCorrhistEntry;
+    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry + contCorrhistEntry + krpEntry;
 
     return clamp(rawEval + adjust / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
 }
@@ -1478,6 +1494,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             updateMajorCorrectionHistory(pos, depth, corrhistBonus);
             update_non_pawn_corrhist(pos, depth, corrhistBonus);
             update_continuation_corrhist(pos, depth, corrhistBonus);
+            update_king_rook_pawn_corrhist(pos, depth, corrhistBonus);
         }
 
         // store hash entry with the score equal to alpha
