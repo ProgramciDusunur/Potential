@@ -1130,7 +1130,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int probcutBeta = beta + 400;
 
     // Small Probcut
-    if (tt_flag == hashFlagAlpha && tt_depth >= depth - 4 && tt_score >= probcutBeta &&
+    if (!pos->isSingularMove[pos->ply] && tt_flag == hashFlagAlpha && tt_depth >= depth - 4 && tt_score >= probcutBeta &&
         abs(tt_score) < mateScore && abs(beta) < mateScore) {
             return probcutBeta;            
     }
