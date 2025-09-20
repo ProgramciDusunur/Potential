@@ -1352,11 +1352,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
 
+        // Late Move Reduction (LMR)
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
 
+            // Post LMR
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
                 bool historyReduction = moveHistory / 16384;
@@ -1365,6 +1367,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+            } 
+            // Second Post LMR
+            else if (score - 50 < alpha && lmrReduction >= 3) {
+                depth--;
             }
         }
         else if (!pvNode || legal_moves > 1) {
