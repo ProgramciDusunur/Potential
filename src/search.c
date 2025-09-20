@@ -1369,7 +1369,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             } 
             // Second Post LMR
-            else if (score - 50 < alpha && !pvNode && lmrReduction >= 3) {
+            else if (score + 50 < alpha && !pvNode && lmrReduction >= 3) {
                 depth--;
             }
         }
