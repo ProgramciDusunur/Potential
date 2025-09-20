@@ -29,9 +29,3 @@ void printMoveList(moves *moveList);
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
 void read_input(my_time* time, board* pos);
 void communicate(my_time* time, board *pos);
-
-
-
-
-
-
