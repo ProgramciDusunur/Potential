@@ -1328,6 +1328,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         uint64_t nodes_before_search = searchNodes;
 
+        depth = myMAX(0, depth);
+
         int new_depth = depth - 1 + extensions;
 
         int lmrReduction = getLmrReduction(depth, legal_moves, notTactical) * 1024;
