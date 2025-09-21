@@ -283,38 +283,30 @@ void sort_moves(moves *moveList, int tt_move, board* position) {
     }
 }
 
-int quiescenceScoreMove(int move, board* position) {
+int quiescenceScoreMove(int move, board* position) {    
     // score capture move
     if (getMoveCapture(move)) {
-        // init target piece
+        int captureScore = 0;
 
+        // init target piece
         int target_piece = P;
 
-        // pick up bitboard piece index ranges depending on side
-        int start_piece, end_piece;
-
-        // pick up side to move
-        if (position->side == white) {
-            start_piece = p;
-            end_piece = k;
-        }
-        else {
-            start_piece = P;
-            end_piece = K;
-        }
-
-        // loop over bitboards opposite to the current side to move
-        for (int bb_piece = start_piece; bb_piece <= end_piece; bb_piece++) {
-            // if there's a piece on the target square
-            if (getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
-                // remove it from corresponding bitboard
-                target_piece = bb_piece;
-                break;
-            }
+        uint8_t bb_piece = position->mailbox[getMoveTarget(move)];
+        // if there's a piece on the target square
+        if (bb_piece != NO_PIECE &&
+            getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
+            target_piece = bb_piece;
         }
 
         // score move by MVV LVA lookup [source piece][target piece]
-        return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
+        captureScore += mvvLva[getMovePiece(move)][target_piece];
+
+        captureScore += captureHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
+
+        captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
+
+        return captureScore;
+
     }
 
     return 0;
