@@ -42,8 +42,7 @@ typedef struct {
     int repetitionIndex;
 
     int pvLength[maxPly];
-    int pvTable[maxPly][maxPly];
-    int killerMoves[maxPly][2];
+    int pvTable[maxPly][maxPly];    
     threats pieceThreats;
 
     int fifty;
