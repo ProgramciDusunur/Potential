@@ -6,7 +6,7 @@
 
 #include "perft.h"
 
-#define VERSION "3.2.6"
+#define VERSION "3.2.7"
 #define BENCH_DEPTH 15
 
 double DEF_TIME_MULTIPLIER = 0.054;
@@ -522,8 +522,8 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         else if (strncmp(input, "uci", 3) == 0)
         {
             // print engine info
-            printf("id name Potential\n");
-            printf("id author ProgramciDusunur\n");
+            printf("id name Potential %s\n", VERSION);
+            printf("id author Eren Araz\n");
             printf("option name Hash type spin default %d min 4 max %d\n",
                    default_hash_size, max_hash);
             printf("option name Threads type spin default %d min %d max %d\n", 1, 1,
