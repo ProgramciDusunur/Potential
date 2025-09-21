@@ -1026,7 +1026,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         depth++;
     }
 
-    improving |= pos->staticEval[pos->ply] >= beta + 100;
+    improving |= ttAdjustedEval >= beta + 100;
 
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
