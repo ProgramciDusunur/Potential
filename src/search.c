@@ -983,7 +983,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
 
     bool improving = false;
-
+    bool opponent_worsening = false;
     bool corrplexity = abs(raw_eval - static_eval) > 82;
 
     int pastStack = -1;
@@ -993,6 +993,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval  ?  pos->ply - 2 : -1;
 
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
+    
+    opponent_worsening = pos->ply-1 >= 0 && !in_check && pos->staticEval[pos->ply] + pos->staticEval[pos->ply-1] > 1;
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
@@ -1035,7 +1037,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
-        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
+        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20 - opponent_worsening * 10)
         return ttAdjustedEval;
 
     // Null Move Pruning
