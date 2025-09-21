@@ -748,6 +748,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
     int bestMove = 0;
     int tt_move = 0;
+    int evaluation = noEval;
     int16_t tt_score = 0;
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
@@ -766,10 +767,17 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         }
     }
 
-    // evaluate position
-    int evaluation = evaluate(position);
+    // is king in check
+    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
+                                    getLS1BIndex(position->bitboards[k]),
+                                    position->side ^ 1, position);
 
-    evaluation = adjustEvalWithCorrectionHistory(position, evaluation);
+    if (in_check) {        
+        evaluation = noEval;        
+    } else {        
+        evaluation = evaluate(position);        
+        evaluation = adjustEvalWithCorrectionHistory(position, evaluation);
+    }    
 
     score = bestScore = tt_hit ? tt_score : evaluation;
 
@@ -923,7 +931,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int rootNode = pos->ply == 0;
 
     int bestMove = 0;
-    int tt_move = 0;
+    int tt_move = 0;    
+    int raw_eval = noEval;    
+    int static_eval = noEval;
     int16_t tt_score = 0;
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
@@ -980,12 +990,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
-    
+        
 
-    // get static evaluation score
-    int raw_eval = evaluate(pos);
-
-    int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
+    if (in_check) {        
+        raw_eval = noEval;        
+        static_eval = noEval;
+    } else {        
+        raw_eval = evaluate(pos);        
+        static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
+    }
 
     bool improving = false;
 
