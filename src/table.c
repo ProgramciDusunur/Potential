@@ -240,7 +240,7 @@ void writeHashEntry(uint64_t key, int16_t score, int bestMove, uint8_t depth, ui
         hashEntry->depth = depth;        
         hashEntry->ttPv = ttPv;
     } else if (hashEntry->depth >= 5 && hashFlag != hashFlagExact) {        
-        hashEntry->depth--;
+        hashEntry->depth = hashFlag == hashFlagAlpha ? hashEntry->depth - 1 : hashEntry->depth;
     }
         
 
