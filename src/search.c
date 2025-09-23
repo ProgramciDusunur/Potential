@@ -1502,8 +1502,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             update_king_rook_pawn_corrhist(pos, depth, corrhistBonus);
         }
 
+        tt_move = bestMove != 0 ? bestMove : tt_hit ? tt_move : 0;
+
         // store hash entry with the score equal to alpha
-        writeHashEntry(pos->hashKey, bestScore, bestMove, depth, hashFlag, tt_pv, pos);
+        writeHashEntry(pos->hashKey, bestScore, tt_move, depth, hashFlag, tt_pv, pos);
     }
     // node (move) fails low
     return bestScore;
