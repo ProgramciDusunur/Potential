@@ -51,6 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+  int CORRPLEXITY_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -989,31 +990,35 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     bool improving = false;
 
-    bool corrplexity = abs(raw_eval - static_eval) > 82;
+    bool corrplexity = false;
 
     int pastStack = -1;
 
     pos->staticEval[pos->ply] = static_eval;
 
-    pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval  ?  pos->ply - 2 : -1;
+    int ttAdjustedEval = static_eval;
 
-    improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
+    if (!in_check) {
+        pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval  ?  pos->ply - 2 : -1;
+        improving = pastStack > -1 && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
+        corrplexity = abs(raw_eval - static_eval) > 82;
+
+        
+        if (!pos->isSingularMove[pos->ply] && tt_move &&
+            (tt_flag == hashFlagExact ||
+            (tt_flag == hashFlagAlpha && tt_score >= static_eval) ||
+            (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
+
+            ttAdjustedEval = tt_score;
+        }
+    }
+    
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
         depth--;
     }
-
-    int ttAdjustedEval = static_eval;
-
-    if (!pos->isSingularMove[pos->ply] && tt_move && !in_check &&
-        (tt_flag == hashFlagExact ||
-         (tt_flag == hashFlagAlpha && tt_score >= static_eval) ||
-         (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
-
-        ttAdjustedEval = tt_score;
-    }
-
+    
     // ╔═══════════════════════════╗
     // ║            /\             ║
     // ║           /  \            ║
@@ -1367,6 +1372,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
         }
+
+        // LMR Corrplexity
+        lmrReduction -= corrplexity * CORRPLEXITY_LMR_SCALER;
         
 
         lmrReduction /= 1024;
