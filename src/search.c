@@ -532,7 +532,6 @@ uint8_t justPawns(board *pos) {
              pos->occupancies[pos->side]);
 }
 
-
 int move_estimated_value(board *pos, int move) {
 
     // Start with the value of the piece on the target square
