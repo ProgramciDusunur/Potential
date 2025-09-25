@@ -478,8 +478,7 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
     const int newWeight = 4 * myMIN(depth + 1, 16);
 
     update_single_cont_corrhist_entry(pos, 2, scaledDiff, newWeight);
-    update_single_cont_corrhist_entry(pos, 4, scaledDiff, newWeight);
-    update_single_cont_corrhist_entry(pos, 6, scaledDiff, newWeight);
+    update_single_cont_corrhist_entry(pos, 4, scaledDiff, newWeight);    
 }
 
 void update_king_rook_pawn_corrhist(board *position, const int depth, const int diff) {
@@ -516,12 +515,11 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
     int blackNPEntry = NON_PAWN_CORRECTION_HISTORY[black][pos->side][blackNPKey % CORRHIST_SIZE];
 
     int cont_corrhist_entry_2_ply  = adjust_single_cont_corrhist_entry(pos, 2);
-    int cont_corrhist_entry_4_ply = adjust_single_cont_corrhist_entry(pos, 4) / 2;      
-    int cont_corrhist_entry_6_ply = adjust_single_cont_corrhist_entry(pos, 6) / 4;
+    int cont_corrhist_entry_4_ply = adjust_single_cont_corrhist_entry(pos, 4) / 2;          
 
     int mateFound = mateValue - maxPly;
 
-    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry + cont_corrhist_entry_2_ply + cont_corrhist_entry_4_ply + cont_corrhist_entry_6_ply + krpEntry;
+    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry + cont_corrhist_entry_2_ply + cont_corrhist_entry_4_ply + krpEntry;
 
     return clamp(rawEval + adjust / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
 }
