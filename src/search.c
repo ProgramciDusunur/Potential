@@ -284,6 +284,15 @@ void sort_moves(moves *moveList, int tt_move, board* position) {
 }
 
 int quiescenceScoreMove(int move, board* position) {
+    // make sure we are dealing with PV move
+    if (position->scorePv && position->pvTable[0][position->ply] == move) {
+        // disable score PV flag
+        position->scorePv = 0;
+
+        // give PV move the highest score to search it first
+        return 1500000000;
+    }
+    
     // score capture move
     if (getMoveCapture(move)) {
         // init target piece
@@ -1456,9 +1465,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // fail-hard beta cutoff
                 if (score >= beta) {
                     if (notTactical) {
+                        int quietHistoryDepth = depth + (bestScore > beta + 50 * depth * depth / 750);
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
-                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
+                        updateQuietMoveHistory(bestMove, pos->side, quietHistoryDepth, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);                       
                         
