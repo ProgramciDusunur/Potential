@@ -1004,6 +1004,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         depth--;
     }
 
+    if (!pos->isSingularMove[pos->ply] && !in_check && !tt_hit) {
+        writeHashEntry(pos->hashKey, 0, 0, 0, hashFlagNone, tt_pv, pos);
+    }
+
     int ttAdjustedEval = static_eval;
 
     if (!pos->isSingularMove[pos->ply] && tt_move && !in_check &&
