@@ -923,6 +923,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int rootNode = pos->ply == 0;
 
     int bestMove = 0;
+    int bestScore = -infinity;
     int tt_move = 0;
     int16_t tt_score = 0;
     uint8_t tt_hit = 0;
@@ -1027,8 +1028,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
-    if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+    if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {        
         depth++;
+        // Corrplexity so high, we should save the position instantly
+        if (abs(raw_eval - static_eval) > 164 && depth >= 10) {
+            writeHashEntry(pos->hashKey, bestScore, bestMove, depth, tt_flag, tt_pv, pos);            
+        }
     }
 
     improving |= pos->staticEval[pos->ply] >= beta + 100;
@@ -1157,9 +1162,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     sort_moves(moveList, tt_move, pos);
 
     // number of moves searched in a move list
-    int moves_searched = 0;
-
-    int bestScore = -infinity;
+    int moves_searched = 0;    
 
     //bool skipQuiet = false;
 
