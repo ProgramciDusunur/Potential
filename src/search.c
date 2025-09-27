@@ -1031,6 +1031,17 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         depth++;
     }
 
+    // In Check Reverse Futility Pruning
+    if (in_check && tt_hit && tt_score && (tt_flag == hashFlagExact ||
+         (tt_flag == hashFlagAlpha && tt_score >= static_eval) ||
+         (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
+            static_eval = tt_score;
+            if (!rootNode && depth <= RFP_DEPTH && abs(static_eval) < mateScore && static_eval - 100 * RFP_DEPTH >= beta) {
+                return myMIN((static_eval + beta) / 2, mateScore - 1);
+            }
+
+    }
+
     improving |= pos->staticEval[pos->ply] >= beta + 100;
 
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
