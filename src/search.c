@@ -1036,7 +1036,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
          (tt_flag == hashFlagAlpha && tt_score >= static_eval) ||
          (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
             static_eval = tt_score;
-            if (!rootNode && depth <= RFP_DEPTH && abs(static_eval) < mateScore && static_eval - 100 * RFP_DEPTH >= beta) {
+            if (!rootNode && depth <= RFP_DEPTH && abs(static_eval) < mateScore && static_eval - 100 * RFP_DEPTH / 100 >= beta) {
                 return myMIN((static_eval + beta) / 2, mateScore - 1);
             }
 
