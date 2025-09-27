@@ -1368,7 +1368,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
 
             // Futility LMR
-            lmrReduction += ((static_eval + LMR_FUTILITY_OFFSET[clamp(depth, 1, 5)]) + 82 * depth <= alpha) * 1024;
+            lmrReduction += (static_eval + 164 + 100 * depth <= alpha) * 1024;
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
             int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
