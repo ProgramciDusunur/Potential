@@ -1031,7 +1031,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {        
         depth++;
         // Corrplexity so high, we should save the position instantly
-        if (abs(raw_eval - static_eval) > 164 && depth >= 10) {
+        if (abs(raw_eval - static_eval) > 365 && depth >= 10) {            
             writeHashEntry(pos->hashKey, bestScore, bestMove, depth, tt_flag, tt_pv, pos);            
         }
     }
