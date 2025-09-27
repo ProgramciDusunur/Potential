@@ -1387,15 +1387,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
 
             if (score > alpha && lmrReduction != 0) {
-                int postLmrReduction = notTactical ? 2 : 1;
-
-                postLmrReduction -= score < bestScore + new_depth;
-                postLmrReduction -= moveHistory / 16384;
-                postLmrReduction += score > bestScore + DEEPER_LMR_MARGIN;                                                
-
-                int reduced_depth = myMAX(1, myMIN(new_depth - postLmrReduction, new_depth));
-
-                score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, !cutNode);
+                bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
+                bool historyReduction = moveHistory / 16384;
+                bool doShallower = score < bestScore + new_depth;
+                int baseReduction = 2;
+                new_depth -= doShallower;
+                new_depth += doDeeper;
+                new_depth -= historyReduction;
+                new_depth -= baseReduction;
+                score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
             }
         }
         else if (!pvNode || legal_moves > 1) {
