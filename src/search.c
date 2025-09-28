@@ -1361,6 +1361,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += TT_CAPTURE_LMR_SCALER;
         }
 
+        // Reverse Futility LMR
+        lmrReduction += (static_eval - RFP_MARGIN * depth >= beta && !in_check && !pvNode) * 1024;
+
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
