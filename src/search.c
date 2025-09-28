@@ -1372,7 +1372,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // Reverse Futility LMR
             // We had a TT move and thought it was good, but seeing that it failed, we are probably wrong in our arguments about reducing the "Late Move". Let's reduce it less
-            lmrReduction -= (static_eval - 82 * depth >= beta && !in_check && tt_hit && tt_score >= beta) * 1024;
+            lmrReduction -= (static_eval - 82 * depth >= beta && !in_check && tt_hit && tt_pv && tt_score >= beta && tt_depth >= depth) * 1024;
 
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
