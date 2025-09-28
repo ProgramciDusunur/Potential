@@ -1359,10 +1359,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         if (tt_hit && getMoveCapture(tt_move)) {
             lmrReduction += TT_CAPTURE_LMR_SCALER;
-        }
-
-        // Reverse Futility LMR
-        lmrReduction += (static_eval - RFP_MARGIN * depth >= beta && !in_check && !pvNode) * 1024;
+        }        
 
         if (notTactical) {
             // Reduce More
@@ -1372,6 +1369,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // Futility LMR
             lmrReduction += (static_eval + 164 + 82 * depth <= alpha && !in_check) * 1024;
+
+            // Reverse Futility LMR
+            lmrReduction += (static_eval - RFP_MARGIN * depth >= beta && !in_check && !pvNode) * 1024;
 
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
