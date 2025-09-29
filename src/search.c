@@ -386,7 +386,7 @@ void printMove(int move) {
 }
 
 int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
-    return LMR_TABLE[isQuiet][myMIN(63, depth)][myMIN(63, moveNumber)];
+    return LMR_TABLE[isQuiet][myMIN(63, myMAX(depth, 0))][myMIN(63, moveNumber)];
 }
 
 void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
