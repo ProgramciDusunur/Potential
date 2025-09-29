@@ -51,7 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
-  int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
+  int GOOD_EVAL_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -725,6 +725,10 @@ void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, 
                 evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
 }
 
+bool has_enemy_any_threat(board *pos) {
+    return (pos->occupancies[pos->side] & pos->pieceThreats.stmThreats[pos->side ^ 1]) != 0;
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, my_time* time) {
     if ((searchNodes & 2047) == 0) {
@@ -1141,6 +1145,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return probcutBeta;            
     }
 
+    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
+
     // create move list instance
     moves moveList[1], badQuiets[1], noisyMoves[1];
     badQuiets->count = 0;
@@ -1200,7 +1206,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
 
             // Late Move Pruning
-            if (legal_moves>= lmpThreshold) {
+            if (legal_moves>= lmpThreshold) { 
                 continue;
             }
 
@@ -1359,6 +1365,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         if (tt_hit && getMoveCapture(tt_move)) {
             lmrReduction += TT_CAPTURE_LMR_SCALER;
+        }
+
+        if (enemy_has_no_threats && !in_check && static_eval - 477 > beta) {
+            lmrReduction += GOOD_EVAL_LMR_SCALER;
         }
 
         if (notTactical) {
