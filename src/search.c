@@ -51,7 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
-  int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
+  int GOOD_EVAL_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -725,6 +725,10 @@ void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, 
                 evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
 }
 
+bool has_enemy_any_threat(board *pos) {
+    return (pos->occupancies[pos->side] & pos->pieceThreats.stmThreats[pos->side ^ 1]) != 0;
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, my_time* time) {
     if ((searchNodes & 2047) == 0) {
@@ -1141,6 +1145,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return probcutBeta;            
     }
 
+    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
+
     // create move list instance
     moves moveList[1], badQuiets[1], noisyMoves[1];
     badQuiets->count = 0;
@@ -1361,6 +1367,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += TT_CAPTURE_LMR_SCALER;
         }
 
+        if (enemy_has_no_threats && !in_check && static_eval - 477 > beta) {
+            lmrReduction += GOOD_EVAL_LMR_SCALER;
+        }
+
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
@@ -1370,6 +1380,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // Futility LMR
             lmrReduction += (static_eval + 164 + 82 * depth <= alpha && !in_check) * 1024;
 
+            // Reverse Futility LMR
+            // We had a TT move and thought it was good, but seeing that it failed, we are probably wrong in our arguments about reducing the "Late Move". Let's reduce it less
+            lmrReduction -= (static_eval - 82 * depth >= beta && !in_check && tt_hit && tt_pv && tt_score >= beta && tt_depth >= depth) * 1024;
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
             int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
