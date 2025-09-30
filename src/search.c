@@ -1133,7 +1133,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
     }
 
-    int probcutBeta = beta + 200 + depth * 82;
+    int probcutBeta = beta + improving ? 325 : 350;
     
     // Small Probcut
     if (!pos->isSingularMove[pos->ply] && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - 4 && tt_score >= probcutBeta &&
