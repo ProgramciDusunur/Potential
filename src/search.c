@@ -1187,7 +1187,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
+                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
+                captureHistory[getMovePiece(currentMove)][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + moveHistory / 8192);
 
