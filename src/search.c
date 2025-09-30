@@ -245,8 +245,9 @@ int scoreMove(int move, board* position) {
         return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)][is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))]  +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
-                        getContinuationHistoryScore(position, 4, move) +
-                            pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];               
+                        getContinuationHistoryScore(position, 3, move) +
+                            getContinuationHistoryScore(position, 4, move) +
+                                pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];               
     }
     return 0;
 }
