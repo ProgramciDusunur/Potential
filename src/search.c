@@ -1611,6 +1611,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             }
             if (score <= alpha) {
                 alpha = myMAX(-infinity, alpha - window);
+                beta = myMIN(alpha, myMIN(score + window, infinity));
                 aspirationWindowDepth = current_depth;
             }
 
