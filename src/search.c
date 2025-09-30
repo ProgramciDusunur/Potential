@@ -1284,6 +1284,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                     extensions++;
                 }
 
+                // ~~~~ Quintuple Extension ~~~~ //
+                if (!pvNode && notTactical && singularScore <= singularBeta - 160) {
+                    extensions++;
+                }
+
             }            
 
             // Negative Extensions
