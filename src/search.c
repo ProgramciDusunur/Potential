@@ -1256,11 +1256,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 extensions++;
 
                 // Double Extension
-                if (!pvNode && singularScore <= singularBeta - DOUBLE_EXTENSION_MARGIN) {
-                    extensions++;
-
-                    // Low Depth Extension
-                    depth += depth < 10;
+                if (singularScore <= singularBeta - DOUBLE_EXTENSION_MARGIN) {
+                    extensions++;                    
                 }
 
                 // Triple Extension
