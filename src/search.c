@@ -1529,6 +1529,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             update_non_pawn_corrhist(pos, depth, corrhistBonus);
             update_continuation_corrhist(pos, depth, corrhistBonus);
             update_king_rook_pawn_corrhist(pos, depth, corrhistBonus);
+            update_king_bishop_pawn_corrhist(pos, depth, corrhistBonus);
         }
 
         // store hash entry with the score equal to alpha
