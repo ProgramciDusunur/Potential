@@ -52,6 +52,8 @@
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
+  int NOISY_NON_PV_LMR_SCALER = 1024;
+  int JUST_PAWN_MATERIAL_LMR_SCALER = 1024;
   
   
   /*╔═══════════════════════╗
@@ -74,7 +76,7 @@
     ╚══════════════════════════════╝*/
   int RFP_MARGIN = 82;
   int RFP_IMPROVING_MARGIN = 65;
-  int RFP_DEPTH = 11;
+  int RFP_DEPTH = 14;
   
   
   /*╔══════════╗
@@ -515,7 +517,7 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
     U64 blackNPKey = pos->blackNonPawnKey;
     int blackNPEntry = NON_PAWN_CORRECTION_HISTORY[black][pos->side][blackNPKey % CORRHIST_SIZE];
 
-    int contCorrhistEntry = adjust_single_cont_corrhist_entry(pos, 2);        
+    int contCorrhistEntry = adjust_single_cont_corrhist_entry(pos, 2) + adjust_single_cont_corrhist_entry(pos, 4) / 2;        
 
     int mateFound = mateValue - maxPly;
 
@@ -995,6 +997,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     bool improving = false;
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
+    int correctionValue = raw_eval - static_eval;
 
     int pastStack = -1;
 
@@ -1032,8 +1035,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
-    if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
-        depth++;
+     if (ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+        if (corrplexity) {
+            depth++;
+        } else if (correctionValue <= -82 && depth >= 3) {
+            // Negative Corrplexity Extension            
+            depth--;
+        }
     }
 
     improving |= pos->staticEval[pos->ply] >= beta + 100;
@@ -1177,7 +1185,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int quietMoves = 0;
 
     // capture move counter
-    //int captureMoves = 0;
+    int captureMoves = 0;
 
     const int originalAlpha = alpha;
 
@@ -1223,7 +1231,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         // SEE PVS Pruning
         int seeThreshold =
-                notTactical ? SEE_QUIET_THRESHOLD * lmrDepth : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
+                notTactical ? SEE_QUIET_THRESHOLD * lmrDepth + moveHistory / 10540 : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
         if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
@@ -1342,7 +1350,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
         } else {
-            //captureMoves++;
+            captureMoves++;
             addMoveToHistoryList(noisyMoves, currentMove);
         }
 
@@ -1371,6 +1379,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += GOOD_EVAL_LMR_SCALER;
         }
 
+        // Quiet Moves
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
@@ -1387,11 +1396,21 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
             int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
             lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
+        } else { // Noisy Moves
+            // Reduce More
+            if (!pvNode && captureMoves >= 4) {
+                lmrReduction += NOISY_NON_PV_LMR_SCALER;
+            }
         }
 
         // Reduce Less
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
+        }
+
+        // If the position just have pawns then don't reduce less
+        if (justPawns(pos)) {
+            lmrReduction -= JUST_PAWN_MATERIAL_LMR_SCALER;
         }
         
 
@@ -1474,9 +1493,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // fail-hard beta cutoff
                 if (score >= beta) {
                     if (notTactical) {
+                        int quietHistoryDepth = depth + (bestScore > beta + 50 * depth * depth / 1000);
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
-                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
+                        updateQuietMoveHistory(bestMove, pos->side, quietHistoryDepth, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);                       
                         
