@@ -48,6 +48,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->whiteNonPawnKeyCopy = p->whiteNonPawnKey;
     cp->blackNonPawnKeyCopy = p->blackNonPawnKey;
     cp->krpKeyCopy = p->krpKey;
+    cp->kbpKeyCopy = p->kbpKey;
     cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
 }
 
@@ -76,6 +77,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->whiteNonPawnKey = cp->whiteNonPawnKeyCopy;
     p->blackNonPawnKey = cp->blackNonPawnKeyCopy;
     p->krpKey = cp->krpKeyCopy;
+    p->kbpKey = cp->kbpKeyCopy;
     p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
 }
 
@@ -182,6 +184,13 @@ bool isKRP(int piece) {
     return false;
 }
 
+bool isKBP(int piece) {
+    if (piece == K || piece == k || piece == B || piece == b) {
+        return true;
+    }
+    return false;
+}
+
 // make move on chess board
 int makeMove(int move, int moveFlag, board* position) {
     int isLegalCapture = getMoveCapture(move);
@@ -220,6 +229,8 @@ int makeMove(int move, int moveFlag, board* position) {
         position->pawnKey ^= pieceKeys[piece][targetSquare];
         position->krpKey ^= pieceKeys[piece][sourceSquare];
         position->krpKey ^= pieceKeys[piece][targetSquare];
+        position->kbpKey ^= pieceKeys[piece][sourceSquare];
+        position->kbpKey ^= pieceKeys[piece][targetSquare];
 
         position->fifty = 0; // reset fifty move rule counter
     } else { // non pawn key
@@ -248,6 +259,11 @@ int makeMove(int move, int moveFlag, board* position) {
         position->krpKey ^= pieceKeys[piece][targetSquare];
     }
 
+    if (isKBP(piece)) {
+        position->kbpKey ^= pieceKeys[piece][sourceSquare];
+        position->kbpKey ^= pieceKeys[piece][targetSquare];
+    }
+
 
     // handling capture moves
     if (capture) {
@@ -271,9 +287,9 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->hashKey ^= pieceKeys[bbPiece][targetSquare];
 
                 if (bbPiece == P || bbPiece ==  p) {
-
                     position->pawnKey ^= pieceKeys[bbPiece][targetSquare];
                     position->krpKey ^= pieceKeys[bbPiece][targetSquare];
+                    position->kbpKey ^= pieceKeys[bbPiece][targetSquare];
 
                 } else { // non pawn key
 
@@ -296,6 +312,10 @@ int makeMove(int move, int moveFlag, board* position) {
                     position->krpKey ^= pieceKeys[bbPiece][targetSquare];
                 }
 
+                if (isKBP(piece)) {
+                    position->kbpKey ^= pieceKeys[bbPiece][targetSquare];                    
+                }
+
                 break;
             }
         }
@@ -313,6 +333,7 @@ int makeMove(int move, int moveFlag, board* position) {
             position->hashKey ^= pieceKeys[p][targetSquare + 8];
             position->pawnKey ^= pieceKeys[p][targetSquare + 8];
             position->krpKey  ^= pieceKeys[p][targetSquare + 8];
+            position->kbpKey  ^= pieceKeys[p][targetSquare + 8];
         }
 
             // black to move
@@ -325,6 +346,7 @@ int makeMove(int move, int moveFlag, board* position) {
             position->hashKey ^= pieceKeys[P][targetSquare - 8];
             position->pawnKey ^= pieceKeys[P][targetSquare - 8];
             position->krpKey  ^= pieceKeys[P][targetSquare - 8];
+            position->kbpKey  ^= pieceKeys[P][targetSquare - 8];
         }
 
     }
@@ -342,6 +364,7 @@ int makeMove(int move, int moveFlag, board* position) {
             position->hashKey ^= pieceKeys[P][targetSquare];
             position->pawnKey ^= pieceKeys[P][targetSquare];
             position->krpKey ^= pieceKeys[P][targetSquare];
+            position->kbpKey ^= pieceKeys[P][targetSquare];
             position->whiteNonPawnKey ^= pieceKeys[promotedPiece][targetSquare];
         }
 
@@ -354,6 +377,7 @@ int makeMove(int move, int moveFlag, board* position) {
             position->hashKey ^= pieceKeys[p][targetSquare];
             position->pawnKey ^= pieceKeys[p][targetSquare];
             position->krpKey ^= pieceKeys[p][targetSquare];
+            position->kbpKey ^= pieceKeys[p][targetSquare];
             position->blackNonPawnKey ^= pieceKeys[promotedPiece][targetSquare];
         }
 
@@ -376,6 +400,10 @@ int makeMove(int move, int moveFlag, board* position) {
 
         if (isKRP(promotedPiece)) {
             position->krpKey ^= pieceKeys[promotedPiece][targetSquare];
+        }
+
+        if (isKBP(promotedPiece)) {
+            position->kbpKey ^= pieceKeys[promotedPiece][targetSquare];
         }
     }
 

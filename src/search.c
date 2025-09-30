@@ -496,6 +496,20 @@ void update_king_rook_pawn_corrhist(board *position, const int depth, const int 
     krpCorrhist[position->side][kingRookPawnKey % CORRHIST_SIZE] = entry;
 }
 
+void update_king_bishop_pawn_corrhist(board *position, const int depth, const int diff) {
+    U64 kingBishopPawnKey = position->kbpKey;
+
+    int entry = kbpCorrhist[position->side][kingBishopPawnKey % CORRHIST_SIZE];
+
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = 4 * myMIN(depth + 1, 16);
+
+    entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+    entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
+
+    kbpCorrhist[position->side][kingBishopPawnKey % CORRHIST_SIZE] = entry;
+}
+
 int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {   
     rawEval = rawEval * (300 - pos->fifty) / 300;
     
@@ -503,11 +517,13 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
     U64 minorKey = pos->minorKey;
     U64 majorKey = pos->majorKey;
     U64 krpKey = pos->krpKey;
+    U64 kbpKey = pos->kbpKey;
 
     int pawnEntry = PAWN_CORRECTION_HISTORY[pos->side][pawnKey % CORRHIST_SIZE];
     int minorEntry = MINOR_CORRECTION_HISTORY[pos->side][minorKey % CORRHIST_SIZE];
     int majorEntry = MAJOR_CORRECTION_HISTORY[pos->side][majorKey % CORRHIST_SIZE];
     int krpEntry = krpCorrhist[pos->side][krpKey % CORRHIST_SIZE];
+    int kbpEntry = kbpCorrhist[pos->side][kbpKey % CORRHIST_SIZE];
 
     U64 whiteNPKey = pos->whiteNonPawnKey;
     int whiteNPEntry = NON_PAWN_CORRECTION_HISTORY[white][pos->side][whiteNPKey % CORRHIST_SIZE];
@@ -519,7 +535,7 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
 
     int mateFound = mateValue - maxPly;
 
-    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry + contCorrhistEntry + krpEntry;
+    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry + contCorrhistEntry + krpEntry + kbpEntry;
 
     return clamp(rawEval + adjust / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
 }

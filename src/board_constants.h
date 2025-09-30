@@ -54,6 +54,7 @@ extern int charPieces[];
 extern int minorPieces[6];
 extern int majorPieces[4];
 extern int krpPieces[6];
+extern int kbpPieces[6];
 extern int whiteNonPawnPieces[5];
 extern int blackNonPawnPieces[5];
 extern int mvvLva[12][12];
