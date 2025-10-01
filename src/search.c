@@ -956,6 +956,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return alpha;
     }
 
+    int probcutBeta = beta + 350;
+    
+    // Small Probcut
+    if (!pos->isSingularMove[pos->ply] && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - 4 && tt_score >= probcutBeta &&
+        abs(tt_score) < mateScore && abs(beta) < mateScore) {
+            return probcutBeta;            
+    }
+
     // read hash entry
     if (!pos->isSingularMove[pos->ply] && !rootNode &&
         (tt_hit =
@@ -1131,15 +1139,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if (razoringScore <= alpha) {
             return razoringScore;
         }
-    }
-
-    int probcutBeta = beta + 350;
-    
-    // Small Probcut
-    if (!pos->isSingularMove[pos->ply] && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - 4 && tt_score >= probcutBeta &&
-        abs(tt_score) < mateScore && abs(beta) < mateScore) {
-            return probcutBeta;            
-    }
+    }    
 
     // create move list instance
     moves moveList[1], badQuiets[1], noisyMoves[1];
