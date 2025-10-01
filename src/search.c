@@ -1137,7 +1137,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int legal_moves = 0;
 
     int probcut_beta = beta + 300;
-    if (!pvNode && !in_check && depth >= 7 && abs(beta) < mateScore  &&
+    if (!pvNode && !in_check && depth >= 5 && abs(beta) < mateScore  &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
     capture_promos->count = 0;    
@@ -1149,7 +1149,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     for (int count = 0; count < capture_promos->count; count++) {
         int move = capture_promos->moves[count];  
         
-        if (!SEE(pos, move, 100)) {
+        if (!SEE(pos, move, 82)) {
             continue;
         }
 
@@ -1183,7 +1183,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
 
       if (probcut_value >= probcut_beta) {
-          probcut_value = negamax(-probcut_beta, -probcut_beta + 1, depth - 4, pos, time, !cutNode);
+          probcut_value = negamax(-probcut_beta, -probcut_beta + 1, depth - 3, pos, time, !cutNode);
       }
 
         // decrement ply
