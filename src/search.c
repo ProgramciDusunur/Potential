@@ -954,15 +954,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         beta = myMIN(beta, mateValue - (int)pos->ply - 1);
         if (alpha >= beta)
             return alpha;
-    }
-
-    int probcutBeta = beta + 350;
-    
-    // Small Probcut
-    if (!pos->isSingularMove[pos->ply] && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - 4 && tt_score >= probcutBeta &&
-        abs(tt_score) < mateScore && abs(beta) < mateScore) {
-            return probcutBeta;            
-    }
+    }    
 
     // read hash entry
     if (!pos->isSingularMove[pos->ply] && !rootNode &&
@@ -977,6 +969,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                                           tt_score;
             }
         }
+    }
+
+    int probcutBeta = beta + 350;
+    
+    // Small Probcut
+    if (!pos->isSingularMove[pos->ply] && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - 4 && tt_score >= probcutBeta &&
+        abs(tt_score) < mateScore && abs(beta) < mateScore) {
+            return probcutBeta;            
     }
 
 
