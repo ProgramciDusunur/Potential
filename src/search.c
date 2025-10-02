@@ -1136,7 +1136,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // legal moves counter
     int legal_moves = 0;
 
-    int probcut_beta = beta + 250;
+    int probcut_beta = beta + 300;
     if (!pvNode && !in_check && depth >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
@@ -1196,8 +1196,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // take move back
         takeBack(pos, &copyPosition);
 
-      if (probcut_value >= probcut_beta) {
-          writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos);
+      if (probcut_value >= probcut_beta && probcut_depth > 0) {
+          writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth + 1, hashFlagAlpha, tt_pv, pos);
 
         return probcut_value;
       }
