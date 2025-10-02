@@ -1133,6 +1133,77 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
     }
 
+    // legal moves counter
+    int legal_moves = 0;
+
+    int probcut_beta = beta + 150;
+    if (!pvNode && !in_check && depth >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
+        (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
+            moves capture_promos[1];
+    capture_promos->count = 0;
+    int probcut_depth = depth - 4;
+
+    noisyGenerator(capture_promos, pos);
+
+    sort_moves(capture_promos, tt_move, pos);
+
+    for (int count = 0; count < capture_promos->count; count++) {
+        int move = capture_promos->moves[count];  
+        
+        if (!SEE(pos, move, 100)) {
+            continue;
+        }
+
+        struct copyposition copyPosition;
+        // preserve board state
+        copyBoard(pos, &copyPosition);
+        // increment ply
+        pos->ply++;
+
+        // increment repetition index & store hash key
+        pos->repetitionIndex++;
+        pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
+
+        // make sure to make only legal moves
+        if (makeMove(capture_promos->moves[count], allMoves, pos) == 0) {
+            // decrement ply
+            pos->ply--;
+
+            // decrement repetition index
+            pos->repetitionIndex--;
+
+            // skip to next move
+            continue;
+        }
+
+        prefetch_hash_entry(pos->hashKey);
+        searchNodes++;
+        legal_moves++;
+
+
+        int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
+
+        if (probcut_value >= probcut_beta) {
+            probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, probcut_depth, pos, time, !cutNode);
+        }
+
+        // decrement ply
+        pos->ply--;
+
+        // decrement repetition index
+        pos->repetitionIndex--;
+
+        // take move back
+        takeBack(pos, &copyPosition);
+
+      if (probcut_value >= probcut_beta) {
+          writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos);
+
+        return probcut_value;
+      }
+    }
+    }
+
     int probcutBeta = beta + 350;
     
     // Small Probcut
@@ -1165,7 +1236,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     //bool skipQuiet = false;
 
     // legal moves counter
-    int legal_moves = 0;
+    legal_moves = 0;
 
     // quiet move counter
     int quietMoves = 0;
