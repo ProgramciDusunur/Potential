@@ -1231,9 +1231,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // number of moves searched in a move list
     int moves_searched = 0;
 
-    int bestScore = -infinity;
-
-    //bool skipQuiet = false;
+    int bestScore = -infinity;    
 
     // legal moves counter
     legal_moves = 0;
