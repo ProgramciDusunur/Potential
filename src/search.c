@@ -1136,12 +1136,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // legal moves counter
     int legal_moves = 0;
 
-    int probcut_beta = beta + 200;
+    int probcut_beta = beta + 400;
     if (!pvNode && !in_check && depth >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
     capture_promos->count = 0;
-    int probcut_depth = depth - 1 - 3;
+    int probcut_depth = myMAX(0, depth - 4);
 
     noisyGenerator(capture_promos, pos);
 
@@ -1183,7 +1183,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
 
-      if (probcut_value >= probcut_beta) {
+      if (probcut_value >= probcut_beta && probcut_depth > 0) {
           probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, probcut_depth, pos, time, !cutNode);
       }
 
