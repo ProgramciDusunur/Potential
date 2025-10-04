@@ -3,7 +3,6 @@
 //
 
 #include "uci.h"
-
 #include "perft.h"
 
 #define VERSION "3.3.10"
