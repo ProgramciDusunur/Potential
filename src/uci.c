@@ -6,7 +6,7 @@
 
 #include "perft.h"
 
-#define VERSION "3.2.11"
+#define VERSION "3.2.12"
 #define BENCH_DEPTH 15
 
 double DEF_TIME_MULTIPLIER = 0.054;
