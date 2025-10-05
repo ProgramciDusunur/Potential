@@ -1209,7 +1209,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // Small Probcut
     if (!pos->isSingularMove[pos->ply] && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - 4 && tt_score >= probcutBeta &&
         abs(tt_score) < mateScore && abs(beta) < mateScore) {
-            return probcutBeta;            
+            return (ttAdjustedEval + probcut_beta) / 2;            
     }
 
     // create move list instance
