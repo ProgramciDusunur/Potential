@@ -1152,7 +1152,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         
         int move_history = captureHistory[getMovePiece(move)][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
         
-        if (!SEE(pos, move, 100 + move_history / 32)) {
+        if (!SEE(pos, move, 100 + move_history / 64)) {
             continue;
         }
 
