@@ -1143,11 +1143,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // legal moves counter
     int legal_moves = 0;
 
-    int probcut_beta = beta + 150 - 30 * improving;
-    bool previous_lmr_probcut = priorReduction >= 3 && pos->ply - 1 > 0 && pos->staticEval[pos->ply] + pos->staticEval[pos->ply - 1] > 82;
+    int probcut_beta = beta + 150 - 30 * improving - 5 * priorReduction;    
 
     if (!pvNode && !in_check && depth >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
-        (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta || previous_lmr_probcut)) {
+        (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
     capture_promos->count = 0;
     int probcut_depth = depth - 4;
