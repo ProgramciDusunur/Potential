@@ -1530,9 +1530,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // fail-hard beta cutoff
                 if (score >= beta) {
                     if (notTactical) {
+                        int history_depth = depth + (bestScore >= beta + 100);
                         // store killer moves
                         pos->killerMoves[pos->ply][0] = bestMove;
-                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
+                        updateQuietMoveHistory(bestMove, pos->side, history_depth, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);                       
                         
