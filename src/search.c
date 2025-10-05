@@ -1148,9 +1148,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     sort_moves(capture_promos, tt_move, pos);
 
     for (int count = 0; count < capture_promos->count; count++) {
-        int move = capture_promos->moves[count];  
+        int move = capture_promos->moves[count];
         
-        if (!SEE(pos, move, 100)) {
+        int move_history = captureHistory[getMovePiece(move)][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
+        
+        if (!SEE(pos, move, 100 + move_history / 32)) {
             continue;
         }
 
