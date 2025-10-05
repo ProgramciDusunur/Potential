@@ -994,6 +994,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     int pastStack = -1;
 
+    int priorReduction = 0;
+
+    if (pos->ply > 0) {
+        priorReduction = pos->ply > 0 ? pos->prevLmrReduction[pos->ply - 1] : 0;
+        pos->prevLmrReduction[pos->ply - 1] = 0;
+    }    
+
     pos->staticEval[pos->ply] = static_eval;
 
     pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval  ?  pos->ply - 2 : -1;
@@ -1138,7 +1145,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     int probcut_beta = beta + 150 - 30 * improving;
     if (!pvNode && !in_check && depth >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
-        (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
+        (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta || priorReduction >= 3)) {
             moves capture_promos[1];
     capture_promos->count = 0;
     int probcut_depth = depth - 4;
@@ -1458,7 +1465,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
+            pos->prevLmrReduction[pos->ply] = reduced_depth;
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
+            pos->prevLmrReduction[pos->ply] = 0;
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
