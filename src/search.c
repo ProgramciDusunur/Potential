@@ -1355,7 +1355,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
 
                 // ~~~~ Quintuple Extension ~~~~ //
-                if (notTactical && moveHistory / 32768 && singularScore <= singularBeta - QUINTUPLE_EXTENSION_MARGIN) {
+                if (notTactical && moveHistory / 16384 && singularScore <= singularBeta - QUINTUPLE_EXTENSION_MARGIN) {
                     extensions++;
                 }
             }            
