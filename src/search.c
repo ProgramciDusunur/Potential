@@ -93,6 +93,7 @@
   int DOUBLE_EXTENSION_MARGIN = 20;
   int TRIPLE_EXTENSION_MARGIN = 40;
   int QUADRUPLE_EXTENSION_MARGIN = 85;
+  int QUINTUPLE_EXTENSION_MARGIN = 205;
   // Negative Extensions
   int DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
   int TRIPLE_NEGATIVE_EXTENSION_MARGIN = 90;
@@ -1353,11 +1354,28 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                     extensions++;
                 }
 
+                // ~~~~ Quintuple Extension ~~~~ //
+                if (singularScore <= singularBeta - QUADRUPLE_EXTENSION_MARGIN) {
+                    extensions++;
+                }
             }            
 
             // Negative Extensions
             else if (tt_score >= beta) {
                 extensions -= 2 + !pvNode;
+
+                // Triple Negative Extension
+                if (!pvNode && tt_score >= beta + 60) {
+                    extensions -= 1;
+
+                    // High Depth Reduction
+                    depth -= depth > 12;
+                }
+
+                // Quadruple Negative Extension
+                if (notTactical && tt_score - 90 >= beta) {
+                    extensions -= 1;
+                }
             }
             
             // Cut Node Extension
