@@ -49,13 +49,6 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets,
     }
 }
 
-int16_t getQuietHistoryScore(board *pos, int move) {
-    int from = getMoveSource(move);
-    int to = getMoveTarget(move);
-
-    return quietHistory[pos->side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)];
-}
-
 void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
