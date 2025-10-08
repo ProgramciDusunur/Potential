@@ -1288,7 +1288,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 if (depth <= 4 && !pvNode && !in_check && noisyFPMargin <= alpha) {                   
                     continue;
                 }
-            }            
+            }
         }
 
         // SEE PVS Pruning
