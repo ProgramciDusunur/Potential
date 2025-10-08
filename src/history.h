@@ -37,6 +37,7 @@ extern int16_t krpCorrhist[2][16384];
 
 int scaledBonus(int score, int bonus, int gravity);
 void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets, board *pos);
+int16_t getQuietHistoryScore(board *pos, int move);
 void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets);
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus);
 void updateAllCH(board *pos, int move, int bonus);

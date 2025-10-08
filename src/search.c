@@ -242,7 +242,7 @@ int scoreMove(int move, board* position) {
         if (position->killerMoves[position->ply][0] == move)
             return 900000000;
                    
-        return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)][is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))]  +
+        return getQuietHistoryScore(position, move) +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
                         getContinuationHistoryScore(position, 4, move) +
@@ -1041,7 +1041,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
-        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
+        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20 + pos->historyScore / 1000)
         return ttAdjustedEval;
 
     // Null Move Pruning
@@ -1254,9 +1254,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
-        int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
+        uint16_t quietHistoryScore = notTactical ? getQuietHistoryScore(pos, currentMove) : 0;
+        pos->historyScore = quietHistoryScore;
+
+        int moveHistory = notTactical ? quietHistoryScore + getContinuationHistoryScore(pos, 1, currentMove) +
+                getContinuationHistoryScore(pos, 4, currentMove): 0;
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + moveHistory / 8192);
 
@@ -1636,6 +1638,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             position->staticEval[i] = noEval;
             position->piece[i] = 0;
             position->move[i] = 0;
+            position->historyScore = 0;
         }
 
         position->seldepth = 0;
