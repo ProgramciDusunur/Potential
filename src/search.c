@@ -1284,7 +1284,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
             } else {
                 // Noisy Futility Pruning
-                int noisyFPMargin = static_eval + 365 + 164 * depth;
+                int noisyFPMargin = static_eval + 365 + 200 * depth;
                 if (depth <= 4 && !pvNode && !in_check && noisyFPMargin <= alpha) {                   
                     continue;
                 }
