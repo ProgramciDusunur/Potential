@@ -1041,13 +1041,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
-        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20 + pos->historyScore / 500)
+        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
         return ttAdjustedEval;
 
     // Null Move Pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
-            ttAdjustedEval >= beta + 30 &&
+            ttAdjustedEval >= beta + 30 + pos->historyScore / 500 &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
