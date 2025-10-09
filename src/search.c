@@ -1358,6 +1358,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // Negative Extensions
             else if (tt_score >= beta) {
                 extensions -= 2 + !pvNode;
+                
+                // High Depth Reduction
+                // TT move is failed high, if our highest priority move failed high
+                // Then probably sub moves to likely fail high too
+                depth -= depth >= 12;
             }
             
             // Cut Node Extension
