@@ -1047,7 +1047,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // Null Move Pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
-            ttAdjustedEval >= beta + 30 + pos->historyScore / 500 &&
+            ttAdjustedEval >= beta + 30 &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
@@ -1136,7 +1136,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // legal moves counter
     int legal_moves = 0;
 
-    int probcut_beta = beta + 150 - 30 * improving;
+    int probcut_beta = beta + 150 - 30 * improving + pos->historyScore / 1000;
     if (!pvNode && !in_check && depth >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
