@@ -1362,7 +1362,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // High Depth Reduction
                 // TT move is failed high, if our highest priority move failed high
                 // Then probably sub moves to likely fail high too
-                depth -= depth > 12 && tt_score >= beta + 60;                                 
+                depth -= depth > 10 && tt_score >= beta + 20;                                 
             }
             
             // Cut Node Extension
