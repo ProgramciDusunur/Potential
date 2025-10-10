@@ -1028,7 +1028,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
-    if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+    if (pos->corrextCount <= 7 && corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+        pos->corrextCount++;
         depth++;
     }
 
@@ -1393,6 +1394,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         // increment nodes count
         searchNodes++;
+        pos->corrextCount = 0;
 
         prefetch_hash_entry(pos->hashKey);
 
