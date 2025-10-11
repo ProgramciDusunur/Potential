@@ -51,6 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
+  int JUST_PAWN_MATERIAL_LMR_SCALER = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -1448,6 +1449,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // Reduce Less
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
+        }
+
+        // If the position just have pawns then reduce less
+        if (justPawns(pos)) {
+            lmrReduction -= JUST_PAWN_MATERIAL_LMR_SCALER;
         }
         
 
