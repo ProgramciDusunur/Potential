@@ -1471,6 +1471,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
         }
         else if (!pvNode || legal_moves > 1) {
+            // if we have chance about to dive into quiescence search then extend
+            if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
+                new_depth = myMAX(new_depth, 1);
+            }
+            
             score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
         }
 
