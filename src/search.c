@@ -1197,6 +1197,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         takeBack(pos, &copyPosition);
 
       if (probcut_value >= probcut_beta) {
+          // Update capture history according to probcut result
+          int adjusted_capthist_depth = tt_move == move ? depth : probcut_depth;
+          updateCaptureHistory(pos, move, probcut_depth);
           writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos);
 
         return probcut_value;
