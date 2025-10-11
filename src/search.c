@@ -1359,7 +1359,6 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
-
             }            
 
             // Negative Extensions
