@@ -1379,7 +1379,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             if (captured_piece_value > SEE_PIECE_VALUES[PAWN]) {
                 int non_pawn_material = 0;
                 
-                non_pawn_material = countBits(pos->bitboards[Q]) - countBits(pos->bitboards[q])
+                non_pawn_material = (countBits(pos->bitboards[Q]) - countBits(pos->bitboards[q]))
                                   * SEE_PIECE_VALUES[QUEEN];
                 non_pawn_material += (countBits(pos->bitboards[R]) - countBits(pos->bitboards[r]))
                                   * SEE_PIECE_VALUES[ROOK];
