@@ -1137,18 +1137,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int legal_moves = 0;
 
     int probcut_beta = beta + 150 - 30 * improving;
-    if (!pvNode && depth >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
+    if (!pvNode && !in_check && depth >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
     capture_promos->count = 0;
     int probcut_depth = depth - 4;
 
-    if (in_check) {
-        moveGenerator(capture_promos, pos);
-    } else {
-        noisyGenerator(capture_promos, pos);    
-    }
-        
+    moveGenerator(capture_promos, pos);
+
     sort_moves(capture_promos, tt_move, pos);
 
     for (int count = 0; count < capture_promos->count; count++) {
