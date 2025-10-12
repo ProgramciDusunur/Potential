@@ -1325,7 +1325,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 extensions++;
 
                 // Double Extension                
-                int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 4096 * notTactical);
+                int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 512 * notTactical);
 
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
@@ -1335,7 +1335,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
 
                 // Triple Extension
-                int tripleMargin = TRIPLE_EXTENSION_MARGIN + 80 * !notTactical - (moveHistory / 8192 * notTactical);
+                int tripleMargin = TRIPLE_EXTENSION_MARGIN + 80 * !notTactical;
 
                 if (singularScore <= singularBeta - tripleMargin) {
                     extensions++;
@@ -1354,7 +1354,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // ╚═══════════════════════════╝
 
                 // ~~~~ Quadruple Extension ~~~~ //
-                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + 170 * !notTactical - (moveHistory / 16384 * notTactical);
+                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + 170 * !notTactical;
 
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
