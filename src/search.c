@@ -93,6 +93,7 @@
   int DOUBLE_EXTENSION_MARGIN = 20;
   int TRIPLE_EXTENSION_MARGIN = 40;
   int QUADRUPLE_EXTENSION_MARGIN = 85;
+  int QUINTUPLE_EXTENSION_MARGIN = 170;
   // Negative Extensions
   int DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
   int TRIPLE_NEGATIVE_EXTENSION_MARGIN = 90;
@@ -1357,6 +1358,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + 170 * !notTactical;
 
                 if (singularScore <= singularBeta - quadrupleMargin) {
+                    extensions++;
+                }
+
+                // ~~~~ Quintuple Extension ~~~~ //
+                int quintupleMargin = QUINTUPLE_EXTENSION_MARGIN + 340 * !notTactical;
+
+                if (singularScore <= singularBeta - quintupleMargin) {
                     extensions++;
                 }
             }            
