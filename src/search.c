@@ -228,7 +228,8 @@ int scoreMove(int move, board* position) {
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[getMovePiece(move)][target_piece];
 
-        captureScore += captureHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
+        captureScore += captureHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]]
+        [is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))];
 
         captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
 
@@ -1197,7 +1198,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         takeBack(pos, &copyPosition);
 
       if (probcut_value >= probcut_beta) {
-          writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos);
+        // Update capture history according to probcut result
+        updateCaptureHistory(pos, move, probcut_depth);
+        writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos);
 
         return probcut_value;
       }
