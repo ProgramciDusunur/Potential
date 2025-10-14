@@ -51,7 +51,7 @@
   int TT_PV_LMR_SCALER = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
-  int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
+  int LMR_FUTILITY_OFFSET[] = {0, 0, 0, 0, 82, 41, 20, 10, 5};
   
   
   /*╔═══════════════════════╗
@@ -1443,7 +1443,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
 
             // Futility LMR
-            lmrReduction += (static_eval + 164 + 82 * depth <= alpha && !in_check) * 1024;
+            int futility_lmr_margin = static_eval + 164 + 82 * depth + moveHistory / 32 + LMR_FUTILITY_OFFSET[clamp(depth, LMR_REDUCTION_LIMIT, 8)];
+            lmrReduction += (futility_lmr_margin <= alpha && !in_check) * 1024;
 
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
