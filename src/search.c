@@ -1364,7 +1364,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // ~~~~ Quintuple Extension ~~~~ //
                 int quintupleMargin = QUINTUPLE_EXTENSION_MARGIN + 340 * !notTactical;
 
-                if (singularScore <= singularBeta - quintupleMargin) {
+                if (!pvNode && singularScore <= singularBeta - quintupleMargin) {
                     extensions++;
                 }
             }            
