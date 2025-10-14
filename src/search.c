@@ -1652,8 +1652,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             position->isSingularMove[i] = 0;
             position->staticEval[i] = noEval;
             position->piece[i] = 0;
-            position->move[i] = 0;
-            position->corrextTable.corrextCount[i] = 0;
+            position->move[i] = 0;            
         }
 
         position->seldepth = 0;
