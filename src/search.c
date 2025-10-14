@@ -1028,7 +1028,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
-    if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+    if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit) && pos->corrextTable.corrextCount[tt_move & 4095] <= 2) {
+        pos->corrextTable.corrextCount[tt_move & 4095] += 1;
         depth++;
     }
 
@@ -1396,6 +1397,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             continue;
         }
 
+        if (tt_hit && currentMove == tt_move) {
+            pos->corrextTable.corrextCount[tt_move & 4095] = 0;
+        }
+
 
         // increment nodes count
         searchNodes++;
@@ -1619,6 +1624,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
     memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
+    memset(position->corrextTable.corrextCount, 0, sizeof(position->corrextTable.corrextCount));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
     memset(position->staticEval, 0, sizeof(position->staticEval));    
@@ -1647,6 +1653,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             position->staticEval[i] = noEval;
             position->piece[i] = 0;
             position->move[i] = 0;
+            position->corrextTable.corrextCount[i] = 0;
         }
 
         position->seldepth = 0;

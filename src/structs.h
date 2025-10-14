@@ -25,6 +25,10 @@ typedef struct  {
     uint64_t stmThreats[2];    
 } threats;
 
+typedef struct  {    
+    U64 corrextCount[4096];
+} correxted_moves;
+
 typedef struct {
     U64 bitboards[12];
     U64 occupancies[3];
@@ -42,8 +46,9 @@ typedef struct {
     int repetitionIndex;
 
     int pvLength[maxPly];
-    int pvTable[maxPly][maxPly];
+    int pvTable[maxPly][maxPly];    
     int killerMoves[maxPly][2];
+    correxted_moves corrextTable;
     threats pieceThreats;
 
     int fifty;
