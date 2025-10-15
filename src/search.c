@@ -1050,6 +1050,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
         ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
         return ttAdjustedEval;
+    
+    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
 
     // Null Move Pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
@@ -1083,7 +1085,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         int R = NMP_BASE_REDUCTION + depth / NMP_REDUCTION_DEPTH_DIVISOR;
 
-        R += myMIN((ttAdjustedEval - beta) / NMP_EVAL_DIVISOR, 3);
+        R += myMIN((ttAdjustedEval - beta) / NMP_EVAL_DIVISOR, 3) * enemy_has_no_threats;
 
         pos->move[myMIN(pos->ply, maxPly - 1)] = 0;
         pos->piece[myMIN(pos->ply, maxPly - 1)] = 0;
@@ -1218,9 +1220,6 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         abs(tt_score) < mateScore && abs(beta) < mateScore) {
             return probcutBeta;            
     }
-
-    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
-
 
     // create move list instance
     moves moveList[1], badQuiets[1], noisyMoves[1];
