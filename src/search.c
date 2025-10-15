@@ -1358,6 +1358,18 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
+
+                    // Adjust correction history
+                    if (!in_check && singularScore > pos->staticEval[pos->ply] + 100) {
+                        int corrhistBonus = clamp(((singularBeta - singularScore) * singularDepth / 100) * 512 / 1024, 
+                        -CORRHIST_LIMIT / 4, CORRHIST_LIMIT / 4);
+                        updatePawnCorrectionHistory(pos, depth, corrhistBonus);
+                        updateMinorCorrectionHistory(pos, depth, corrhistBonus);
+                        updateMajorCorrectionHistory(pos, depth, corrhistBonus);
+                        update_non_pawn_corrhist(pos, depth, corrhistBonus);
+                        update_continuation_corrhist(pos, depth, corrhistBonus);
+                        update_king_rook_pawn_corrhist(pos, depth, corrhistBonus);
+                    }
                 }
             }            
 
