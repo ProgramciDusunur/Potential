@@ -1029,7 +1029,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // ~~~~ Corrplexity Extension ~~~~ //
     if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit) && pos->corrextTable.corrextCount[tt_move & 4095] <= 2) {
-        bool double_corrplexity = abs(raw_eval - static_eval) > 164;
+        bool double_corrplexity = abs(raw_eval - static_eval) > 164 && depth >= 8;
         pos->corrextTable.corrextCount[tt_move & 4095] += 1 + double_corrplexity;
         depth += 1 + double_corrplexity;
     }
