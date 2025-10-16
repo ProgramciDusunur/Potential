@@ -727,8 +727,8 @@ void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, 
                 evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
 }
 
-bool has_enemy_any_undefended_threat(board *pos) {
-    return (pos->occupancies[pos->side] & pos->pieceThreats.stmThreats[pos->side ^ 1] & ~pos->pieceThreats.stmThreats[pos->side]) != 0;
+bool has_enemy_any_threat(board *pos) {
+    return (pos->occupancies[pos->side] & pos->pieceThreats.stmThreats[pos->side ^ 1]) != 0;
 }
 
 // quiescence search
@@ -1220,7 +1220,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return probcutBeta;            
     }
 
-    bool enemy_has_no_threats = !has_enemy_any_undefended_threat(pos);
+    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
 
 
     // create move list instance
