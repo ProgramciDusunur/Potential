@@ -730,6 +730,20 @@ bool has_enemy_any_threat(board *pos) {
     return (pos->occupancies[pos->side] & pos->pieceThreats.stmThreats[pos->side ^ 1]) != 0;
 }
 
+bool can_do_extension(board *pos, int material_threshold) {
+    int material = 0;
+    material = (countBits(pos->bitboards[Q]) + countBits(pos->bitboards[q]))
+                                  * SEE_PIECE_VALUES[QUEEN];
+    material += (countBits(pos->bitboards[R]) + countBits(pos->bitboards[r]))
+                                  * SEE_PIECE_VALUES[ROOK];
+    material += (countBits(pos->bitboards[B]) + countBits(pos->bitboards[b]))
+                                  * SEE_PIECE_VALUES[BISHOP];
+    material += (countBits(pos->bitboards[N]) + countBits(pos->bitboards[n]))
+                                  * SEE_PIECE_VALUES[KNIGHT];
+    return material >= material_threshold && pos->ply < pos->rootDepth * 2;
+}
+
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, my_time* time) {
     if ((searchNodes & 2047) == 0) {
@@ -1033,7 +1047,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
-    if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+    if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit) && can_do_extension(pos, 1800)) {
         depth++;
     }
 
