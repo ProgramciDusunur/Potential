@@ -726,8 +726,8 @@ void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, 
                 evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
 }
 
-bool has_enemy_any_threat(board *pos) {
-    return (pos->occupancies[pos->side] & pos->pieceThreats.stmThreats[pos->side ^ 1]) != 0;
+bool has_enemy_any_undefended_threat(board *pos) {
+    return (pos->occupancies[pos->side] & pos->pieceThreats.stmThreats[pos->side ^ 1] & ~pos->pieceThreats.stmThreats[pos->side]) != 0;
 }
 
 // quiescence search
@@ -1219,7 +1219,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return probcutBeta;            
     }
 
-    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
+    bool enemy_has_no_threats = !has_enemy_any_undefended_threat(pos);
 
 
     // create move list instance
@@ -1446,7 +1446,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += TT_CAPTURE_LMR_SCALER;
         }
 
-        if (enemy_has_no_threats && !in_check && static_eval - 365 > beta) {
+        if (enemy_has_no_threats && !in_check && ttAdjustedEval - 365 >= beta + 30) {
             lmrReduction += GOOD_EVAL_LMR_SCALER;
         }
 
