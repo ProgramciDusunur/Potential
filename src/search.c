@@ -740,7 +740,7 @@ bool can_do_extension(board *pos, int material_threshold) {
                                   * SEE_PIECE_VALUES[BISHOP];
     material += (countBits(pos->bitboards[N]) + countBits(pos->bitboards[n]))
                                   * SEE_PIECE_VALUES[KNIGHT];
-    return material >= material_threshold && pos->ply < pos->rootDepth * 2;
+    return material >= material_threshold;
 }
 
 
