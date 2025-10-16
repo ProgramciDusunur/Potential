@@ -229,7 +229,8 @@ int scoreMove(int move, board* position) {
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[getMovePiece(move)][target_piece];
 
-        captureScore += captureHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
+        captureScore += captureHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]]
+        [is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))];
 
         captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
 
@@ -726,8 +727,8 @@ void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, 
                 evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
 }
 
-bool has_enemy_any_threat(board *pos) {
-    return (pos->occupancies[pos->side] & pos->pieceThreats.stmThreats[pos->side ^ 1]) != 0;
+bool has_enemy_any_undefended_threat(board *pos) {
+    return (pos->occupancies[pos->side] & pos->pieceThreats.stmThreats[pos->side ^ 1] & ~pos->pieceThreats.stmThreats[pos->side]) != 0;
 }
 
 // quiescence search
@@ -1219,7 +1220,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return probcutBeta;            
     }
 
-    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
+    bool enemy_has_no_threats = !has_enemy_any_undefended_threat(pos);
 
 
     // create move list instance
