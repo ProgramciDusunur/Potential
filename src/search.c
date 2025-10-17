@@ -1033,7 +1033,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
+    int special_extensions = 0;
     if (corrplexity && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+        bool double_corrplexity = abs(raw_eval - static_eval) > 164 && depth >= 8;
+        special_extensions += double_corrplexity;
         depth++;
     }
 
@@ -1047,13 +1050,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
-        depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
+        depth <= RFP_DEPTH + special_extensions && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
         ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
         return ttAdjustedEval;
 
     // Null Move Pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
-        depth >= NMP_DEPTH && !in_check && !rootNode &&
+        depth >= NMP_DEPTH + special_extensions && !in_check && !rootNode &&
             ttAdjustedEval >= beta + 30 &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
@@ -1133,7 +1136,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
-        !pvNode && !in_check && depth <= RAZORING_DEPTH && static_eval + RAZORING_MARGIN * depth < alpha) {
+        !pvNode && !in_check && depth <= RAZORING_DEPTH + special_extensions && static_eval + RAZORING_MARGIN * depth < alpha) {
         int razoringScore = quiescence(alpha, beta, pos, time);
         if (razoringScore <= alpha) {
             return razoringScore;
@@ -1144,7 +1147,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int legal_moves = 0;
 
     int probcut_beta = beta + 150 - 30 * improving;
-    if (!pvNode && !in_check && depth >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
+    if (!pvNode && !in_check && depth + special_extensions >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
     capture_promos->count = 0;
