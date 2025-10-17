@@ -1050,7 +1050,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
-        depth <= RFP_DEPTH + special_extensions && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
+        depth + special_extensions <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
         ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
         return ttAdjustedEval;
 
@@ -1136,7 +1136,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
-        !pvNode && !in_check && depth <= RAZORING_DEPTH + special_extensions && static_eval + RAZORING_MARGIN * depth < alpha) {
+        !pvNode && !in_check && depth + special_extensions <= RAZORING_DEPTH && static_eval + RAZORING_MARGIN * depth < alpha) {
         int razoringScore = quiescence(alpha, beta, pos, time);
         if (razoringScore <= alpha) {
             return razoringScore;
