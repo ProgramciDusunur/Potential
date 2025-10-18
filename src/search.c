@@ -1382,9 +1382,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
         } 
         // Low Depth Singular Extension
-        else if (!pos->isSingularMove[pos->ply] && currentMove == tt_move && depth <= 7 && !in_check && 
-            ttAdjustedEval <= alpha - 30 && tt_flag == hashFlagAlpha) {
-            extensions++;
+        else if (!pos->isSingularMove[pos->ply] && currentMove == tt_move && depth <= 12 && !in_check && tt_flag == hashFlagAlpha) {
+            if (ttAdjustedEval <= alpha - 50) {
+                extensions++;
+            }            
         }
 
 
