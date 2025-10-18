@@ -730,6 +730,10 @@ bool has_enemy_any_threat(board *pos) {
     return (pos->occupancies[pos->side] & pos->pieceThreats.stmThreats[pos->side ^ 1]) != 0;
 }
 
+int get_draw_score() {
+    return (searchNodes & 3) - 2; // Randomize between -2 and +2
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, my_time* time) {
     if ((searchNodes & 2047) == 0) {
@@ -943,14 +947,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                                     pos->side ^ 1, pos);
         if (!in_check) {
             // return draw by fifty-move rule
-            return 0;
+            return get_draw_score();
         }       
     }
 
     if (!rootNode) {
 
         if (isRepetition(pos) || isMaterialDraw(pos)) {
-            return 0;
+            return get_draw_score();
         }        
 
 
@@ -1446,7 +1450,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += TT_CAPTURE_LMR_SCALER;
         }
 
-        if (enemy_has_no_threats && !in_check && static_eval - 365 > beta) {
+        if (enemy_has_no_threats && !in_check && ttAdjustedEval - 365 >= beta + 30) {
             lmrReduction += GOOD_EVAL_LMR_SCALER;
         }
 
@@ -1585,7 +1589,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // king is not in check
         else
             // return stalemate score
-            return 0;
+            return get_draw_score();
     }
 
     if (!pos->isSingularMove[pos->ply]) {
