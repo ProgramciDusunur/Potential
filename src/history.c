@@ -12,8 +12,8 @@ int16_t quietHistory[2][64][64][2][2];
 int16_t continuationHistory[12][64][12][64];
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t contCorrhist[12][64][12][64];
-// pawnHistory [pawnKey][piece][to]
-int16_t pawnHistory[2048][12][64];
+// pawnHistory [pawnKey][piece][to][threatSource][threatTarget]
+int16_t pawnHistory[512][12][64][2][2];
 // captureHistory [piece][toSquare][capturedPiece]
 int16_t captureHistory[12][64][13];
 // kingRookPawn Correction History [side to move][key]
@@ -54,9 +54,9 @@ void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
     int to = getMoveTarget(bestMove);
 
     int bonus = getHistoryBonus(depth);
-    int score = pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to];
+    int score = pawnHistory[pos->pawnKey % 512][pos->mailbox[from]][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)];
 
-    pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
+    pawnHistory[pos->pawnKey % 512][pos->mailbox[from]][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)] += scaledBonus(score, bonus, maxPawnHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
@@ -64,7 +64,7 @@ void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
-        pawnHistory[pos->pawnKey % 2048][pos->mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
+        pawnHistory[pos->pawnKey % 512][pos->mailbox[badQuietFrom]][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)] += scaledBonus(score, -bonus, maxPawnHistory);
     }
 }
 

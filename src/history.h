@@ -28,8 +28,8 @@ extern int16_t quietHistory[2][64][64][2][2];
 extern int16_t continuationHistory[12][64][12][64];
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 extern int16_t contCorrhist[12][64][12][64];
-// pawnHistory [pawnKey][piece][to]
-extern int16_t pawnHistory[2048][12][64];
+// pawnHistory [pawnKey][piece][to][threatSource][threatTarget]
+extern int16_t pawnHistory[512][12][64][2][2];
 // captureHistory[piece][toSquare][capturedPiece]
 extern int16_t captureHistory[12][64][13];
 // kingRookPawn Correction History [side to move][key]
