@@ -1141,7 +1141,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     }
 
     // TT History Reduction
-    if ((pvNode || cutNode) && depth <= 8 && tt_depth <= depth -4 && tt_move && isTactical(tt_move)) {
+    if ((pvNode || cutNode) && !rootNode && !in_check && depth <= 8 && tt_depth <= depth -4 && tt_move && isTactical(tt_move)) {
         int historyScore = quietHistory[pos->side][getMoveSource(tt_move)][getMoveTarget(tt_move)]
                                         [is_square_threatened(pos, getMoveSource(tt_move))][is_square_threatened(pos, getMoveTarget(tt_move))];
 
