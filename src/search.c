@@ -1296,6 +1296,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 break;
             }
 
+            // Pawn History Pruning
+            if (depth <= 4 && !in_check && pawnHistoryValue < depth * -2048) {
+                break;
+            }
+
         }
 
         // SEE PVS Pruning
