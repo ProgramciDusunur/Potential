@@ -1145,7 +1145,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     int probcut_beta = beta + 150 - 30 * improving;
     if (!pvNode && !in_check && depth >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
-        (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
+        (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta || cutNode)) {
             moves capture_promos[1];
             capture_promos->count = 0;
             int probcut_depth = depth - 4;
