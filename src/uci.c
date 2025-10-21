@@ -5,7 +5,7 @@
 #include "uci.h"
 #include "perft.h"
 
-#define VERSION "3.4.17"
+#define VERSION "3.5.17"
 #define BENCH_DEPTH 13
 
 double DEF_TIME_MULTIPLIER = 0.054;

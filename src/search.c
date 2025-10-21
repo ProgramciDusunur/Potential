@@ -46,6 +46,9 @@
   int QUIET_HISTORY_LMR_DIVISOR = 4096;
   int QUIET_HISTORY_LMR_MINIMUM_SCALER = 3072;
   int QUIET_HISTORY_LMR_MAXIMUM_SCALER = 3072;
+  int PAWN_HISTORY_LMR_DIVISOR = 4096;
+  int PAWN_HISTORY_LMR_MINIMUM_SCALER = 3072;
+  int PAWN_HISTORY_LMR_MAXIMUM_SCALER = 3072;
   int QUIET_NON_PV_LMR_SCALER = 1024;
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
@@ -1263,6 +1266,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
 
+        int pawnHistoryValue = notTactical ? pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
+
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
                 getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
@@ -1462,6 +1467,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
             int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
             lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
+
+            // pawn history based reduction, same logic as the quiet history
+            int pawnHistoryReduction = pawnHistoryValue / PAWN_HISTORY_LMR_DIVISOR;            
+            lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALER, PAWN_HISTORY_LMR_MAXIMUM_SCALER);
         }
 
         // Reduce Less
