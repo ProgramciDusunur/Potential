@@ -49,6 +49,7 @@
   int PAWN_HISTORY_LMR_DIVISOR = 4096;
   int PAWN_HISTORY_LMR_MINIMUM_SCALER = 3072;
   int PAWN_HISTORY_LMR_MAXIMUM_SCALER = 3072;
+  int NOISY_HISTORY_LMR_DIVISOR = 10240;  
   int QUIET_NON_PV_LMR_SCALER = 1024;
   int CUT_NODE_LMR_SCALER = 2048;
   int TT_PV_LMR_SCALER = 1024;
@@ -1270,9 +1271,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 0;
+                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
+                captureHistory[getMovePiece(currentMove)][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
-        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + moveHistory / 8192);
+        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
 
 
 
@@ -1472,6 +1474,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             int pawnHistoryReduction = pawnHistoryValue / PAWN_HISTORY_LMR_DIVISOR;            
             lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALER, PAWN_HISTORY_LMR_MAXIMUM_SCALER);
         }
+        // Noisy Moves
+        else { 
+            // capture history based reduction, same logic as the quiet history
+            lmrReduction -= moveHistory / NOISY_HISTORY_LMR_DIVISOR;
+        }
 
         // Reduce Less
         if (tt_pv) {
@@ -1490,7 +1497,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
-                bool historyReduction = moveHistory / 16384;
+                bool historyReduction = notTactical ? moveHistory / 16384 : 0;
                 bool doShallower = score < bestScore + new_depth;
                 new_depth -= doShallower;
                 new_depth += doDeeper;
