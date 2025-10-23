@@ -1485,6 +1485,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
         }
         
+        // Extension based reduction
+        lmrReduction -= extensions * 512;
 
         lmrReduction /= 1024;
 
