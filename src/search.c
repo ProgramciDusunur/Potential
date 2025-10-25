@@ -1487,7 +1487,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALER, PAWN_HISTORY_LMR_MAXIMUM_SCALER);
 
             // SEE LMR
-            if (!SEE(originalBoard, currentMove, seeThreshold)) {
+            if (!SEE(originalBoard, currentMove, 0)) {
                 lmrReduction += SEE_LMR_SCALER;
             }
         }
