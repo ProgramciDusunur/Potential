@@ -56,6 +56,7 @@
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
+  int SEE_LMR_SCALER = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -1399,6 +1400,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
         struct copyposition copyPosition;
+        board* originalBoard = pos;
         // preserve board state
         copyBoard(pos, &copyPosition);
 
@@ -1483,6 +1485,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // pawn history based reduction, same logic as the quiet history
             int pawnHistoryReduction = pawnHistoryValue / PAWN_HISTORY_LMR_DIVISOR;            
             lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALER, PAWN_HISTORY_LMR_MAXIMUM_SCALER);
+
+            // SEE LMR
+            if (!SEE(originalBoard, currentMove, seeThreshold)) {
+                lmrReduction += SEE_LMR_SCALER;
+            }
         }
         // Noisy Moves
         else { 
