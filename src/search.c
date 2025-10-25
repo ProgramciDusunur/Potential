@@ -230,12 +230,17 @@ int scoreMove(int move, board* position) {
             target_piece = bb_piece;
         }
 
+        int previous_move_target_square = getMoveTarget(position->move[myMAX(0, position->ply - 1)]);
+        int recapture_bonus = getMoveTarget(move) == previous_move_target_square ? 200000 : 0;
+
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[getMovePiece(move)][target_piece];
 
         captureScore += captureHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
 
         captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
+
+        captureScore += recapture_bonus;
 
         return captureScore;
 
@@ -1427,6 +1432,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
         } else {
+            pos->move[myMIN(pos->ply, maxPly - 1)] = currentMove;
             //captureMoves++;
             addMoveToHistoryList(noisyMoves, currentMove);
         }
