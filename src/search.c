@@ -1487,7 +1487,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // Noisy Moves
         else { 
             // capture history based reduction, same logic as the quiet history
-            lmrReduction -= moveHistory / NOISY_HISTORY_LMR_DIVISOR;
+            lmrReduction -= moveHistory / NOISY_HISTORY_LMR_DIVISOR * 512;
         }
 
         // Reduce Less
