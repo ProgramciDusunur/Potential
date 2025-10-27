@@ -44,6 +44,7 @@
 
 void copyBoard(board *p, struct copyposition *cp);
 void takeBack(board *p, struct copyposition *cp);
+void copyPieces(board *ob, board *cb);
 
 // Pawn attack masks pawnAttacks[side][square]
 extern U64 pawnAttacks[2][64];

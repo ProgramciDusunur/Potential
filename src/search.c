@@ -1400,9 +1400,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
         struct copyposition copyPosition;
-        board* originalBoard = pos;
+        board originalBoard;    
         // preserve board state
         copyBoard(pos, &copyPosition);
+        // copy bitboards, occupancies, mailbox for SEE
+        copyPieces(&originalBoard, pos); 
 
         // increment ply
         pos->ply++;
@@ -1487,9 +1489,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALER, PAWN_HISTORY_LMR_MAXIMUM_SCALER);
 
             // SEE LMR
-            if (!SEE(originalBoard, currentMove, 0)) {
+            /*if (!SEE(&originalBoard, currentMove, 0)) {                
                 lmrReduction += SEE_LMR_SCALER;
-            }
+            }*/
         }
         // Noisy Moves
         else { 

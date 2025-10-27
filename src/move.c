@@ -79,6 +79,25 @@ void takeBack(board *p, struct copyposition *cp) {
     p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
 }
 
+void copyPieces(board *ob, board *cb) {
+    ob->bitboards[0] = cb->bitboards[0];
+    ob->bitboards[1] = cb->bitboards[1];
+    ob->bitboards[2] = cb->bitboards[2];
+    ob->bitboards[3] = cb->bitboards[3];
+    ob->bitboards[4] = cb->bitboards[4];
+    ob->bitboards[5] = cb->bitboards[5];
+    ob->bitboards[6] = cb->bitboards[6];
+    ob->bitboards[7] = cb->bitboards[7];
+    ob->bitboards[8] = cb->bitboards[8];
+    ob->bitboards[9] = cb->bitboards[9];
+    ob->bitboards[10] = cb->bitboards[10];
+    ob->bitboards[11] = cb->bitboards[11];
+    ob->occupancies[0] = cb->occupancies[0];
+    ob->occupancies[1] = cb->occupancies[1];
+    ob->occupancies[2] = cb->occupancies[2];
+    memcpy(ob->mailbox, cb->mailbox, 64);    
+}
+
 
 // add move to the move list
 void addMove(moves *moveList, int move) {
