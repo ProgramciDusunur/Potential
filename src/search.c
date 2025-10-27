@@ -1400,7 +1400,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         bool can_do_see_lmr = false;
         if (moves_searched >= LMR_FULL_DEPTH_MOVES &&
-           depth >= LMR_REDUCTION_LIMIT && !SEE(pos, currentMove, notTactical ? 0 : -82)) {
+           depth >= LMR_REDUCTION_LIMIT && notTactical && !SEE(pos, currentMove, 0)) {
             can_do_see_lmr = true;
         }
 
