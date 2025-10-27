@@ -40,7 +40,9 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->occupanciesCopy[1] = p->occupancies[1];
     cp->occupanciesCopy[2] = p->occupancies[2];
     cp->fiftyCopy = p->fifty;
-    memcpy(cp->mailboxCopy, p->mailbox, 64);
+    for (int i = 0; i < 64; i++) {
+        cp->mailboxCopy[i] = p->mailbox[i];
+    }    
     cp->hashKeyCopy = p->hashKey;
     cp->pawnKeyCopy = p->pawnKey;
     cp->minorKeyCopy = p->minorKey;
@@ -68,7 +70,9 @@ void takeBack(board *p, struct copyposition *cp) {
     p->occupancies[1] = cp->occupanciesCopy[1];
     p->occupancies[2] = cp->occupanciesCopy[2];
     p->fifty = cp->fiftyCopy;
-    memcpy(p->mailbox, cp->mailboxCopy, 64);
+    for (int i = 0; i < 64; i++) {
+        p->mailbox[i] = cp->mailboxCopy[i];
+    }
     p->hashKey = cp->hashKeyCopy;
     p->pawnKey = cp->pawnKeyCopy;
     p->minorKey = cp->minorKeyCopy;
