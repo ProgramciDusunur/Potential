@@ -56,7 +56,7 @@
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
-  int QUIET_SEE_LMR_SCALER = 1024;
+  int SEE_LMR_SCALER = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -1400,7 +1400,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         bool can_do_see_lmr = false;
         if (moves_searched >= LMR_FULL_DEPTH_MOVES &&
-           depth >= LMR_REDUCTION_LIMIT && notTactical && !SEE(pos, currentMove, 82)) {
+           depth >= LMR_REDUCTION_LIMIT && !SEE(pos, currentMove, notTactical ? 0 : -82)) {
             can_do_see_lmr = true;
         }
 
@@ -1471,6 +1471,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if (enemy_has_no_threats && !in_check && static_eval - 365 > beta) {
             lmrReduction += GOOD_EVAL_LMR_SCALER;
         }
+        
+        if (can_do_see_lmr) {
+            lmrReduction += SEE_LMR_SCALER;
+        }
 
         if (notTactical) {
             // Reduce More
@@ -1488,12 +1492,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // pawn history based reduction, same logic as the quiet history
             int pawnHistoryReduction = pawnHistoryValue / PAWN_HISTORY_LMR_DIVISOR;            
-            lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALER, PAWN_HISTORY_LMR_MAXIMUM_SCALER);
-
-            // SEE LMR
-            if (can_do_see_lmr) {
-                lmrReduction += QUIET_SEE_LMR_SCALER;
-            }
+            lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALER, PAWN_HISTORY_LMR_MAXIMUM_SCALER);            
         }
         // Noisy Moves
         else { 
