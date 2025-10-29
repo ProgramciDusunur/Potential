@@ -1462,7 +1462,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += TT_CAPTURE_LMR_SCALER;
         }
 
-        if (enemy_has_no_threats && !in_check && ttAdjustedEval - 365 >= beta + 120 - 25 * depth) {
+        if (enemy_has_no_threats && !in_check && ttAdjustedEval - 365 >= beta + 120 - 10 * depth) {
             lmrReduction += GOOD_EVAL_LMR_SCALER;
         }
 
