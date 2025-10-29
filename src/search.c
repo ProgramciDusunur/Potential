@@ -724,15 +724,16 @@ uint8_t isMaterialDraw(board *pos) {
     return 0;
 }
 
-void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, int move) {
+void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, int move, double complexity) {
     double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
+    double complexityScale = my_max_double(0.77 + clamp_double(complexity, 0.0, 200.0) / 400.0, 1.0);
     double not_bm_nodes_fraction = 
        (double)nodes_spent_table[move & 4095] / (double)searchNodes;
     double node_scaling_factor = (1.5f - not_bm_nodes_fraction) * 1.35f;
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
-                evalScale[evalStability] * node_scaling_factor, time->maxTime + time->starttime);    
+                evalScale[evalStability] * node_scaling_factor * complexityScale, time->maxTime + time->starttime);    
 }
 
 bool has_enemy_any_threat(board *pos) {
@@ -1674,6 +1675,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
     uint8_t bestMoveStability = 0;
     int averageScore = noEval;
     uint8_t evalStability = 0;
+    int baseSearchScore = -infinity;
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
@@ -1751,6 +1753,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
         }
 
+        baseSearchScore = current_depth == 1 ? score : baseSearchScore;
         averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
 
 
@@ -1767,10 +1770,16 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             evalStability = 0;
         }
 
-        if (time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0]);
+        // Complexity TM
+        double complexity = 0;
+        if (abs(score) < mateScore) {
+            complexity = 0.6 * abs(baseSearchScore - score) * log(depth);
         }
 
+        if (time->timeset && current_depth > 6) {
+            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0], complexity);
+        }
+        
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
 
