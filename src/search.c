@@ -1015,7 +1015,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int priorReduction = 0;
 
     if (pos->ply > 0) {
-        priorReduction = pos->ply > 0 ? pos->prevLmrReduction[pos->ply - 1] : 0;
+        priorReduction = pos->prevLmrReduction[pos->ply - 1];
         pos->prevLmrReduction[pos->ply - 1] = 0;
     }
 
