@@ -1012,6 +1012,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     int pastStack = -1;
 
+    int priorReduction = 0;
+
+    if (pos->ply > 0) {
+        priorReduction = pos->ply > 0 ? pos->prevLmrReduction[pos->ply - 1] : 0;
+        pos->prevLmrReduction[pos->ply - 1] = 0;
+    }
+
     pos->staticEval[pos->ply] = static_eval;
 
     pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval  ?  pos->ply - 2 : -1;
@@ -1055,6 +1062,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
     rfpMargin += 6 * depth * depth;
+
+    rfpMargin -= priorReduction * depth * depth;
 
     bool rfp_tt_pv_decision = !tt_pv || (tt_pv && tt_hit && tt_score >= beta + 90 - 15 * ((tt_depth + depth) / 2));    
 
@@ -1503,7 +1512,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
+            pos->prevLmrReduction[pos->ply] = reduced_depth;
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
+            pos->prevLmrReduction[pos->ply] = 0;
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
