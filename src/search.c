@@ -1009,6 +1009,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     bool improving = false;
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
+    bool materialplexity = abs(static_eval - pos->materialValue) >= 477;
 
     int pastStack = -1;
 
@@ -1061,7 +1062,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
-        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
+        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20 + materialplexity * 15)
         return ttAdjustedEval;
 
     // Null Move Pruning

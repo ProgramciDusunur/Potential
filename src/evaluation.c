@@ -391,6 +391,7 @@ int get_game_phase_score(const board* position) {
 
 int evaluate(board* position) {
         const int game_phase_score = get_game_phase_score(position);
+        position->materialValue = game_phase_score;
 
         int score_midgame = 0, score_endgame = 0;
 
