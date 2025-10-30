@@ -231,10 +231,12 @@ int scoreMove(int move, board* position) {
         }
 
         int previous_move_target_square = getMoveTarget(position->move[myMAX(0, position->ply - 1)]);
-        int recapture_bonus = getMoveTarget(move) == previous_move_target_square ? 200000 : 0;
+        int recapture_bonus = getMoveTarget(move) == previous_move_target_square ? 200000 : 0;        
 
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[getMovePiece(move)][target_piece];
+
+        captureScore += position->noisy_killer_moves[position->ply][0] == move ? 900000000 : 0;
 
         captureScore += captureHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
 
@@ -1217,6 +1219,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             takeBack(pos, &copyPosition);
 
             if (probcut_value >= probcut_beta) {
+                pos->noisy_killer_moves[pos->ply][0] = move;
                 writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos);
                 return probcut_value;
             }
@@ -1657,6 +1660,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
     position->scorePv = 0;
 
     memset(position->killerMoves, 0, sizeof(position->killerMoves));
+    memset(position->noisy_killer_moves, 0, sizeof(position->noisy_killer_moves));
     memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
