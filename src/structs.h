@@ -44,6 +44,7 @@ typedef struct {
     int pvLength[maxPly];
     int pvTable[maxPly][maxPly];
     int killerMoves[maxPly][2];
+    int noisy_killer_moves[maxPly][1];
     threats pieceThreats;
 
     int fifty;
