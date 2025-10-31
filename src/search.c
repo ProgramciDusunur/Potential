@@ -1175,6 +1175,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                     continue;
                 }
 
+                // Noisy Futility Pruning
+                int noisyFPMargin = static_eval + 365 + 200 * depth;
+                if (!pvNode && !in_check && noisyFPMargin <= alpha) {
+                    continue;
+                }
+
                 struct copyposition copyPosition;
                 // preserve board state
                 copyBoard(pos, &copyPosition);
