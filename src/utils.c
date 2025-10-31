@@ -20,6 +20,19 @@ int clamp(const int d, const int min, const int max) {
     return t > max ? max : t;
 }
 
+double my_max_double(double x, double y) {
+    return (x > y) ? x : y;
+}
+
+double my_min_double(double x, double y) {
+    return (x < y) ? x : y;
+}
+
+double clamp_double(const double d, const double min, const double max) {
+    const double t = d < min ? min : d;
+    return t > max ? max : t;
+}
+
 
 void pBoard(board* position) {
     printf("\n");

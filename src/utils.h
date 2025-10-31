@@ -11,11 +11,11 @@
 
 int myMAX(int x, int y);
 int myMIN(int x, int y);
-
-int clamp(int d, int min, int max);
+double my_max_double(double x, double y);
+double my_min_double(double x, double y);
+double clamp_double(const double d, const double min, const double max);
 void pBoard(board* position);
 void printMailbox(const board *position);
 int clamp(const int d, const int min, const int max);
-double clampDecimalValue(double d, const double min, const double max);
 
 #endif //POTENTIAL_UTILS_H
