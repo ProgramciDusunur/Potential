@@ -14,8 +14,8 @@
 
 /*╔═══════════════════════════════╗
   ║ Static Exchange Evaluation    ║
-  ╚═══════════════════════════════╝*/
-  int SEE_PIECE_VALUES[] = {100, 300, 300, 500, 1200, 0, 0};
+  ╚═══════════════════════════════╝*/  
+  int SEE_PIECE_VALUES[] = {100, 300, 300, 500, 1200, 0, 0};  
   int QS_SEE_THRESHOLD = 0;
   int SEE_MOVE_ORDERING_THRESHOLD = -82;
   int SEE_QUIET_THRESHOLD = -67;
@@ -833,6 +833,17 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
         if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
             bestScore = myMAX(bestScore, futilityValue);
+            continue;
+        }
+
+        int captured_piece = 0;
+        bool is_move_promotion = getMovePromoted(move);
+
+        captured_piece = is_move_promotion ? is_move_promotion : position->mailbox[getMoveTarget(move)];
+        captured_piece = captured_piece > 5 ? captured_piece - 6 : captured_piece;
+
+        // Delta Pruning
+        if (evaluation + SEE_PIECE_VALUES[captured_piece] + 100 < alpha) {
             continue;
         }
         struct copyposition copyPosition;
