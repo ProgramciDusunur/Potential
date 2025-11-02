@@ -839,7 +839,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         int captured_piece = 0;
         bool is_move_promotion = getMovePromoted(move);
 
-        captured_piece = is_move_promotion ? is_move_promotion : position->mailbox[getMoveTarget(move)];
+        captured_piece = position->mailbox[getMoveTarget(move)];
         captured_piece = captured_piece > 5 ? captured_piece - 6 : captured_piece;
 
         // Delta Pruning
