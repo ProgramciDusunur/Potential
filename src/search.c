@@ -1169,15 +1169,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             sort_moves(capture_promos, tt_move, pos);
 
             for (int count = 0; count < capture_promos->count; count++) {
-                int move = capture_promos->moves[count];
-                int moveHistory = captureHistory[getMovePiece(move)][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
+                int move = capture_promos->moves[count];                
         
                 if (!SEE(pos, move, 100)) {
                     continue;
                 }
 
                 // Noisy Futility Pruning
-                int noisyFPMargin = static_eval + 200 + 200 * depth + moveHistory / 32;
+                int noisyFPMargin = static_eval + 164 + 100 * depth;
                 if (!pvNode && !in_check && noisyFPMargin <= alpha) {
                     continue;
                 }
