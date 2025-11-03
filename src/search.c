@@ -1158,7 +1158,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int legal_moves = 0;
 
     int probcut_beta = beta + 150 - 30 * improving;
-    if (!pvNode && !in_check && depth >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
+    if (!in_check && depth >= 5 && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1171,7 +1171,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             for (int count = 0; count < capture_promos->count; count++) {
                 int move = capture_promos->moves[count];  
         
-                if (!SEE(pos, move, 100)) {
+                if (!rootNode && !SEE(pos, move, 100)) {
                     continue;
                 }
 
@@ -1227,7 +1227,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int probcutBeta = beta + 350;
     
     // Small Probcut
-    if (!pos->isSingularMove[pos->ply] && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - 4 && tt_score >= probcutBeta &&
+    if (!pos->isSingularMove[pos->ply] && tt_flag == hashFlagAlpha && tt_depth >= depth - 4 && tt_score >= probcutBeta &&
         abs(tt_score) < mateScore && abs(beta) < mateScore) {
             return probcutBeta;            
     }
