@@ -1221,7 +1221,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
 
             if (probcut_value >= probcut_beta) {
-                probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, probcut_depth, pos, time, !cutNode);
+                int adjusted_probcut_depth = probcut_depth;
+
+                // If we are in a pv node then reduce less (generally scaler)
+                if (tt_pv) {
+                    adjusted_probcut_depth += 1;
+                }
+
+                probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, !cutNode);
             }
 
             // decrement ply
