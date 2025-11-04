@@ -73,7 +73,9 @@
   int PROBCUT_DEPTH_SUBTRACTOR = 4;
   int PROBCUT_IMPROVING_MARGIN = 30;
   int PROBCUT_SEE_NOISY_THRESHOLD = 100;
-  int PROBCUT_NOISY_HISTORY_DIVISOR = 10240;
+  int PROBCUT_NOISY_HISTORY_DIVISOR = 4096;
+  int PROBCUT_NOISY_HISTORY_DIVISOR_MIN_SCALER = 4096;
+  int PROBCUT_NOISY_HISTORY_DIVISOR_MAX_SCALER = 4096;
 
 
 /*╔═══════════════════╗
@@ -1226,8 +1228,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             if (probcut_value >= probcut_beta) {
                 int adjusted_probcut_depth = probcut_depth * 1024;
 
-                // Capture History based reduction
-                adjusted_probcut_depth -= move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
+                // Capture History based reduction                
+                int capthist_reduction = move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 1024;
+                adjusted_probcut_depth -= clamp(capthist_reduction, -PROBCUT_NOISY_HISTORY_DIVISOR_MIN_SCALER, PROBCUT_NOISY_HISTORY_DIVISOR_MAX_SCALER);
 
                 adjusted_probcut_depth /= 1024;
 
