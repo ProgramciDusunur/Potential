@@ -1222,7 +1222,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             if (probcut_value >= probcut_beta) {
                 int reduction = getLmrReduction(depth, legal_moves, false);
-                int adjusted_probcut_depth = probcut_depth - reduction;
+                int adjusted_probcut_depth = depth - reduction;
                 
                 probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, !cutNode);
             }
