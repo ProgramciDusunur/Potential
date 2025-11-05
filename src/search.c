@@ -1179,7 +1179,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
-            int probcut_depth = depth - PROBCUT_DEPTH_SUBTRACTOR;
+            int probcut_depth = myMAX(0, depth - PROBCUT_DEPTH_SUBTRACTOR);
 
             noisyGenerator(capture_promos, pos);
 
@@ -1229,7 +1229,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // Capture History based reduction
                 adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
 
-                adjusted_probcut_depth /= 1024;
+                adjusted_probcut_depth /= 1024;                
 
                 probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, !cutNode);
             }
