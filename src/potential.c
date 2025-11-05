@@ -30,6 +30,8 @@ void initAll(void) {
     initEvaluationMasks();
     // init Late Move Reduction Table
     initializeLMRTable();
+    // init Probcut Table
+    initializeProbcutTable();
     // init tranposition table
     init_hash_table(64);
     init_tables();

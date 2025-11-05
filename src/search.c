@@ -73,6 +73,11 @@
   int PROBCUT_DEPTH_SUBTRACTOR = 4;
   int PROBCUT_IMPROVING_MARGIN = 30;
   int PROBCUT_SEE_NOISY_THRESHOLD = 100;
+  int PROBCUT_TABLE[2][maxPly][maxPly];
+  double PROBCUT_TABLE_BASE_NOISY = 1.38;
+  double PROBCUT_TABLE_NOISY_DIVISOR = 2.16;
+  double PROBCUT_TABLE_BASE_QUIET = 1.01;
+  double PROBCUT_TABLE_QUIET_DIVISOR = 2.32;
 
 
 /*╔═══════════════════╗
@@ -181,6 +186,20 @@ void initializeLMRTable(void) {
             }
             LMR_TABLE[0][depth][moves] = LMR_TABLE_BASE_NOISY + log(depth) * log(moves) / LMR_TABLE_NOISY_DIVISOR; // noisy/tactical
             LMR_TABLE[1][depth][moves] = LMR_TABLE_BASE_QUIET + log(depth) * log(moves) / LMR_TABLE_QUIET_DIVISOR; // quiet
+        }
+    }
+}
+
+void initializeProbcutTable(void) {
+    for (int depth = 1; depth < maxPly; ++depth) {
+        for (int moves = 1; moves < maxPly; ++moves) {
+            if (moves == 0 || depth == 0) {
+                PROBCUT_TABLE[0][depth][moves] = 0;
+                PROBCUT_TABLE[1][depth][moves] = 0;
+                continue;
+            }
+            PROBCUT_TABLE[0][depth][moves] = PROBCUT_TABLE_BASE_NOISY + log(depth) * log(moves) / PROBCUT_TABLE_NOISY_DIVISOR; // noisy/tactical
+            PROBCUT_TABLE[1][depth][moves] = PROBCUT_TABLE_BASE_QUIET + log(depth) * log(moves) / PROBCUT_TABLE_QUIET_DIVISOR; // quiet
         }
     }
 }
@@ -413,6 +432,10 @@ void printMove(int move) {
 
 int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
     return LMR_TABLE[isQuiet][myMIN(63, myMAX(depth, 0))][myMIN(63, moveNumber)];
+}
+
+int getProbcutReduction(int depth, int moveNumber, bool isQuiet) {
+    return PROBCUT_TABLE[isQuiet][myMIN(63, myMAX(depth, 0))][myMIN(63, moveNumber)];
 }
 
 void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
@@ -1221,7 +1244,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
 
             if (probcut_value >= probcut_beta) {
-                int reduction = getLmrReduction(depth, legal_moves, false);
+                int reduction = getProbcutReduction(depth, legal_moves, false);
                 int adjusted_probcut_depth = depth - reduction;
                 
                 probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, !cutNode);
