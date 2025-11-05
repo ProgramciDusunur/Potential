@@ -1221,7 +1221,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
 
             if (probcut_value >= probcut_beta) {
-                probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, probcut_depth, pos, time, !cutNode);
+                int reduction = getLmrReduction(depth, legal_moves, false);
+                int adjusted_probcut_depth = probcut_depth - reduction;
+                
+                probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, !cutNode);
             }
 
             // decrement ply
