@@ -1229,7 +1229,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // Capture History based reduction
                 adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
 
-                adjusted_probcut_depth /= 1024;                
+                adjusted_probcut_depth /= 1024;
+                adjusted_probcut_depth = myMAX(1, adjusted_probcut_depth);
 
                 probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, !cutNode);
             }
