@@ -1179,7 +1179,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
-            int probcut_depth = myMAX(0, depth - PROBCUT_DEPTH_SUBTRACTOR);
+            int probcut_depth = depth - PROBCUT_DEPTH_SUBTRACTOR;
 
             noisyGenerator(capture_promos, pos);
 
