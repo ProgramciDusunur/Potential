@@ -1247,7 +1247,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 int reduction = getProbcutReduction(depth, legal_moves, false);
 
                 if (improving) {
-                    reduction += 1;
+                    reduction -= 1;
                 }
                 
 
