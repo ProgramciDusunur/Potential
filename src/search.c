@@ -1249,9 +1249,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 int reduction = getProbcutReduction(depth, legal_moves, false);
                 int adjusted_probcut_depth = depth - reduction;
 
-                if (enemy_has_no_threats && ttAdjustedEval - 365 >= beta + 30) {
-                    reduction += 1;
-                }
+                reduction += myMIN(3, (ttAdjustedEval - beta) / 365) * enemy_has_no_threats;
 
                 adjusted_probcut_depth = myMAX(1, myMIN(adjusted_probcut_depth, depth));
                 
