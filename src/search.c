@@ -839,7 +839,10 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     // legal moves counter
     int moves_played = 0;
 
-    int previous_move_target_square = getMoveTarget(position->move[myMAX(0, position->ply - 1)]);
+    int previous_move = position->move[myMAX(0, position->ply - 1)];
+    previous_move = getMoveCapture(previous_move) ? previous_move : 0;
+    
+    int previous_move_target_square = getMoveTarget(previous_move);
 
 
     // loop over moves within a movelist
