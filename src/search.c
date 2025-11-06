@@ -74,8 +74,8 @@
   int PROBCUT_IMPROVING_MARGIN = 30;
   int PROBCUT_SEE_NOISY_THRESHOLD = 100;
   int PROBCUT_TABLE[2][maxPly][maxPly];
-  double PROBCUT_TABLE_BASE_NOISY = 3.75;
-  double PROBCUT_TABLE_NOISY_DIVISOR = 1.5;
+  double PROBCUT_TABLE_BASE_NOISY = 3.5;
+  double PROBCUT_TABLE_NOISY_DIVISOR = 1.25;
   double PROBCUT_TABLE_BASE_QUIET = 1.01;
   double PROBCUT_TABLE_QUIET_DIVISOR = 2.32;
 
@@ -1245,6 +1245,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             if (probcut_value >= probcut_beta) {
                 int reduction = getProbcutReduction(depth, legal_moves, false);
+
+                if (improving) {
+                    reduction += 1;
+                }
+                
+
                 int adjusted_probcut_depth = depth - reduction;
 
                 adjusted_probcut_depth = myMAX(1, myMIN(adjusted_probcut_depth, depth));
