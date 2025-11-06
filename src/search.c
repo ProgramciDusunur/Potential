@@ -839,6 +839,8 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     // legal moves counter
     int moves_played = 0;
 
+    int previous_move_target_square = getMoveTarget(position->move[myMAX(0, position->ply - 1)]);
+
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
@@ -857,7 +859,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
         bool isNotMated = bestScore > -mateScore;
         // QS Late Move Pruning
-        if (isNotMated && moves_played >= 3) {
+        if (isNotMated && moves_played >= 3 && getMoveTarget(move) != previous_move_target_square){
             break;
         }
 
