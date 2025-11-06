@@ -1048,24 +1048,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
          (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
 
         ttAdjustedEval = tt_score;
-    }
-
-    // ╔═══════════════════════════╗
-    // ║            /\             ║
-    // ║           /  \            ║
-    // ║         <SCALER>          ║
-    // ║           \  /            ║
-    // ║            \/             ║
-    // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
-    // ║    Scaling STC / LTC      ║
-    // ║   STC: -2.28  +-  6.28    ║
-    // ║   LTC:  9.15  +-  5.46    ║
-    // ╚═══════════════════════════╝
-
-    // ~~~~ Corrplexity Extension ~~~~ //
-    if (rootNode && corrplexity && ttAdjustedEval != static_eval && abs(tt_score) < mateScore) {
-        depth++;
-    }
+    }   
 
     improving |= pos->staticEval[pos->ply] >= beta + 100;
 
