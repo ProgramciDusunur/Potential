@@ -1193,6 +1193,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
     }
 
+    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
+
     // legal moves counter
     int legal_moves = 0;
 
@@ -1247,6 +1249,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 int reduction = getProbcutReduction(depth, legal_moves, false);
                 int adjusted_probcut_depth = depth - reduction;
 
+                if (enemy_has_no_threats && ttAdjustedEval - 365 >= beta + 30) {
+                    reduction += 1;
+                }
+
                 adjusted_probcut_depth = myMAX(1, myMIN(adjusted_probcut_depth, depth));
                 
                 probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, !cutNode);
@@ -1274,9 +1280,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     if (!pos->isSingularMove[pos->ply] && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
         tt_score >= small_probcut_beta && abs(tt_score) < mateScore && abs(beta) < mateScore) {
             return small_probcut_beta;            
-    }
-
-    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
+    }    
 
 
     // create move list instance
