@@ -73,6 +73,7 @@
   int PROBCUT_DEPTH_SUBTRACTOR = 4;
   int PROBCUT_IMPROVING_MARGIN = 30;
   int PROBCUT_SEE_NOISY_THRESHOLD = 100;
+  int PROBCUT_NOISY_HISTORY_DIVISOR = 10240;
 
 
 /*╔═══════════════════╗
@@ -1185,9 +1186,17 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             sort_moves(capture_promos, tt_move, pos);
 
             for (int count = 0; count < capture_promos->count; count++) {
-                int move = capture_promos->moves[count];  
+                int move = capture_promos->moves[count];
+                int move_history =
+                captureHistory[getMovePiece(move)][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
         
                 if (!SEE(pos, move, PROBCUT_SEE_NOISY_THRESHOLD)) {
+                    continue;
+                }
+
+                // Noisy Futility Pruning
+                int noisyFPMargin = static_eval + 164 + 100 * depth;
+                if (!pvNode && !in_check && noisyFPMargin <= alpha) {
                     continue;
                 }
 
@@ -1221,7 +1230,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
 
             if (probcut_value >= probcut_beta) {
-                probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, probcut_depth, pos, time, !cutNode);
+                int adjusted_probcut_depth = probcut_depth * 1024;
+
+                // Capture History based reduction
+                adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
+
+                adjusted_probcut_depth /= 1024;
+
+                probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, !cutNode);
             }
 
             // decrement ply
