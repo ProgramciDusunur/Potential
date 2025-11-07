@@ -1494,12 +1494,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
-            int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
-            lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
+            int moveHistoryReduction = moveHistory * 1024 / QUIET_HISTORY_LMR_DIVISOR;
+            lmrReduction -= clamp(moveHistoryReduction, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
 
             // pawn history based reduction, same logic as the quiet history
-            int pawnHistoryReduction = pawnHistoryValue / PAWN_HISTORY_LMR_DIVISOR;            
-            lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALER, PAWN_HISTORY_LMR_MAXIMUM_SCALER);
+            int pawnHistoryReduction = pawnHistoryValue * 1024 / PAWN_HISTORY_LMR_DIVISOR;            
+            lmrReduction -= clamp(pawnHistoryReduction, -PAWN_HISTORY_LMR_MINIMUM_SCALER, PAWN_HISTORY_LMR_MAXIMUM_SCALER);
         }
         // Noisy Moves
         else { 
