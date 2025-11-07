@@ -837,7 +837,12 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     int futilityValue = bestScore + 100;
 
     // legal moves counter
-    //int legal_moves = 0;
+    int moves_played = 0;
+
+    int previous_move = position->move[myMAX(0, position->ply - 1)];
+    previous_move = getMoveCapture(previous_move) ? previous_move : 0;
+    
+    int previous_move_target_square = getMoveTarget(previous_move);
 
 
     // loop over moves within a movelist
@@ -851,6 +856,13 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
             bestScore = myMAX(bestScore, futilityValue);
             continue;
         }
+
+        bool isNotMated = bestScore > -mateScore;
+        // QS Late Move Pruning
+        if (isNotMated && moves_played >= 2 && getMoveTarget(move) != previous_move_target_square){
+            break;
+        }
+
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
@@ -874,7 +886,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
             continue;
         }
 
-        //legal_moves++;
+        moves_played++;
 
         // increment nodes count
         searchNodes++;
