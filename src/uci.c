@@ -5,7 +5,7 @@
 #include "uci.h"
 #include "perft.h"
 
-#define VERSION "3.5.20"
+#define VERSION "3.6.20"
 #define BENCH_DEPTH 13
 
 double DEF_TIME_MULTIPLIER = 0.054;
@@ -471,6 +471,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             memset(MAJOR_CORRECTION_HISTORY, 0, sizeof(MAJOR_CORRECTION_HISTORY));
             memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
             memset(contCorrhist, 0, sizeof(contCorrhist));
+            memset(captureConthist, 0, sizeof(captureConthist));
 
             // call parse position function
             parse_position("position startpos", position);

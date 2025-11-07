@@ -258,6 +258,8 @@ int scoreMove(int move, board* position) {
 
         captureScore += recapture_bonus;
 
+        captureScore += getCaptureConthistScore(position, 1, move);
+
         return captureScore;
 
     }
@@ -1605,6 +1607,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                         
                     } else { // noisy moves
                         updateCaptureHistory(pos, bestMove, depth);
+                        updateCaptureConthist(pos, bestMove, depth, noisyMoves);
                     }
 
                     // always penalize bad noisy moves
