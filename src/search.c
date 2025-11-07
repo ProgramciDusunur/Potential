@@ -860,7 +860,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         bool isNotMated = bestScore > -mateScore;
         // QS Late Move Pruning
         if (isNotMated && moves_played >= 2 && getMoveTarget(move) != previous_move_target_square){
-            break;
+            continue;
         }
 
         struct copyposition copyPosition;
