@@ -162,10 +162,14 @@ void updateAllCCH(board *pos, int move, int bonus) {
     updateSingleCCHScore(pos, move, 1, bonus);    
 }
 
-void updateCaptureConthist(board *pos, int bestMove, int depth, moves *noisyMoves) {
+void updateCaptureConthist(board *pos, int bestMove, int depth) {
     int bonus = getHistoryBonus(depth);
 
-    updateAllCCH(pos, bestMove, bonus);
+    updateAllCCH(pos, bestMove, bonus);   
+}
+
+void updateCaptureConthistMalus(board *pos, int depth, moves *noisyMoves, int bestMove) {
+    int bonus = getHistoryBonus(depth);
 
     for (int index = 0; index < noisyMoves->count; index++) {
         if (noisyMoves->moves[index] == bestMove) continue;

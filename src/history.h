@@ -44,7 +44,8 @@ void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus
 void updateAllCH(board *pos, int move, int bonus);
 int getHistoryBonus(int depth);
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets);
-void updateCaptureConthist(board *pos, int bestMove, int depth, moves *noisyMoves);
+void updateCaptureConthist(board *pos, int bestMove, int depth);
+void updateCaptureConthistMalus(board *pos, int depth, moves *noisyMoves, int bestMove);
 int getContinuationHistoryScore(board *pos, int offSet, int move);
 int getCaptureConthistScore(board *pos, int offSet, int move);
 void updateCaptureHistory(board *position, int bestMove, int depth);

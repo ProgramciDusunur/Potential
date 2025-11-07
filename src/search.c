@@ -1607,11 +1607,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                         
                     } else { // noisy moves
                         updateCaptureHistory(pos, bestMove, depth);
-                        updateCaptureConthist(pos, bestMove, depth, noisyMoves);
+                        updateCaptureConthist(pos, bestMove, depth);
                     }
 
                     // always penalize bad noisy moves
                     updateCaptureHistoryMalus(pos, depth, noisyMoves, bestMove);
+                    updateCaptureConthistMalus(pos, depth, noisyMoves, bestMove);
 
                     // node (move) fails high
                     break;
