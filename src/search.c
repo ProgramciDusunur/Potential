@@ -1142,12 +1142,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }            
 
              // Skip verification if null move score is much above beta (scaled by depth)
-            if (score >= beta + depth && pos->nmrSearch) {
+            if (pos->nmrSearch) {
                 return score;
             }
 
             // Null-move reduction
-            int nmr_reduction = 2 + depth / 3;           
+            int nmr_reduction = 2 + depth / 3;
+            nmr_reduction += myMIN((ttAdjustedEval - beta) / NMP_EVAL_DIVISOR, 2);
             
             pos->nmrSearch = true;
             int nmr_score = negamax(alpha, beta, depth - nmr_reduction, pos, time, false);
