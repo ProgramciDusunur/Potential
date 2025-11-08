@@ -1603,14 +1603,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                         pos->killerMoves[pos->ply][0] = bestMove;
                         updateQuietMoveHistory(bestMove, pos->side, depth + history_bonus, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, depth + history_bonus, badQuiets);
-                        updatePawnHistory(pos, bestMove, depth + history_bonus, badQuiets);                       
+                        updatePawnHistory(pos, bestMove, depth, badQuiets);                       
                         
                     } else { // noisy moves
-                        updateCaptureHistory(pos, bestMove, depth + history_bonus);
+                        updateCaptureHistory(pos, bestMove, depth);
                     }
 
                     // always penalize bad noisy moves
-                    updateCaptureHistoryMalus(pos, depth + history_bonus, noisyMoves, bestMove);
+                    updateCaptureHistoryMalus(pos, depth, noisyMoves, bestMove);
 
                     // node (move) fails high
                     break;
