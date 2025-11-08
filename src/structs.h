@@ -36,7 +36,7 @@ typedef struct {
     int ply;
     int seldepth;
     uint8_t rootDepth;
-    int nmpPly;
+    bool nmrSearch;    
 
     U64 repetitionTable[1000];
     int repetitionIndex;

@@ -1084,8 +1084,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // Null Move Pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
-            ttAdjustedEval >= beta + 30 &&
-            pos->ply >= pos->nmpPly &&
+            ttAdjustedEval >= beta + 30 &&            
             !justPawns(pos)) {
         struct copyposition copyPosition;
         // preserve board state
@@ -1142,22 +1141,22 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 score = beta;
             }
 
-            if (pos->nmpPly || depth < 15) {
+            if (depth < 15) {
                 return score;
             }
 
              // Skip verification if null move score is much above beta (scaled by depth)
-            if (score >= beta + depth) {
+            if (score >= beta + depth && pos->nmrSearch) {
                 return score;
             }
-                
-            pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
-            int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, false);
-            pos->nmpPly = 0;
 
-            if (verificationScore >= beta) {
-                return score;
-            }
+            // Null-move reduction
+            int nmr_reduction = 1;
+            pos->nmrSearch = true;
+            int nmr_score = -negamax(-beta, -alpha, depth - nmr_reduction, pos, time, false);
+            return nmr_score;
+            pos->nmrSearch = false;
+            
         }
     }    
 

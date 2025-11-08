@@ -380,7 +380,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
     //board *position = (board *)malloc(sizeof(board));
 
     position->ply = 0;
-    position->nmpPly = 0;
+    position->nmrSearch = false;
 
 
     for (int i = 0; i < 64;i++) {
