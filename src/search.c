@@ -1147,12 +1147,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
 
             // Null-move reduction
-            int nmr_reduction = 2 + depth / 6;
-
-            // Reduce less on tt pv nodes
-            if (tt_pv) {
-                nmr_reduction -= 1;
-            }
+            int nmr_reduction = 2 + depth / 3;           
             
             pos->nmrSearch = true;
             int nmr_score = negamax(alpha, beta, depth - nmr_reduction, pos, time, false);
