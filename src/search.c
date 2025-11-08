@@ -1151,9 +1151,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             pos->nmrSearch = true;
             int nmr_score = negamax(alpha, beta, depth - nmr_reduction, pos, time, false);
             pos->nmrSearch = false;
-            return nmr_score;
-            
-            
+            return nmr_score;                        
         }
     }    
 
