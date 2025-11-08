@@ -1139,23 +1139,20 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // if there is any unproven mate don't return but we can still return beta
             if (score > mateScore) {
                 score = beta;
-            }
-
-            if (depth < 15) {
-                return score;
-            }
+            }            
 
              // Skip verification if null move score is much above beta (scaled by depth)
-            if (score >= beta + depth && pos->nmrSearch) {
+            if (pos->nmrSearch) {
                 return score;
             }
 
             // Null-move reduction
-            int nmr_reduction = 1;
+            int nmr_reduction = 2;
             pos->nmrSearch = true;
-            int nmr_score = -negamax(-beta, -alpha, depth - nmr_reduction, pos, time, false);
-            return nmr_score;
+            int nmr_score = negamax(alpha, beta, depth - nmr_reduction, pos, time, false);
             pos->nmrSearch = false;
+            return nmr_score;
+            
             
         }
     }    
