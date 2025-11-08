@@ -73,6 +73,7 @@
   int PROBCUT_DEPTH_SUBTRACTOR = 4;
   int PROBCUT_IMPROVING_MARGIN = 30;
   int PROBCUT_SEE_NOISY_THRESHOLD = 100;
+  int PROBCUT_NO_THREATS_MARGIN = 50;
 
 
 /*╔═══════════════════╗
@@ -1170,10 +1171,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
     }
 
+    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
+
     // legal moves counter
     int legal_moves = 0;
 
-    int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
+    int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving - (enemy_has_no_threats * PROBCUT_NO_THREATS_MARGIN);
     if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
@@ -1247,9 +1250,6 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         tt_score >= small_probcut_beta && abs(tt_score) < mateScore && abs(beta) < mateScore) {
             return small_probcut_beta;            
     }
-
-    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
-
 
     // create move list instance
     moves moveList[1], badQuiets[1], noisyMoves[1];
