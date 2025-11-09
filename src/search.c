@@ -1000,8 +1000,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
                 ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
-                return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
-                                          tt_score;
+
+                    int16_t adjusted_tt_score = tt_score >= beta ? 
+                            (tt_score * 3 + beta) / 4 : tt_score;
+
+                    if (depth <= 7 || !tt_move) {
+                        return adjusted_tt_score;
+                    }                    
+
             }
         }
     }
