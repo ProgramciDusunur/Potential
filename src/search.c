@@ -1163,9 +1163,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // Null-move reduction
             int nmr_reduction = 3 + depth / 3;
 
-            // reduce more on cut-nodes
-            if (cutNode) {
-                nmr_reduction += 1;
+            // reduce less on failed high tt pv nodes
+            if (tt_pv && tt_hit && tt_score >= beta + 30) {
+                nmr_reduction -= 1;
             }
 
             pos->nmrSearch = true;
