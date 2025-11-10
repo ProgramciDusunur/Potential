@@ -1161,7 +1161,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
 
             // Null-move reduction
-            int nmr_reduction = 3 + depth / 6;
+            int nmr_reduction = 3 + depth / 3;
+
+            // reduce more on cut-nodes
+            if (cutNode) {
+                nmr_reduction += 1;
+            }
 
             pos->nmrSearch = true;
             int nmr_score = negamax(alpha, beta, depth - nmr_reduction, pos, time, false);
