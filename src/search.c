@@ -1212,48 +1212,48 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                 // make sure to make only legal moves
                 if (makeMove(capture_promos->moves[count], allMoves, pos) == 0) {
+                    // decrement ply
+                    pos->ply--;
+
+                    // decrement repetition index
+                    pos->repetitionIndex--;
+
+                    // skip to next move
+                    continue;
+                }
+
+                prefetch_hash_entry(pos->hashKey);
+                searchNodes++;
+                legal_moves++;
+
+
+                int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
+
+                if (probcut_value >= probcut_beta) {
+                    int adjusted_probcut_depth = probcut_depth * 1024;
+
+                    // Capture History based reduction
+                    adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
+
+                    adjusted_probcut_depth /= 1024;
+
+                    probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, !cutNode);
+                }
+
                 // decrement ply
                 pos->ply--;
 
                 // decrement repetition index
                 pos->repetitionIndex--;
 
-                // skip to next move
-                continue;
+                // take move back
+                takeBack(pos, &copyPosition);
+
+                if (probcut_value >= probcut_beta) {
+                    writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos);
+                    return probcut_value;
+                }
             }
-
-            prefetch_hash_entry(pos->hashKey);
-            searchNodes++;
-            legal_moves++;
-
-
-            int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
-
-            if (probcut_value >= probcut_beta) {
-                int adjusted_probcut_depth = probcut_depth * 1024;
-
-                // Capture History based reduction
-                adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
-
-                adjusted_probcut_depth /= 1024;
-
-                probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, !cutNode);
-            }
-
-            // decrement ply
-            pos->ply--;
-
-            // decrement repetition index
-            pos->repetitionIndex--;
-
-            // take move back
-            takeBack(pos, &copyPosition);
-
-            if (probcut_value >= probcut_beta) {
-                writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos);
-                return probcut_value;
-            }
-        }
     }
 
     int small_probcut_beta = beta + SPROBCUT_BETA_MARGIN;
