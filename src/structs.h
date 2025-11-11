@@ -54,6 +54,7 @@ typedef struct {
 
     uint16_t piece[maxPly];
     int move[maxPly];
+    U64 nodes_searched;
 
     bool benchmark;
 
@@ -140,6 +141,9 @@ typedef struct {
     uint32_t baseSoft;
 
     uint32_t maxTime;
+    
+    uint32_t node_limit;
+    bool isNodeLimit;
 
     // UCI "stoptime" command time holder
     int stoptime;

@@ -78,7 +78,7 @@ void benchmark(int depth, board* position, my_time* time) {
         //clear static eval history
         clearStaticEvaluationHistory(position);
 
-        totalNodes += searchNodes;
+        totalNodes += position->nodes_searched;
         //printf("position: %s\n", benchmarkfens[i]);
     }
     int benchFinishTime = getTimeMiliSecond() - benchStartTime;

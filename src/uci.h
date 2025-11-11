@@ -22,6 +22,7 @@
 #endif
 
 void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl);
+void check_node_limit(my_time* time, board *pos);
 int parse_move(char *move_string, board* position);
 void parse_position(char *command, board* position);
 void goCommand(char *command, board* position, my_time* time);

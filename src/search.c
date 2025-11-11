@@ -149,10 +149,7 @@
   int ASP_WINDOW_MIN_DEPTH = 4;
   double ASP_WINDOW_MULTIPLIER = 1.8;
 
-  uint64_t nodes_spent_table[4096] = {0};
-
-
-  U64 searchNodes = 0;
+  uint64_t nodes_spent_table[4096] = {0};  
 
 
 
@@ -741,12 +738,12 @@ uint8_t isMaterialDraw(board *pos) {
     return 0;
 }
 
-void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, int move, double complexity) {
+void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, int move, double complexity, board* pos) {
     double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
     double complexityScale = my_max_double(0.77 + clamp_double(complexity, 0.0, 200.0) / 400.0, 1.0);
     double not_bm_nodes_fraction = 
-       (double)nodes_spent_table[move & 4095] / (double)searchNodes;
+       (double)nodes_spent_table[move & 4095] / (double)pos->nodes_searched;
     double node_scaling_factor = (1.5f - not_bm_nodes_fraction) * 1.35f;
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
@@ -757,13 +754,17 @@ bool has_enemy_any_threat(board *pos) {
     return (pos->occupancies[pos->side] & pos->pieceThreats.stmThreats[pos->side ^ 1]) != 0;
 }
 
-int get_draw_score() {
-    return (searchNodes & 3) - 2; // Randomize between -2 and +2
+int get_draw_score(board *pos) {
+    return (pos->nodes_searched & 3) - 2; // Randomize between -2 and +2
 }
 
 // quiescence search
 int quiescence(int alpha, int beta, board* position, my_time* time) {
-    if ((searchNodes & 2047) == 0) {
+    if (time->isNodeLimit) {
+        check_node_limit(time, position);
+    }
+
+    if ((position->nodes_searched & 2047) == 0) {
         communicate(time, position);
     }
 
@@ -878,7 +879,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         //legal_moves++;
 
         // increment nodes count
-        searchNodes++;
+        position->nodes_searched++;
 
         prefetch_hash_entry(position->hashKey);
 
@@ -933,9 +934,13 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
 // negamax alpha beta search
 int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutNode) {
-    if ((searchNodes & 2047) == 0) {
-        communicate(time, pos);
+    if (time->isNodeLimit) {
+        check_node_limit(time, pos);
     }
+    
+    if ((pos->nodes_searched & 2047) == 0) {
+        communicate(time, pos);
+    }    
 
     if (pos->ply > maxPly - 1) {
         // evaluate position
@@ -974,14 +979,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                                     pos->side ^ 1, pos);
         if (!in_check) {
             // return draw by fifty-move rule
-            return get_draw_score();
+            return get_draw_score(pos);
         }       
     }
 
     if (!rootNode) {
 
         if (isRepetition(pos) || isMaterialDraw(pos)) {
-            return get_draw_score();
+            return get_draw_score(pos);
         }        
 
 
@@ -1223,7 +1228,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
 
                 prefetch_hash_entry(pos->hashKey);
-                searchNodes++;
+                pos->nodes_searched++;
                 legal_moves++;
 
 
@@ -1456,7 +1461,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
         // increment nodes count
-        searchNodes++;
+        pos->nodes_searched++;
 
         prefetch_hash_entry(pos->hashKey);
 
@@ -1474,7 +1479,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             addMoveToHistoryList(noisyMoves, currentMove);
         }
 
-        uint64_t nodes_before_search = searchNodes;
+        uint64_t nodes_before_search = pos->nodes_searched;
 
         int new_depth = depth - 1 + extensions;
 
@@ -1578,7 +1583,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         takeBack(pos, &copyPosition);
 
         if (rootNode) {
-            nodes_spent_table[currentMove & 4095] += searchNodes - nodes_before_search;
+            nodes_spent_table[currentMove & 4095] += pos->nodes_searched - nodes_before_search;
         }
 
         if (time->stopped == 1) return 0;
@@ -1643,7 +1648,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // king is not in check
         else
             // return stalemate score
-            return get_draw_score();
+            return get_draw_score(pos);
     }
 
     if (!pos->isSingularMove[pos->ply]) {
@@ -1683,7 +1688,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
     time->stopped = 0;
 
     // reset nodes counter
-    searchNodes = 0;
+    position->nodes_searched = 0;
 
     // reset follow PV flags
     position->followPv = 0;
@@ -1711,6 +1716,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
+        //printf("Node limit: %llu\n", time->isNodeLimit ? time->node_limit : 0);
         if (time->stopped == 1) {
             break;
         }
@@ -1728,7 +1734,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
         int startTime = getTimeMiliSecond();
 
-        if (time->timeset && startTime >= time->softLimit && position->pvTable[0][0] != 0) {
+        if ((time->timeset && startTime >= time->softLimit && position->pvTable[0][0] != 0) || (time->isNodeLimit && position->nodes_searched >= time->node_limit)) {
             time->stopped = 1;
         }
 
@@ -1737,7 +1743,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
         while (true) {
 
-            if (time->timeset && startTime >= time->softLimit && position->pvTable[0][0] != 0) {
+            if ((time->timeset && (startTime >= time->softLimit) && position->pvTable[0][0] != 0) || (time->isNodeLimit && position->nodes_searched >= time->node_limit)) {
                 time->stopped = 1;
             }
 
@@ -1809,28 +1815,28 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
         }
 
         if (time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0], complexity);
+            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0], complexity, position);
         }
         
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
 
         if (position->pvLength[0] && !benchmark) {
-            unsigned long long nps = (totalTime > 0) ? (searchNodes * 1000) / totalTime : 0;
+            unsigned long long nps = (totalTime > 0) ? (position->nodes_searched * 1000) / totalTime : 0;
 
             printf("info depth %d seldepth %d ", current_depth, position->seldepth);
 
             if (score > -mateValue && score < -mateScore)
                 printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
                        -(score + mateValue) / 2 - 1,
-                       searchNodes, nps, hash_full(), totalTime);
+                       position->nodes_searched, nps, hash_full(), totalTime);
             else if (score > mateScore && score < mateValue)
                 printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
                        (mateValue - score) / 2 + 1,
-                       searchNodes, nps, hash_full(), totalTime);
+                       position->nodes_searched, nps, hash_full(), totalTime);
             else
                 printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
-                       score, searchNodes, nps, hash_full(), totalTime);
+                       score, position->nodes_searched, nps, hash_full(), totalTime);
 
             // loop over the moves within a PV line
             for (int count = 0; count < position->pvLength[0]; count++) {

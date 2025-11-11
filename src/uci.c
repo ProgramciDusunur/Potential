@@ -203,6 +203,13 @@ void goCommand(char *command, board* position, my_time* time) {
         depth = atoi(argument + 6);
     }
 
+    // match UCI "nodes" command
+    if ((argument = strstr(command, "nodes"))) {        
+        time->node_limit = atoi(argument + 6);
+        depth = maxPly;
+        time->isNodeLimit = true;
+    }
+
 
 
 
@@ -368,11 +375,17 @@ void read_input(my_time* time, board* pos) {
 
 void communicate(my_time* time, board *pos) {
     // if time is up break here
-    if (time->timeset == 1 && getTimeMiliSecond() > time->hardLimit && pos->pvTable[0][0] != 0) {
+    if (time->timeset == 1 && (getTimeMiliSecond() > time->hardLimit) && pos->pvTable[0][0] != 0) {
         // tell engine to stop calculating
         time->stopped = 1;
     }
     read_input(time, pos);
+}
+
+void check_node_limit(my_time* time, board *pos) {
+    if (pos->nodes_searched >= time->node_limit) {
+        time->stopped = 1;
+    }
 }
 
 
