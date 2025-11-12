@@ -1353,6 +1353,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
+        
+        int previous_move_target_square = getMoveTarget(pos->move[myMAX(0, pos->ply - 1)]);
+
         int extensions = 0;
 
         // Singular Extensions
@@ -1422,11 +1425,16 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
-            }            
+            }
 
             // Negative Extensions
             else if (tt_score >= beta) {
                 extensions -= 2 + !pvNode;
+            }
+
+            // Recapture Extension
+            else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
+                extensions += 1;
             }
             
             // Cut Node Extension
