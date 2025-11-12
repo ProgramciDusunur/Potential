@@ -338,8 +338,17 @@ int quiescenceScoreMove(int move, board* position) {
             }
         }
 
+        int previous_move_target_square = getMoveTarget(position->move[myMAX(0, position->ply - 1)]);
+        int recapture_bonus = getMoveTarget(move) == previous_move_target_square ? 200000 : 0;
+
+        int capture_score = 0;
+
+        capture_score += recapture_bonus;
+        capture_score += mvvLva[getMovePiece(move)][target_piece] + 1000000000;
+
+
         // score move by MVV LVA lookup [source piece][target piece]
-        return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
+        return capture_score;
     }
 
     return 0;
