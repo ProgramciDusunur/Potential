@@ -424,8 +424,16 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
     printf("Potential %s by Eren Araz\n", VERSION); 
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
+        uint64_t how_many_fens_to_generate = 0;
         printf("bench running..\n");
         benchmark(BENCH_DEPTH, position, time_ctrl);
+        printf("\n");
+        fflush(NULL);
+        return;
+    }
+
+    if (argc >= 2 && strncmp(argv[1], "genfens", 5) == 0) {
+        printf("Generating FENs.. \n");
         printf("\n");
         fflush(NULL);
         return;
