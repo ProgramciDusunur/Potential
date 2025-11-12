@@ -26,8 +26,6 @@ extern int CORRHIST_GRAIN;
 extern int CORRHIST_SIZE;
 extern int CORRHIST_MAX;
 
-extern U64 searchNodes;
-
 extern int LMR_TABLE[2][maxPly][maxPly];
 extern int counterMoves[2][maxPly][maxPly];
 extern int PAWN_CORRECTION_HISTORY[2][16384];
