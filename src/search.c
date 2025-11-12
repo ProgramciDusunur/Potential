@@ -338,8 +338,16 @@ int quiescenceScoreMove(int move, board* position) {
             }
         }
 
+        int previous_move_target_square = getMoveTarget(position->move[myMAX(0, position->ply - 1)]);
+        int recapture_bonus = getMoveTarget(move) == previous_move_target_square ? 200000 : 0;
+
+        int capture_score = 0;
+
+        capture_score += recapture_bonus;
+        capture_score += mvvLva[getMovePiece(move)][target_piece] + 1000000000;
+
         // score move by MVV LVA lookup [source piece][target piece]
-        return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
+        return capture_score;
     }
 
     return 0;
@@ -1353,6 +1361,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
+        int previous_move_target_square = getMoveTarget(pos->move[myMAX(0, pos->ply - 1)]);
+
         int extensions = 0;
 
         // Singular Extensions
@@ -1427,6 +1437,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // Negative Extensions
             else if (tt_score >= beta) {
                 extensions -= 2 + !pvNode;
+            }
+
+            // Recapture Extension
+            else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
+                extensions += 1;
             }
             
             // Cut Node Extension
