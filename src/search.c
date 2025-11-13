@@ -1152,18 +1152,28 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 return score;
             }
 
-             // Skip verification if null move score is much above beta (scaled by depth)
-            if (score >= beta + depth) {
-                return score;
-            }
+            if (pos->nmrSearch) {
+                // Skip verification if null move score is much above beta (scaled by depth)
+                if (score >= beta + depth) {
+                    return score;
+                }
                 
-            pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
-            int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, false);
-            pos->nmpPly = 0;
+                pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
+                int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, false);
+                pos->nmpPly = 0;
 
-            if (verificationScore >= beta) {
-                return score;
-            }
+                if (verificationScore >= beta) {
+                    return score;
+                }
+            }            
+
+            // Null-move reduction
+            int nmr_reduction = 2 + depth / 3;
+
+            pos->nmrSearch = true;
+            int nmr_score = negamax(alpha, beta, depth - nmr_reduction, pos, time, false);
+            pos->nmrSearch = false;
+            return nmr_score;
         }
     }    
 
