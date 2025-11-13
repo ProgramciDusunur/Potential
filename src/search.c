@@ -261,11 +261,6 @@ int scoreMove(int move, board* position) {
     }
         // score quiet move
     else {
-
-        // score 1st killer move
-        if (position->killerMoves[position->ply][0] == move)
-            return 900000000;
-                   
         return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)][is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))]  +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
@@ -1617,9 +1612,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
-                    if (notTactical) {
-                        // store killer moves
-                        pos->killerMoves[pos->ply][0] = bestMove;
+                    if (notTactical) {                        
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);                       
@@ -1693,8 +1686,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
     // reset follow PV flags
     position->followPv = 0;
     position->scorePv = 0;
-
-    memset(position->killerMoves, 0, sizeof(position->killerMoves));
+    
     memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
