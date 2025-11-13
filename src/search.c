@@ -189,9 +189,9 @@ void initializeLMRTable(void) {
 
     1. TT Move
     2. PV Moves
-    2. Captures in MVV/LVA / SEE
-    3. 1st killer move    
-    5. History moves / Root History / Continuation History
+    3. Promotion Moves
+    4. Captures in MVV/LVA / SEE / Capture History / Recapture Bonus    
+    5. Quiet History / Continuation History / Pawn History
 */
 
 // score moves
