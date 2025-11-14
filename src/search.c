@@ -74,6 +74,7 @@
   int PROBCUT_IMPROVING_MARGIN = 30;
   int PROBCUT_SEE_NOISY_THRESHOLD = 100;
   int PROBCUT_NOISY_HISTORY_DIVISOR = 10240;
+  int PROBCUT_CUT_NODE_SCALER = 1024;
 
 
 /*╔═══════════════════╗
@@ -1219,6 +1220,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                     // Capture History based reduction
                     adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
+
+                    adjusted_probcut_depth -= cutNode * PROBCUT_CUT_NODE_SCALER;
 
                     adjusted_probcut_depth /= 1024;
 
