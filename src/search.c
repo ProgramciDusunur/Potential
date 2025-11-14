@@ -1715,8 +1715,8 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             time->stopped = 1;
         }
 
-        int window = ASP_WINDOW_BASE;
-        int aspirationWindowDepth = current_depth;
+        int window = ASP_WINDOW_BASE;        
+        int failHighReduction = 0;
 
         while (true) {
 
@@ -1727,6 +1727,8 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             if (time->stopped == 1) {
                 break;
             }
+
+            int aspirationWindowDepth = current_depth - failHighReduction;
 
             if (current_depth >= ASP_WINDOW_MIN_DEPTH) {
                 alpha = myMAX(-infinity, score - window);
@@ -1748,12 +1750,16 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             if (score <= alpha) {
                 alpha = myMAX(-infinity, alpha - window);
                 aspirationWindowDepth = current_depth;
+                failHighReduction = 0;
             }
 
             else if (score >= beta) {
                 int exceed = score - beta;
 
                 beta = myMIN(infinity, beta + window);
+                if (failHighReduction < 3) {
+                    failHighReduction++;
+                }
                 aspirationWindowDepth = myMAX(aspirationWindowDepth - 1, current_depth - 5);
 
                 // If we failed high significantly (at least delta), increase delta more
