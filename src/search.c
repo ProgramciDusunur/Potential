@@ -1222,7 +1222,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                     adjusted_probcut_depth /= 1024;
 
-                    probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, !cutNode);
+                    int probcut_reduction = myMAX(1, adjusted_probcut_depth);
+
+                    probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, probcut_reduction, pos, time, !cutNode);
                 }
 
                 // decrement ply
