@@ -93,6 +93,12 @@ void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, in
     }
 }
 
+int getAllCHScore(board *pos, int move) {
+    return getContinuationHistoryScore(pos, 1, move) +
+           getContinuationHistoryScore(pos, 2, move) +
+           getContinuationHistoryScore(pos, 4, move);
+}
+
 int getContinuationHistoryScore(board *pos, int offSet, int move) {
     const int ply = pos->ply - offSet;
     return ply >= 0 ? continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
@@ -100,9 +106,10 @@ int getContinuationHistoryScore(board *pos, int offSet, int move) {
 }
 
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus) {
+    int base_conthist_score = getAllCHScore(pos, move);
     const int ply = pos->ply - offSet;
     if (ply >= 0) {
-        const int scaledBonus = bonus - getContinuationHistoryScore(pos, offSet, move) * abs(bonus) / maxQuietHistory;
+        const int scaledBonus = bonus - base_conthist_score * abs(bonus) / maxQuietHistory;
         continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
                               [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
     }
