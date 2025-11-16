@@ -96,7 +96,8 @@ void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, in
 int getAllCHScore(board *pos, int move) {
     return getContinuationHistoryScore(pos, 1, move) +
            getContinuationHistoryScore(pos, 2, move) +
-           getContinuationHistoryScore(pos, 4, move);
+           getContinuationHistoryScore(pos, 4, move) +
+           getContinuationHistoryScore(pos, 6, move);
 }
 
 int getContinuationHistoryScore(board *pos, int offSet, int move) {
@@ -119,6 +120,7 @@ void updateAllCH(board *pos, int move, int bonus) {
     updateSingleCHScore(pos, move, 1, bonus);
     updateSingleCHScore(pos, move, 2, bonus);
     updateSingleCHScore(pos, move, 4, bonus);
+    updateSingleCHScore(pos, move, 6, bonus);
 }
 
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
