@@ -456,10 +456,22 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff) 
     NON_PAWN_CORRECTION_HISTORY[black][position->side][blackKey % CORRHIST_SIZE] = blackEntry;
 }
 
+int get_single_cont_corrhist_entry(board *pos, const int pliesBack) {
+    if (pos->ply >= pliesBack && pos->move[pos->ply - (pliesBack - 1)] && pos->move[pos->ply - pliesBack]) {
+        return contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(pos->move[pos->ply - (pliesBack - 1)])]
+                    [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])];
+    }
+    return 0;
+}
+
+int get_all_cont_corrhist_entry(board *pos) {
+    return get_single_cont_corrhist_entry(pos, 2) +
+           get_single_cont_corrhist_entry(pos, 4);    
+}
+
 void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int scaledDiff, const int newWeight) {
     if (pos->ply >= pliesBack && pos->move[pos->ply - (pliesBack - 1)] && pos->move[pos->ply - pliesBack]) {
-        int contCorrhistEntry = contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(pos->move[pos->ply - (pliesBack - 1)])]
-                    [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])];
+        int contCorrhistEntry = get_all_cont_corrhist_entry(pos);
         
         contCorrhistEntry = (contCorrhistEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
         contCorrhistEntry = clamp(contCorrhistEntry, -CORRHIST_MAX, CORRHIST_MAX);
@@ -468,14 +480,6 @@ void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const in
                     [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])] = contCorrhistEntry;
 
     }
-}
-
-int adjust_single_cont_corrhist_entry(board *pos, const int pliesBack) {
-    if (pos->ply >= pliesBack && pos->move[pos->ply - (pliesBack - 1)] && pos->move[pos->ply - pliesBack]) {
-        return contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(pos->move[pos->ply - (pliesBack - 1)])]
-                    [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])];
-    }
-    return 0;
 }
 
 void update_continuation_corrhist(board *pos, const int depth, const int diff) {
@@ -519,7 +523,7 @@ int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {
     U64 blackNPKey = pos->blackNonPawnKey;
     int blackNPEntry = NON_PAWN_CORRECTION_HISTORY[black][pos->side][blackNPKey % CORRHIST_SIZE];
 
-    int contCorrhistEntry = adjust_single_cont_corrhist_entry(pos, 2);        
+    int contCorrhistEntry = get_single_cont_corrhist_entry(pos, 2);        
 
     int mateFound = mateValue - maxPly;
 
