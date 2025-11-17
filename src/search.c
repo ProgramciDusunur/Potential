@@ -265,7 +265,9 @@ int scoreMove(int move, board* position) {
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
                         getContinuationHistoryScore(position, 4, move) +
-                            pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];               
+                            getContinuationHistoryScore(position, 6, move) +
+                                getContinuationHistoryScore(position, 8, move) +
+                                    pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];               
     }
     return 0;
 }
