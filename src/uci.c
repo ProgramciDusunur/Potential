@@ -257,7 +257,7 @@ void goCommand(char *command, board* position, my_time* time) {
     // if depth is not available
     if (depth == -1)
         // set depth to 64 plies (takes ages to complete...)
-        depth = 64;
+        depth = 128;
 
     // print debug info
     printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
