@@ -1329,7 +1329,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             } else {
                 // Noisy Futility Pruning
                 int noisyFPMargin = static_eval + 164 + 200 * depth;
-                if (4 <= depth && !in_check && noisyFPMargin <= alpha) {
+                if (depth <= 4 && !in_check && noisyFPMargin <= alpha) {
+                    if (abs(bestScore) < mateScore && bestScore <= noisyFPMargin) {
+                        bestScore = noisyFPMargin;
+                    }
                     continue;
                 }
             }
