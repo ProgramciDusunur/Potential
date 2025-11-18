@@ -339,26 +339,24 @@ void init_hash_table(int mb) {
 }
 
 // init random hash keys
-void initRandomKeys(void) {
-    // update pseudo random number state
-    state = 1804289383;
+void initRandomKeys(void) {    
     // loop over piece codes
     for (int piece = P; piece <= k; piece++) {
         // loop over board squares
         for (int square = 0; square < 64; square++) {
-            pieceKeys[piece][square] = getRandom64Numbers();
+            pieceKeys[piece][square] = get_random_uint64_number();
         }
     }
     // loop over board squares
     for (int square = 0; square < 64; square++) {
         // init random enpassant keys
-        enpassantKeys[square] = getRandom64Numbers();
+        enpassantKeys[square] = get_random_uint64_number();
     }
     // loop over castling keys
     for (int index = 0; index < 16; index++) {
         // init castling keys
-        castleKeys[index] = getRandom64Numbers();
+        castleKeys[index] = get_random_uint64_number();
     }
     // loop over castling keys
-    sideKey = getRandom64Numbers();
+    sideKey = get_random_uint64_number();
 }
