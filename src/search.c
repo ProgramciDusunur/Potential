@@ -719,15 +719,15 @@ uint8_t isMaterialDraw(board *pos) {
 }
 
 double calculate_complexity_factor(double complexity) {    
-    double x = clamp_double(complexity, 0.0, 200.0);
+    double x = clamp_double(complexity, 0.0, 300.0);
     
     // Formula: Base + (Max_Boost) / (1 + exp(-(x - Midpoint) / Steepness))
     // Base: 1.0 
     // Max_Boost: 0.27
-    // Midpoint: 120.0
-    // Steepness: 15.0
+    // Midpoint: 100.0
+    // Steepness: 40.0
     
-    double factor = 1.0 + 0.27 / (1.0 + exp(-(x - 120.0) / 15.0));
+    double factor = 1.0 + 0.27 / (1.0 + exp(-(x - 100.0) / 40.0));
 
     return factor;
 }
@@ -1801,8 +1801,8 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
         // Complexity TM
         double complexity = 0;
-        if (abs(score) < mateScore) {
-            complexity = 0.6 * abs(baseSearchScore - score) * log(depth);
+        if (abs(score) < mateScore) {            
+            complexity = 0.6 * abs(baseSearchScore - score) * log(depth);            
         }
 
         if (time->timeset && current_depth > 6) {
