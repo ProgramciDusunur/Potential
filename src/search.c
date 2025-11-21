@@ -1406,6 +1406,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
             }            
 
+            // Recapture Extension
+            else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
+                extensions += 1;
+            }
+
             // Negative Extensions
             else if (tt_score >= beta) {
                 extensions -= 2 + !pvNode;
@@ -1414,12 +1419,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // Cut Node Extension
             else if (cutNode) {
                 extensions -= 2;
-            }
-
-            // Recapture Extension
-            else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
-                extensions += 1;
-            }
+            }            
         }
 
 
