@@ -272,6 +272,10 @@ int scoreMove(int move, board* position) {
 
 
 void sort_moves(moves *moveList, int tt_move, board* position) {
+    if (moveList->count == 0) {
+        return;
+    }
+
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -326,6 +330,10 @@ int quiescenceScoreMove(int move, board* position) {
 }
 
 void quiescence_sort_moves(moves *moveList, board* position) {
+    if (moveList->count == 0) {
+        return;
+    }
+
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -811,9 +819,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     noisyGenerator(moveList, position);
 
     // sort moves
-    if (moveList->count > 0) {
-        quiescence_sort_moves(moveList, position);
-    }
+    quiescence_sort_moves(moveList, position);
 
 
     int futilityValue = bestScore + 100;
@@ -1169,7 +1175,6 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             noisyGenerator(capture_promos, pos);
 
             sort_moves(capture_promos, tt_move, pos);
-
             for (int count = 0; count < capture_promos->count; count++) {
                 int move = capture_promos->moves[count];
                 int move_history =
