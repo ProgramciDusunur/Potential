@@ -138,5 +138,6 @@ double clampDecimalValue(double d, const double min, const double max) {
 }
 
 bool is_mate_score(int score) {
-    return score >= mateFound && score <= mateValue;
+    return (score >= mateFound && score <= mateValue) || 
+    (score <= -mateFound && score >= -mateValue);
 }
