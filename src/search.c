@@ -1055,7 +1055,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
-    if (rootNode && corrplexity && ttAdjustedEval != static_eval && abs(tt_score) < mateScore) {
+    if (rootNode && corrplexity && ttAdjustedEval != static_eval && abs(tt_score) < mateValue) {
         depth++;
     }
 
@@ -1130,7 +1130,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if (score >= beta) {
 
             // if there is any unproven mate don't return but we can still return beta
-            if (score > mateScore) {
+            if (score > mateValue) {
                 score = beta;
             }
 
@@ -1166,7 +1166,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int legal_moves = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
-    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
+    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1250,7 +1250,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     
     // Small Probcut
     if (!pos->isSingularMove[pos->ply] && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
-        tt_score >= small_probcut_beta && abs(tt_score) < mateScore && abs(beta) < mateScore) {
+        tt_score >= small_probcut_beta && abs(tt_score) < mateValue && abs(beta) < mateValue) {
             return small_probcut_beta;            
     }
 
@@ -1310,7 +1310,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
 
-        bool isNotMated = bestScore > -mateScore;
+        bool isNotMated = bestScore > -mateValue;
 
         if (!rootNode && notTactical && isNotMated) {
 
@@ -1343,7 +1343,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // Singular Extensions
         if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
-            abs(tt_score) < mateScore) {
+            abs(tt_score) < mateValue) {
             const int singularBeta = tt_score - depth * 5 / 8;
             const int singularDepth = (depth - 1) / 2;
 
@@ -1796,7 +1796,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
         // Complexity TM
         double complexity = 0;
-        if (abs(score) < mateScore) {
+        if (abs(score) < mateValue) {
             complexity = 0.6 * abs(baseSearchScore - score) * log(depth);
         }
 
@@ -1812,14 +1812,10 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
             printf("info depth %d seldepth %d ", current_depth, position->seldepth);
 
-            if (score > -mateValue && score < -mateScore)
+            if (is_mate_score(score))
                 printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
-                       -(score + mateValue) / 2 - 1,
-                       position->nodes_searched, nps, hash_full(), totalTime);
-            else if (score > mateScore && score < mateValue)
-                printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
-                       (mateValue - score) / 2 + 1,
-                       position->nodes_searched, nps, hash_full(), totalTime);
+                       (score > 0 ? mateValue - score + 1 : -mateValue - score) / 2,
+                       position->nodes_searched, nps, hash_full(), totalTime);            
             else
                 printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
                        score, position->nodes_searched, nps, hash_full(), totalTime);
