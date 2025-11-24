@@ -119,6 +119,7 @@ void updateAllCH(board *pos, int move, int bonus, int quiet_hist_score) {
     updateSingleCHScore(pos, move, 1, bonus, quiet_hist_score);
     updateSingleCHScore(pos, move, 2, bonus, quiet_hist_score);
     updateSingleCHScore(pos, move, 4, bonus, quiet_hist_score);
+    updateSingleCHScore(pos, move, 6, bonus, quiet_hist_score);
 }
 
 void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets, int quiet_hist_score) {
