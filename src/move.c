@@ -201,6 +201,7 @@ int makeMove(int move, int moveFlag, board* position) {
     int doublePush = getMoveDouble(move);
     int enpass = getMoveEnpassant(move);
     int castling = getMoveCastling(move);
+    int capturedPiece = position->mailbox[targetSquare];
 
     // move piece
     popBit(position->bitboards[piece], sourceSquare);
@@ -250,54 +251,42 @@ int makeMove(int move, int moveFlag, board* position) {
 
 
     // handling capture moves
-    if (capture) {
-        // reset fifty move rule counter
-        position->fifty = 0;
+   if (capture) {
+        // reset fifty move
+        position->fifty = 0;            
         
-        int startPiece, endPiece;
-        if (position->side == white) {
-            startPiece = p;
-            endPiece = k;
-        } else {
-            startPiece = P;
-            endPiece = K;
-        }
-        for (int bbPiece = startPiece; bbPiece <= endPiece; bbPiece++) {
-            if (getBit(position->bitboards[bbPiece], targetSquare)) {
-                // remove it from corresponding bitboard
-                popBit(position->bitboards[bbPiece], targetSquare);
+        assert(capturedPiece != NO_PIECE);
 
-                // remove the piece from hash key
-                position->hashKey ^= pieceKeys[bbPiece][targetSquare];
-
-                if (bbPiece == P || bbPiece ==  p) {
-
-                    position->pawnKey ^= pieceKeys[bbPiece][targetSquare];
-                    position->krpKey ^= pieceKeys[bbPiece][targetSquare];
-
-                } else { // non pawn key
-
-                    if (position->side == white) {
-                        position->blackNonPawnKey ^= pieceKeys[bbPiece][targetSquare];
-                    } else {
-                        position->whiteNonPawnKey ^= pieceKeys[bbPiece][targetSquare];
-                    }
-                }
-
-                if (isMinor(bbPiece)) {
-                    position->minorKey ^= pieceKeys[bbPiece][targetSquare];
-                }
-
-                if (isMajor(bbPiece)) {
-                    position->majorKey ^= pieceKeys[bbPiece][targetSquare];
-                }
-
-                if (isKRP(piece)) {
-                    position->krpKey ^= pieceKeys[bbPiece][targetSquare];
-                }
-
-                break;
+        if (capturedPiece != NO_PIECE) {
+            popBit(position->bitboards[capturedPiece], targetSquare);
+        
+            position->hashKey ^= pieceKeys[capturedPiece][targetSquare];
+        
+            if (capturedPiece == P || capturedPiece == p) {
+                position->pawnKey ^= pieceKeys[capturedPiece][targetSquare];
+                position->krpKey ^= pieceKeys[capturedPiece][targetSquare];
+            } 
+            else { // (Non-pawn)
+                if (position->side == white) {                
+                    position->blackNonPawnKey ^= pieceKeys[capturedPiece][targetSquare];
+                } else {                
+                    position->whiteNonPawnKey ^= pieceKeys[capturedPiece][targetSquare];
+                }                
             }
+
+            if (isMinor(capturedPiece)) {
+                position->minorKey ^= pieceKeys[capturedPiece][targetSquare];
+            }
+
+    
+            if (isMajor(capturedPiece)) {
+                position->majorKey ^= pieceKeys[capturedPiece][targetSquare];
+            }
+
+    
+            if (isKRP(capturedPiece)) {
+                position->krpKey ^= pieceKeys[capturedPiece][targetSquare];
+            }            
         }
     }
 

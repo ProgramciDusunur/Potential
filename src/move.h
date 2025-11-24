@@ -13,6 +13,7 @@
 #include "magic.h"
 #include "table.h"
 #include <stdbool.h>
+#include <assert.h>
 
 // encode move
 #define encodeMove(source, target, piece, promoted, capture, double, enpassant, castling) \
