@@ -201,13 +201,7 @@ int makeMove(int move, int moveFlag, board* position) {
     int doublePush = getMoveDouble(move);
     int enpass = getMoveEnpassant(move);
     int castling = getMoveCastling(move);
-    int capturedPiece = position->mailbox[targetSquare];
-
-    // move piece
-    popBit(position->bitboards[piece], sourceSquare);
-    setBit(position->bitboards[piece], targetSquare);
-    position->mailbox[sourceSquare] = NO_PIECE;
-    position->mailbox[targetSquare] = piece;
+    int capturedPiece = position->mailbox[targetSquare];    
 
     // hash piece
     position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
@@ -289,6 +283,12 @@ int makeMove(int move, int moveFlag, board* position) {
             }            
         }
     }
+
+    // move piece
+    popBit(position->bitboards[piece], sourceSquare);
+    setBit(position->bitboards[piece], targetSquare);
+    position->mailbox[sourceSquare] = NO_PIECE;
+    position->mailbox[targetSquare] = piece;
 
     // handle enpassant captures
     if (enpass) {
