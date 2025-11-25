@@ -1310,7 +1310,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         // Prune more on tt pv nodes (*scaler)
         if (tt_pv) {
-            lmrDepth -= 1;
+            lmrDepth -= 2;
         }
 
         bool isNotMated = bestScore > -mateValue;
