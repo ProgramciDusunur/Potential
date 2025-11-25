@@ -1607,8 +1607,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                         quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
+                        int pawn_history_score = 
+                            pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)];
+
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
-                        updateContinuationHistory(pos, bestMove, depth, badQuiets, quiet_history_score, pawnHistoryValue);
+                        updateContinuationHistory(pos, bestMove, depth, badQuiets, quiet_history_score, pawn_history_score);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);                       
                         
                     } else { // noisy moves
