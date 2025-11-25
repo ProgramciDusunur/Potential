@@ -1018,6 +1018,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     bool improving = false;
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
+    int corrplexity_value = abs(raw_eval - static_eval);
 
     int pastStack = -1;
 
@@ -1517,8 +1518,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
         }
-        
 
+        lmrReduction -= corrplexity_value / 64;
+                
         lmrReduction /= 1024;
 
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth));
