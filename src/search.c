@@ -1486,7 +1486,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
 
         if (enemy_has_no_threats && !in_check && ttAdjustedEval - 365 >= beta + 30) {
-            lmrReduction += GOOD_EVAL_LMR_SCALER + cutNode * 1024;
+            lmrReduction += GOOD_EVAL_LMR_SCALER + !pvNode * 1024;
         }
 
         if (notTactical) {
