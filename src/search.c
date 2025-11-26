@@ -1166,7 +1166,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int legal_moves = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
-    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
+    if (!in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1178,7 +1178,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             for (int count = 0; count < capture_promos->count; count++) {
                 int move = capture_promos->moves[count];
                 int move_history =
-                captureHistory[getMovePiece(move)][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
+                captureHistory[getMovePiece(move)][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];                
         
                 if (!SEE(pos, move, PROBCUT_SEE_NOISY_THRESHOLD)) {
                     continue;
