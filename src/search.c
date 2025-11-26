@@ -1542,7 +1542,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                     [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
                     const int bonus = score <= alpha ? -getHistoryBonus(new_depth) : getHistoryBonus(new_depth);
-                    updateAllCH(pos, currentMove, bonus, quiet_history_score);
+                    if (pos->mailbox[getMoveSource(currentMove)] != NO_PIECE) {
+                        updateAllCH(pos, currentMove, bonus, quiet_history_score);
+                    }
+                    
                 }
             }
         }
