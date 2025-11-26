@@ -101,17 +101,19 @@ int getAllCHScore(board *pos, int move, int quiet_hist_score) {
 
 int getContinuationHistoryScore(board *pos, int offSet, int move) {
     const int ply = pos->ply - offSet;
-    return ply >= 0 ? continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
-                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] : 0;
+    int current_piece = pos->mailbox[getMoveSource(move)];
+    return ply >= 0 && current_piece != NO_PIECE ? continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
+                              [current_piece][getMoveTarget(move)] : 0;
 }
 
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus, int quiet_hist_score) {
     int base_conthist_score = getAllCHScore(pos, move, quiet_hist_score);
+    int current_piece = pos->mailbox[getMoveSource(move)];
     const int ply = pos->ply - offSet;
-    if (ply >= 0) {
+    if (ply >= 0 && current_piece != NO_PIECE) {
         const int scaledBonus = bonus - base_conthist_score * abs(bonus) / maxQuietHistory;
         continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
-                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
+                              [current_piece][getMoveTarget(move)] += scaledBonus;
     }
 }
 
