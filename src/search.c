@@ -1415,7 +1415,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
             
             // Cut Node Extension
-            else if (cutNode) {
+            // If we are on a cutNode, or if other moves seem better than the ttMove
+            else if (cutNode || tt_score <= singularScore) {
                 extensions -= 2;
             }
         }
