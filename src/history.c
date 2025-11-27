@@ -27,6 +27,16 @@ int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
 }
 
+void update_single_quiet_hist_entry(int move, int bonus, board *pos) {
+    int from = getMoveSource(move);
+    int to = getMoveTarget(move);
+    
+    int score = quietHistory[pos->side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)];
+
+    quietHistory[pos->side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)] += 
+    scaledBonus(score, bonus, maxQuietHistory);
+}
+
 void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets, board *pos) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
