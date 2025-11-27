@@ -1487,7 +1487,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         if (enemy_has_no_threats && !in_check && static_eval - 365 > beta) {
             lmrReduction += GOOD_EVAL_LMR_SCALER;
-        }
+        }        
 
         if (notTactical) {
             // Reduce More
@@ -1543,8 +1543,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
                 new_depth = myMAX(new_depth, 1);
             }
+
+            // Lower thresholds for reductions at low depths to search more moves
+            // At shallow depths, being more aggressive with reductions allows examining more moves
+            // which improves early move ordering for deeper iterations (*Scaler)
+            const int threshold1 = depth <= 4 ? 2000 : 3200;
+            const int threshold2 = depth <= 4 ? 3500 : 4600;
             
-            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+            score = -negamax(-alpha - 1, -alpha, new_depth - 
+                (new_depth > threshold1) - (new_depth > threshold2 && new_depth > 2), pos, time, !cutNode);
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
