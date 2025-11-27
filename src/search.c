@@ -74,6 +74,7 @@
   int PROBCUT_IMPROVING_MARGIN = 30;
   int PROBCUT_SEE_NOISY_THRESHOLD = 100;
   int PROBCUT_NOISY_HISTORY_DIVISOR = 10240;
+  int PROBCUT_PV_NODE_SCALER = 1024;
 
 
 /*╔═══════════════════╗
@@ -1220,10 +1221,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
 
                 if (probcut_value >= probcut_beta) {
-                    int adjusted_probcut_depth = probcut_depth * 1024;
+                    int adjusted_probcut_depth = probcut_depth * 1024;                    
 
                     // Capture History based reduction
                     adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
+
+                    // Reduce less on pv nodes
+                    adjusted_probcut_depth += PROBCUT_PV_NODE_SCALER * pvNode;
 
                     adjusted_probcut_depth /= 1024;
 
