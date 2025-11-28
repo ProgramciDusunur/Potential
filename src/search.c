@@ -1609,7 +1609,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                         int factor = 10;
 
-                        factor += 100 * (pos->rootDepth > 5);
+                        factor += 200 * (!in_check && bestScore <= raw_eval);
 
                         int bonus = myMIN(factor + 200 * depth, 4096);
 
