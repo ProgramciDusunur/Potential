@@ -36,7 +36,7 @@ extern int16_t captureHistory[12][64][13];
 extern int16_t krpCorrhist[2][16384];
 
 int scaledBonus(int score, int bonus, int gravity);
-void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets, board *pos);
+void updateQuietMoveHistory(int bestMove, int side, int bonus, moves *badQuiets, board *pos);
 void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets);
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus, int quiet_hist_score);
 int getAllCHScore(board *pos, int move, int quiet_hist_score);
