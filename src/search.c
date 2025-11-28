@@ -74,6 +74,7 @@
   int PROBCUT_IMPROVING_MARGIN = 30;
   int PROBCUT_SEE_NOISY_THRESHOLD = 100;
   int PROBCUT_NOISY_HISTORY_DIVISOR = 10240;
+  int PROBCUT_EVAL_DIVISOR = 365;
 
 
 /*╔═══════════════════╗
@@ -1170,7 +1171,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
-            int probcut_depth = depth - PROBCUT_DEPTH_SUBTRACTOR;
+            int probcut_depth = depth - PROBCUT_DEPTH_SUBTRACTOR - (ttAdjustedEval - beta) / PROBCUT_EVAL_DIVISOR;
 
             noisyGenerator(capture_promos, pos);
 
