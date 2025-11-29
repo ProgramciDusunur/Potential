@@ -13,7 +13,7 @@ int16_t continuationHistory[12][64][12][64];
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t contCorrhist[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
-int16_t pawnHistory[2048][12][64];
+int16_t pawnHistory[2048][13][64];
 // captureHistory [piece][toSquare][capturedPiece]
 int16_t captureHistory[12][64][13];
 // kingRookPawn Correction History [side to move][key]
