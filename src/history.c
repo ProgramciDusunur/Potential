@@ -37,6 +37,15 @@ void update_single_quiet_hist_entry(int move, int bonus, board *pos) {
     scaledBonus(score, bonus, maxQuietHistory);
 }
 
+void update_single_pawn_hist_entry(int move, int bonus, board *pos) {
+    int from = getMoveSource(move);
+    int to = getMoveTarget(move);
+    
+    int score = pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to];
+
+    pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
+}
+
 void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets, board *pos) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);

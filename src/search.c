@@ -1645,7 +1645,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     if (score <= originalAlpha && counter_move_available) {
         int bonus = myMIN(originalAlpha - score * depth, 2048);
+
+
+        int quiet_history_score = 
+            quietHistory[pos->side][getMoveSource(counter_move)][getMoveTarget(counter_move)]
+            [is_square_threatened(pos, getMoveSource(counter_move))][is_square_threatened(pos, getMoveTarget(counter_move))];
+
         update_single_quiet_hist_entry(counter_move, bonus, pos);
+        updateSingleCHScore(pos, counter_move, 1, bonus, quiet_history_score);
+        update_single_pawn_hist_entry(counter_move, bonus, pos);
     }
 
     if (!pos->isSingularMove[pos->ply]) {
