@@ -1309,7 +1309,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
 
         // Prune more on tt pv nodes (*scaler)
-        if (tt_pv) {
+        if (tt_hit && tt_pv && tt_depth >= depth + 5) {
             lmrDepth -= 2;
         }
 
