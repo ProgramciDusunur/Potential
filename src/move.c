@@ -613,7 +613,26 @@ void noisyGenerator(moves *moveList, board* position) {
     }
 }
 
+inline void splatPawnMoves(moves *moveList, U64 sourceBitboard, int shift, int piece, int promoPiece, int capture, int doublePush) {
+    while (sourceBitboard) {
+        int sourceSquare = getLS1BIndex(sourceBitboard);
+        int targetSquare = sourceSquare + shift;
 
+        addMove(moveList, encodeMove(sourceSquare, targetSquare, piece, promoPiece, capture, doublePush, 0, 0));
+
+        popBit(sourceBitboard, sourceSquare);
+    }
+}
+
+inline void splatEnpassant(moves *moveList, U64 sourceBitboard, int enpassantSquare, int piece) {
+    while (sourceBitboard) {
+        int sourceSquare = getLS1BIndex(sourceBitboard);
+
+        addMove(moveList, encodeMove(sourceSquare, enpassantSquare, piece, 0, 1, 0, 1, 0));
+
+        popBit(sourceBitboard, sourceSquare);
+    }
+}
 
 // generate all moves
 void moveGenerator(moves *moveList, board* position) {
@@ -627,140 +646,112 @@ void moveGenerator(moves *moveList, board* position) {
     // define current piece's bitboard copy & it's attacks
     U64 bitboard, attacks;
 
+    if (position->side == white) {
+        bitboard = position->bitboards[P];
+
+        U64 enemy = position->occupancies[black];
+        U64 empty = ~position->occupancies[both];
+
+        U64 emptyAhead = bitboard & (empty << 8);
+        U64 singlePush = emptyAhead & 0x00FFFFFFFFFF0000;
+        U64 doublePush = emptyAhead & 0x00FF000000000000 & (empty << 16);
+        U64 promotions = emptyAhead & 0x000000000000FF00;
+
+        splatPawnMoves(moveList, singlePush, -8, P, 0, 0, 0);
+        splatPawnMoves(moveList, doublePush, -16, P, 0, 0, 1);
+        if (promotions) {
+            splatPawnMoves(moveList, promotions, -8, P, Q, 0, 0);
+            splatPawnMoves(moveList, promotions, -8, P, R, 0, 0);
+            splatPawnMoves(moveList, promotions, -8, P, B, 0, 0);
+            splatPawnMoves(moveList, promotions, -8, P, N, 0, 0);
+        }
+
+        U64 lEnemy = bitboard & not_a_file & (enemy << 9);
+        U64 rEnemy = bitboard & not_h_file & (enemy << 7);
+        U64 lSingleCapt = lEnemy & 0x00FFFFFFFFFF0000;
+        U64 rSingleCapt = rEnemy & 0x00FFFFFFFFFF0000;
+        U64 lPromotions = lEnemy & 0x000000000000FF00;
+        U64 rPromotions = rEnemy & 0x000000000000FF00;
+
+        splatPawnMoves(moveList, lSingleCapt, -9, P, 0, 1, 0);
+        splatPawnMoves(moveList, rSingleCapt, -7, P, 0, 1, 0);
+        if (lPromotions) {
+            splatPawnMoves(moveList, lPromotions, -9, P, Q, 1, 0);
+            splatPawnMoves(moveList, lPromotions, -9, P, R, 1, 0);
+            splatPawnMoves(moveList, lPromotions, -9, P, B, 1, 0);
+            splatPawnMoves(moveList, lPromotions, -9, P, N, 1, 0);
+        }
+        if (rPromotions) {
+            splatPawnMoves(moveList, rPromotions, -7, P, Q, 1, 0);
+            splatPawnMoves(moveList, rPromotions, -7, P, R, 1, 0);
+            splatPawnMoves(moveList, rPromotions, -7, P, B, 1, 0);
+            splatPawnMoves(moveList, rPromotions, -7, P, N, 1, 0);
+        }
+
+        if (position->enpassant != no_sq) {
+            U64 attackers = bitboard & pawnAttacks[black][position->enpassant];
+            splatEnpassant(moveList, attackers, position->enpassant, P);
+        }
+    } else {
+        bitboard = position->bitboards[p];
+
+        U64 enemy = position->occupancies[white];
+        U64 empty = ~position->occupancies[both];
+
+        U64 emptyAhead = bitboard & (empty >> 8);
+        U64 singlePush = emptyAhead & 0x0000FFFFFFFFFF00;
+        U64 doublePush = emptyAhead & 0x000000000000FF00 & (empty >> 16);
+        U64 promotions = emptyAhead & 0x00FF000000000000;
+
+        splatPawnMoves(moveList, singlePush, +8, p, 0, 0, 0);
+        splatPawnMoves(moveList, doublePush, +16, p, 0, 0, 1);
+        if (promotions) {
+            splatPawnMoves(moveList, promotions, +8, p, q, 0, 0);
+            splatPawnMoves(moveList, promotions, +8, p, r, 0, 0);
+            splatPawnMoves(moveList, promotions, +8, p, b, 0, 0);
+            splatPawnMoves(moveList, promotions, +8, p, n, 0, 0);
+        }
+
+        U64 lEnemy = bitboard & not_a_file & (enemy >> 7);
+        U64 rEnemy = bitboard & not_h_file & (enemy >> 9);
+        U64 lSingleCapt = lEnemy & 0x0000FFFFFFFFFF00;
+        U64 rSingleCapt = rEnemy & 0x0000FFFFFFFFFF00;
+        U64 lPromotions = lEnemy & 0x00FF000000000000;
+        U64 rPromotions = rEnemy & 0x00FF000000000000;
+
+        splatPawnMoves(moveList, lSingleCapt, +7, p, 0, 1, 0);
+        splatPawnMoves(moveList, rSingleCapt, +9, p, 0, 1, 0);
+        if (lPromotions) {
+            splatPawnMoves(moveList, lPromotions, +7, p, q, 1, 0);
+            splatPawnMoves(moveList, lPromotions, +7, p, r, 1, 0);
+            splatPawnMoves(moveList, lPromotions, +7, p, b, 1, 0);
+            splatPawnMoves(moveList, lPromotions, +7, p, n, 1, 0);
+        }
+        if (rPromotions) {
+            splatPawnMoves(moveList, rPromotions, +9, p, q, 1, 0);
+            splatPawnMoves(moveList, rPromotions, +9, p, r, 1, 0);
+            splatPawnMoves(moveList, rPromotions, +9, p, b, 1, 0);
+            splatPawnMoves(moveList, rPromotions, +9, p, n, 1, 0);
+        }
+
+        if (position->enpassant != no_sq) {
+            U64 attackers = bitboard & pawnAttacks[white][position->enpassant];
+            splatEnpassant(moveList, attackers, position->enpassant, p);
+        }
+    }
+
     // loop over all the bitboards
     for (int piece = P; piece <= k; piece++) {
         // init piece bitboard copy
         bitboard = position->bitboards[piece];
 
-        // generate white pawns & white king castling moves
         if (position->side == white) {
-            // pick up white pawn bitboards index
-            if (piece == P) {
-                // loop over white pawns within white pawn bitboard
-                while (bitboard) {
-                    // init source square
-                    source_square = getLS1BIndex(bitboard);
-
-                    // init target square
-                    target_square = source_square - 8;
-
-                    // generate quiet pawn moves
-                    if (target_square >= a8 && !(getBit(position->occupancies[both], target_square))) {
-                        // pawn promotion
-                        if (source_square >= a7 && source_square <= h7) {
-                            addMove(moveList, encodeMove(source_square, target_square, piece, Q, 0, 0, 0, 0));
-                            addMove(moveList, encodeMove(source_square, target_square, piece, R, 0, 0, 0, 0));
-                            addMove(moveList, encodeMove(source_square, target_square, piece, B, 0, 0, 0, 0));
-                            addMove(moveList, encodeMove(source_square, target_square, piece, N, 0, 0, 0, 0));
-                        } else {
-                            // one square ahead pawn move
-                            addMove(moveList, encodeMove(source_square, target_square, piece, 0, 0, 0, 0, 0));
-
-                            // two squares ahead pawn move
-                            if ((source_square >= a2 && source_square <= h2) &&
-                                !(getBit(position->occupancies[both], (target_square - 8))))
-                                addMove(moveList, encodeMove(source_square, (target_square - 8), piece, 0, 0, 1, 0, 0));
-                        }
-                    }
-
-                    // init pawn attacks bitboard
-                    attacks = pawnAttacks[position->side][source_square] & position->occupancies[black];
-
-                    // generate pawn captures
-                    while (attacks) {
-                        // init target square
-                        target_square = getLS1BIndex(attacks);
-
-                        // pawn promotion
-                        if (source_square >= a7 && source_square <= h7) {
-                            addMove(moveList, encodeMove(source_square, target_square, piece, Q, 1, 0, 0, 0));
-                            addMove(moveList, encodeMove(source_square, target_square, piece, R, 1, 0, 0, 0));
-                            addMove(moveList, encodeMove(source_square, target_square, piece, B, 1, 0, 0, 0));
-                            addMove(moveList, encodeMove(source_square, target_square, piece, N, 1, 0, 0, 0));
-                        } else
-                            // one square ahead pawn move
-                            addMove(moveList, encodeMove(source_square, target_square, piece, 0, 1, 0, 0, 0));
-
-                        // pop ls1b of the pawn attacks
-                        popBit(attacks, target_square);
-                    }
-
-                    // generate enpassant captures
-                    generate_white_enpassant(position, source_square, moveList);
-
-                    // pop ls1b from piece bitboard copy
-                    popBit(bitboard, source_square);
-                }
-            }
-
             // castling moves
             if (piece == K) {
                 generate_white_king_side_castling(position, moveList);
                 generate_white_queen_side_castling(position, moveList);
             }
-        }
-
-            // generate black pawns & black king castling moves
-        else {
-            // pick up black pawn bitboards index
-            if (piece == p) {
-                // loop over white pawns within white pawn bitboard
-                while (bitboard) {
-                    // init source square
-                    source_square = getLS1BIndex(bitboard);
-
-                    // init target square
-                    target_square = source_square + 8;
-
-                    // generate quiet pawn moves
-                    if (target_square <= h1 && !(getBit(position->occupancies[both], target_square))) {
-                        // pawn promotion
-                        if (source_square >= a2 && source_square <= h2) {
-                            addMove(moveList, encodeMove(source_square, target_square, piece, q, 0, 0, 0, 0));
-                            addMove(moveList, encodeMove(source_square, target_square, piece, r, 0, 0, 0, 0));
-                            addMove(moveList, encodeMove(source_square, target_square, piece, b, 0, 0, 0, 0));
-                            addMove(moveList, encodeMove(source_square, target_square, piece, n, 0, 0, 0, 0));
-                        } else {
-                            // one square ahead pawn move
-                            addMove(moveList, encodeMove(source_square, target_square, piece, 0, 0, 0, 0, 0));
-
-                            // two squares ahead pawn move
-                            if ((source_square >= a7 && source_square <= h7) &&
-                                !(getBit(position->occupancies[both], (target_square + 8))))
-                                addMove(moveList, encodeMove(source_square, (target_square + 8), piece, 0, 0, 1, 0, 0));
-                        }
-                    }
-
-                    // init pawn attacks bitboard
-                    attacks = pawnAttacks[position->side][source_square] & position->occupancies[white];
-
-                    // generate pawn captures
-                    while (attacks) {
-                        // init target square
-                        target_square = getLS1BIndex(attacks);
-
-                        // pawn promotion
-                        if (source_square >= a2 && source_square <= h2) {
-                            addMove(moveList, encodeMove(source_square, target_square, piece, q, 1, 0, 0, 0));
-                            addMove(moveList, encodeMove(source_square, target_square, piece, r, 1, 0, 0, 0));
-                            addMove(moveList, encodeMove(source_square, target_square, piece, b, 1, 0, 0, 0));
-                            addMove(moveList, encodeMove(source_square, target_square, piece, n, 1, 0, 0, 0));
-                        } else
-                            // one square ahead pawn move
-                            addMove(moveList, encodeMove(source_square, target_square, piece, 0, 1, 0, 0, 0));
-
-                        // pop ls1b of the pawn attacks
-                        popBit(attacks, target_square);
-                    }
-
-                    // generate enpassant captures
-                    generate_black_enpassant(position, source_square, moveList);
-
-                    // pop ls1b from piece bitboard copy
-                    popBit(bitboard, source_square);
-                }
-            }
-
+        } else {
             // castling moves
             if (piece == k) {
                 generate_black_king_side_castling(position, moveList);
