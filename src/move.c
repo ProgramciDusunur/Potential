@@ -124,25 +124,22 @@ U64 getKingAttacks(int square) {
 }
 
 int isSquareAttacked(int square, int whichSide, board* position) {
-    if ((whichSide == white) && (pawnAttacks[black][square] & position->bitboards[P])) {
+    if (pawnAttacks[whichSide == white ? black : white][square] & position->bitboards[whichSide == white ? P : p]) {
         return 1;
     }
-    if ((whichSide == black) && (pawnAttacks[white][square] & position->bitboards[p])) {
+    if (knightAttacks[square] & position->bitboards[whichSide == white ? N : n]) {
         return 1;
     }
-    if (knightAttacks[square] & ((whichSide == white) ? position->bitboards[N] : position->bitboards[n])) {
+    if (getBishopAttacks(square, position->occupancies[both]) & position->bitboards[whichSide == white ? B : b]) {
         return 1;
     }
-    if (getBishopAttacks(square, position->occupancies[both]) & ((whichSide == white) ? position->bitboards[B] : position->bitboards[b])) {
+    if (kingAttacks[square] & position->bitboards[whichSide == white ? K : k]) {
         return 1;
     }
-    if (kingAttacks[square] & ((whichSide == white) ? position->bitboards[K] : position->bitboards[k])) {
+    if (getQueenAttacks(square, position->occupancies[both]) & position->bitboards[whichSide == white ? Q : q]) {
         return 1;
     }
-    if (getQueenAttacks(square, position->occupancies[both]) & ((whichSide == white) ? position->bitboards[Q] : position->bitboards[q])) {
-        return 1;
-    }
-    if (getRookAttacks(square, position->occupancies[both]) & ((whichSide == white) ? position->bitboards[R] : position->bitboards[r])) {
+    if (getRookAttacks(square, position->occupancies[both]) & position->bitboards[whichSide == white ? R : r]) {
         return 1;
     }
     return 0;
