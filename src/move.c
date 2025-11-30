@@ -2,6 +2,7 @@
 // Created by erena on 13.09.2024.
 //
 
+#include <assert.h>
 #include <stdbool.h>
 #include "move.h"
 #include "fen.h"
@@ -176,6 +177,7 @@ int makeMove(int move, int moveFlag, board* position) {
     int doublePush = getMoveDouble(move);
     int enpass = getMoveEnpassant(move);
     int castling = getMoveCastling(move);
+    int capturedPiece = position->mailbox[targetSquare];
 
     // move piece
     popBit(position->bitboards[piece], sourceSquare);
@@ -225,59 +227,49 @@ int makeMove(int move, int moveFlag, board* position) {
 
 
     // handling capture moves
-    if (capture) {
+    if (capture && !enpass) {
+        assert(capturedPiece != NO_PIECE);
+
         // reset fifty move rule counter
         position->fifty = 0;
-        
-        int startPiece, endPiece;
-        if (position->side == white) {
-            startPiece = p;
-            endPiece = k;
-        } else {
-            startPiece = P;
-            endPiece = K;
-        }
-        for (int bbPiece = startPiece; bbPiece <= endPiece; bbPiece++) {
-            if (getBit(position->bitboards[bbPiece], targetSquare)) {
-                // remove it from corresponding bitboard
-                popBit(position->bitboards[bbPiece], targetSquare);
 
-                // remove the piece from hash key
-                position->hashKey ^= pieceKeys[bbPiece][targetSquare];
+        // remove it from corresponding bitboard
+        popBit(position->bitboards[capturedPiece], targetSquare);
 
-                if (bbPiece == P || bbPiece ==  p) {
+        // remove the piece from hash key
+        position->hashKey ^= pieceKeys[capturedPiece][targetSquare];
 
-                    position->pawnKey ^= pieceKeys[bbPiece][targetSquare];
-                    position->krpKey ^= pieceKeys[bbPiece][targetSquare];
+        if (capturedPiece == P || capturedPiece == p) {
 
-                } else { // non pawn key
+            position->pawnKey ^= pieceKeys[capturedPiece][targetSquare];
+            position->krpKey ^= pieceKeys[capturedPiece][targetSquare];
 
-                    if (position->side == white) {
-                        position->blackNonPawnKey ^= pieceKeys[bbPiece][targetSquare];
-                    } else {
-                        position->whiteNonPawnKey ^= pieceKeys[bbPiece][targetSquare];
-                    }
-                }
-
-                if (isMinor(bbPiece)) {
-                    position->minorKey ^= pieceKeys[bbPiece][targetSquare];
-                }
-
-                if (isMajor(bbPiece)) {
-                    position->majorKey ^= pieceKeys[bbPiece][targetSquare];
-                }
-
-                if (isKRP(bbPiece)) {
-                    position->krpKey ^= pieceKeys[bbPiece][targetSquare];
-                }
-
-                break;
+        } else { // non pawn key
+            if (position->side == white) {
+                position->blackNonPawnKey ^= pieceKeys[capturedPiece][targetSquare];
+            } else {
+                position->whiteNonPawnKey ^= pieceKeys[capturedPiece][targetSquare];
             }
+        }
+
+        if (isMinor(capturedPiece)) {
+            position->minorKey ^= pieceKeys[capturedPiece][targetSquare];
+        }
+
+        if (isMajor(capturedPiece)) {
+            position->majorKey ^= pieceKeys[capturedPiece][targetSquare];
+        }
+
+        if (isKRP(capturedPiece)) {
+            position->krpKey ^= pieceKeys[capturedPiece][targetSquare];
         }
     }
 
     // handle enpassant captures
     if (enpass) {
+        // reset fifty move rule counter
+        position->fifty = 0;
+
         // white to move
         if (position->side == white) {
             // remove captured pawn
