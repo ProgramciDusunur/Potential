@@ -384,38 +384,6 @@ void generate_black_queen_side_castling(board *position, moves *moveList) {
     }
 }
 
-// enpassant
-void generate_white_enpassant(board *position, int source_square, moves *moveList) {
-    if (position->enpassant != no_sq) {
-        // lookup pawn attacks and bitwise AND with enpassant square (bit)
-        U64 enpassant_attacks = pawnAttacks[position->side][source_square] & (1ULL << position->enpassant);
-
-        // make sure enpassant capture available
-        if (enpassant_attacks) {
-            // init enpassant capture target square
-            int target_enpassant = getLS1BIndex(enpassant_attacks);
-            addMove(moveList, encodeMove(source_square, target_enpassant, P, 0, 1, 0, 1, 0));
-        }
-    }
-}
-
-void generate_black_enpassant(board *position, int source_square, moves *moveList) {
-    if (position->enpassant != no_sq) {
-        // lookup pawn attacks and bitwise AND with enpassant square (bit)
-        U64 enpassant_attacks = pawnAttacks[position->side][source_square] & (1ULL << position->enpassant);
-
-        // make sure enpassant capture available
-        if (enpassant_attacks) {
-            // init enpassant capture target square
-            int target_enpassant = getLS1BIndex(enpassant_attacks);
-            addMove(moveList, encodeMove(source_square, target_enpassant, p, 0, 1, 0, 1, 0));
-        }
-    }
-}
-
-
-
-
 // generate all captures and promotions
 void noisyGenerator(moves *moveList, board* position) {
     // init move count
@@ -805,56 +773,27 @@ void moveGenerator(moves *moveList, board* position) {
         popBit(bitboard, sourceSquare);
     }
 
-    // loop over all the bitboards
-    for (int piece = P; piece <= k; piece++) {
-        // init piece bitboard copy
-        bitboard = position->bitboards[piece];
+    // King moves
+    piece = position->side == white ? K : k;
+    bitboard = position->bitboards[piece];
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);
 
-        if (position->side == white) {
-            // castling moves
-            if (piece == K) {
-                generate_white_king_side_castling(position, moveList);
-                generate_white_queen_side_castling(position, moveList);
-            }
-        } else {
-            // castling moves
-            if (piece == k) {
-                generate_black_king_side_castling(position, moveList);
-                generate_black_queen_side_castling(position, moveList);
-            }
-        }
+        U64 targetBitboard = kingAttacks[sourceSquare];
 
-        // generate king moves
-        if ((position->side == white) ? piece == K : piece == k) {
-            // loop over source squares of piece bitboard copy
-            while (bitboard) {
-                // init source square
-                source_square = getLS1BIndex(bitboard);
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, piece, 0);
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, piece, 1);
 
-                // init piece attacks in order to get set of target squares
-                attacks = kingAttacks[source_square] & ((position->side == white) ? ~position->occupancies[white] : ~position->occupancies[black]);
+        popBit(bitboard, sourceSquare);
+    }
 
-                // loop over target squares available from generated attacks
-                while (attacks) {
-                    // init target square
-                    target_square = getLS1BIndex(attacks);
-
-                    // quiet move
-                    if (!(getBit(((position->side == white) ? position->occupancies[black] : position->occupancies[white]), target_square)))
-                        addMove(moveList, encodeMove(source_square, target_square, piece, 0, 0, 0, 0, 0));
-
-                    else
-                        // capture move
-                        addMove(moveList, encodeMove(source_square, target_square, piece, 0, 1, 0, 0, 0));
-
-                    // pop ls1b in current attacks set
-                    popBit(attacks, target_square);
-                }
-
-                // pop ls1b of the current piece bitboard copy
-                popBit(bitboard, source_square);
-            }
-        }
+    // Castling moves
+    if (position->side == white) {
+        generate_white_king_side_castling(position, moveList);
+        generate_white_queen_side_castling(position, moveList);
+    } else {
+        generate_black_king_side_castling(position, moveList);
+        generate_black_queen_side_castling(position, moveList);
     }
 }
 
