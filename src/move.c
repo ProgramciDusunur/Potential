@@ -409,26 +409,6 @@ int makeMove(int move, int moveFlag, board* position) {
     return 1;
 }
 
-bool legalityCheck(int moveFlag, int move, board *position) {
-    struct copyposition copyPosition;
-    // preserve board state
-    copyBoard(position, &copyPosition);
-    
-    int isLegalCapture = getMoveCapture(move);
-    if (moveFlag == onlyCaptures && !isLegalCapture) {
-        // return illegal move
-        return 0;
-    }
-
-     // make sure that king has not been exposed into a check
-    if (isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[k]) : getLS1BIndex(position->bitboards[K]), position->side, position)) {        
-        // return illegal move
-        return 0;
-    } 
-
-    return 1;
-}
-
 // castling
 void generate_white_king_side_castling(board *position, moves *moveList) {
     // king side castling is available
