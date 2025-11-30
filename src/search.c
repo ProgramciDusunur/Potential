@@ -1613,13 +1613,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                         int factor = 10;
 
-                        factor += pos->rootDepth * 3;
+                        factor += 100 * (pos->rootDepth > 5);
 
                         int bonus = myMIN(factor + 200 * depth, 4096);
 
                         updateQuietMoveHistory(bestMove, pos->side, bonus, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, bonus, badQuiets, quiet_history_score);
-                        updatePawnHistory(pos, bestMove, depth, badQuiets);                       
+                        updatePawnHistory(pos, bestMove, bonus, badQuiets);
                         
                     } else { // noisy moves
                         updateCaptureHistory(pos, bestMove, depth);
