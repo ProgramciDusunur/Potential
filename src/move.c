@@ -181,6 +181,19 @@ void toggleHashesForPiece(board* position, int piece, int square) {
     }
 }
 
+void addPiece(board* position, int piece, int square) {
+    setBit(position->bitboards[piece], square);
+    position->mailbox[square] = piece;
+    toggleHashesForPiece(position, piece, square);
+}
+
+void removePiece(board* position, int piece, int square) {
+    assert(position->mailbox[square] == piece);
+    popBit(position->bitboards[piece], square);
+    position->mailbox[square] = NO_PIECE;
+    toggleHashesForPiece(position, piece, square);
+}
+
 // make move on chess board
 int makeMove(int move, int moveFlag, board* position) {
     int isLegalCapture = getMoveCapture(move);
@@ -202,16 +215,6 @@ int makeMove(int move, int moveFlag, board* position) {
     int castling = getMoveCastling(move);
     int capturedPiece = position->mailbox[targetSquare];
 
-    // move piece
-    popBit(position->bitboards[piece], sourceSquare);
-    setBit(position->bitboards[piece], targetSquare);
-    position->mailbox[sourceSquare] = NO_PIECE;
-    position->mailbox[targetSquare] = piece;
-
-    // hash piece
-    toggleHashesForPiece(position, piece, sourceSquare);
-    toggleHashesForPiece(position, piece, targetSquare);
-
     // increment fifty move rule counter
     position->fifty++;
 
@@ -226,70 +229,34 @@ int makeMove(int move, int moveFlag, board* position) {
         // reset fifty move rule counter
         position->fifty = 0;
 
-        // remove it from corresponding bitboard
-        popBit(position->bitboards[capturedPiece], targetSquare);
-
-        // remove the piece from hash key
-        toggleHashesForPiece(position, capturedPiece, targetSquare);
+        removePiece(position, capturedPiece, targetSquare);
     }
+
+    // move piece
+    removePiece(position, piece, sourceSquare);
+    addPiece(position, piece, targetSquare);
 
     // handle enpassant captures
     if (enpass) {
         // reset fifty move rule counter
         position->fifty = 0;
 
-        // white to move
         if (position->side == white) {
-            // remove captured pawn
-            popBit(position->bitboards[p], targetSquare + 8);
-            position->mailbox[targetSquare + 8] = NO_PIECE;
-
-            // remove pawn from hash key
-            toggleHashesForPiece(position, p, targetSquare + 8);
+            removePiece(position, p, targetSquare + 8);
+        } else {
+            removePiece(position, P, targetSquare - 8);
         }
-
-            // black to move
-        else {
-            // remove captured pawn
-            popBit(position->bitboards[P], targetSquare - 8);
-            position->mailbox[targetSquare - 8] = NO_PIECE;
-
-            // remove pawn from hash key
-            toggleHashesForPiece(position, P, targetSquare - 8);
-        }
-
     }
-
-
 
     // handle pawn promotions
     if (promotedPiece) {
-        // white to move
         if (position->side == white) {
-            // erase the pawn from the target square
-            popBit(position->bitboards[P], targetSquare);
-
-            // remove pawn from hash key
-            toggleHashesForPiece(position, P, targetSquare);
+            removePiece(position, P, targetSquare);
+        } else {
+            removePiece(position, p, targetSquare);
         }
-
-            // black to move
-        else {
-            // erase the pawn from the target square
-            popBit(position->bitboards[p], targetSquare);
-
-            // remove pawn from hash key
-            toggleHashesForPiece(position, p, targetSquare);
-        }
-
-        // set up promoted piece on chess board
-        setBit(position->bitboards[promotedPiece], targetSquare);
-        position->mailbox[targetSquare] = promotedPiece;
-
-        // add promoted piece into the hash key
-        toggleHashesForPiece(position, promotedPiece, targetSquare);
+        addPiece(position, promotedPiece, targetSquare);
     }
-
 
     // hash enpassant if available (remove enpassant square from hash key )
     if (position->enpassant != no_sq) position->hashKey ^= enpassantKeys[position->enpassant];
@@ -311,54 +278,26 @@ int makeMove(int move, int moveFlag, board* position) {
         switch (targetSquare) {
             // white castles king side
             case (g1):
-                // move H rook
-                popBit(position->bitboards[R], h1);
-                setBit(position->bitboards[R], f1);
-                position->mailbox[h1] = NO_PIECE;
-                position->mailbox[f1] = R;
-
-                // hash rook
-                toggleHashesForPiece(position, R, h1);
-                toggleHashesForPiece(position, R, f1);
+                removePiece(position, R, h1);
+                addPiece(position, R, f1);
                 break;
 
-                // white castles queen side
+            // white castles queen side
             case (c1):
-                // move A rook
-                popBit(position->bitboards[R], a1);
-                setBit(position->bitboards[R], d1);
-                position->mailbox[a1] = NO_PIECE;
-                position->mailbox[d1] = R;
-
-                // hash rook
-                toggleHashesForPiece(position, R, a1);
-                toggleHashesForPiece(position, R, d1);
+                removePiece(position, R, a1);
+                addPiece(position, R, d1);
                 break;
 
-                // black castles king side
+            // black castles king side
             case (g8):
-                // move H rook
-                popBit(position->bitboards[r], h8);
-                setBit(position->bitboards[r], f8);
-                position->mailbox[h8] = NO_PIECE;
-                position->mailbox[f8] = r;
-
-                // hash rook
-                toggleHashesForPiece(position, r, h8);
-                toggleHashesForPiece(position, r, f8);
+                removePiece(position, r, h8);
+                addPiece(position, r, f8);
                 break;
 
-                // black castles queen side
+            // black castles queen side
             case (c8):
-                // move A rook
-                popBit(position->bitboards[r], a8);
-                setBit(position->bitboards[r], d8);
-                position->mailbox[a8] = NO_PIECE;
-                position->mailbox[d8] = r;
-
-                // hash rook
-                toggleHashesForPiece(position, r, a8);
-                toggleHashesForPiece(position, r, d8);
+                removePiece(position, r, a8);
+                addPiece(position, r, d8);
                 break;
         }
     }
@@ -404,7 +343,7 @@ int makeMove(int move, int moveFlag, board* position) {
         takeBack(position, &copyPosition);
         // return illegal move
         return 0;
-    }    
+    }
 
     return 1;
 }
