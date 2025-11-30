@@ -108,20 +108,7 @@ U64 getRookAttacks(int square, U64 occupancy) {
 
 // get queen attacks
 U64 getQueenAttacks(int square, U64 occupancy) {
-    // get queen attacks assuming current board occupancy
-    U64 queenAttacks;
-    U64 bishopOccupancy = occupancy;
-    U64 rookOccupancy = occupancy;
-    bishopOccupancy &= bishopMask[square];
-    bishopOccupancy *= bishopMagic[square];
-    bishopOccupancy >>= 64 - bishopRelevantBits[square];
-    queenAttacks = bishopAttacks[square][bishopOccupancy];
-
-    rookOccupancy &= rookMask[square];
-    rookOccupancy *= rookMagic[square];
-    rookOccupancy >>= 64 - rookRelevantBits[square];
-    queenAttacks |= rookAttacks[square][rookOccupancy];
-    return queenAttacks;
+    return getBishopAttacks(square, occupancy) | getRookAttacks(square, occupancy);
 }
 
 U64 getPawnAttacks(uint8_t side, int square) {
