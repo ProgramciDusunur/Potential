@@ -27,11 +27,10 @@ int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
 }
 
-void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets, board *pos) {
+void updateQuietMoveHistory(int bestMove, int side, int bonus, moves *badQuiets, board *pos) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
-
-    int bonus = getHistoryBonus(depth);
+    
     int score = quietHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)];
 
     quietHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)] += scaledBonus(score, bonus, maxQuietHistory);
@@ -49,11 +48,10 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets,
     }
 }
 
-void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
+void updatePawnHistory(board *pos, int bestMove, int bonus, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
-
-    int bonus = getHistoryBonus(depth);
+    
     int score = pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to];
 
     pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
@@ -121,9 +119,7 @@ void updateAllCH(board *pos, int move, int bonus, int quiet_hist_score) {
     updateSingleCHScore(pos, move, 4, bonus, quiet_hist_score);
 }
 
-void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets, int quiet_hist_score) {
-    int bonus = getHistoryBonus(depth);
-
+void updateContinuationHistory(board *pos, int bestMove, int bonus, moves *badQuiets, int quiet_hist_score) {    
     updateAllCH(pos, bestMove, bonus, quiet_hist_score);
 
     for (int index = 0; index < badQuiets->count; index++) {

@@ -36,13 +36,13 @@ extern int16_t captureHistory[12][64][13];
 extern int16_t krpCorrhist[2][16384];
 
 int scaledBonus(int score, int bonus, int gravity);
-void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets, board *pos);
-void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets);
+void updateQuietMoveHistory(int bestMove, int side, int bonus, moves *badQuiets, board *pos);
+void updatePawnHistory(board *pos, int bestMove, int bonus, moves *badQuiets);
 void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus, int quiet_hist_score);
 int getAllCHScore(board *pos, int move, int quiet_hist_score);
 void updateAllCH(board *pos, int move, int bonus, int quiet_hist_score);
 int getHistoryBonus(int depth);
-void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets, int quiet_hist_score);
+void updateContinuationHistory(board *pos, int bestMove, int bonus, moves *badQuiets, int quiet_hist_score);
 int getContinuationHistoryScore(board *pos, int offSet, int move);
 void updateCaptureHistory(board *position, int bestMove, int depth);
 void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, int bestMove);
