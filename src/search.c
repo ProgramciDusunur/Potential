@@ -872,6 +872,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         prefetch_hash_entry(position->hashKey);
 
         position->move[myMIN(position->ply, maxPly - 1)] = move;
+        addMoveToHistoryList(noisyMoves, move);
 
         // score current move
         score = -quiescence(-beta, -alpha, position, time);
@@ -892,8 +893,8 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
             bestScore = score;
             // found a better move
             if (score > alpha) {
-                //bestMove = moveList->moves[count];
-
+                bestMove = move;
+                
                 //hashFlag = hashFlagExact;
                 alpha = score;
             }
