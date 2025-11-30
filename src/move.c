@@ -634,23 +634,35 @@ inline void splatEnpassant(moves *moveList, U64 sourceBitboard, int enpassantSqu
     }
 }
 
+inline void splatNormalMoves(moves *moveList, int sourceSquare, U64 targetBitboard, int piece, int capture) {
+    while (targetBitboard) {
+        int targetSquare = getLS1BIndex(targetBitboard);
+
+        addMove(moveList, encodeMove(sourceSquare, targetSquare, piece, 0, capture, 0, 0, 0));
+
+        popBit(targetBitboard, targetSquare);
+    }
+}
+
 // generate all moves
 void moveGenerator(moves *moveList, board* position) {
     // init move count
     moveList->count = 0;
 
-
     // define source & target squares
     int source_square, target_square;
+    int piece;
 
     // define current piece's bitboard copy & it's attacks
     U64 bitboard, attacks;
 
+    U64 enemy = position->occupancies[position->side == white ? black : white];
+    U64 blockers = position->occupancies[both];
+    U64 empty = ~blockers;
+
+    // Pawn moves
     if (position->side == white) {
         bitboard = position->bitboards[P];
-
-        U64 enemy = position->occupancies[black];
-        U64 empty = ~position->occupancies[both];
 
         U64 emptyAhead = bitboard & (empty << 8);
         U64 singlePush = emptyAhead & 0x00FFFFFFFFFF0000;
@@ -695,9 +707,6 @@ void moveGenerator(moves *moveList, board* position) {
     } else {
         bitboard = position->bitboards[p];
 
-        U64 enemy = position->occupancies[white];
-        U64 empty = ~position->occupancies[both];
-
         U64 emptyAhead = bitboard & (empty >> 8);
         U64 singlePush = emptyAhead & 0x0000FFFFFFFFFF00;
         U64 doublePush = emptyAhead & 0x000000000000FF00 & (empty >> 16);
@@ -740,6 +749,20 @@ void moveGenerator(moves *moveList, board* position) {
         }
     }
 
+    // Knight moves
+    piece = position->side == white ? N : n;
+    bitboard = position->bitboards[piece];
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);
+
+        U64 targetBitboard = knightAttacks[sourceSquare];
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, piece, 0);
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, piece, 1);
+
+        popBit(bitboard, sourceSquare);
+    }
+
     // loop over all the bitboards
     for (int piece = P; piece <= k; piece++) {
         // init piece bitboard copy
@@ -756,39 +779,6 @@ void moveGenerator(moves *moveList, board* position) {
             if (piece == k) {
                 generate_black_king_side_castling(position, moveList);
                 generate_black_queen_side_castling(position, moveList);
-            }
-        }
-
-        // genarate knight moves
-        if ((position->side == white) ? piece == N : piece == n) {
-            // loop over source squares of piece bitboard copy
-            while (bitboard) {
-                // init source square
-                source_square = getLS1BIndex(bitboard);
-
-                // init piece attacks in order to get set of target squares
-                attacks = knightAttacks[source_square] & ((position->side == white) ? ~position->occupancies[white] : ~position->occupancies[black]);
-
-                // loop over target squares available from generated attacks
-                while (attacks) {
-                    // init target square
-                    target_square = getLS1BIndex(attacks);
-
-                    // quiet move
-                    if (!(getBit(((position->side == white) ? position->occupancies[black] : position->occupancies[white]), target_square)))
-                        addMove(moveList, encodeMove(source_square, target_square, piece, 0, 0, 0, 0, 0));
-
-                    else
-                        // capture move
-                        addMove(moveList, encodeMove(source_square, target_square, piece, 0, 1, 0, 0, 0));
-
-                    // pop ls1b in current attacks set
-                    popBit(attacks, target_square);
-                }
-
-
-                // pop ls1b of the current piece bitboard copy
-                popBit(bitboard, source_square);
             }
         }
 
