@@ -158,6 +158,29 @@ bool isKRP(int piece) {
     return piece == K || piece == k || piece == R || piece == r;
 }
 
+void toggleHashesForPiece(board* position, int piece, int square) {
+    position->hashKey ^= pieceKeys[piece][square];
+    if (piece == P || piece == p) {
+        position->pawnKey ^= pieceKeys[piece][square];
+        position->krpKey ^= pieceKeys[piece][square];
+    } else {
+        if (pieceColor(piece) == white) {
+            position->whiteNonPawnKey ^= pieceKeys[piece][square];
+        } else {
+            position->blackNonPawnKey ^= pieceKeys[piece][square];
+        }
+    }
+    if (isMinor(piece)) {
+        position->minorKey ^= pieceKeys[piece][square];
+    }
+    if (isMajor(piece)) {
+        position->majorKey ^= pieceKeys[piece][square];
+    }
+    if (isKRP(piece)) {
+        position->krpKey ^= pieceKeys[piece][square];
+    }
+}
+
 // make move on chess board
 int makeMove(int move, int moveFlag, board* position) {
     int isLegalCapture = getMoveCapture(move);
@@ -186,45 +209,15 @@ int makeMove(int move, int moveFlag, board* position) {
     position->mailbox[targetSquare] = piece;
 
     // hash piece
-    position->hashKey ^= pieceKeys[piece][sourceSquare]; // remove piece from source square in hash key
-    position->hashKey ^= pieceKeys[piece][targetSquare]; // set piece to the target square in hash key
+    toggleHashesForPiece(position, piece, sourceSquare);
+    toggleHashesForPiece(position, piece, targetSquare);
 
     // increment fifty move rule counter
     position->fifty++;
 
     if (piece == P || piece == p) {
-        position->pawnKey ^= pieceKeys[piece][sourceSquare];
-        position->pawnKey ^= pieceKeys[piece][targetSquare];
-        position->krpKey ^= pieceKeys[piece][sourceSquare];
-        position->krpKey ^= pieceKeys[piece][targetSquare];
-
         position->fifty = 0; // reset fifty move rule counter
-    } else { // non pawn key
-
-        if (position->side == white) {
-            position->whiteNonPawnKey ^= pieceKeys[piece][sourceSquare];
-            position->whiteNonPawnKey ^= pieceKeys[piece][targetSquare];
-        } else {
-            position->blackNonPawnKey ^= pieceKeys[piece][sourceSquare];
-            position->blackNonPawnKey ^= pieceKeys[piece][targetSquare];
-        }
     }
-
-    if (isMinor(piece)) {
-        position->minorKey ^= pieceKeys[piece][sourceSquare];
-        position->minorKey ^= pieceKeys[piece][targetSquare];
-    }
-
-    if (isMajor(piece)) {
-        position->majorKey ^= pieceKeys[piece][sourceSquare];
-        position->majorKey ^= pieceKeys[piece][targetSquare];
-    }
-
-    if (isKRP(piece)) {
-        position->krpKey ^= pieceKeys[piece][sourceSquare];
-        position->krpKey ^= pieceKeys[piece][targetSquare];
-    }
-
 
     // handling capture moves
     if (capture && !enpass) {
@@ -277,9 +270,7 @@ int makeMove(int move, int moveFlag, board* position) {
             position->mailbox[targetSquare + 8] = NO_PIECE;
 
             // remove pawn from hash key
-            position->hashKey ^= pieceKeys[p][targetSquare + 8];
-            position->pawnKey ^= pieceKeys[p][targetSquare + 8];
-            position->krpKey  ^= pieceKeys[p][targetSquare + 8];
+            toggleHashesForPiece(position, p, targetSquare + 8);
         }
 
             // black to move
@@ -289,9 +280,7 @@ int makeMove(int move, int moveFlag, board* position) {
             position->mailbox[targetSquare - 8] = NO_PIECE;
 
             // remove pawn from hash key
-            position->hashKey ^= pieceKeys[P][targetSquare - 8];
-            position->pawnKey ^= pieceKeys[P][targetSquare - 8];
-            position->krpKey  ^= pieceKeys[P][targetSquare - 8];
+            toggleHashesForPiece(position, P, targetSquare - 8);
         }
 
     }
@@ -306,10 +295,7 @@ int makeMove(int move, int moveFlag, board* position) {
             popBit(position->bitboards[P], targetSquare);
 
             // remove pawn from hash key
-            position->hashKey ^= pieceKeys[P][targetSquare];
-            position->pawnKey ^= pieceKeys[P][targetSquare];
-            position->krpKey ^= pieceKeys[P][targetSquare];
-            position->whiteNonPawnKey ^= pieceKeys[promotedPiece][targetSquare];
+            toggleHashesForPiece(position, P, targetSquare);
         }
 
             // black to move
@@ -318,10 +304,7 @@ int makeMove(int move, int moveFlag, board* position) {
             popBit(position->bitboards[p], targetSquare);
 
             // remove pawn from hash key
-            position->hashKey ^= pieceKeys[p][targetSquare];
-            position->pawnKey ^= pieceKeys[p][targetSquare];
-            position->krpKey ^= pieceKeys[p][targetSquare];
-            position->blackNonPawnKey ^= pieceKeys[promotedPiece][targetSquare];
+            toggleHashesForPiece(position, p, targetSquare);
         }
 
         // set up promoted piece on chess board
@@ -329,21 +312,7 @@ int makeMove(int move, int moveFlag, board* position) {
         position->mailbox[targetSquare] = promotedPiece;
 
         // add promoted piece into the hash key
-        position->hashKey ^= pieceKeys[promotedPiece][targetSquare];
-
-
-        if (isMinor(promotedPiece)) {
-            position->minorKey ^= pieceKeys[promotedPiece][targetSquare];
-        }
-
-        if (isMajor(promotedPiece)) {
-            position->majorKey ^= pieceKeys[promotedPiece][targetSquare];
-
-        }
-
-        if (isKRP(promotedPiece)) {
-            position->krpKey ^= pieceKeys[promotedPiece][targetSquare];
-        }
+        toggleHashesForPiece(position, promotedPiece, targetSquare);
     }
 
 
@@ -359,8 +328,7 @@ int makeMove(int move, int moveFlag, board* position) {
         position->enpassant = targetSquare + enPassantSquares[position->side];
 
         // hash enpassant
-        position->hashKey ^= enpassantKeys[targetSquare + enPassantSquares[position->side]];
-
+        position->hashKey ^= enpassantKeys[position->enpassant];
     }
 
     // handle castling moves
@@ -375,14 +343,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->mailbox[f1] = R;
 
                 // hash rook
-                position->hashKey ^= pieceKeys[R][h1];  // remove rook from h1 from hash key
-                position->hashKey ^= pieceKeys[R][f1];  // put rook on f1 into a hash key
-                position->whiteNonPawnKey ^= pieceKeys[R][h1];
-                position->whiteNonPawnKey ^= pieceKeys[R][f1];
-                position->majorKey ^= pieceKeys[R][h1];
-                position->majorKey ^= pieceKeys[R][f1];
-                position->krpKey ^= pieceKeys[R][h1];
-                position->krpKey ^= pieceKeys[R][f1];
+                toggleHashesForPiece(position, R, h1);
+                toggleHashesForPiece(position, R, f1);
                 break;
 
                 // white castles queen side
@@ -394,14 +356,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->mailbox[d1] = R;
 
                 // hash rook
-                position->hashKey ^= pieceKeys[R][a1];  // remove rook from a1 from hash key
-                position->hashKey ^= pieceKeys[R][d1];  // put rook on d1 into a hash key
-                position->whiteNonPawnKey ^= pieceKeys[R][a1];
-                position->whiteNonPawnKey ^= pieceKeys[R][d1];
-                position->majorKey ^= pieceKeys[R][a1];
-                position->majorKey ^= pieceKeys[R][d1];
-                position->krpKey ^= pieceKeys[R][a1];
-                position->krpKey ^= pieceKeys[R][d1];
+                toggleHashesForPiece(position, R, a1);
+                toggleHashesForPiece(position, R, d1);
                 break;
 
                 // black castles king side
@@ -413,14 +369,8 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->mailbox[f8] = r;
 
                 // hash rook
-                position->hashKey ^= pieceKeys[r][h8];  // remove rook from h8 from hash key
-                position->hashKey ^= pieceKeys[r][f8];  // put rook on f8 into a hash key
-                position->blackNonPawnKey ^= pieceKeys[r][h8];
-                position->blackNonPawnKey ^= pieceKeys[r][f8];
-                position->majorKey ^= pieceKeys[r][h8];
-                position->majorKey ^= pieceKeys[r][f8];
-                position->krpKey ^= pieceKeys[r][h8];
-                position->krpKey ^= pieceKeys[r][f8];
+                toggleHashesForPiece(position, r, h8);
+                toggleHashesForPiece(position, r, f8);
                 break;
 
                 // black castles queen side
@@ -432,18 +382,11 @@ int makeMove(int move, int moveFlag, board* position) {
                 position->mailbox[d8] = r;
 
                 // hash rook
-                position->hashKey ^= pieceKeys[r][a8];  // remove rook from a8 from hash key
-                position->hashKey ^= pieceKeys[r][d8];  // put rook on d8 into a hash key
-                position->blackNonPawnKey ^= pieceKeys[r][a8];
-                position->blackNonPawnKey ^= pieceKeys[r][d8];
-                position->majorKey ^= pieceKeys[r][a8];
-                position->majorKey ^= pieceKeys[r][d8];
-                position->krpKey ^= pieceKeys[r][a8];
-                position->krpKey ^= pieceKeys[r][d8];
+                toggleHashesForPiece(position, r, a8);
+                toggleHashesForPiece(position, r, d8);
                 break;
         }
     }
-
 
     // hash castling
     position->hashKey ^= castleKeys[position->castle];

@@ -46,6 +46,13 @@ enum {
     allMoves, onlyCaptures
 };
 
+inline int pieceColor(int piece) {
+    if (piece >= P && piece <= K)
+        return white;
+    if (piece >= p && piece <= k)
+        return black;
+}
+
 extern char *squareToCoordinates[];
 extern char asciiPieces[12];
 extern char promotedPieces[];
