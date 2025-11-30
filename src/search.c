@@ -829,16 +829,20 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
 
     // loop over moves within a movelist
-    for (int count = 0; count < moveList->count; count++) {
+    for (int count = 0; count < moveList->count; count++) {        
         int move = moveList->moves[count];
-        if (!SEE(position, move, QS_SEE_THRESHOLD)) {
-            continue;
-        }
 
-        if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
-            bestScore = myMAX(bestScore, futilityValue);
-            continue;
+        if (bestScore > -mateFound) {
+            if (!SEE(position, move, QS_SEE_THRESHOLD)) {
+                continue;
+            }
+
+            if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
+                bestScore = myMAX(bestScore, futilityValue);
+                continue;
+            }
         }
+        
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
@@ -1310,7 +1314,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
 
-        bool isNotMated = bestScore > -mateValue;
+        bool isNotMated = bestScore > -mateFound;
 
         if (!rootNode && notTactical && isNotMated) {
 
