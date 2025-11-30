@@ -429,33 +429,6 @@ bool legalityCheck(int moveFlag, int move, board *position) {
     return 1;
 }
 
-
-
-// pawn promotions
-/*void generate_quiet_white_pawn_promotion(int source_square, int target_square, moves *moveList) {
-    addMove(moveList, encodeMove(source_square, target_square, piece, Q, 0, 0, 0, 0));
-    addMove(moveList, encodeMove(source_square, target_square, piece, R, 0, 0, 0, 0));
-    addMove(moveList, encodeMove(source_square, target_square, piece, B, 0, 0, 0, 0));
-    addMove(moveList, encodeMove(source_square, target_square, piece, N, 0, 0, 0, 0));
-}
-
-void generate_quiet_black_pawn_promotion(int source_square, int target_square, moves *moveList) {
-
-}
-
-// pawn push
-void generate_one_pawn_push(int source_square, int target_square, moves *moveList) {
-    addMove(moveList, encodeMove(source_square, target_square, piece, 0, 0, 0, 0, 0));
-}
-
-void generate_white_double_pawn_push(int source_square, int target_square, moves *moveList) {
-
-}
-
-void generate_black_double_pawn_push(int source_square, int target_square, moves *moveList) {
-
-}*/
-
 // castling
 void generate_white_king_side_castling(board *position, moves *moveList) {
     // king side castling is available
