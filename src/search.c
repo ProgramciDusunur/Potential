@@ -1611,8 +1611,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                         quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
-                        int factor = 64;
-                        int bonus = factor * myMIN(200 * depth, 4096) / 128;
+                        int factor = 16;
+                        int bonus = factor * myMIN(200 * depth, 4096) / 96;
 
                         updateQuietMoveHistory(bestMove, pos->side, bonus, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, bonus, badQuiets, quiet_history_score);
