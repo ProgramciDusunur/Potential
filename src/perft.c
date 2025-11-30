@@ -43,14 +43,18 @@ void perftRoot(int depth, board* position) {
         }
         // call perft driver recursively
         perftChild(depth - 1, position);
-        printf("%s%s%c %llu \n", squareToCoordinates[getMoveSource(moveList->moves[moveCount])],
-               squareToCoordinates[getMoveTarget(moveList->moves[moveCount])],
-               promotedPieces[getMovePromoted(moveList->moves[moveCount])], variant);
+
+        printf("%s%s", squareToCoordinates[getMoveSource(moveList->moves[moveCount])],
+               squareToCoordinates[getMoveTarget(moveList->moves[moveCount])]);
+        if (getMovePromoted(moveList->moves[moveCount])) {
+            printf("%c", promotedPieces[getMovePromoted(moveList->moves[moveCount])]);
+        }
+        printf(": %llu\n", variant);
+
         variant = 0;
         takeBack(position, &copyPosition);
     }
     printf("\n");
-
 }
 
 void perft(int depth, board* position) {

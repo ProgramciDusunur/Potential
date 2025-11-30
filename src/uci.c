@@ -544,10 +544,15 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             printf("uciok\n");
         } else if (strncmp(input, "eval", 4) == 0) {
             printf("Evaluation: %d\n", evaluate(position));
-        } else if (strncmp(input, "perft", 5) == 0) {
+        } else if (strncmp(input, "perftsuite", 10) == 0) {
             perftSuite();
-        }
-        else if (strncmp(input, "bench", 5) == 0) {
+        } else if (strncmp(input, "perft", 5) == 0) {
+            int depth;
+            sscanf(input, "%*s %d", &depth);
+            perftNodes = 0;
+            perftRoot(depth, position);
+            printf("total: %llu\n", perftNodes);
+        } else if (strncmp(input, "bench", 5) == 0) {
             benchmark(BENCH_DEPTH, position, time_ctrl);
         }
     }
