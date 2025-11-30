@@ -49,8 +49,7 @@ enum {
 inline int pieceColor(int piece) {
     if (piece >= P && piece <= K)
         return white;
-    if (piece >= p && piece <= k)
-        return black;
+    return black;
 }
 
 extern char *squareToCoordinates[];
