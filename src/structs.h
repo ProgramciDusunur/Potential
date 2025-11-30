@@ -40,6 +40,7 @@ typedef struct {
 
     U64 repetitionTable[1000];
     int repetitionIndex;
+    int corrextCount;
 
     int pvLength[maxPly];
     int pvTable[maxPly][maxPly];    
