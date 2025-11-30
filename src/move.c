@@ -292,7 +292,7 @@ int makeMove(int move, int moveFlag, board* position) {
                     position->majorKey ^= pieceKeys[bbPiece][targetSquare];
                 }
 
-                if (isKRP(piece)) {
+                if (isKRP(bbPiece)) {
                     position->krpKey ^= pieceKeys[bbPiece][targetSquare];
                 }
 
