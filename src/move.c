@@ -183,6 +183,8 @@ void toggleHashesForPiece(board* position, int piece, int square) {
 
 void addPiece(board* position, int piece, int square) {
     setBit(position->bitboards[piece], square);
+    setBit(position->occupancies[pieceColor(piece)], square);
+    setBit(position->occupancies[both], square);
     position->mailbox[square] = piece;
     toggleHashesForPiece(position, piece, square);
 }
@@ -190,6 +192,8 @@ void addPiece(board* position, int piece, int square) {
 void removePiece(board* position, int piece, int square) {
     assert(position->mailbox[square] == piece);
     popBit(position->bitboards[piece], square);
+    popBit(position->occupancies[pieceColor(piece)], square);
+    popBit(position->occupancies[both], square);
     position->mailbox[square] = NO_PIECE;
     toggleHashesForPiece(position, piece, square);
 }
@@ -311,25 +315,6 @@ int makeMove(int move, int moveFlag, board* position) {
 
     // hash castling
     position->hashKey ^= castleKeys[position->castle];
-
-    // reset occupancies
-    position->occupancies[white] = 0LL;
-    position->occupancies[black] = 0LL,
-    position->occupancies[both] = 0LL;
-
-    // loop over white pieces bitboards
-    for (int bbPiece = P; bbPiece <= K; bbPiece++) {
-        // update white occupancies
-        position->occupancies[white] |= position->bitboards[bbPiece];
-    }
-    // loop over black pieces bitboards
-    for (int bbPiece = p; bbPiece <= k; bbPiece++) {
-        // update black occupancies
-        position->occupancies[black] |= position->bitboards[bbPiece];
-    }
-    // update both side occupancies
-    position->occupancies[both] |= position->occupancies[white];
-    position->occupancies[both] |= position->occupancies[black];
 
     // change side
     position->side ^= 1;
