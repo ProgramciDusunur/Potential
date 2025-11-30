@@ -161,25 +161,16 @@ int isSquareAttacked(int square, int whichSide, board* position) {
     return 0;
 }
 
-bool isMinor (int piece) {
-    if (piece == K || piece == k || piece == B || piece == b || piece == N || piece == n) {
-        return true;
-    }
-    return false;
+bool isMinor(int piece) {
+    return piece == K || piece == k || piece == B || piece == b || piece == N || piece == n;
 }
 
-bool isMajor (int piece) {
-    if (piece == Q || piece == q || piece == R || piece == r) {
-        return true;
-    }
-    return false;
+bool isMajor(int piece) {
+    return piece == Q || piece == q || piece == R || piece == r;
 }
 
 bool isKRP(int piece) {
-    if (piece == K || piece == k || piece == R || piece == r) {
-        return true;
-    }
-    return false;
+    return piece == K || piece == k || piece == R || piece == r;
 }
 
 // make move on chess board
