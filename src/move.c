@@ -230,32 +230,7 @@ int makeMove(int move, int moveFlag, board* position) {
         popBit(position->bitboards[capturedPiece], targetSquare);
 
         // remove the piece from hash key
-        position->hashKey ^= pieceKeys[capturedPiece][targetSquare];
-
-        if (capturedPiece == P || capturedPiece == p) {
-
-            position->pawnKey ^= pieceKeys[capturedPiece][targetSquare];
-            position->krpKey ^= pieceKeys[capturedPiece][targetSquare];
-
-        } else { // non pawn key
-            if (position->side == white) {
-                position->blackNonPawnKey ^= pieceKeys[capturedPiece][targetSquare];
-            } else {
-                position->whiteNonPawnKey ^= pieceKeys[capturedPiece][targetSquare];
-            }
-        }
-
-        if (isMinor(capturedPiece)) {
-            position->minorKey ^= pieceKeys[capturedPiece][targetSquare];
-        }
-
-        if (isMajor(capturedPiece)) {
-            position->majorKey ^= pieceKeys[capturedPiece][targetSquare];
-        }
-
-        if (isKRP(capturedPiece)) {
-            position->krpKey ^= pieceKeys[capturedPiece][targetSquare];
-        }
+        toggleHashesForPiece(position, capturedPiece, targetSquare);
     }
 
     // handle enpassant captures
