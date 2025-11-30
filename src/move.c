@@ -131,16 +131,13 @@ int isSquareAttacked(int square, int whichSide, board* position) {
     if (knightAttacks[square] & position->bitboards[whichSide == white ? N : n]) {
         return 1;
     }
-    if (getBishopAttacks(square, position->occupancies[both]) & position->bitboards[whichSide == white ? B : b]) {
+    if (getRookAttacks(square, position->occupancies[both]) & (position->bitboards[whichSide == white ? R : r] | position->bitboards[whichSide == white ? Q : q])) {
+        return 1;
+    }
+    if (getBishopAttacks(square, position->occupancies[both]) & (position->bitboards[whichSide == white ? B : b] | position->bitboards[whichSide == white ? Q : q])) {
         return 1;
     }
     if (kingAttacks[square] & position->bitboards[whichSide == white ? K : k]) {
-        return 1;
-    }
-    if (getQueenAttacks(square, position->occupancies[both]) & position->bitboards[whichSide == white ? Q : q]) {
-        return 1;
-    }
-    if (getRookAttacks(square, position->occupancies[both]) & position->bitboards[whichSide == white ? R : r]) {
         return 1;
     }
     return 0;
