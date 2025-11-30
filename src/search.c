@@ -813,7 +813,9 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     }
 
     // create move list instance
-    moves moveList[1];
+    moves moveList[1], noisyMoves[1];
+    moveList->count = 0;
+    noisyMoves->count = 0;
 
     // generate moves
     noisyGenerator(moveList, position);
@@ -869,6 +871,8 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
         prefetch_hash_entry(position->hashKey);
 
+        position->move[myMIN(position->ply, maxPly - 1)] = move;
+
         // score current move
         score = -quiescence(-beta, -alpha, position, time);
 
@@ -895,7 +899,9 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
             }
 
             if (score >= beta) {
-                //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
+                updateCaptureHistory(position, bestMove, 1);
+                // always penalize bad noisy moves
+                updateCaptureHistoryMalus(position, 1, noisyMoves, bestMove);
                 // node (move) fails high
                 break;
             }
