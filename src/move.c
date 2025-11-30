@@ -791,6 +791,20 @@ void moveGenerator(moves *moveList, board* position) {
         popBit(bitboard, sourceSquare);
     }
 
+    // Queen moves
+    piece = position->side == white ? Q : q;
+    bitboard = position->bitboards[piece];
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);
+
+        U64 targetBitboard = getQueenAttacks(sourceSquare, blockers);
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, piece, 0);
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, piece, 1);
+
+        popBit(bitboard, sourceSquare);
+    }
+
     // loop over all the bitboards
     for (int piece = P; piece <= k; piece++) {
         // init piece bitboard copy
@@ -810,39 +824,6 @@ void moveGenerator(moves *moveList, board* position) {
             }
         }
 
-        // generate queen moves
-        if ((position->side == white) ? piece == Q : piece == q) {
-            // loop over source squares of piece bitboard copy
-            while (bitboard) {
-                // init source square
-                source_square = getLS1BIndex(bitboard);
-
-                // init piece attacks in order to get set of target squares
-                attacks = getQueenAttacks(source_square, position->occupancies[both]) &
-                          ((position->side == white) ? ~position->occupancies[white] : ~position->occupancies[black]);
-
-                // loop over target squares available from generated attacks
-                while (attacks) {
-                    // init target square
-                    target_square = getLS1BIndex(attacks);
-
-                    // quiet move
-                    if (!(getBit(((position->side == white) ? position->occupancies[black] : position->occupancies[white]), target_square)))
-                        addMove(moveList, encodeMove(source_square, target_square, piece, 0, 0, 0, 0, 0));
-
-                    else
-                        // capture move
-                        addMove(moveList, encodeMove(source_square, target_square, piece, 0, 1, 0, 0, 0));
-
-                    // pop ls1b in current attacks set
-                    popBit(attacks, target_square);
-                }
-
-
-                // pop ls1b of the current piece bitboard copy
-                popBit(bitboard, source_square);
-            }
-        }
         // generate king moves
         if ((position->side == white) ? piece == K : piece == k) {
             // loop over source squares of piece bitboard copy
