@@ -19,11 +19,11 @@
 
 void initAll(void) {
     initLeaperAttacks();
-    initMagicNumbers();
-    initSlidersAttacks(bishop);
-    initSlidersAttacks(rook);
     // init random keys for tranposition table
     initRandomKeys();
+    initMagicNumbers();
+    initSlidersAttacks(bishop);
+    initSlidersAttacks(rook);    
     // clear hash table
     clearHashTable();
     // init mask
