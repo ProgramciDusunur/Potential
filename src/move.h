@@ -74,7 +74,6 @@ void noisyGenerator(moves *moveList, board* position);
 void initSlidersAttacks(int bishop);
 void initLeaperAttacks();
 void addMoveToHistoryList(moves* list, int move);
-bool legalityCheck(int moveFlag, int move, board *position);
 U64 pawn_threats(U64 pawnBitboard, int side);
 U64 knight_threats (U64 knightBB);
 
