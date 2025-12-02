@@ -1312,7 +1312,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
 
-
+        int previous_move_target_square = getMoveTarget(pos->move[myMAX(0, pos->ply - 1)]);
 
         bool isNotMated = bestScore > -mateFound;
 
@@ -1416,6 +1416,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // Negative Extensions
             else if (tt_score >= beta) {
                 extensions -= 2 + !pvNode;
+            }
+
+            // Recapture Extension
+            else if (!notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
+                extensions += 1;
             }
             
             // Cut Node Extension
