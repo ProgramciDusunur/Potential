@@ -1004,7 +1004,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
     // recursion escapre condition
-    if (depth <= 0 && pos->fifty < 99)
+    if (depth <= 0)
         // run quiescence search
         return quiescence(alpha, beta, pos, time);        
 
