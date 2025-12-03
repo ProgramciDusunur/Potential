@@ -754,12 +754,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
     if ((position->nodes_searched & 2047) == 0) {
         communicate(time, position);
-    }
-
-    if (position->ply > maxPly - 1) {
-        // evaluate position
-        return evaluate(position);
-    }
+    }    
 
     int score = 0, bestScore = 0;
 
@@ -771,6 +766,21 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         position->seldepth = position->ply;
     }
 
+    // Check for fifty-move rule
+    if (position->fifty >= 100) {
+        int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
+                                    getLS1BIndex(position->bitboards[k]),
+                                    position->side ^ 1, position);
+        if (!in_check) {
+            // return draw by fifty-move rule
+            return get_draw_score(position);
+        }       
+    }
+
+    if (position->ply > maxPly - 1) {
+        // evaluate position
+        return evaluate(position);
+    }
 
     int bestMove = 0;
     int tt_move = 0;
