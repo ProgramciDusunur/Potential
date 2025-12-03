@@ -1004,7 +1004,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
     // recursion escapre condition
-    if (depth <= 0 && pos->fifty < 99)
+    if (depth <= 0)
         // run quiescence search
         return quiescence(alpha, beta, pos, time);        
 
@@ -1640,6 +1640,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         else
             // return stalemate score
             return get_draw_score(pos);
+    }
+
+    if (bestScore >= beta && abs(bestScore) < mateFound && abs(alpha) < mateFound) {
+        bestScore = (bestScore * depth + beta) / (depth + 1);
     }
 
     if (!pos->isSingularMove[pos->ply]) {
