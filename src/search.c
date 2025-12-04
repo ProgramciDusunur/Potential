@@ -1059,7 +1059,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
-    int corrplexity_threshold = pvNode ? 3000 : 1000;
+    int corrplexity_threshold = 3000;
     if (!rootNode && corrplexity && pos->corrextCount <= corrplexity_threshold && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
         pos->corrextCount++;
         depth++;
