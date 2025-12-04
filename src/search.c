@@ -1059,7 +1059,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
-    if (rootNode && corrplexity && ttAdjustedEval != static_eval && abs(tt_score) < mateValue) {
+    int corrplexity_threshold = pvNode ? 3000 : 1000;
+    if (!rootNode && corrplexity && pos->corrextCount <= corrplexity_threshold && ttAdjustedEval != static_eval && (tt_move && tt_hit)) {
+        pos->corrextCount++;
         depth++;
     }
 
@@ -1780,6 +1782,8 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             window *= 1.8f;
 
         }
+
+        position->corrextCount = 0;
 
         baseSearchScore = current_depth == 1 ? score : baseSearchScore;
         averageScore = averageScore == noEval ? score : (averageScore + score) / 2;

@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "timeman.h"
 
-#define VERSION "3.8.28"
+#define VERSION "3.8.29"
 #define BENCH_DEPTH 13
 
 double DEF_TIME_MULTIPLIER = 0.054;
@@ -395,6 +395,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
 
     position->ply = 0;
     position->nmpPly = 0;
+    position->corrextCount = 0;
 
 
     for (int i = 0; i < 64;i++) {
