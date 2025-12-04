@@ -16,7 +16,7 @@ double HARD_LIMIT_MULTIPLIER = 3.04;
 double SOFT_LIMIT_MULTIPLIER = 0.76;
 
 // parse user/GUI move string input (e.g. "e7e8q")
-int parse_move(char *move_string, board* position) {
+uint16_t parse_move(char *move_string, board* position) {
     // create move list instance
     moves moveList[1];
 
@@ -32,15 +32,14 @@ int parse_move(char *move_string, board* position) {
     // loop over the moves within a move list
     for (int move_count = 0; move_count < moveList->count; move_count++) {
         // init move
-        int move = moveList->moves[move_count];
+        uint16_t move = moveList->moves[move_count];
 
         // make sure source & target squares are available within the generated move
         if (source_square == getMoveSource(move) && target_square == getMoveTarget(move)) {
-            // init promoted piece
-            int promoted_piece = getMovePromoted(move);
-
             // promoted piece is available
-            if (promoted_piece) {
+            if (getMovePromote(move)) {
+                int promoted_piece = getMovePromotedPiece(position->side, move);
+
                 // promoted to queen
                 if ((promoted_piece == Q || promoted_piece == q) && move_string[4] == 'q')
                     // return legal move
@@ -124,7 +123,7 @@ void parse_position(char *command, board* position) {
         // loop over moves within a move string
         while (*current_char) {
             // parse next move
-            int move = parse_move(current_char, position);
+            uint16_t move = parse_move(current_char, position);
 
             // if no more moves
             if (move == 0)
@@ -286,22 +285,20 @@ void printMoveList(moves *moveList) {
 
     // loop over moves within a move list
     for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
-        int move = moveList->moves[moveCount];
+        uint16_t move = moveList->moves[moveCount];
 #ifdef WIN64
-        printf(" \n  %s%s%c   %c       %d         %d        %d           %d", squareToCoordinates[getMoveSource(move)],
+        printf(" \n  %s%s%c           %d         %d        %d           %d", squareToCoordinates[getMoveSource(move)],
                squareToCoordinates[getMoveTarget(move)],
-               getMovePromoted(move) ? promotedPieces[getMovePromoted(move)] : ' ',
-               asciiPieces[getMovePiece(move)],
+               getMovePromote(move) ? promotedPieces[getMovePromotedPiece(black, move)] : ' ',
                getMoveCapture(move) ? 1 : 0,
                getMoveDouble(move) ? 1 : 0,
                getMoveEnpassant(move) ? 1 : 0,
                getMoveCastling(move) ? 1 : 0);
 
 #else
-        printf(" \n  %s%s%c  %s       %d         %d        %d           %d",            squareToCoordinates[getMoveSource(move)],
+        printf(" \n  %s%s%c          %d         %d        %d           %d",            squareToCoordinates[getMoveSource(move)],
                                                                                         squareToCoordinates[getMoveTarget(move)],
-                                                                                        getMovePromoted(move) ? promotedPieces[getMovePromoted(move)] : ' ',
-                                                                                        unicodePieces[getMovePiece(move)],
+                                                                                        getMovePromote(move) ? promotedPieces[getMovePromotedPiece(black, move)] : ' ',
                                                                                         getMoveCapture(move) ? 1 : 0,
                                                                                         getMoveDouble(move) ? 1 : 0,
                                                                                         getMoveEnpassant(move) ? 1 : 0,

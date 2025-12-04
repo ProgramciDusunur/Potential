@@ -195,7 +195,7 @@ void initializeLMRTable(void) {
 */
 
 // score moves
-int scoreMove(int move, board* position) {
+int scoreMove(uint16_t move, board* position) {
     // make sure we are dealing with PV move
     if (position->scorePv && position->pvTable[0][position->ply] == move) {
         // disable score PV flag
@@ -205,10 +205,9 @@ int scoreMove(int move, board* position) {
         return 1500000000;
     }
 
-    int isPromotionMove = getMovePromoted(move);
     // score promotion move
-    if (isPromotionMove) {
-        switch (isPromotionMove) {
+    if (getMovePromote(move)) {
+        switch (getMovePromotedPiece(position->side, move)) {
             case q:
             case Q:
                 return 1000000000;
@@ -247,10 +246,12 @@ int scoreMove(int move, board* position) {
         int previous_move_target_square = getMoveTarget(position->move[myMAX(0, position->ply - 1)]);
         int recapture_bonus = getMoveTarget(move) == previous_move_target_square ? 200000 : 0;
 
-        // score move by MVV LVA lookup [source piece][target piece]
-        captureScore += mvvLva[getMovePiece(move)][target_piece];
+        int piece = position->mailbox[getMoveSource(move)];
 
-        captureScore += captureHistory[getMovePiece(move)][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
+        // score move by MVV LVA lookup [source piece][target piece]
+        captureScore += mvvLva[piece][target_piece];
+
+        captureScore += captureHistory[piece][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
 
         captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
 
@@ -271,7 +272,7 @@ int scoreMove(int move, board* position) {
 }
 
 
-void sort_moves(moves *moveList, int tt_move, board* position) {
+void sort_moves(moves *moveList, uint16_t tt_move, board* position) {
     if (moveList->count == 0) {
         return;
     }
@@ -282,7 +283,7 @@ void sort_moves(moves *moveList, int tt_move, board* position) {
 
     // score and insert moves one by one
     for (int count = 0; count < moveList->count; count++) {
-        int current_move = moveList->moves[count];
+        uint16_t current_move = moveList->moves[count];
         int current_score;
 
         // if hash move available
@@ -307,7 +308,7 @@ void sort_moves(moves *moveList, int tt_move, board* position) {
     }
 }
 
-int quiescenceScoreMove(int move, board* position) {
+int quiescenceScoreMove(uint16_t move, board* position) {
     // score capture move
     if (getMoveCapture(move)) {
         // init target piece
@@ -323,7 +324,7 @@ int quiescenceScoreMove(int move, board* position) {
         }
 
         // score move by MVV LVA lookup [source piece][target piece]
-        return mvvLva[getMovePiece(move)][target_piece] + 1000000000;
+        return mvvLva[position->mailbox[getMoveSource(move)]][target_piece] + 1000000000;
     }
 
     return 0;
@@ -340,7 +341,7 @@ void quiescence_sort_moves(moves *moveList, board* position) {
 
     // score and insert moves one by one
     for (int count = 0; count < moveList->count; count++) {
-        int current_move = moveList->moves[count];
+        uint16_t current_move = moveList->moves[count];
         int current_score;
 
         // if hash move available
@@ -386,11 +387,11 @@ void enable_pv_scoring(moves *moveList, board* position) {
 }
 
 // print move
-void printMove(int move) {
-    if (getMovePromoted(move)) {
+void printMove(uint16_t move) {
+    if (getMovePromote(move)) {
         printf("%s%s%c", squareToCoordinates[getMoveSource(move)],
                squareToCoordinates[getMoveTarget(move)],
-               promotedPieces[getMovePromoted(move)]);
+               promotedPieces[getMovePromotedPiece(black, move)]);
     } else {
         printf("%s%s", squareToCoordinates[getMoveSource(move)],
                squareToCoordinates[getMoveTarget(move)]);
@@ -544,20 +545,18 @@ uint8_t justPawns(board *pos) {
 }
 
 
-int move_estimated_value(board *pos, int move) {
+int move_estimated_value(board *pos, uint16_t move) {
 
     // Start with the value of the piece on the target square
     int target_piece = pos->mailbox[getMoveTarget(move)] > 5
                        ? pos->mailbox[getMoveTarget(move)] - 6
                        : pos->mailbox[getMoveTarget(move)];
-    int promoted_piece = getMovePromoted(move);
-    promoted_piece = promoted_piece > 5 ? promoted_piece - 6 : promoted_piece;
 
     int value = SEE_PIECE_VALUES[target_piece];
 
     // Factor in the new piece's value and remove our promoted pawn
-    if (getMovePromoted(move))
-        value += SEE_PIECE_VALUES[promoted_piece] - SEE_PIECE_VALUES[PAWN];
+    if (getMovePromote(move))
+        value += SEE_PIECE_VALUES[getMovePromotedPiece(white, move)] - SEE_PIECE_VALUES[PAWN];
 
         // Target square is encoded as empty for enpass moves
     else if (getMoveEnpassant(move))
@@ -589,7 +588,7 @@ uint64_t all_attackers_to_square(board *pos, uint64_t occupied, int sq) {
            (getKingAttacks(sq) & (pos->bitboards[k] | pos->bitboards[K]));
 }
 
-int SEE(board *pos, int move, int threshold) {
+int SEE(board *pos, uint16_t move, int threshold) {
 
     int from, to, enpassant, promotion, colour, balance, nextVictim;
     uint64_t bishops, rooks, occupied, attackers, myAttackers;
@@ -598,10 +597,10 @@ int SEE(board *pos, int move, int threshold) {
     from = getMoveSource(move);
     to = getMoveTarget(move);
     enpassant = getMoveEnpassant(move);
-    promotion = getMovePromoted(move);
+    promotion = getMovePromote(move);
 
     // Next victim is moved piece or promotion type
-    nextVictim = promotion ? promotion : pos->mailbox[from];
+    nextVictim = promotion ? getMovePromotedPiece(white, move) : pos->mailbox[from];
     nextVictim = nextVictim > 5 ? nextVictim - 6 : nextVictim;
 
     // Balance is the value of the move minus threshold. Function
@@ -726,7 +725,7 @@ uint8_t isMaterialDraw(board *pos) {
     return 0;
 }
 
-void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, int move, double complexity, board* pos) {
+void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, uint16_t move, double complexity, board* pos) {
     double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
     double complexityScale = my_max_double(0.77 + clamp_double(complexity, 0.0, 200.0) / 400.0, 1.0);
@@ -772,8 +771,8 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     }
 
 
-    int bestMove = 0;
-    int tt_move = 0;
+    uint16_t bestMove = 0;
+    uint16_t tt_move = 0;
     int16_t tt_score = 0;
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
@@ -830,7 +829,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {        
-        int move = moveList->moves[count];
+        uint16_t move = moveList->moves[count];
 
         if (bestScore > -mateFound) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
@@ -954,8 +953,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     int rootNode = pos->ply == 0;
 
-    int bestMove = 0;
-    int tt_move = 0;
+    uint16_t bestMove = 0;
+    uint16_t tt_move = 0;
     int16_t tt_score = 0;
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
@@ -1180,10 +1179,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             sort_moves(capture_promos, tt_move, pos);
             for (int count = 0; count < capture_promos->count; count++) {
-                int move = capture_promos->moves[count];
+                uint16_t move = capture_promos->moves[count];
                 int move_history =
-                captureHistory[getMovePiece(move)][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
-        
+                captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
+
                 if (!SEE(pos, move, PROBCUT_SEE_NOISY_THRESHOLD)) {
                     continue;
                 }
@@ -1295,20 +1294,20 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
-        int currentMove = moveList->moves[count];
+        uint16_t currentMove = moveList->moves[count];
 
         if (currentMove == pos->isSingularMove[pos->ply]) {
             continue;
         }
 
-        bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromoted(currentMove) == 0;
+        bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromote(currentMove) == 0;
 
         int pawnHistoryValue = notTactical ? pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
 
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
                 getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
-                captureHistory[getMovePiece(currentMove)][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+                captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
 

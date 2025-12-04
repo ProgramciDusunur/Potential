@@ -46,8 +46,8 @@ void perftRoot(int depth, board* position) {
 
         printf("%s%s", squareToCoordinates[getMoveSource(moveList->moves[moveCount])],
                squareToCoordinates[getMoveTarget(moveList->moves[moveCount])]);
-        if (getMovePromoted(moveList->moves[moveCount])) {
-            printf("%c", promotedPieces[getMovePromoted(moveList->moves[moveCount])]);
+        if (getMovePromote(moveList->moves[moveCount])) {
+            printf("%c", promotedPieces[getMovePromotedPiece(position->side, moveList->moves[moveCount])]);
         }
         printf(": %llu\n", variant);
 
