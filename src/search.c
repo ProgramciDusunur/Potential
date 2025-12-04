@@ -56,6 +56,7 @@
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
+  int SE_LMR_SCALER = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -1291,6 +1292,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // capture move counter
     //int captureMoves = 0;
 
+    bool can_se_lmr = false;
+
     const int originalAlpha = alpha;
 
     // loop over moves within a movelist
@@ -1374,6 +1377,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // Singular Extension
             if (singularScore < singularBeta) {
+                can_se_lmr = true;
                 extensions++;
 
                 // Double Extension                
@@ -1422,8 +1426,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             else if (cutNode) {
                 extensions -= 2;
             }
-        }
-
+        }        
 
         struct copyposition copyPosition;
         // preserve board state
@@ -1491,6 +1494,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         if (enemy_has_no_threats && !in_check && static_eval - 365 > beta) {
             lmrReduction += GOOD_EVAL_LMR_SCALER;
+        }
+
+        if (can_se_lmr) {
+            lmrReduction += SE_LMR_SCALER;
         }
 
         if (notTactical) {
