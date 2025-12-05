@@ -391,8 +391,6 @@ void check_node_limit(my_time* time, board *pos) {
 
 
 void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
-    //board *position = (board *)malloc(sizeof(board));
-
     position->ply = 0;
     position->nmpPly = 0;
 
@@ -401,9 +399,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         position->mailbox[i] = NO_PIECE;
     }
 
-    clearStaticEvaluationHistory(position);
-
-    //time *time_ctrl = (time *)malloc(sizeof(time));
+    clearStaticEvaluationHistory(position);    
 
     // init time control
     initTimeControl(time_ctrl);
@@ -429,8 +425,38 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         benchmark(BENCH_DEPTH, position, time_ctrl);
         printf("\n");
         fflush(NULL);
-        return;
+        exit(0);
     }
+
+    if (argc >= 2 && strncmp(argv[1], "genfens", 7) == 0) {
+        char* command = argv[1];
+
+        // Debug output
+        fprintf(stderr, "Command: %s\n", command);
+        fprintf(stderr, "Generating FENs.. \n");
+        fprintf(stderr, "\n");
+
+        uint64_t how_many_fens_to_create = 0;
+        uint64_t seed = 0;       
+        char book_path[1024];    
+        char extra_args[1024];
+
+        int items_scanned = sscanf(command, "genfens %llu seed %llu book %s %[^\n]", 
+                               &how_many_fens_to_create, &seed, book_path, extra_args);
+
+        if (items_scanned >= 3) {
+            fprintf(stderr, "  Extraction Successful:\n");
+            fprintf(stderr, "  How Many FENs To Create:  %llu\n", how_many_fens_to_create);
+            fprintf(stderr, "  Seed: %llu\n", seed);
+            fprintf(stderr, "  Book: %s\n", book_path);
+        
+            if (items_scanned > 3) {
+                fprintf(stderr, "  Extra Arguments = %s\n", extra_args);
+            }
+        } else {
+            fprintf(stderr, "ERROR: The Command Can't Extracted!\n");
+            exit(1); // Return error code
+        }
 
     // main loop
     while (1)
