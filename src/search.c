@@ -1184,7 +1184,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 int move_history =
                 captureHistory[getMovePiece(move)][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
         
-                if (!SEE(pos, move, PROBCUT_SEE_NOISY_THRESHOLD)) {
+                if (!SEE(pos, move, PROBCUT_SEE_NOISY_THRESHOLD + move_history / 32)) {
                     continue;
                 }
 
