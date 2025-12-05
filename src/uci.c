@@ -4,8 +4,9 @@
 
 #include "uci.h"
 #include "perft.h"
+#include "timeman.h"
 
-#define VERSION "3.6.22"
+#define VERSION "3.8.28"
 #define BENCH_DEPTH 13
 
 double DEF_TIME_MULTIPLIER = 0.054;
@@ -257,7 +258,7 @@ void goCommand(char *command, board* position, my_time* time) {
     // if depth is not available
     if (depth == -1)
         // set depth to 64 plies (takes ages to complete...)
-        depth = 64;
+        depth = 128;
 
     // print debug info
     printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
@@ -579,10 +580,18 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             printf("uciok\n");
         } else if (strncmp(input, "eval", 4) == 0) {
             printf("Evaluation: %d\n", evaluate(position));
-        } else if (strncmp(input, "perft", 5) == 0) {
+        } else if (strncmp(input, "perftsuite", 10) == 0) {
             perftSuite();
-        }
-        else if (strncmp(input, "bench", 5) == 0) {
+        } else if (strncmp(input, "perft", 5) == 0) {
+            int depth;
+            sscanf(input, "%*s %d", &depth);
+            perftNodes = 0;
+            int startTime = getTimeMiliSecond();
+            perftRoot(depth, position);
+            int duration = getTimeMiliSecond() - startTime;
+            printf("total: %llu\n", perftNodes);
+            printf("nps: %llu\n", (U64)perftNodes * 1000 / duration);
+        } else if (strncmp(input, "bench", 5) == 0) {
             benchmark(BENCH_DEPTH, position, time_ctrl);
         }
     }

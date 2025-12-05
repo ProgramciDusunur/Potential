@@ -189,9 +189,9 @@ void initializeLMRTable(void) {
 
     1. TT Move
     2. PV Moves
-    2. Captures in MVV/LVA / SEE
-    3. 1st killer move    
-    5. History moves / Root History / Continuation History
+    3. Promotion Moves
+    4. Captures in MVV/LVA / SEE / Capture History / Recapture Bonus    
+    5. Quiet History / Continuation History / Pawn History
 */
 
 // score moves
@@ -261,11 +261,6 @@ int scoreMove(int move, board* position) {
     }
         // score quiet move
     else {
-
-        // score 1st killer move
-        if (position->killerMoves[position->ply][0] == move)
-            return 900000000;
-                   
         return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)][is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))]  +
                 getContinuationHistoryScore(position, 1, move) +
                     getContinuationHistoryScore(position, 2, move) +
@@ -277,6 +272,10 @@ int scoreMove(int move, board* position) {
 
 
 void sort_moves(moves *moveList, int tt_move, board* position) {
+    if (moveList->count == 0) {
+        return;
+    }
+
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -313,29 +312,14 @@ int quiescenceScoreMove(int move, board* position) {
     if (getMoveCapture(move)) {
         // init target piece
 
+        // init target piece
         int target_piece = P;
 
-        // pick up bitboard piece index ranges depending on side
-        int start_piece, end_piece;
-
-        // pick up side to move
-        if (position->side == white) {
-            start_piece = p;
-            end_piece = k;
-        }
-        else {
-            start_piece = P;
-            end_piece = K;
-        }
-
-        // loop over bitboards opposite to the current side to move
-        for (int bb_piece = start_piece; bb_piece <= end_piece; bb_piece++) {
-            // if there's a piece on the target square
-            if (getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
-                // remove it from corresponding bitboard
-                target_piece = bb_piece;
-                break;
-            }
+        uint8_t bb_piece = position->mailbox[getMoveTarget(move)];
+        // if there's a piece on the target square
+        if (bb_piece != NO_PIECE &&
+            getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
+            target_piece = bb_piece;
         }
 
         // score move by MVV LVA lookup [source piece][target piece]
@@ -346,6 +330,10 @@ int quiescenceScoreMove(int move, board* position) {
 }
 
 void quiescence_sort_moves(moves *moveList, board* position) {
+    if (moveList->count == 0) {
+        return;
+    }
+
     // move scores
     int move_scores[moveList->count];
     int sorted_count = 0;
@@ -831,9 +819,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     noisyGenerator(moveList, position);
 
     // sort moves
-    if (moveList->count > 0) {
-        quiescence_sort_moves(moveList, position);
-    }
+    quiescence_sort_moves(moveList, position);
 
 
     int futilityValue = bestScore + 100;
@@ -843,16 +829,20 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
 
     // loop over moves within a movelist
-    for (int count = 0; count < moveList->count; count++) {
+    for (int count = 0; count < moveList->count; count++) {        
         int move = moveList->moves[count];
-        if (!SEE(position, move, QS_SEE_THRESHOLD)) {
-            continue;
-        }
 
-        if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
-            bestScore = myMAX(bestScore, futilityValue);
-            continue;
+        if (bestScore > -mateFound) {
+            if (!SEE(position, move, QS_SEE_THRESHOLD)) {
+                continue;
+            }
+
+            if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
+                bestScore = myMAX(bestScore, futilityValue);
+                continue;
+            }
         }
+        
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(position, &copyPosition);
@@ -1069,7 +1059,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // ╚═══════════════════════════╝
 
     // ~~~~ Corrplexity Extension ~~~~ //
-    if (rootNode && corrplexity && ttAdjustedEval != static_eval && abs(tt_score) < mateScore) {
+    if (rootNode && corrplexity && ttAdjustedEval != static_eval && abs(tt_score) < mateValue) {
         depth++;
     }
 
@@ -1144,7 +1134,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if (score >= beta) {
 
             // if there is any unproven mate don't return but we can still return beta
-            if (score > mateScore) {
+            if (score > mateValue) {
                 score = beta;
             }
 
@@ -1180,7 +1170,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int legal_moves = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
-    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateScore  && !pos->isSingularMove[pos->ply] &&
+    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1189,7 +1179,6 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             noisyGenerator(capture_promos, pos);
 
             sort_moves(capture_promos, tt_move, pos);
-
             for (int count = 0; count < capture_promos->count; count++) {
                 int move = capture_promos->moves[count];
                 int move_history =
@@ -1265,7 +1254,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     
     // Small Probcut
     if (!pos->isSingularMove[pos->ply] && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
-        tt_score >= small_probcut_beta && abs(tt_score) < mateScore && abs(beta) < mateScore) {
+        tt_score >= small_probcut_beta && abs(tt_score) < mateValue && abs(beta) < mateValue) {
             return small_probcut_beta;            
     }
 
@@ -1325,7 +1314,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
 
-        bool isNotMated = bestScore > -mateScore;
+        bool isNotMated = bestScore > -mateFound;
 
         if (!rootNode && notTactical && isNotMated) {
 
@@ -1337,7 +1326,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
 
             // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !pvNode && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
+            if (lmrDepth <= FP_DEPTH && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
                 continue;
             }
             // Quiet History Pruning
@@ -1358,7 +1347,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // Singular Extensions
         if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
-            abs(tt_score) < mateScore) {
+            abs(tt_score) < mateValue) {
             const int singularBeta = tt_score - depth * 5 / 8;
             const int singularDepth = (depth - 1) / 2;
 
@@ -1388,7 +1377,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 extensions++;
 
                 // Double Extension                
-                int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 512 * notTactical);
+                int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 512);
 
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
@@ -1398,7 +1387,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
 
                 // Triple Extension
-                int tripleMargin = TRIPLE_EXTENSION_MARGIN + 80 * !notTactical;
+                int tripleMargin = TRIPLE_EXTENSION_MARGIN + 80 * !notTactical - (moveHistory / 512 * notTactical);
 
                 if (singularScore <= singularBeta - tripleMargin) {
                     extensions++;
@@ -1516,7 +1505,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
             int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
-            lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MINIMUM_SCALER);
+            lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MAXIMUM_SCALER);
 
             // pawn history based reduction, same logic as the quiet history
             int pawnHistoryReduction = pawnHistoryValue / PAWN_HISTORY_LMR_DIVISOR;            
@@ -1618,10 +1607,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // fail-hard beta cutoff
                 if (score >= beta) {
                     if (notTactical) {
-                        // store killer moves
-                        pos->killerMoves[pos->ply][0] = bestMove;
+                        int quiet_history_score = 
+                        quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
+                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
+
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
-                        updateContinuationHistory(pos, bestMove, depth, badQuiets);
+                        updateContinuationHistory(pos, bestMove, depth, badQuiets, quiet_history_score);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);                       
                         
                     } else { // noisy moves
@@ -1693,8 +1684,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
     // reset follow PV flags
     position->followPv = 0;
     position->scorePv = 0;
-
-    memset(position->killerMoves, 0, sizeof(position->killerMoves));
+    
     memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
     memset(position->pvTable, 0, sizeof(position->pvTable));
     memset(position->pvLength, 0, sizeof(position->pvLength));
@@ -1810,7 +1800,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
         // Complexity TM
         double complexity = 0;
-        if (abs(score) < mateScore) {
+        if (abs(score) < mateValue) {
             complexity = 0.6 * abs(baseSearchScore - score) * log(depth);
         }
 
@@ -1826,14 +1816,10 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
             printf("info depth %d seldepth %d ", current_depth, position->seldepth);
 
-            if (score > -mateValue && score < -mateScore)
+            if (is_mate_score(score))
                 printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
-                       -(score + mateValue) / 2 - 1,
-                       position->nodes_searched, nps, hash_full(), totalTime);
-            else if (score > mateScore && score < mateValue)
-                printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
-                       (mateValue - score) / 2 + 1,
-                       position->nodes_searched, nps, hash_full(), totalTime);
+                       (score > 0 ? mateValue - score + 1 : -mateValue - score) / 2,
+                       position->nodes_searched, nps, hash_full(), totalTime);            
             else
                 printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
                        score, position->nodes_searched, nps, hash_full(), totalTime);

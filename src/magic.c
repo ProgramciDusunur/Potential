@@ -43,40 +43,17 @@ U64 rookMagic[64];
 // bishopMagics[square]
 U64 bishopMagic[64];
 
-// pseudo random number state
-unsigned int state = 1804289383;
-
-
-
-
-unsigned int getRandom32BitNumber(void) {
-    //get current state
-    unsigned int number = state;
-
-    // XOR shift algorithm
-    number ^= number << 13;
-    number ^= number >> 17;
-    number ^= number << 5;
-
-    // update random number state
-    state = number;
-
-    return number;
-}
-
-U64 getRandom64Numbers(void) {
-    U64 n1, n2, n3, n4;
-
-    n1 = (U64) (getRandom32BitNumber()) & 0xFFFF;
-    n2 = (U64) (getRandom32BitNumber()) & 0xFFFF;
-    n3 = (U64) (getRandom32BitNumber()) & 0xFFFF;
-    n4 = (U64) (getRandom32BitNumber()) & 0xFFFF;
-
-    return n1 | (n2 << 16) | (n3 << 32) | (n4 << 48);
+// SplitMix64 PRNG for generating random hash keys
+uint64_t sm64_state;
+uint64_t get_random_uint64_number(void) {
+  uint64_t z = (sm64_state += 0x9E3779B97F4A7C15ULL);
+  z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+  z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+  return z ^ (z >> 31);
 }
 
 U64 generateMagicNumber(void) {
-    return getRandom64Numbers() & getRandom64Numbers() & getRandom64Numbers();
+    return get_random_uint64_number() & get_random_uint64_number() & get_random_uint64_number();
 }
 
 U64 findMagicNumber(int square, int relevantBits, int bishop) {

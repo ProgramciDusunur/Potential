@@ -93,35 +93,42 @@ void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, in
     }
 }
 
+int getAllCHScore(board *pos, int move, int quiet_hist_score) {
+    return (getContinuationHistoryScore(pos, 1, move) + quiet_hist_score) / 2 +
+           getContinuationHistoryScore(pos, 2, move) +
+           getContinuationHistoryScore(pos, 4, move);
+}
+
 int getContinuationHistoryScore(board *pos, int offSet, int move) {
     const int ply = pos->ply - offSet;
     return ply >= 0 ? continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
                               [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] : 0;
 }
 
-void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus) {
+void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus, int quiet_hist_score) {
+    int base_conthist_score = getAllCHScore(pos, move, quiet_hist_score);
     const int ply = pos->ply - offSet;
     if (ply >= 0) {
-        const int scaledBonus = bonus - getContinuationHistoryScore(pos, offSet, move) * abs(bonus) / maxQuietHistory;
+        const int scaledBonus = bonus - base_conthist_score * abs(bonus) / maxQuietHistory;
         continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
                               [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
     }
 }
 
-void updateAllCH(board *pos, int move, int bonus) {
-    updateSingleCHScore(pos, move, 1, bonus);
-    updateSingleCHScore(pos, move, 2, bonus);
-    updateSingleCHScore(pos, move, 4, bonus);
+void updateAllCH(board *pos, int move, int bonus, int quiet_hist_score) {
+    updateSingleCHScore(pos, move, 1, bonus, quiet_hist_score);
+    updateSingleCHScore(pos, move, 2, bonus, quiet_hist_score);
+    updateSingleCHScore(pos, move, 4, bonus, quiet_hist_score);
 }
 
-void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
+void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets, int quiet_hist_score) {
     int bonus = getHistoryBonus(depth);
 
-    updateAllCH(pos, bestMove, bonus);
+    updateAllCH(pos, bestMove, bonus, quiet_hist_score);
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
-        updateAllCH(pos, badQuiets->moves[index], -bonus);
+        updateAllCH(pos, badQuiets->moves[index], -bonus, quiet_hist_score);
     }
 }
 

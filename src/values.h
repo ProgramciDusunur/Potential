@@ -9,12 +9,15 @@
 
 /*  these are the score bounds for the range of the mating scores
                                         Score layot
-    [-infinity, mateValue ... mateScore ... score ... mateScore ... mateValue, infinity]
+    [-infinity, mateValue ... score ... mateValue, infinity]
  */
-#define infinity  32000
-#define mateValue 31000
-#define mateScore 30000
-#define noEval 200000
+
+enum {
+   mateValue = 31000,
+   infinity = 32000,
+   mateFound = mateValue - maxPly,
+   noEval = 200000
+};
 
 
 #endif //POTENTIAL_VALUES_H
