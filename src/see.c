@@ -111,7 +111,7 @@ void initSuits(void) {
 void testSEE(void) {
     board position;
     parseFEN("6k1/1pp4p/p1pb4/6q1/3P1pRr/2P4P/PP1Br1P1/5RKN w - -", &position);
-    int move = encodeMove(f1, f4, R, 0, 1, 0, 0, 0);
+    uint16_t move = encodeMove(f1, f4, mf_capture);
     printf("Move: %d\n", move);
     if (SEE(&position, move, -100)) {
         printf("Threshold true!");

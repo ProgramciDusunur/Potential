@@ -27,7 +27,7 @@ int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
 }
 
-void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets, board *pos) {
+void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
@@ -49,7 +49,7 @@ void updateQuietMoveHistory(int bestMove, int side, int depth, moves *badQuiets,
     }
 }
 
-void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
+void updatePawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
@@ -68,8 +68,8 @@ void updatePawnHistory(board *pos, int bestMove, int depth, moves *badQuiets) {
     }
 }
 
-void updateCaptureHistory(board *position, int bestMove, int depth) {
-    int piece = getMovePiece(bestMove);
+void updateCaptureHistory(board *position, uint16_t bestMove, int depth) {
+    int piece = position->mailbox[getMoveSource(bestMove)];
     int to = getMoveTarget(bestMove);
     int capturedPiece = position->mailbox[getMoveTarget(bestMove)];
 
@@ -79,9 +79,9 @@ void updateCaptureHistory(board *position, int bestMove, int depth) {
     captureHistory[piece][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);
 }
 
-void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, int bestMove) {
+void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, uint16_t bestMove) {
     for (int index = 0; index < noisyMoves->count; index++) {
-        int noisyPiece = getMovePiece(noisyMoves->moves[index]);
+        int noisyPiece = position->mailbox[getMoveSource(noisyMoves->moves[index])];
         int noisyTo = getMoveTarget(noisyMoves->moves[index]);
         int noisyCapturedPiece = position->mailbox[getMoveTarget(noisyMoves->moves[index])];
 
@@ -93,19 +93,19 @@ void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, in
     }
 }
 
-int getAllCHScore(board *pos, int move, int quiet_hist_score) {
+int getAllCHScore(board *pos, uint16_t move, int quiet_hist_score) {
     return (getContinuationHistoryScore(pos, 1, move) + quiet_hist_score) / 2 +
            getContinuationHistoryScore(pos, 2, move) +
            getContinuationHistoryScore(pos, 4, move);
 }
 
-int getContinuationHistoryScore(board *pos, int offSet, int move) {
+int getContinuationHistoryScore(board *pos, int offSet, uint16_t move) {
     const int ply = pos->ply - offSet;
     return ply >= 0 ? continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
                               [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] : 0;
 }
 
-void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus, int quiet_hist_score) {
+void updateSingleCHScore(board *pos, uint16_t move, const int offSet, const int bonus, int quiet_hist_score) {
     int base_conthist_score = getAllCHScore(pos, move, quiet_hist_score);
     const int ply = pos->ply - offSet;
     if (ply >= 0) {
@@ -115,13 +115,13 @@ void updateSingleCHScore(board *pos, int move, const int offSet, const int bonus
     }
 }
 
-void updateAllCH(board *pos, int move, int bonus, int quiet_hist_score) {
+void updateAllCH(board *pos, uint16_t move, int bonus, int quiet_hist_score) {
     updateSingleCHScore(pos, move, 1, bonus, quiet_hist_score);
     updateSingleCHScore(pos, move, 2, bonus, quiet_hist_score);
     updateSingleCHScore(pos, move, 4, bonus, quiet_hist_score);
 }
 
-void updateContinuationHistory(board *pos, int bestMove, int depth, moves *badQuiets, int quiet_hist_score) {
+void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets, int quiet_hist_score) {
     int bonus = getHistoryBonus(depth);
 
     updateAllCH(pos, bestMove, bonus, quiet_hist_score);

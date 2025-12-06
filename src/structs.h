@@ -52,7 +52,7 @@ typedef struct {
     int isSingularMove[maxPly];
 
     uint16_t piece[maxPly];
-    int move[maxPly];
+    uint16_t move[maxPly];
     U64 nodes_searched;
 
     bool benchmark;
@@ -76,7 +76,7 @@ typedef struct {
 // transposition table data structure
 typedef struct {
     uint64_t hashKey;    // "almost" unique chess position identifier
-    int bestMove;        // best move from the search
+    uint16_t bestMove;        // best move from the search
     int16_t score;       // score (alpha/beta/PV)
     uint8_t depth;       // current search depth
     uint8_t flag;        // flag the type of node (fail-high(score >= beta)/fail-low(score < alpha))    
@@ -87,7 +87,7 @@ typedef struct {
 // move list structure
 typedef struct {
     // moves
-    int moves[256];
+    uint16_t moves[256];
 
     // move count
     int count;
@@ -156,7 +156,7 @@ typedef struct {
 
 typedef struct  {
     char *fen;
-    int move;
+    uint16_t move;
     int score;
 } see;
 
