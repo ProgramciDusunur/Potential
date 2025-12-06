@@ -47,7 +47,9 @@ void parseFEN(char *fen, board* position) {
                 }
 
                 for (int i = 0; i <= offset; i++) {
-                    position->mailbox[square + i] = NO_PIECE;
+                    if (square + i <= 63) {
+                        position->mailbox[square + i] = NO_PIECE;
+                    }                    
                 }
 
                 if (piece == -1) {                    
