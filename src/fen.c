@@ -4,6 +4,10 @@
 
 #include "fen.h"
 
+bool any_piece(board *pos, int square) {
+    return pos->mailbox[square] != NO_PIECE;
+}
+
 // parse FEN string
 void parseFEN(char *fen, board* position) {
     // reset board position (bitboards)
@@ -34,14 +38,23 @@ void parseFEN(char *fen, board* position) {
             if (*fen >= '0' && *fen <= '9') {
                 int offset = *fen - '0';
                 int piece = -1;
-
+                                
                 // if there is a piece on current square
                 for (int bbPiece = P; bbPiece <= k; bbPiece++) {
                     if (getBit(position->bitboards[bbPiece], square)) {
                         piece = bbPiece;
                     }
                 }
-                if (piece == -1) {
+
+                printf("Offset: %d\n", offset);
+
+                for (int i = 0; i <= offset; i++) {
+                    if (any_piece(position, square + i)) {
+                        position->mailbox[square + i] = NO_PIECE;
+                    }                    
+                }
+
+                if (piece == -1) {                    
                     file--;
                 }
                 file += offset;
