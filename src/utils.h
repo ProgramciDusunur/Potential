@@ -11,6 +11,7 @@
 #include "values.h"
 
 bool is_mate_score(int score);
+void clear_mailbox(board *position);
 int myMAX(int x, int y);
 int myMIN(int x, int y);
 double my_max_double(double x, double y);

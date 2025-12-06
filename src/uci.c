@@ -457,7 +457,8 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             fprintf(stderr, "ERROR: The Command Can't Extracted!\n");
             exit(1); // Return error code
         }
-
+    }
+    
     // main loop
     while (1)
     {

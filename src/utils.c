@@ -132,6 +132,12 @@ void printMailbox(const board *position) {
 
 }
 
+void clear_mailbox(board *position) {
+    for (int i = 0; i < 64; i++) {
+        position->mailbox[i] = NO_PIECE;
+    }
+}
+
 double clampDecimalValue(double d, const double min, const double max) {
     const double t = d < min ? min : d;
     return t > max ? max : t;
