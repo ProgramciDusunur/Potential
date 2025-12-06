@@ -35,7 +35,7 @@ void parseFEN(char *fen, board* position) {
                 position->mailbox[square] = piece;
                 fen++;
             }
-            if (*fen >= '0' && *fen <= '9') {
+            else if (*fen >= '0' && *fen <= '9') {
                 int offset = *fen - '0';
                 int piece = -1;
                                 
@@ -46,12 +46,8 @@ void parseFEN(char *fen, board* position) {
                     }
                 }
 
-                printf("Offset: %d\n", offset);
-
                 for (int i = 0; i <= offset; i++) {
-                    if (any_piece(position, square + i)) {
-                        position->mailbox[square + i] = NO_PIECE;
-                    }                    
+                    position->mailbox[square + i] = NO_PIECE;
                 }
 
                 if (piece == -1) {                    

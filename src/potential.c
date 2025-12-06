@@ -38,10 +38,10 @@ void initAll(void) {
 
 int main(int argc, char* argv[]) {
     initAll();
-    int debug = 1;
+    int debug = 0;
     if (debug) {
         board position;
-        parseFEN("8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - -", &position);
+        parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", &position);
 
 
         printMailbox(&position);
