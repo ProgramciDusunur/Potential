@@ -43,7 +43,6 @@ int main(int argc, char* argv[]) {
         board position;
         parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", &position);
 
-
         printMailbox(&position);
         
 
