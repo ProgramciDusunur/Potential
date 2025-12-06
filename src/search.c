@@ -1533,7 +1533,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
-                bool historyReduction = notTactical ? moveHistory / 16384 : 0;
+                bool historyReduction = notTactical ? moveHistory / 16384 : 
+                                                      moveHistory / 8192;
                 bool doShallower = score < bestScore + new_depth;
                 new_depth -= doShallower;
                 new_depth += doDeeper;
