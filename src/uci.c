@@ -387,20 +387,15 @@ void check_node_limit(my_time* time, board *pos) {
 }
 
 
-void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
-    //board *position = (board *)malloc(sizeof(board));
-
+void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {    
     position->ply = 0;
     position->nmpPly = 0;
-
 
     for (int i = 0; i < 64;i++) {
         position->mailbox[i] = NO_PIECE;
     }
 
-    clearStaticEvaluationHistory(position);
-
-    //time *time_ctrl = (time *)malloc(sizeof(time));
+    clearStaticEvaluationHistory(position);    
 
     // init time control
     initTimeControl(time_ctrl);

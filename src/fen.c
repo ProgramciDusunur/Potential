@@ -4,16 +4,14 @@
 
 #include "fen.h"
 
-bool any_piece(board *pos, int square) {
-    return pos->mailbox[square] != NO_PIECE;
-}
-
 // parse FEN string
 void parseFEN(char *fen, board* position) {
     // reset board position (bitboards)
     memset(position->bitboards, 0ULL, sizeof(position->bitboards));
     // reset board occupancies (bitboards)
     memset(position->occupancies, 0ULL, sizeof(position->occupancies));
+    // reset mailbox
+    memset(position->mailbox, NO_PIECE, sizeof(position->mailbox));
 
     // reset game state variables
     position->side = 0;
@@ -45,13 +43,7 @@ void parseFEN(char *fen, board* position) {
                         piece = bbPiece;
                     }
                 }
-
-                for (int i = 0; i <= offset; i++) {
-                    if (square + i <= 63) {
-                        position->mailbox[square + i] = NO_PIECE;
-                    }                    
-                }
-
+               
                 if (piece == -1) {                    
                     file--;
                 }
