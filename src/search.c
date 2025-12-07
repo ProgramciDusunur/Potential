@@ -1641,7 +1641,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return get_draw_score(pos);
     }
 
-    if (bestScore >= beta && abs(bestScore) < mateFound && abs(alpha) < mateFound) {
+    if (bestScore >= beta + 30 && !pos->isSingularMove[pos->ply] && abs(bestScore) < mateFound && abs(alpha) < mateFound) {
         bestScore = (bestScore * (depth + 4) + beta) / (depth + 5);
     }
 
