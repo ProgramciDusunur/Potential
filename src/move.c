@@ -449,6 +449,8 @@ inline static void splat64(moves *moveList, uint8_t k, __m512i a, __m512i b) {
 }
 
 inline static void splatPawnSingleMoves(moves *moveList, U64 sourceBitboard, int shift, int capture) {
+    if (!sourceBitboard) return;
+
     __m512i extra0 = _mm512_set1_epi16(encodeMove(0, shift, capture ? mf_capture : mf_normal));
     __m512i extra1 = _mm512_set1_epi16(encodeMove(32, 32 + shift, capture ? mf_capture : mf_normal));
 
@@ -457,6 +459,8 @@ inline static void splatPawnSingleMoves(moves *moveList, U64 sourceBitboard, int
 }
 
 inline static void splatPawnDoubleMoves(moves *moveList, U64 sourceBitboard, int shift, int color) {
+    if (!sourceBitboard) return;
+
     int offset = color == white ? 48 : 8;
     __m128i extra = _mm_set1_epi16(encodeMove(offset, shift + offset, mf_double));
     int count = countBits(sourceBitboard);
@@ -466,18 +470,24 @@ inline static void splatPawnDoubleMoves(moves *moveList, U64 sourceBitboard, int
 }
 
 inline static void splatPawnPromoMoves(moves *moveList, U64 sourceBitboard, int shift, int color, int capture) {
+    if (!sourceBitboard) return;
+
     int offset = color == white ? 8 : 48;
     __m512i extra = _mm512_set1_epi16(encodeMove(offset, shift + offset, capture ? mf_capture : mf_normal));
     splat64(moveList, (uint8_t)(sourceBitboard >> offset), SPLAT_TEMPLATE_BOTH_RANK_PROMO(), extra);
 }
 
 inline static void splatEnpassant(moves *moveList, U64 sourceBitboard, int enpassantSquare) {
+    if (!sourceBitboard) return;
+
     __m512i extra = _mm512_set1_epi16(encodeMove(0, enpassantSquare, mf_enpassant));
 
     splat16(moveList, (uint32_t)(sourceBitboard >> 16), SPLAT_TEMPLATE_SOURCE_CENTER(), extra);
 }
 
 inline static void splatNormalMoves(moves *moveList, int sourceSquare, U64 targetBitboard, int mf) {
+    if (!targetBitboard) return;
+
     __m512i extra0 = _mm512_set1_epi16(encodeMove(sourceSquare, 0, mf));
     __m512i extra1 = _mm512_set1_epi16(encodeMove(sourceSquare, 32, mf));
 
@@ -567,9 +577,7 @@ void moveGenerator(moves *moveList, board* position) {
 
         splatPawnSingleMoves(moveList, singlePush, -8, 0);
         splatPawnDoubleMoves(moveList, doublePush, -16, white);
-        if (promotions) {
-            splatPawnPromoMoves(moveList, promotions, -8, white, 0);
-        }
+        splatPawnPromoMoves(moveList, promotions, -8, white, 0);
 
         U64 lEnemy = bitboard & not_a_file & (enemy << 9);
         U64 rEnemy = bitboard & not_h_file & (enemy << 7);
@@ -580,12 +588,8 @@ void moveGenerator(moves *moveList, board* position) {
 
         splatPawnSingleMoves(moveList, lSingleCapt, -9, 1);
         splatPawnSingleMoves(moveList, rSingleCapt, -7, 1);
-        if (lPromotions) {
-            splatPawnPromoMoves(moveList, lPromotions, -9, white, 1);
-        }
-        if (rPromotions) {
-            splatPawnPromoMoves(moveList, rPromotions, -7, white, 1);
-        }
+        splatPawnPromoMoves(moveList, lPromotions, -9, white, 1);
+        splatPawnPromoMoves(moveList, rPromotions, -7, white, 1);
 
         if (position->enpassant != no_sq) {
             U64 attackers = bitboard & pawnAttacks[black][position->enpassant];
@@ -601,9 +605,7 @@ void moveGenerator(moves *moveList, board* position) {
 
         splatPawnSingleMoves(moveList, singlePush, +8, 0);
         splatPawnDoubleMoves(moveList, doublePush, +16, black);
-        if (promotions) {
-            splatPawnPromoMoves(moveList, promotions, +8, black, 0);
-        }
+        splatPawnPromoMoves(moveList, promotions, +8, black, 0);
 
         U64 lEnemy = bitboard & not_a_file & (enemy >> 7);
         U64 rEnemy = bitboard & not_h_file & (enemy >> 9);
@@ -614,12 +616,8 @@ void moveGenerator(moves *moveList, board* position) {
 
         splatPawnSingleMoves(moveList, lSingleCapt, +7, 1);
         splatPawnSingleMoves(moveList, rSingleCapt, +9, 1);
-        if (lPromotions) {
-            splatPawnPromoMoves(moveList, lPromotions, +7, black, 1);
-        }
-        if (rPromotions) {
-            splatPawnPromoMoves(moveList, rPromotions, +9, black, 1);
-        }
+        splatPawnPromoMoves(moveList, lPromotions, +7, black, 1);
+        splatPawnPromoMoves(moveList, rPromotions, +9, black, 1);
 
         if (position->enpassant != no_sq) {
             U64 attackers = bitboard & pawnAttacks[white][position->enpassant];
@@ -725,9 +723,7 @@ void noisyGenerator(moves *moveList, board* position) {
         U64 emptyAhead = bitboard & (empty << 8);
         U64 promotions = emptyAhead & 0x000000000000FF00;
 
-        if (promotions) {
-            splatPawnPromoMoves(moveList, promotions, -8, white, 0);
-        }
+        splatPawnPromoMoves(moveList, promotions, -8, white, 0);
 
         U64 lEnemy = bitboard & not_a_file & (enemy << 9);
         U64 rEnemy = bitboard & not_h_file & (enemy << 7);
@@ -738,12 +734,8 @@ void noisyGenerator(moves *moveList, board* position) {
 
         splatPawnSingleMoves(moveList, lSingleCapt, -9, 1);
         splatPawnSingleMoves(moveList, rSingleCapt, -7, 1);
-        if (lPromotions) {
-            splatPawnPromoMoves(moveList, lPromotions, -9, white, 1);
-        }
-        if (rPromotions) {
-            splatPawnPromoMoves(moveList, rPromotions, -7, white, 1);
-        }
+        splatPawnPromoMoves(moveList, lPromotions, -9, white, 1);
+        splatPawnPromoMoves(moveList, rPromotions, -7, white, 1);
 
         if (position->enpassant != no_sq) {
             U64 attackers = bitboard & pawnAttacks[black][position->enpassant];
@@ -755,9 +747,7 @@ void noisyGenerator(moves *moveList, board* position) {
         U64 emptyAhead = bitboard & (empty >> 8);
         U64 promotions = emptyAhead & 0x00FF000000000000;
 
-        if (promotions) {
-            splatPawnPromoMoves(moveList, promotions, +8, black, 0);
-        }
+        splatPawnPromoMoves(moveList, promotions, +8, black, 0);
 
         U64 lEnemy = bitboard & not_a_file & (enemy >> 7);
         U64 rEnemy = bitboard & not_h_file & (enemy >> 9);
@@ -768,12 +758,8 @@ void noisyGenerator(moves *moveList, board* position) {
 
         splatPawnSingleMoves(moveList, lSingleCapt, +7, 1);
         splatPawnSingleMoves(moveList, rSingleCapt, +9, 1);
-        if (lPromotions) {
-            splatPawnPromoMoves(moveList, lPromotions, +7, black, 1);
-        }
-        if (rPromotions) {
-            splatPawnPromoMoves(moveList, rPromotions, +9, black, 1);
-        }
+        splatPawnPromoMoves(moveList, lPromotions, +7, black, 1);
+        splatPawnPromoMoves(moveList, rPromotions, +9, black, 1);
 
         if (position->enpassant != no_sq) {
             U64 attackers = bitboard & pawnAttacks[white][position->enpassant];
