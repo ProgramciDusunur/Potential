@@ -7,6 +7,10 @@
 #include "move.h"
 #include "fen.h"
 
+#if __AVX512VBMI2__
+#include <immintrin.h>
+#endif
+
 // Pawn attack masks pawnAttacks[side][square]
 U64 pawnAttacks[2][64];
 // Knight attack masks knightAttacks[square]
@@ -382,7 +386,34 @@ void generate_black_queen_side_castling(board *position, moves *moveList) {
     }
 }
 
-inline void splatPawnMoves(moves *moveList, U64 sourceBitboard, int shift, int mf) {
+#if __AVX512VBMI2__
+
+inline static __m512i SPLAT_TEMPLATE_TARGET_HALF() {
+    return _mm512_set_epi16(
+        encodeMove(0, 31, 0), encodeMove(0, 30, 0), encodeMove(0, 29, 0), encodeMove(0, 28, 0), encodeMove(0, 27, 0), encodeMove(0, 26, 0), encodeMove(0, 25, 0), encodeMove(0, 24, 0),
+        encodeMove(0, 23, 0), encodeMove(0, 22, 0), encodeMove(0, 21, 0), encodeMove(0, 20, 0), encodeMove(0, 19, 0), encodeMove(0, 18, 0), encodeMove(0, 17, 0), encodeMove(0, 16, 0),
+        encodeMove(0, 15, 0), encodeMove(0, 14, 0), encodeMove(0, 13, 0), encodeMove(0, 12, 0), encodeMove(0, 11, 0), encodeMove(0, 10, 0), encodeMove(0, 9, 0),  encodeMove(0, 8, 0),
+        encodeMove(0, 7, 0),  encodeMove(0, 6, 0),  encodeMove(0, 5, 0),  encodeMove(0, 4, 0),  encodeMove(0, 3, 0),  encodeMove(0, 2, 0),  encodeMove(0, 1, 0),  encodeMove(0, 0, 0)
+    );
+}
+
+inline static __m512i SPLAT_TEMPLATE_SOURCE_CENTER() {
+    return _mm512_set_epi16(
+        encodeMove(47, 0, 0), encodeMove(46, 0, 0), encodeMove(45, 0, 0), encodeMove(44, 0, 0), encodeMove(43, 0, 0), encodeMove(42, 0, 0), encodeMove(41, 0, 0), encodeMove(40, 0, 0),
+        encodeMove(39, 0, 0), encodeMove(38, 0, 0), encodeMove(37, 0, 0), encodeMove(36, 0, 0), encodeMove(35, 0, 0), encodeMove(34, 0, 0), encodeMove(33, 0, 0), encodeMove(32, 0, 0),
+        encodeMove(31, 0, 0), encodeMove(30, 0, 0), encodeMove(29, 0, 0), encodeMove(28, 0, 0), encodeMove(27, 0, 0), encodeMove(26, 0, 0), encodeMove(25, 0, 0), encodeMove(24, 0, 0),
+        encodeMove(23, 0, 0), encodeMove(22, 0, 0), encodeMove(21, 0, 0), encodeMove(20, 0, 0), encodeMove(19, 0, 0), encodeMove(18, 0, 0), encodeMove(17, 0, 0), encodeMove(16, 0, 0)
+    );
+}
+
+inline static void splat16(moves *moveList, uint32_t k, __m512i a, __m512i b) {
+    int count = __builtin_popcount(k);
+    __m512i to_write = _mm512_maskz_compress_epi16(k, _mm512_add_epi16(a, b));
+    _mm512_storeu_si512(&moveList->moves[moveList->count], to_write);
+    moveList->count += count;
+}
+
+inline static void splatPawnMoves(moves *moveList, U64 sourceBitboard, int shift, int mf) {
     while (sourceBitboard) {
         int sourceSquare = getLS1BIndex(sourceBitboard);
         int targetSquare = sourceSquare + shift;
@@ -393,7 +424,78 @@ inline void splatPawnMoves(moves *moveList, U64 sourceBitboard, int shift, int m
     }
 }
 
-inline void splatEnpassant(moves *moveList, U64 sourceBitboard, int enpassantSquare) {
+inline static void splatPawnSingleMoves(moves *moveList, U64 sourceBitboard, int shift, int capture) {
+    splatPawnMoves(moveList, sourceBitboard, shift, capture ? mf_capture : mf_normal);
+}
+
+inline static void splatPawnDoubleMoves(moves *moveList, U64 sourceBitboard, int shift, int color) {
+    splatPawnMoves(moveList, sourceBitboard, shift, mf_double);
+}
+
+inline static void splatPawnPromoMoves(moves *moveList, U64 sourceBitboard, int shift, int color, int capture) {
+    while (sourceBitboard) {
+        int sourceSquare = getLS1BIndex(sourceBitboard);
+        int targetSquare = sourceSquare + shift;
+
+        addMove(moveList, encodeMove(sourceSquare, targetSquare, capture ? mf_cap_promo_q : mf_promo_q));
+        addMove(moveList, encodeMove(sourceSquare, targetSquare, capture ? mf_cap_promo_r : mf_promo_r));
+        addMove(moveList, encodeMove(sourceSquare, targetSquare, capture ? mf_cap_promo_b : mf_promo_b));
+        addMove(moveList, encodeMove(sourceSquare, targetSquare, capture ? mf_cap_promo_n : mf_promo_n));
+
+        popBit(sourceBitboard, sourceSquare);
+    }
+}
+
+inline static void splatEnpassant(moves *moveList, U64 sourceBitboard, int enpassantSquare) {
+    __m512i extra = _mm512_set1_epi16(encodeMove(0, enpassantSquare, mf_enpassant));
+
+    splat16(moveList, (uint32_t)(sourceBitboard >> 16), SPLAT_TEMPLATE_SOURCE_CENTER(), extra);
+}
+
+inline static void splatNormalMoves(moves *moveList, int sourceSquare, U64 targetBitboard, int mf) {
+    __m512i extra0 = _mm512_set1_epi16(encodeMove(sourceSquare, 0, mf));
+    __m512i extra1 = _mm512_set1_epi16(encodeMove(sourceSquare, 32, mf));
+
+    splat16(moveList, (uint32_t)(targetBitboard >> 0), SPLAT_TEMPLATE_TARGET_HALF(), extra0);
+    splat16(moveList, (uint32_t)(targetBitboard >> 32), SPLAT_TEMPLATE_TARGET_HALF(), extra1);
+}
+
+#else
+
+inline static void splatPawnMoves(moves *moveList, U64 sourceBitboard, int shift, int mf) {
+    while (sourceBitboard) {
+        int sourceSquare = getLS1BIndex(sourceBitboard);
+        int targetSquare = sourceSquare + shift;
+
+        addMove(moveList, encodeMove(sourceSquare, targetSquare, mf));
+
+        popBit(sourceBitboard, sourceSquare);
+    }
+}
+
+inline static void splatPawnSingleMoves(moves *moveList, U64 sourceBitboard, int shift) {
+    splatPawnMoves(moveList, sourceBitboard, shift, mf_normal);
+}
+
+inline static void splatPawnDoubleMoves(moves *moveList, U64 sourceBitboard, int shift, int color) {
+    splatPawnMoves(moveList, sourceBitboard, shift, mf_double);
+}
+
+inline static void splatPawnPromoMoves(moves *moveList, U64 sourceBitboard, int shift, int color, int capture) {
+    while (sourceBitboard) {
+        int sourceSquare = getLS1BIndex(sourceBitboard);
+        int targetSquare = sourceSquare + shift;
+
+        addMove(moveList, encodeMove(sourceSquare, targetSquare, capture ? mf_cap_promo_q : mf_promo_q));
+        addMove(moveList, encodeMove(sourceSquare, targetSquare, capture ? mf_cap_promo_r : mf_promo_r));
+        addMove(moveList, encodeMove(sourceSquare, targetSquare, capture ? mf_cap_promo_b : mf_promo_b));
+        addMove(moveList, encodeMove(sourceSquare, targetSquare, capture ? mf_cap_promo_n : mf_promo_n));
+
+        popBit(sourceBitboard, sourceSquare);
+    }
+}
+
+inline static void splatEnpassant(moves *moveList, U64 sourceBitboard, int enpassantSquare) {
     while (sourceBitboard) {
         int sourceSquare = getLS1BIndex(sourceBitboard);
 
@@ -403,7 +505,7 @@ inline void splatEnpassant(moves *moveList, U64 sourceBitboard, int enpassantSqu
     }
 }
 
-inline void splatNormalMoves(moves *moveList, int sourceSquare, U64 targetBitboard, int mf) {
+inline static void splatNormalMoves(moves *moveList, int sourceSquare, U64 targetBitboard, int mf) {
     while (targetBitboard) {
         int targetSquare = getLS1BIndex(targetBitboard);
 
@@ -412,6 +514,8 @@ inline void splatNormalMoves(moves *moveList, int sourceSquare, U64 targetBitboa
         popBit(targetBitboard, targetSquare);
     }
 }
+
+#endif
 
 // generate all moves
 void moveGenerator(moves *moveList, board* position) {
@@ -434,13 +538,10 @@ void moveGenerator(moves *moveList, board* position) {
         U64 doublePush = emptyAhead & 0x00FF000000000000 & (empty << 16);
         U64 promotions = emptyAhead & 0x000000000000FF00;
 
-        splatPawnMoves(moveList, singlePush, -8, mf_normal);
-        splatPawnMoves(moveList, doublePush, -16, mf_double);
+        splatPawnSingleMoves(moveList, singlePush, -8, 0);
+        splatPawnDoubleMoves(moveList, doublePush, -16, white);
         if (promotions) {
-            splatPawnMoves(moveList, promotions, -8, mf_promo_q);
-            splatPawnMoves(moveList, promotions, -8, mf_promo_r);
-            splatPawnMoves(moveList, promotions, -8, mf_promo_b);
-            splatPawnMoves(moveList, promotions, -8, mf_promo_n);
+            splatPawnPromoMoves(moveList, promotions, -8, white, 0);
         }
 
         U64 lEnemy = bitboard & not_a_file & (enemy << 9);
@@ -450,19 +551,13 @@ void moveGenerator(moves *moveList, board* position) {
         U64 lPromotions = lEnemy & 0x000000000000FF00;
         U64 rPromotions = rEnemy & 0x000000000000FF00;
 
-        splatPawnMoves(moveList, lSingleCapt, -9, mf_capture);
-        splatPawnMoves(moveList, rSingleCapt, -7, mf_capture);
+        splatPawnSingleMoves(moveList, lSingleCapt, -9, 1);
+        splatPawnSingleMoves(moveList, rSingleCapt, -7, 1);
         if (lPromotions) {
-            splatPawnMoves(moveList, lPromotions, -9, mf_cap_promo_q);
-            splatPawnMoves(moveList, lPromotions, -9, mf_cap_promo_r);
-            splatPawnMoves(moveList, lPromotions, -9, mf_cap_promo_b);
-            splatPawnMoves(moveList, lPromotions, -9, mf_cap_promo_n);
+            splatPawnPromoMoves(moveList, lPromotions, -9, white, 1);
         }
         if (rPromotions) {
-            splatPawnMoves(moveList, rPromotions, -7, mf_cap_promo_q);
-            splatPawnMoves(moveList, rPromotions, -7, mf_cap_promo_r);
-            splatPawnMoves(moveList, rPromotions, -7, mf_cap_promo_b);
-            splatPawnMoves(moveList, rPromotions, -7, mf_cap_promo_n);
+            splatPawnPromoMoves(moveList, rPromotions, -7, white, 1);
         }
 
         if (position->enpassant != no_sq) {
@@ -477,13 +572,10 @@ void moveGenerator(moves *moveList, board* position) {
         U64 doublePush = emptyAhead & 0x000000000000FF00 & (empty >> 16);
         U64 promotions = emptyAhead & 0x00FF000000000000;
 
-        splatPawnMoves(moveList, singlePush, +8, mf_normal);
-        splatPawnMoves(moveList, doublePush, +16, mf_double);
+        splatPawnSingleMoves(moveList, singlePush, +8, 0);
+        splatPawnDoubleMoves(moveList, doublePush, +16, black);
         if (promotions) {
-            splatPawnMoves(moveList, promotions, +8, mf_promo_q);
-            splatPawnMoves(moveList, promotions, +8, mf_promo_r);
-            splatPawnMoves(moveList, promotions, +8, mf_promo_b);
-            splatPawnMoves(moveList, promotions, +8, mf_promo_n);
+            splatPawnPromoMoves(moveList, promotions, +8, black, 0);
         }
 
         U64 lEnemy = bitboard & not_a_file & (enemy >> 7);
@@ -493,19 +585,13 @@ void moveGenerator(moves *moveList, board* position) {
         U64 lPromotions = lEnemy & 0x00FF000000000000;
         U64 rPromotions = rEnemy & 0x00FF000000000000;
 
-        splatPawnMoves(moveList, lSingleCapt, +7, mf_capture);
-        splatPawnMoves(moveList, rSingleCapt, +9, mf_capture);
+        splatPawnSingleMoves(moveList, lSingleCapt, +7, 1);
+        splatPawnSingleMoves(moveList, rSingleCapt, +9, 1);
         if (lPromotions) {
-            splatPawnMoves(moveList, lPromotions, +7, mf_cap_promo_q);
-            splatPawnMoves(moveList, lPromotions, +7, mf_cap_promo_r);
-            splatPawnMoves(moveList, lPromotions, +7, mf_cap_promo_b);
-            splatPawnMoves(moveList, lPromotions, +7, mf_cap_promo_n);
+            splatPawnPromoMoves(moveList, lPromotions, +7, black, 1);
         }
         if (rPromotions) {
-            splatPawnMoves(moveList, rPromotions, +9, mf_cap_promo_q);
-            splatPawnMoves(moveList, rPromotions, +9, mf_cap_promo_r);
-            splatPawnMoves(moveList, rPromotions, +9, mf_cap_promo_b);
-            splatPawnMoves(moveList, rPromotions, +9, mf_cap_promo_n);
+            splatPawnPromoMoves(moveList, rPromotions, +9, black, 1);
         }
 
         if (position->enpassant != no_sq) {

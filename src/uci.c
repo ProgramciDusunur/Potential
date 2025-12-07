@@ -83,10 +83,6 @@ void parse_position(char *command, board* position) {
     // init pointer to the current character in the command string
     char *current_char = command;
 
-    for (int i = 0; i < 64; ++i) {
-        position->mailbox[i] = NO_PIECE;
-    }
-
     // parse UCI "startpos" command
     if (strncmp(command, "startpos", 8) == 0)
         // init chess board with start position
@@ -552,7 +548,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             perftRoot(depth, position);
             int duration = getTimeMiliSecond() - startTime;
             printf("total: %llu\n", perftNodes);
-            printf("nps: %llu\n", (U64)perftNodes * 1000 / duration);
+            printf("nps: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration));
         } else if (strncmp(input, "bench", 5) == 0) {
             benchmark(BENCH_DEPTH, position, time_ctrl);
         }
