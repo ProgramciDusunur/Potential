@@ -508,8 +508,8 @@ inline static void splatPawnMoves(moves *moveList, U64 sourceBitboard, int shift
     }
 }
 
-inline static void splatPawnSingleMoves(moves *moveList, U64 sourceBitboard, int shift) {
-    splatPawnMoves(moveList, sourceBitboard, shift, mf_normal);
+inline static void splatPawnSingleMoves(moves *moveList, U64 sourceBitboard, int shift, int capture) {
+    splatPawnMoves(moveList, sourceBitboard, shift, capture ? mf_capture : mf_normal);
 }
 
 inline static void splatPawnDoubleMoves(moves *moveList, U64 sourceBitboard, int shift, int color) {
