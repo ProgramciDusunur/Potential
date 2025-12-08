@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "timeman.h"
 
-#define VERSION "3.9.30"
+#define VERSION "3.10.30"
 #define BENCH_DEPTH 13
 
 double DEF_TIME_MULTIPLIER = 0.054;
@@ -552,7 +552,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             perftRoot(depth, position);
             int duration = getTimeMiliSecond() - startTime;
             printf("total: %llu\n", perftNodes);
-            printf("nps: %llu\n", (U64)perftNodes * 1000 / duration);
+            printf("nps: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration));
         } else if (strncmp(input, "bench", 5) == 0) {
             benchmark(BENCH_DEPTH, position, time_ctrl);
         }

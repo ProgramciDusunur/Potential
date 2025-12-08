@@ -32,7 +32,7 @@ enum {
 };
 
 // encode move
-#define encodeMove(source, target, mf) (source) | (target << 6) | (mf)
+#define encodeMove(source, target, mf) ((source) + ((target) << 6) + (mf))
 
 // extract source square
 #define getMoveSource(move) (move & 0x3f)
