@@ -1340,7 +1340,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         int seeThreshold =
                 notTactical ? SEE_QUIET_THRESHOLD * lmrDepth : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
         if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
-            continue;
+            continue;                        
 
         int extensions = 0;
 
@@ -1412,8 +1412,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                     extensions++;
                 }
 
-                // ~~~~ Quintuple Extension ~~~~ //
+                // ~~~~ Quintuple Extension ~~~~ //                
                 int quintupleMargin = QUINTUPLE_EXTENSION_MARGIN;
+                // Recaptures important, give more priority them
+                quintupleMargin -= 30 * is_recapture_available(tt_move, pos->move[myMAX(0, pos->ply - 1)]);
 
                 if (singularScore <= singularBeta - quintupleMargin) {
                     extensions++;

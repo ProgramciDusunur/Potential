@@ -67,6 +67,8 @@ extern U64 rookAttacks[64][4096];
 
 
 void copyBoard(board *p, struct copyposition *cp);
+bool is_move_recapture(uint16_t last_move);
+bool is_recapture_available(uint16_t move, uint16_t last_move);
 void takeBack(board *p, struct copyposition *cp);
 void addMove(moves *moveList, uint16_t move);
 bool isTactical(uint16_t move);

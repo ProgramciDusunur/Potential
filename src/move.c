@@ -918,3 +918,15 @@ U64 knight_threats (U64 knightBB) {
                    (knightBB & not1RankAndABFile)  << 6  ;    
     return attacks;
 }
+
+bool is_move_recapture(uint16_t last_move) {
+    return getMoveCapture(last_move);
+}
+
+bool is_recapture_available(uint16_t move, uint16_t last_move) {
+    // check if last move was a capture
+    if (is_move_recapture(last_move)) {
+        return getMoveTarget(move) == getMoveTarget(last_move);
+    }
+    return false;
+}
