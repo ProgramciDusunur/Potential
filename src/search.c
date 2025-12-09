@@ -1416,6 +1416,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 int quintupleMargin = QUINTUPLE_EXTENSION_MARGIN;
                 // Recaptures important, give more priority them
                 quintupleMargin -= 30 * is_recapture_available(tt_move, pos->move[myMAX(0, pos->ply - 1)]);
+                // Quiet main history + 1 ply conthist + 4 ply conthist or capture history based adjustment
+                quintupleMargin -= moveHistory / 512;
 
                 if (singularScore <= singularBeta - quintupleMargin) {
                     extensions++;
