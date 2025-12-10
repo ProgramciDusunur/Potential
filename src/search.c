@@ -1378,11 +1378,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // Double Extension                
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 512) - (pawnHistoryValue / 384);
 
-                if (!pvNode && singularScore <= singularBeta - doubleMargin) {
+                if (singularScore <= singularBeta - doubleMargin) {
                     extensions++;
 
                     // Low Depth Extension
-                    depth += depth < 10;
+                    depth += depth < 10 && !pvNode;
                 }
 
                 // Triple Extension
