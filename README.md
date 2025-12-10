@@ -54,7 +54,7 @@ The search function explores possible moves and evaluates their outcomes to find
 
 #### Linux
 ```bash
-$ git clone [https://github.com/ProgramciDusunur/Potential.git](https://github.com/ProgramciDusunur/Potential.git)
+$ git clone https://github.com/ProgramciDusunur/Potential.git
 $ cd Potential/src
 $ make
 $ ./Potential
