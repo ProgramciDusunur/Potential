@@ -1371,6 +1371,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             pos->isSingularMove[pos->ply] = 0;
 
+            bool can_do_negext = tt_score >= (beta - (moveHistory / 512 * !notTactical));
+
             // Singular Extension
             if (singularScore < singularBeta) {
                 extensions++;
@@ -1412,8 +1414,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
             }            
 
-            // Negative Extensions
-            else if (tt_score >= beta) {
+            // Negative Extensions            
+            else if (can_do_negext) {
                 extensions -= 2 + !pvNode;
             }
             
