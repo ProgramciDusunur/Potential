@@ -105,11 +105,11 @@
   int RAZORING_DEPTH = 3;
   int RAZORING_FULL_MARGIN = 200;    
   int RAZORING_DEPTH_SCALE = 15;
-  int RAZORING_VERIFY_MARGIN = 30;
+  int RAZORING_VERIFY_MARGIN = 120;
   int RAZORING_TRIM = 1;
   int RAZORING_FULL_D = 2;
   int RAZORING_VERIFY_D = 3;
-  int RAZORING_MARGIN[] = {0, 360, 600, 850, 950};
+  int RAZORING_MARGIN[] = {0, 250, 450, 650, 850};
   
   
   /*╔═════════════════════╗
