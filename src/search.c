@@ -103,7 +103,14 @@
     ║ Razoring ║
     ╚══════════╝*/
   int RAZORING_DEPTH = 3;
-  int RAZORING_MARGIN = 200;
+  int RAZORING_FULL_MARGIN = 200;
+  int RAZORING_IMPROVING_BONUS = 0;
+  int RAZORING_DEPTH_SCALE = 0;
+  int RAZORING_VERIFY_MARGIN = 0;
+  int RAZORING_TRIM = 1;
+  int RAZORING_FULL_D = 2;
+  int RAZORING_VERIFY_D = 3;
+  int RAZORING_MARGIN[] = {0, 360, 600, 850, 950};
   
   
   /*╔═════════════════════╗
@@ -1158,10 +1165,36 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
-        !pvNode && !in_check && depth <= RAZORING_DEPTH && static_eval + RAZORING_MARGIN * depth < alpha) {
-        int razoringScore = quiescence(alpha, beta, pos, time);
-        if (razoringScore <= alpha) {
-            return razoringScore;
+        !pvNode && !in_check && depth <= RAZORING_DEPTH) {
+        int max_razor_index = 4;
+        int razor_depth = myMIN(myMIN(depth, RAZORING_DEPTH), max_razor_index);
+
+        if (razor_depth > 0) {
+            const int margin = RAZORING_MARGIN[razor_depth] +
+            + (improving ? RAZORING_IMPROVING_BONUS : -RAZORING_IMPROVING_BONUS + (depth - 1) * RAZORING_DEPTH_SCALE);
+
+            if (ttAdjustedEval + margin <= alpha) {
+                const bool allow_full_razor = depth == 1 ||
+                (depth <= RAZORING_FULL_D && ttAdjustedEval + margin + RAZORING_FULL_MARGIN <= alpha);
+
+                if (allow_full_razor) {
+                    return quiescence(alpha, beta, pos, time);
+                }
+
+                const int capped_alpha = myMAX(alpha - margin, mateFound);
+                const int razor_alpha = capped_alpha;
+                const int razor_beta = razor_alpha + 1;
+                int razor_score = quiescence(razor_alpha, razor_beta, pos, time);
+
+                // We proved a fail low.
+                if (razor_score <= razor_alpha) {
+                    return razor_score;
+                }
+
+                if (razor_score >= razor_beta + RAZORING_VERIFY_MARGIN && depth <= RAZORING_VERIFY_D) {
+                    depth -= myMIN(RAZORING_TRIM, depth - 1);
+                }
+            }
         }
     }
 
