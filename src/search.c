@@ -1164,7 +1164,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
-        !pvNode && !in_check && depth <= RAZORING_DEPTH) {
+        !rootNode && !in_check && depth <= RAZORING_DEPTH) {
         int max_razor_index = 4;
         int razor_depth = myMIN(myMIN(depth, RAZORING_DEPTH), max_razor_index);
 
