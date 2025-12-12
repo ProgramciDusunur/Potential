@@ -204,6 +204,29 @@ U64 generate_krp_key(board *position) {
     return final_key;
 }
 
+void generate_mosaic_hash_key() {
+    // for white pieces
+    for (int piece_type = P; piece_type <= K; piece_type++) {
+        for (int square = 0; square < 64; square++) {
+            uint64_t short_hash = get_random_uint64_number() & 0xFFFF;
+            int32_t shift = get_random_uint64_number() & 3;
+            MOSAIC_CORRECTION_HISTORY[piece_type][square] = short_hash << (shift * 16);
+        }        
+    }
+    // for black pieces
+    for (int piece_type = p; piece_type <= k; piece_type++) {
+        for (int square = 0; square < 64; square++) {
+            uint64_t short_hash = get_random_uint64_number() & 0xFFFF;
+            int32_t shift = get_random_uint64_number() & 3;
+            MOSAIC_CORRECTION_HISTORY[piece_type][square] = short_hash << (shift * 16);
+        }
+    }
+}
+
+inline uint64_t get_rng_hash(int piece_type, int square) {
+    return MOSAIC_CORRECTION_HISTORY[piece_type][square];
+}
+
 uint64_t get_hash_index(uint64_t hash) {
     return ((uint128_t)hash * (uint128_t)hash_entries) >> 64;
 }

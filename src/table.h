@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include "magic.h"
 #include <stdint.h>
+#include "history.h"
 
 // no hash entry found constant
 #define noHashEntry 100000

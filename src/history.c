@@ -18,6 +18,8 @@ int16_t pawnHistory[2048][12][64];
 int16_t captureHistory[12][64][13];
 // kingRookPawn Correction History [side to move][key]
 int16_t krpCorrhist[2][16384];
+// mosaic correction history[piece][square]
+int16_t MOSAIC_CORRECTION_HISTORY[12][64];
 
 int getHistoryBonus(int depth) {
     return myMIN(10 + 200 * depth, 4096);

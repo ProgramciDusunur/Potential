@@ -34,6 +34,8 @@ extern int16_t pawnHistory[2048][12][64];
 extern int16_t captureHistory[12][64][13];
 // kingRookPawn Correction History [side to move][key]
 extern int16_t krpCorrhist[2][16384];
+// mosaic correction history[side][piece][square]
+extern int16_t MOSAIC_CORRECTION_HISTORY[12][64];
 
 int scaledBonus(int score, int bonus, int gravity);
 void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos);
