@@ -108,7 +108,7 @@
   int RAZORING_VERIFY_MARGIN = 120;
   int RAZORING_TRIM = 1;
   int RAZORING_FULL_D = 2;
-  int RAZORING_VERIFY_D = 7;
+  int RAZORING_VERIFY_D = 3;
   int RAZORING_MARGIN[] = {0, 100, 200, 300, 400, 500, 600, 700};
   
   
@@ -1169,7 +1169,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         int razor_depth = myMIN(myMIN(depth, RAZORING_DEPTH), max_razor_index);
 
         if (razor_depth > 0) {
-            const int margin = RAZORING_MARGIN[razor_depth];
+            const int margin = RAZORING_MARGIN[razor_depth];            
 
             if (ttAdjustedEval + margin <= alpha) {
                 const bool allow_full_razor = depth == 1 ||
