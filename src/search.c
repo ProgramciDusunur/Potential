@@ -102,14 +102,14 @@
   /*╔══════════╗
     ║ Razoring ║
     ╚══════════╝*/
-  int RAZORING_DEPTH = 3;
+  int RAZORING_DEPTH = 7;
   int RAZORING_FULL_MARGIN = 200;    
   int RAZORING_DEPTH_SCALE = 15;
   int RAZORING_VERIFY_MARGIN = 120;
   int RAZORING_TRIM = 1;
   int RAZORING_FULL_D = 2;
-  int RAZORING_VERIFY_D = 3;
-  int RAZORING_MARGIN[] = {0, 100, 200, 300, 400};
+  int RAZORING_VERIFY_D = 7;
+  int RAZORING_MARGIN[] = {0, 100, 200, 300, 400, 500, 600, 700};
   
   
   /*╔═════════════════════╗
@@ -1165,7 +1165,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
         !pvNode && !in_check && depth <= RAZORING_DEPTH) {
-        int max_razor_index = 4;
+        int max_razor_index = 7;
         int razor_depth = myMIN(myMIN(depth, RAZORING_DEPTH), max_razor_index);
 
         if (razor_depth > 0) {
