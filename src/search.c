@@ -109,7 +109,7 @@
   int RAZORING_TRIM = 1;
   int RAZORING_FULL_D = 2;
   int RAZORING_VERIFY_D = 3;
-  int RAZORING_MARGIN[] = {0, 100, 200, 300, 400, 500, 600, 700};
+  int RAZORING_MARGIN[] = {0, 100, 200, 300, 400, 500, 600, 700, 800};
   
   
   /*╔═════════════════════╗
