@@ -161,6 +161,7 @@ bool isKRP(int piece) {
 
 inline void toggleHashesForPiece(board* position, int piece, int square) {
     position->hashKey ^= pieceKeys[piece][square];
+    position->mosaicKey ^= get_rng_hash(piece, square);
     if (piece == P || piece == p) {
         position->pawnKey ^= pieceKeys[piece][square];
         position->krpKey ^= pieceKeys[piece][square];
