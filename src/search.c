@@ -56,6 +56,7 @@
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
+  int NMP_REFUTATION_MOVE_SCALER = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -1573,6 +1574,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // pawn history based reduction, same logic as the quiet history
             int pawnHistoryReduction = pawnHistoryValue / PAWN_HISTORY_LMR_DIVISOR;            
             lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALER, PAWN_HISTORY_LMR_MAXIMUM_SCALER);
+
+            // NMP refutation move based reduction
+            lmrReduction -= (pos->nmp_refutation_move[pos->ply] == currentMove) * NMP_REFUTATION_MOVE_SCALER;
         }
         // Noisy Moves
         else { 
