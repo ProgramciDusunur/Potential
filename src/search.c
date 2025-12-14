@@ -262,8 +262,9 @@ int scoreMove(uint16_t move, board* position) {
         captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
 
         captureScore += recapture_bonus;
-
-        captureScore += getMoveTarget(move) == getMoveSource(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+        
+        // NMP refutation move
+        //captureScore += getMoveTarget(move) == getMoveSource(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
         return captureScore;
 
@@ -285,7 +286,7 @@ int scoreMove(uint16_t move, board* position) {
         // pawn history
         quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
-        quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+        //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
         return quiet_score;        
     }
@@ -1182,7 +1183,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // Refutation, our opponent has an argument
         if (score < beta) {
             // store null move refutation move
-            pos->nmp_refutation_move[pos->ply] = pos->move[myMIN(pos->ply, maxPly - 1)];            
+            pos->nmp_refutation_move[pos->ply] = pos->move[myMIN(pos->ply, maxPly - 1)];
+
+            uint16_t nmp_ref_move = pos->nmp_refutation_move[pos->ply];
+            int nmp_depth = depth - R;
+
+            if (!isTactical(nmp_ref_move)) {
+                int refutation_bonus = 100 + 50 * nmp_depth;
+                adjust_single_quiet_hist_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
+            }
         }
     }    
 
