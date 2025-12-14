@@ -263,6 +263,8 @@ int scoreMove(uint16_t move, board* position) {
 
         captureScore += recapture_bonus;
 
+        captureScore += getMoveTarget(move) == getMoveSource(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+
         return captureScore;
 
     }
