@@ -48,7 +48,7 @@ typedef struct {
     int fifty;
 
     int staticEval[maxPly];
-
+    uint16_t nmp_refutation_move[maxPly];
     int isSingularMove[maxPly];
 
     uint16_t piece[maxPly];

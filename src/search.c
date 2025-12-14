@@ -262,17 +262,33 @@ int scoreMove(uint16_t move, board* position) {
         captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
 
         captureScore += recapture_bonus;
+        
+        // NMP refutation move
+        //captureScore += getMoveTarget(move) == getMoveSource(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
         return captureScore;
 
     }
-        // score quiet move
+    // score quiet moves
     else {
-        return quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)][is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))]  +
-                getContinuationHistoryScore(position, 1, move) +
-                    getContinuationHistoryScore(position, 2, move) +
-                        getContinuationHistoryScore(position, 4, move) +
-                            pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];               
+        int quiet_score = 0;
+        quiet_score +=
+            // quiet main history 
+            quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)]
+            [is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))];
+
+        // 1 ply continuation history
+        quiet_score += getContinuationHistoryScore(position, 1, move);
+        // 2 ply continuation history
+        quiet_score += getContinuationHistoryScore(position, 2, move);
+        // 4 ply continuation history
+        quiet_score += getContinuationHistoryScore(position, 4, move);
+        // pawn history
+        quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
+        // NMP refutation move
+        //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+
+        return quiet_score;        
     }
     return 0;
 }
@@ -1114,10 +1130,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         int R = NMP_BASE_REDUCTION + depth / NMP_REDUCTION_DEPTH_DIVISOR;
 
-        R += myMIN((ttAdjustedEval - beta) / NMP_EVAL_DIVISOR, 3);
-
-        pos->move[myMIN(pos->ply, maxPly - 1)] = 0;
-        pos->piece[myMIN(pos->ply, maxPly - 1)] = 0;
+        R += myMIN((ttAdjustedEval - beta) / NMP_EVAL_DIVISOR, 3);        
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
@@ -1144,11 +1157,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
 
             if (pos->nmpPly || depth < 15) {
+                pos->move[myMIN(pos->ply, maxPly - 1)] = 0;
+                pos->piece[myMIN(pos->ply, maxPly - 1)] = 0;
                 return score;
             }
 
              // Skip verification if null move score is much above beta (scaled by depth)
             if (score >= beta + depth) {
+                pos->move[myMIN(pos->ply, maxPly - 1)] = 0;
+                pos->piece[myMIN(pos->ply, maxPly - 1)] = 0;
                 return score;
             }
                 
@@ -1157,7 +1174,23 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             pos->nmpPly = 0;
 
             if (verificationScore >= beta) {
+                pos->move[myMIN(pos->ply, maxPly - 1)] = 0;
+                pos->piece[myMIN(pos->ply, maxPly - 1)] = 0;
                 return score;
+            }
+        }
+
+        // Refutation, our opponent has an argument
+        if (score < beta) {
+            // store null move refutation move
+            pos->nmp_refutation_move[pos->ply] = pos->move[myMIN(pos->ply, maxPly - 1)];
+
+            uint16_t nmp_ref_move = pos->nmp_refutation_move[pos->ply];
+            int nmp_depth = depth - R;
+
+            if (!isTactical(nmp_ref_move)) {
+                int refutation_bonus = 100 + 50 * nmp_depth;
+                adjust_single_quiet_hist_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
             }
         }
     }    
@@ -1493,6 +1526,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             quietMoves++;
         } else {
             pos->move[myMIN(pos->ply, maxPly - 1)] = currentMove;
+            pos->piece[myMIN(pos->ply, maxPly - 1)] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
             //captureMoves++;
             addMoveToHistoryList(noisyMoves, currentMove);
         }

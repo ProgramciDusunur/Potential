@@ -27,6 +27,16 @@ int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
 }
 
+void adjust_single_quiet_hist_entry(board *pos, int side, uint16_t move, int bonus) {
+    int from = getMoveSource(move);
+    int to = getMoveTarget(move);
+
+    bool threatSource = is_square_threatened(pos, from);
+    bool threatTarget = is_square_threatened(pos, to);
+    
+    quietHistory[side][from][to][threatSource][threatTarget] += bonus;
+}
+
 void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
