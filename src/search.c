@@ -1523,7 +1523,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
 
         if (!in_check) {
-            lmrReduction += max(0, ttAdjustedEval - alpha) * 32;
+            lmrReduction += myMAX(0, ttAdjustedEval - alpha) * 32;
         }
 
         if (notTactical) {
