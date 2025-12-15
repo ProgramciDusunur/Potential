@@ -286,7 +286,7 @@ int scoreMove(uint16_t move, board* position) {
         // pawn history
         quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
-        //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+        quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 4096 : 0;
 
         return quiet_score;        
     }
