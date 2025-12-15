@@ -451,7 +451,7 @@ inline static void splat64(moves *moveList, uint8_t k, __m512i a, __m512i b) {
 inline static void splatPawnSingleMoves(moves *moveList, U64 sourceBitboard, int shift, int capture) {
     if (!sourceBitboard) return;
 
-    __m512i extra0 = _mm512_set1_epi16(encodeMove(0, shift, capture ? mf_capture : mf_normal));
+    __m512i extra0 = _mm512_set1_epi16(encodeMove(0, (unsigned)shift, capture ? mf_capture : mf_normal));
     __m512i extra1 = _mm512_set1_epi16(encodeMove(32, 32 + shift, capture ? mf_capture : mf_normal));
 
     splat16(moveList, (uint32_t)(sourceBitboard >> 0), SPLAT_TEMPLATE_BOTH_HALF(), extra0);
@@ -473,7 +473,7 @@ inline static void splatPawnPromoMoves(moves *moveList, U64 sourceBitboard, int 
     if (!sourceBitboard) return;
 
     int offset = color == white ? 8 : 48;
-    __m512i extra = _mm512_set1_epi16(encodeMove(offset, shift + offset, capture ? mf_capture : mf_normal));
+    __m512i extra = _mm512_set1_epi16(encodeMove(offset, (unsigned)(shift + offset), capture ? mf_capture : mf_normal));
     splat64(moveList, (uint8_t)(sourceBitboard >> offset), SPLAT_TEMPLATE_BOTH_RANK_PROMO(), extra);
 }
 
