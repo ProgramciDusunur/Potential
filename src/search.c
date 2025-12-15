@@ -1190,6 +1190,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             if (!isTactical(nmp_ref_move)) {
                 int refutation_bonus = 100 + 50 * nmp_depth;
+                refutation_bonus += 100 * (!in_check && score <= ttAdjustedEval - 100);
                 adjust_single_quiet_hist_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
             }
         }
