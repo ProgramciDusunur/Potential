@@ -88,7 +88,7 @@
     ╚════════════════════╝*/
   int FUTILITY_PRUNING_OFFSET[] = {0, 82, 41, 20, 10, 5};
   int FP_DEPTH = 5;
-  int FP_MARGIN = 82;
+  int FP_MARGIN = 52;
   
   
   /*╔══════════════════════════════╗
@@ -1387,9 +1387,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             if (legal_moves>= lmpThreshold) {
                 continue;
             }
+            
+            int futility_margin =
+                (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32;
+
+            futility_margin += 6 * depth * depth;
 
             // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
+            if (lmrDepth <= FP_DEPTH && !in_check && futility_margin <= alpha) {
                 continue;
             }
             // Quiet History Pruning
