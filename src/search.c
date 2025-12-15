@@ -1193,7 +1193,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             if (!isTactical(nmp_ref_move)) {                
                 adjust_single_quiet_hist_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
             } else {
-                adjust_single_capture_hist_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
+                adjust_single_capture_hist_entry(pos, nmp_ref_move, refutation_bonus);
             }
         }
     }    
