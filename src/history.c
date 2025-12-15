@@ -37,6 +37,14 @@ void adjust_single_quiet_hist_entry(board *pos, int side, uint16_t move, int bon
     quietHistory[side][from][to][threatSource][threatTarget] += bonus;
 }
 
+void adjust_single_capture_hist_entry(board *pos, uint16_t move, int bonus) {
+    int piece = pos->mailbox[getMoveSource(move)];
+    int to = getMoveTarget(move);
+    uint16_t capturedPiece = pos->mailbox[getMoveTarget(move)];
+
+    captureHistory[piece][to][capturedPiece] += bonus;
+}
+
 void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
