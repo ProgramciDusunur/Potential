@@ -1186,15 +1186,18 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             pos->nmp_refutation_move[pos->ply] = pos->move[myMIN(pos->ply, maxPly - 1)];
 
             uint16_t nmp_ref_move = pos->nmp_refutation_move[pos->ply];
-            
+
             int nmp_depth = depth - R;
             int refutation_bonus = 100 + 50 * nmp_depth;
 
-            if (!isTactical(nmp_ref_move)) {
-                
+            if (!isTactical(nmp_ref_move)) {                
                 adjust_single_quiet_hist_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
             } else {
-                adjust_single_capture_hist_entry(pos, nmp_ref_move, refutation_bonus);
+                int piece = pos->mailbox[getMoveSource(nmp_ref_move)];
+                if (piece != NO_PIECE) {
+                    adjust_single_capture_hist_entry(pos, nmp_ref_move, piece, refutation_bonus);
+                }
+                
             }
         }
     }    
