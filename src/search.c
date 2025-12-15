@@ -1605,12 +1605,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
                 
                 if (notTactical && (score <= alpha || score >= beta)) {
-                    int quiet_history_score =                 
-                    quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                    [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
-
                     const int bonus = score <= alpha ? -getHistoryBonus(new_depth) : getHistoryBonus(new_depth);
-                    updateAllCH(pos, currentMove, bonus, quiet_history_score);
+                    updateAllCH(pos, currentMove, bonus, getContinuationHistoryScore(pos, 1, currentMove));
                 }
             }
         }
