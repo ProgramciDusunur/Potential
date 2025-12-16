@@ -1244,8 +1244,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             sort_moves(move_list, tt_move, pos);
             for (int count = 0; count < move_list->count; count++) {
                 uint16_t move = move_list->moves[count];
-                int move_history =
-                captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
+                bool notTactical = getMoveCapture(move) == 0 && getMovePromote(move) == 0;
+                int move_history = !notTactical ?
+                captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]] : 0;
 
                 if (!SEE(pos, move, PROBCUT_SEE_NOISY_THRESHOLD)) {
                     continue;
@@ -1289,8 +1290,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 if (probcut_value >= probcut_beta) {
                     int adjusted_probcut_depth = probcut_depth * 1024;
 
-                    // Capture History based reduction
-                    adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
+                    if (!notTactical) {
+                        // Capture History based reduction
+                        adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
+                    }
 
                     adjusted_probcut_depth /= 1024;
 
