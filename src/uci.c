@@ -459,44 +459,26 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         else if (strncmp(input, "position", 8) == 0)
         {
             // call parse position function
-            parse_position(input, position);
-
-            // clear hash table
-            clearHashTable();
-
-            // clear all histories
-            clear_histories();
-
-            //clear static eval history
-            clearStaticEvaluationHistory(position);            
+            parse_position(input, position);            
         }
             // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0) {
             // clear all histories
             clear_histories();
-            
-            // call parse position function
-            parse_position("position startpos", position);
 
             // clear hash table
             clearHashTable();
 
             //clear static eval history
-            clearStaticEvaluationHistory(position);            
+            clearStaticEvaluationHistory(position);    
+            
+            // call parse position function
+            parse_position("position startpos", position);                    
         }
             // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0) {
             // call parse go function
-            goCommand(input, position, time_ctrl);
-
-            // clear hash table
-            clearHashTable();
-
-            // clear all histories
-            clear_histories();
-
-            //clear static eval history
-            clearStaticEvaluationHistory(position);            
+            goCommand(input, position, time_ctrl);                 
         }
         else if (!strncmp(input, "setoption name Hash value ", 26)) {
             // init MB
