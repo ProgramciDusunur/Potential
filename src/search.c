@@ -1402,14 +1402,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 int captured_piece = pos->mailbox[getMoveTarget(currentMove)];
                 int noisy_futility_margin = static_eval + 230 + 200 * lmrDepth +
                         FUTILITY_PIECE_VALUES[captured_piece];
-                if (noisy_futility_margin <= alpha) {
+                if (lmrDepth <= 5 && noisy_futility_margin <= alpha) {
                     continue;
                 }
 
             }
-
-            
-
         }
 
         // SEE PVS Pruning
