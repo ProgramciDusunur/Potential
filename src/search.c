@@ -1235,15 +1235,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
     if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
-            moves capture_promos[1];
-            capture_promos->count = 0;
+            moves move_list[1];
+            move_list->count = 0;
             int probcut_depth = depth - PROBCUT_DEPTH_SUBTRACTOR;
 
-            noisyGenerator(capture_promos, pos);
+            moveGenerator(move_list, pos);
 
-            sort_moves(capture_promos, tt_move, pos);
-            for (int count = 0; count < capture_promos->count; count++) {
-                uint16_t move = capture_promos->moves[count];
+            sort_moves(move_list, tt_move, pos);
+            for (int count = 0; count < move_list->count; count++) {
+                uint16_t move = move_list->moves[count];
                 int move_history =
                 captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
 
@@ -1268,7 +1268,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
                 // make sure to make only legal moves
-                if (makeMove(capture_promos->moves[count], allMoves, pos) == 0) {
+                if (makeMove(move_list->moves[count], allMoves, pos) == 0) {
                     // decrement ply
                     pos->ply--;
 
