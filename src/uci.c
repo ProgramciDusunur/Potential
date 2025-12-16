@@ -464,34 +464,22 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             // clear hash table
             clearHashTable();
 
-            //clear history
-            clearQuietHistory();
+            // clear all histories
+            clear_histories();
 
             //clear static eval history
             clearStaticEvaluationHistory(position);            
         }
             // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0) {
-
-            memset(quietHistory, 0, sizeof(quietHistory));            
-            memset(captureHistory, 0, sizeof(captureHistory));
-            memset(PAWN_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
-            memset(pawnHistory, 0, sizeof(pawnHistory));
-            memset(continuationHistory, 0, sizeof(continuationHistory));
-            memset(MINOR_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
-            memset(MAJOR_CORRECTION_HISTORY, 0, sizeof(MAJOR_CORRECTION_HISTORY));
-            memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
-            memset(contCorrhist, 0, sizeof(contCorrhist));
-            memset(krpCorrhist, 0, sizeof(krpCorrhist));
-
+            // clear all histories
+            clear_histories();
+            
             // call parse position function
             parse_position("position startpos", position);
 
             // clear hash table
             clearHashTable();
-
-            //clear history
-            clearQuietHistory();
 
             //clear static eval history
             clearStaticEvaluationHistory(position);            
@@ -504,8 +492,8 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             // clear hash table
             clearHashTable();
 
-            //clear history
-            clearQuietHistory();
+            // clear all histories
+            clear_histories();
 
             //clear static eval history
             clearStaticEvaluationHistory(position);            

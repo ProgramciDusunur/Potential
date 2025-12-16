@@ -124,23 +124,6 @@
   // Negative Extensions
   int DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
   int TRIPLE_NEGATIVE_EXTENSION_MARGIN = 90;
-
-  
-  
-  /*╔════════════════════╗
-    ║ Correction History ║
-    ╚════════════════════╝*/
-  int CORRHIST_WEIGHT_SCALE = 256;
-  int CORRHIST_GRAIN = 256;
-  int CORRHIST_LIMIT = 1024;
-  int CORRHIST_SIZE = 16384;
-  int CORRHIST_MAX = 16384;
-  
-  int PAWN_CORRECTION_HISTORY[2][16384];
-  int MINOR_CORRECTION_HISTORY[2][16384];
-  int MAJOR_CORRECTION_HISTORY[2][16384];
-  int NON_PAWN_CORRECTION_HISTORY[2][2][16384];  
-  
   
   /*╔═══════════════════════════════╗
     ║ Internal Iterative Reductions ║
@@ -424,141 +407,6 @@ int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
     return LMR_TABLE[isQuiet][myMIN(63, myMAX(depth, 0))][myMIN(63, moveNumber)];
 }
 
-void updatePawnCorrectionHistory(board *position, const int depth, const int diff) {
-    U64 pawnKey = position->pawnKey;
-
-    int entry = PAWN_CORRECTION_HISTORY[position->side][pawnKey % CORRHIST_SIZE];
-
-    const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
-
-    entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
-    entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
-
-    PAWN_CORRECTION_HISTORY[position->side][pawnKey % CORRHIST_SIZE] = entry;
-}
-
-void updateMinorCorrectionHistory(board *position, const int depth, const int diff) {
-    U64 minorKey = position->minorKey;
-
-    int entry = MINOR_CORRECTION_HISTORY[position->side][minorKey % CORRHIST_SIZE];
-
-    const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
-
-    entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
-    entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
-
-    MINOR_CORRECTION_HISTORY[position->side][minorKey % CORRHIST_SIZE] = entry;
-}
-
-void updateMajorCorrectionHistory(board *position, const int depth, const int diff) {
-    U64 majorKey = position->majorKey;
-
-    int entry = MAJOR_CORRECTION_HISTORY[position->side][majorKey % CORRHIST_SIZE];
-
-    const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
-
-    entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
-    entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
-
-    MAJOR_CORRECTION_HISTORY[position->side][majorKey % CORRHIST_SIZE] = entry;
-}
-
-void update_non_pawn_corrhist(board *position, const int depth, const int diff) {
-    U64 whiteKey = position->whiteNonPawnKey;
-    U64 blackKey = position->blackNonPawnKey;
-
-    const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
-
-    int whiteEntry = NON_PAWN_CORRECTION_HISTORY[white][position->side][whiteKey % CORRHIST_SIZE];
-
-    whiteEntry = (whiteEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
-    whiteEntry = clamp(whiteEntry, -CORRHIST_MAX, CORRHIST_MAX);
-
-    int blackEntry = NON_PAWN_CORRECTION_HISTORY[black][position->side][blackKey % CORRHIST_SIZE];
-
-    blackEntry = (blackEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
-    blackEntry = clamp(blackEntry, -CORRHIST_MAX, CORRHIST_MAX);
-
-    NON_PAWN_CORRECTION_HISTORY[white][position->side][whiteKey % CORRHIST_SIZE] = whiteEntry;
-    NON_PAWN_CORRECTION_HISTORY[black][position->side][blackKey % CORRHIST_SIZE] = blackEntry;
-}
-
-void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int scaledDiff, const int newWeight) {
-    if (pos->ply >= pliesBack && pos->move[pos->ply - (pliesBack - 1)] && pos->move[pos->ply - pliesBack]) {
-        int contCorrhistEntry = contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(pos->move[pos->ply - (pliesBack - 1)])]
-                    [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])];
-        
-        contCorrhistEntry = (contCorrhistEntry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
-        contCorrhistEntry = clamp(contCorrhistEntry, -CORRHIST_MAX, CORRHIST_MAX);
-
-        contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(pos->move[pos->ply - (pliesBack - 1)])]
-                    [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])] = contCorrhistEntry;
-
-    }
-}
-
-int adjust_single_cont_corrhist_entry(board *pos, const int pliesBack) {
-    if (pos->ply >= pliesBack && pos->move[pos->ply - (pliesBack - 1)] && pos->move[pos->ply - pliesBack]) {
-        return contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(pos->move[pos->ply - (pliesBack - 1)])]
-                    [pos->piece[pos->ply - pliesBack]][getMoveTarget(pos->move[pos->ply - pliesBack])];
-    }
-    return 0;
-}
-
-void update_continuation_corrhist(board *pos, const int depth, const int diff) {
-    const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
-
-    update_single_cont_corrhist_entry(pos, 2, scaledDiff, newWeight);
-    update_single_cont_corrhist_entry(pos, 4, scaledDiff, newWeight);
-}
-
-void update_king_rook_pawn_corrhist(board *position, const int depth, const int diff) {
-    U64 kingRookPawnKey = position->krpKey;
-
-    int entry = krpCorrhist[position->side][kingRookPawnKey % CORRHIST_SIZE];
-
-    const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
-
-    entry = (entry * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
-    entry = clamp(entry, -CORRHIST_MAX, CORRHIST_MAX);
-
-    krpCorrhist[position->side][kingRookPawnKey % CORRHIST_SIZE] = entry;
-}
-
-int adjustEvalWithCorrectionHistory(board *pos, int rawEval) {   
-    rawEval = rawEval * (300 - pos->fifty) / 300;
-    
-    U64 pawnKey = pos->pawnKey;
-    U64 minorKey = pos->minorKey;
-    U64 majorKey = pos->majorKey;
-    U64 krpKey = pos->krpKey;
-
-    int pawnEntry = PAWN_CORRECTION_HISTORY[pos->side][pawnKey % CORRHIST_SIZE];
-    int minorEntry = MINOR_CORRECTION_HISTORY[pos->side][minorKey % CORRHIST_SIZE];
-    int majorEntry = MAJOR_CORRECTION_HISTORY[pos->side][majorKey % CORRHIST_SIZE];
-    int krpEntry = krpCorrhist[pos->side][krpKey % CORRHIST_SIZE];
-
-    U64 whiteNPKey = pos->whiteNonPawnKey;
-    int whiteNPEntry = NON_PAWN_CORRECTION_HISTORY[white][pos->side][whiteNPKey % CORRHIST_SIZE];
-
-    U64 blackNPKey = pos->blackNonPawnKey;
-    int blackNPEntry = NON_PAWN_CORRECTION_HISTORY[black][pos->side][blackNPKey % CORRHIST_SIZE];
-
-    int contCorrhistEntry = adjust_single_cont_corrhist_entry(pos, 2);        
-
-    int mateFound = mateValue - maxPly;
-
-    int adjust = pawnEntry + minorEntry + majorEntry + whiteNPEntry + blackNPEntry + contCorrhistEntry + krpEntry;
-
-    return clamp(rawEval + adjust / CORRHIST_GRAIN, -mateFound + 1, mateFound - 1);
-}
-
 uint8_t justPawns(board *pos) {
     return !((pos->bitboards[N] | pos->bitboards[n] | pos->bitboards[B] |
               pos->bitboards[b] | pos->bitboards[R] | pos->bitboards[r] |
@@ -816,7 +664,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     // evaluate position
     int evaluation = evaluate(position);
 
-    evaluation = adjustEvalWithCorrectionHistory(position, evaluation);
+    evaluation = adjust_eval_with_corrhist(position, evaluation);
 
     score = bestScore = tt_hit ? tt_score : evaluation;
 
@@ -1038,7 +886,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // get static evaluation score
     int raw_eval = evaluate(pos);
 
-    int static_eval = adjustEvalWithCorrectionHistory(pos, raw_eval);
+    int static_eval = adjust_eval_with_corrhist(pos, raw_eval);
 
     bool improving = false;
 
@@ -1718,9 +1566,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
 
             int corrhistBonus = clamp(bestScore - static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
-            updatePawnCorrectionHistory(pos, depth, corrhistBonus);
-            updateMinorCorrectionHistory(pos, depth, corrhistBonus);
-            updateMajorCorrectionHistory(pos, depth, corrhistBonus);
+            update_pawn_correction_hist(pos, depth, corrhistBonus);
+            update_minor_correction_hist(pos, depth, corrhistBonus);
+            update_major_correction_hist(pos, depth, corrhistBonus);
             update_non_pawn_corrhist(pos, depth, corrhistBonus);
             update_continuation_corrhist(pos, depth, corrhistBonus);
             update_king_rook_pawn_corrhist(pos, depth, corrhistBonus);
@@ -1903,5 +1751,4 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
         printMove(position->pvTable[0][0]);
         printf("\n");
     }
-
 }
