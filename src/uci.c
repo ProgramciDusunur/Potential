@@ -459,56 +459,26 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         else if (strncmp(input, "position", 8) == 0)
         {
             // call parse position function
-            parse_position(input, position);
-
-            // clear hash table
-            clearHashTable();
-
-            //clear history
-            clearQuietHistory();
-
-            //clear static eval history
-            clearStaticEvaluationHistory(position);            
+            parse_position(input, position);            
         }
             // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0) {
-
-            memset(quietHistory, 0, sizeof(quietHistory));            
-            memset(captureHistory, 0, sizeof(captureHistory));
-            memset(PAWN_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
-            memset(pawnHistory, 0, sizeof(pawnHistory));
-            memset(continuationHistory, 0, sizeof(continuationHistory));
-            memset(MINOR_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
-            memset(MAJOR_CORRECTION_HISTORY, 0, sizeof(MAJOR_CORRECTION_HISTORY));
-            memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
-            memset(contCorrhist, 0, sizeof(contCorrhist));
-            memset(krpCorrhist, 0, sizeof(krpCorrhist));
-
-            // call parse position function
-            parse_position("position startpos", position);
+            // clear all histories
+            clear_histories();
 
             // clear hash table
             clearHashTable();
 
-            //clear history
-            clearQuietHistory();
-
             //clear static eval history
-            clearStaticEvaluationHistory(position);            
+            clearStaticEvaluationHistory(position);    
+            
+            // call parse position function
+            parse_position("position startpos", position);                    
         }
             // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0) {
             // call parse go function
-            goCommand(input, position, time_ctrl);
-
-            // clear hash table
-            clearHashTable();
-
-            //clear history
-            clearQuietHistory();
-
-            //clear static eval history
-            clearStaticEvaluationHistory(position);            
+            goCommand(input, position, time_ctrl);                 
         }
         else if (!strncmp(input, "setoption name Hash value ", 26)) {
             // init MB
