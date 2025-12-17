@@ -10,6 +10,9 @@
 #include "move.h"
 #include "search.h"
 
+int move_estimated_value(board *pos, uint16_t move);
+uint64_t all_attackers_to_square(board *pos, uint64_t occupied, int sq);
+int SEE(board *pos, uint16_t move, int threshold);
 void initSuits(void);
 void testSEE(void);
 
