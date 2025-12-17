@@ -41,10 +41,10 @@ extern int CORRHIST_LIMIT;
 extern int CORRHIST_SIZE;
 extern int CORRHIST_MAX;
   
-extern int PAWN_CORRECTION_HISTORY[2][16384];
-extern int MINOR_CORRECTION_HISTORY[2][16384];
-extern int MAJOR_CORRECTION_HISTORY[2][16384];
-extern int NON_PAWN_CORRECTION_HISTORY[2][2][16384];
+extern int16_t PAWN_CORRECTION_HISTORY[2][16384];
+extern int16_t MINOR_CORRECTION_HISTORY[2][16384];
+extern int16_t MAJOR_CORRECTION_HISTORY[2][16384];
+extern int16_t NON_PAWN_CORRECTION_HISTORY[2][2][16384];
 
 int scaledBonus(int score, int bonus, int gravity);
 void adjust_single_quiet_hist_entry(board *pos, int side, uint16_t move, int bonus);
