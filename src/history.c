@@ -35,13 +35,20 @@ int CORRHIST_GRAIN = 256;
 int CORRHIST_LIMIT = 1024;
 int CORRHIST_SIZE = 16384;
 int CORRHIST_MAX = 16384;
-  
-int PAWN_CORRECTION_HISTORY[2][16384];
-int MINOR_CORRECTION_HISTORY[2][16384];
-int MAJOR_CORRECTION_HISTORY[2][16384];
-int NON_PAWN_CORRECTION_HISTORY[2][2][16384];
 
-// kingRookPawn Correction History [side to move][key]
+// pawn correction history [side to move][key]
+int16_t PAWN_CORRECTION_HISTORY[2][16384];
+
+// minor correction history [side to move][key]
+int16_t MINOR_CORRECTION_HISTORY[2][16384];
+
+// major correction history [side to move][key]
+int16_t MAJOR_CORRECTION_HISTORY[2][16384];
+
+// non pawn correction history [side to move][key]
+int16_t NON_PAWN_CORRECTION_HISTORY[2][2][16384];
+
+// king rook pawn correction history [side to move][key]
 int16_t krpCorrhist[2][16384];
 
 /* Update History */

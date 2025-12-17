@@ -21,16 +21,8 @@ extern int LMR_FULL_DEPTH_MOVES;
 extern int LMR_REDUCTION_LIMIT;
 extern int lateMovePruningBaseReduction;
 extern int NMP_DEPTH;
-extern int CORRHIST_WEIGHT_SCALE;
-extern int CORRHIST_GRAIN;
-extern int CORRHIST_SIZE;
-extern int CORRHIST_MAX;
 
 extern int LMR_TABLE[2][maxPly][maxPly];
-extern int PAWN_CORRECTION_HISTORY[2][16384];
-extern int MINOR_CORRECTION_HISTORY[2][16384];
-extern int NON_PAWN_CORRECTION_HISTORY[2][2][16384];
-extern int MAJOR_CORRECTION_HISTORY[2][16384];
 
 int isRepetition(board* position);
 uint8_t isMaterialDraw(board *pos);
