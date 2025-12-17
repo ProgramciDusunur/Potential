@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "timeman.h"
 
-#define VERSION "3.12.31"
+#define VERSION "3.12.32"
 #define BENCH_DEPTH 13
 
 double DEF_TIME_MULTIPLIER = 0.054;
@@ -470,7 +470,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             clearHashTable();
 
             //clear static eval history
-            clearStaticEvaluationHistory(position);    
+            clearStaticEvaluationHistory(position);
             
             // call parse position function
             parse_position("position startpos", position);                    
