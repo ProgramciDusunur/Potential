@@ -1430,7 +1430,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         // Reduce Less
         if (tt_pv) {
-            lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
+            lmrReduction -= TT_PV_LMR_SCALER + (1024 * pvNode) + (256 * improving);
         }
         
 
