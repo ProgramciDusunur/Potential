@@ -896,6 +896,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     int pastStack = -1, ow_past_stack = -1;
 
+    int priorReduction = 0;
+
+    if (pos->ply > 0) {
+        priorReduction = pos->prevLmrReduction[pos->ply - 1];
+        pos->prevLmrReduction[pos->ply - 1] = 0;
+    }    
+
     pos->staticEval[pos->ply] = static_eval;
 
     pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval ? pos->ply - 2 : -1;
@@ -903,6 +910,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];    
 
     opponent_worsening = pos->ply-1 >= 0 && !in_check && pos->staticEval[pos->ply] + pos->staticEval[pos->ply-1] > 1;
+
+    // Hindsight extension
+    /*if (priorReduction >= 3 && !opponent_worsening) {
+        depth++;
+    }*/
+    // Hindisight reduction
+    if (pos->ply >= 1 && priorReduction >= 2 && depth >= 2 && pos->staticEval[pos->ply] + pos->staticEval[pos->ply - 1] > 180) {
+        depth--;
+    }
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
@@ -947,7 +963,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
-        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20 - opponent_worsening * 20)
+        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
         return ttAdjustedEval;
 
     // Null Move Pruning
@@ -1445,7 +1461,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
+            pos->prevLmrReduction[pos->ply] = reduced_depth;
             score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
+            pos->prevLmrReduction[pos->ply] = 0;
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
