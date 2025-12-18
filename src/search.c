@@ -916,9 +916,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         depth++;
     }
     // Hindisight reduction
-    /*if (pos->ply >= 1 && priorReduction >= 2 && depth >= 2 && pos->staticEval[pos->ply] + pos->staticEval[pos->ply - 1] > 180) {
+    if (pos->ply >= 1 && priorReduction >= 2 && depth >= 2 && pos->staticEval[pos->ply] + pos->staticEval[pos->ply - 1] > 180) {
         depth--;
-    }*/
+    }
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
