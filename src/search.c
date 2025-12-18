@@ -912,13 +912,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     opponent_worsening = pos->ply-1 >= 0 && !in_check && pos->staticEval[pos->ply] + pos->staticEval[pos->ply-1] > 1;
 
     // Hindsight extension
-    /*if (priorReduction >= 3 && !opponent_worsening) {
+    if (priorReduction >= 3 && !opponent_worsening) {
         depth++;
-    }*/
-    // Hindisight reduction
-    if (pos->ply >= 1 && priorReduction >= 2 && depth >= 2 && pos->staticEval[pos->ply] + pos->staticEval[pos->ply - 1] > 180) {
-        depth--;
     }
+    // Hindisight reduction
+    /*if (pos->ply >= 1 && priorReduction >= 2 && depth >= 2 && pos->staticEval[pos->ply] + pos->staticEval[pos->ply - 1] > 180) {
+        depth--;
+    }*/
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
