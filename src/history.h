@@ -54,6 +54,9 @@ void updateSingleCHScore(board *pos, uint16_t move, const int offSet, const int 
 int getAllCHScore(board *pos, uint16_t move, int quiet_hist_score);
 void updateAllCH(board *pos, uint16_t move, int bonus, int quiet_hist_score);
 int getHistoryBonus(int depth);
+int standard_get_all_ch_score(board *pos, uint16_t move);
+void standard_single_ch_entry_update(board *pos, uint16_t move, const int offSet, const int bonus);
+void standard_update_all_ch(board *pos, uint16_t move, const int bonus);
 void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets, int quiet_hist_score);
 int getContinuationHistoryScore(board *pos, int offSet, uint16_t move);
 void updateCaptureHistory(board *position, uint16_t bestMove, int depth);

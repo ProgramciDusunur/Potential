@@ -165,6 +165,29 @@ void updateAllCH(board *pos, uint16_t move, int bonus, int quiet_hist_score) {
     updateSingleCHScore(pos, move, 4, bonus, quiet_hist_score);
 }
 
+int standard_get_all_ch_score(board *pos, uint16_t move) {
+    return getContinuationHistoryScore(pos, 1, move) +
+           getContinuationHistoryScore(pos, 2, move) +
+           getContinuationHistoryScore(pos, 4, move);
+}
+
+void standard_single_ch_entry_update(board *pos, uint16_t move, const int offSet, const int bonus) {
+    int base_conthist_score = standard_get_all_ch_score(pos, move);
+    const int ply = pos->ply - offSet;
+    if (ply >= 0) {
+        const int scaledBonus = bonus - base_conthist_score * abs(bonus) / maxQuietHistory;
+        continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
+                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
+    }
+}
+
+void standard_update_all_ch(board *pos, uint16_t move, const int bonus) {
+    standard_single_ch_entry_update(pos, move, 1, bonus);
+    standard_single_ch_entry_update(pos, move, 2, bonus);
+    standard_single_ch_entry_update(pos, move, 4, bonus);
+}
+
+
 void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets, int quiet_hist_score) {
     int bonus = getHistoryBonus(depth);
 
