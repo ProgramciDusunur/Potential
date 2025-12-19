@@ -1454,7 +1454,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 if (notTactical && (score <= alpha || score >= beta)) {
                     const int bonus = 100 + new_depth * 50;
                     const int history_bonus = score <= alpha ? -bonus : bonus;                    
-                    standard_update_all_ch(pos, currentMove, history_bonus);
+                    //standard_update_all_ch(pos, currentMove, history_bonus);
+                    adjust_single_quiet_hist_entry(pos, pos->side, currentMove, history_bonus);
                 }
             }
         }
