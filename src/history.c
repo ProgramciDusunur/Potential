@@ -15,7 +15,7 @@
 int16_t quietHistory[2][64][64][2][2];
 
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-int16_t continuationHistory[12][64][13][64];
+int16_t continuationHistory[12][64][12][64];
 
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t contCorrhist[12][64][12][64];
