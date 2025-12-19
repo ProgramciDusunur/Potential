@@ -1451,9 +1451,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
-                if (notTactical && (score <= alpha || score >= beta)) {
-                    const int bonus = 100 + new_depth * 50;
-                    const int history_bonus = score <= alpha ? -bonus : bonus;                    
+                if (notTactical && (score <= alpha || score >= beta)) {                    
+                    const int history_bonus = score <= alpha ? -getHistoryBonus(new_depth) : getHistoryBonus(new_depth);
                     //standard_update_all_ch(pos, currentMove, history_bonus);
                     adjust_single_quiet_hist_entry(pos, pos->side, currentMove, history_bonus);
                 }
