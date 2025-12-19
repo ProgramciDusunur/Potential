@@ -15,7 +15,7 @@
 int16_t quietHistory[2][64][64][2][2];
 
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-int16_t continuationHistory[12][64][12][64];
+int16_t continuationHistory[12][64][13][64];
 
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t contCorrhist[12][64][12][64];
@@ -174,7 +174,7 @@ int standard_get_all_ch_score(board *pos, uint16_t move) {
 void standard_single_ch_entry_update(board *pos, uint16_t move, const int offSet, const int bonus) {
     int base_conthist_score = standard_get_all_ch_score(pos, move);
     const int ply = pos->ply - offSet;
-    if (ply >= 0) {
+    if (ply >= 0) {        
         const int scaledBonus = bonus - base_conthist_score * abs(bonus) / maxQuietHistory;
         continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
                               [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
