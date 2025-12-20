@@ -820,7 +820,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
     int pvNode = beta - alpha > 1;
-
+    bool allNode  = !(pvNode || cutNode);
     int rootNode = pos->ply == 0;
 
     uint16_t bestMove = 0;
@@ -1402,7 +1402,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         if (enemy_has_no_threats && !in_check && static_eval - 365 > beta) {
             lmrReduction += GOOD_EVAL_LMR_SCALER;
-        }
+        }        
 
         if (notTactical) {
             // Reduce More
@@ -1433,6 +1433,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
         }
         
+        if (allNode) {
+            lmrReduction += lmrReduction / 4;
+        }        
 
         lmrReduction /= 1024;
 
