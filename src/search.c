@@ -1434,7 +1434,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
         
         if (allNode) {
-            lmrReduction += lmrReduction / 4;
+            lmrReduction += lmrReduction / 8;
         }        
 
         lmrReduction /= 1024;
