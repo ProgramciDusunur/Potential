@@ -1537,8 +1537,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                     break;
                 }
             }
-        }
-        pos->trend = clamp(pos->side ? -score : score, -64, 64);
+        }        
     }
 
     // we don't have any legal moves to make in the current postion
@@ -1689,6 +1688,8 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             } else {
                 break;
             }
+            position->trend = clamp(position->side ? -score : score, -64, 64);
+
             window *= 1.8f;
 
         }
