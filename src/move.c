@@ -318,6 +318,9 @@ int makeMove(uint16_t move, int moveFlag, board* position) {
     // hash castling
     position->hashKey ^= castleKeys[position->castle];
 
+    // increment full moves counter
+    position->full_moves += position->side == black;
+
     // change side
     position->side ^= 1;
 
