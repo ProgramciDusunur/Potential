@@ -1538,6 +1538,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
             }
         }
+        pos->trend = clamp(pos->side ? -score : score, -64, 64);
     }
 
     // we don't have any legal moves to make in the current postion
