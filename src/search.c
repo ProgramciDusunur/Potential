@@ -1614,6 +1614,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
     int averageScore = noEval;
     uint8_t evalStability = 0;
     int baseSearchScore = -infinity;
+    position->trend = 0;
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
@@ -1630,7 +1631,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
         }
 
         position->seldepth = 0;
-        position->rootDepth = current_depth;
+        position->rootDepth = current_depth;        
 
 
         int startTime = getTimeMiliSecond();
