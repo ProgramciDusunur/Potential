@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "timeman.h"
 
-#define VERSION "3.12.31"
+#define VERSION "3.13.31"
 #define BENCH_DEPTH 13
 
 double DEF_TIME_MULTIPLIER = 0.054;
@@ -427,6 +427,45 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         printf("\n");
         fflush(NULL);
         return;
+    }
+
+    if (argc >= 2 && strncmp(argv[1], "genfens", 7) == 0) {
+        char buffer[2048] = "";
+        char* command = argv[1];
+
+        if (argc > 2) {
+            for (int i = 1; i < argc; i++) {
+                strcat(buffer, argv[i]);
+                if (i < argc - 1) strcat(buffer, " ");
+            }
+            command = buffer;
+        }
+
+        uint64_t how_many_fens_to_create = 0;
+        uint64_t seed = 0;       
+        char book_path[1024] = {0};    
+        char extra_args[1024] = {0};
+
+        int items_scanned = sscanf(command, "genfens %llu seed %llu book %s %[^\n]", 
+                               &how_many_fens_to_create, &seed, book_path, extra_args);
+
+        if (items_scanned >= 3) {
+            fprintf(stderr, "Command: %s\n", command);
+            fprintf(stderr, "Generating FENs.. \n\n");
+            fprintf(stderr, "  Extraction Successful:\n");
+            fprintf(stderr, "  How Many FENs To Create:  %llu\n", how_many_fens_to_create);
+            fprintf(stderr, "  Seed: %llu\n", seed);
+            fprintf(stderr, "  Book: %s\n", book_path);
+        
+            if (items_scanned > 3) {
+                fprintf(stderr, "  Extra Arguments = %s\n", extra_args);
+            }
+
+            exit(0);
+        } else {
+            fprintf(stderr, "ERROR: The Command Can't Extracted!\n");
+            exit(1);
+        }
     }
 
     // main loop
