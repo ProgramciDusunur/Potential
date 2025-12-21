@@ -1689,7 +1689,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             } else {
                 break;
             }
-            position->trend = clamp(position->side ? -score : score, -128, 128);
+            position->trend = clamp(position->side ? -score : score, -16, 16);
 
             window *= 1.8f;
 
