@@ -1617,7 +1617,6 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
-        //printf("Node limit: %llu\n", time->isNodeLimit ? time->node_limit : 0);
         if (time->stopped == 1) {
             break;
         }
@@ -1688,7 +1687,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             } else {
                 break;
             }
-            position->trend = clamp(position->side ? -score : score, -16, 16);
+            position->trend = clamp(position->side ? -score : score, -32, 32);
 
             window *= 1.8f;
 
