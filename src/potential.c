@@ -45,8 +45,7 @@ int main(int argc, char* argv[]) {
         parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", &position);
         //printMailbox(&position);
         
-
-        extract_and_print_fen(&position);
+        printf("FEN: %s\n", get_fen(&position).str);        
 
         /*
         perftRoot(7, &position);

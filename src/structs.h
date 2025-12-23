@@ -161,6 +161,9 @@ typedef struct  {
     int score;
 } see;
 
+typedef struct {
+    char str[128]; // FEN string    
+} FenString;
 
 
 #endif //POTENTIAL_STRUCTS_H
