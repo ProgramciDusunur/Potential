@@ -316,10 +316,7 @@ int makeMove(uint16_t move, int moveFlag, board* position) {
     position->castle &= castlingRights[targetSquare];
 
     // hash castling
-    position->hashKey ^= castleKeys[position->castle];
-
-    // increment full moves counter
-    position->full_moves += position->side == black;
+    position->hashKey ^= castleKeys[position->castle];    
 
     // change side
     position->side ^= 1;
@@ -334,6 +331,9 @@ int makeMove(uint16_t move, int moveFlag, board* position) {
         // return illegal move
         return 0;
     }
+
+    // increment full moves counter
+    position->full_moves += position->side == black;
 
     return 1;
 }

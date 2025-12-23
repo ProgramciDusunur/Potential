@@ -70,7 +70,7 @@ FenString get_fen(board *pos) {
     return result;
 }
 
-void default_fen_generation(board *pos) {
+void default_fen_generation(board *pos, int depth) {
     moves moveList[1];
     moveGenerator(moveList, pos);    
 
@@ -82,7 +82,8 @@ void default_fen_generation(board *pos) {
             continue;
         }
 
-        pBoard(pos);
+        //pBoard(pos);
+        printf("info string genfens %s\n", get_fen(pos).str);
 
         takeBack(pos, &copyPosition);
     }
