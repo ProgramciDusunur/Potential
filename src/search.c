@@ -1647,7 +1647,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             } else {
                 break;
             }
-            position->trend = clamp(position->side ? -score : score, -20, 20);
+            position->trend = current_depth >= 8 ? clamp(position->side ? -score : score, -20, 20) : 0;
             window *= 1.8f;
 
         }
