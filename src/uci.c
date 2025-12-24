@@ -83,10 +83,6 @@ void parse_position(char *command, board* position) {
     // init pointer to the current character in the command string
     char *current_char = command;
 
-    for (int i = 0; i < 64; ++i) {
-        position->mailbox[i] = NO_PIECE;
-    }
-
     // parse UCI "startpos" command
     if (strncmp(command, "startpos", 8) == 0)
         // init chess board with start position
@@ -271,16 +267,8 @@ void goCommand(char *command, board* position, my_time* time) {
 
 
 
-
 // print move list
 void printMoveList(moves *moveList) {
-    /*if (!moveList->count) {
-        printf("\n    No move in the move list.\n");
-        return;
-    }*/
-
-
-
     printf("\n  move   piece   capture   double   enpassant   castling");
 
     // loop over moves within a move list
