@@ -172,6 +172,59 @@ void initializeLMRTable(void) {
     }
 }
 
+void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
+    int bestIndex = moveNum;
+    int bestScore = move_scores[moveNum];
+
+    for (int i = moveNum + 1; i < moveList->count; i++) {
+        if (move_scores[i] > bestScore) {
+            bestScore = move_scores[i];
+            bestIndex = i;
+        }
+    }
+
+    if (bestIndex != moveNum) {
+        int tempScore = move_scores[moveNum];
+        move_scores[moveNum] = move_scores[bestIndex];
+        move_scores[bestIndex] = tempScore;
+
+        uint16_t tempMove = moveList->moves[moveNum];
+        moveList->moves[moveNum] = moveList->moves[bestIndex];
+        moveList->moves[bestIndex] = tempMove;
+    }
+}
+
+void init_move_scores(moves *moveList, int *move_scores, uint16_t tt_move, board* position) {
+    for (int count = 0; count < moveList->count; count++) {
+        uint16_t current_move = moveList->moves[count];
+        
+        if (tt_move == current_move) {
+            move_scores[count] = 2000000000;
+        } else {
+            move_scores[count] = scoreMove(current_move, position);
+        }
+    }
+}
+
+void init_quiescence_scores(moves *moveList, int *move_scores, board* position) {
+    for (int count = 0; count < moveList->count; count++) {
+        uint16_t move = moveList->moves[count];
+        
+        if (getMoveCapture(move)) {
+            int target_piece = P;
+            uint8_t bb_piece = position->mailbox[getMoveTarget(move)];
+            
+            if (bb_piece != NO_PIECE && getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
+                target_piece = bb_piece;
+            }
+            
+            move_scores[count] = mvvLva[position->mailbox[getMoveSource(move)]][target_piece] + 1000000000;
+        } else {
+            move_scores[count] = 0;
+        }
+    }
+}
+
 /*  =======================
          Move ordering
     =======================
@@ -275,102 +328,6 @@ int scoreMove(uint16_t move, board* position) {
     }
     return 0;
 }
-
-
-void sort_moves(moves *moveList, uint16_t tt_move, board* position) {
-    if (moveList->count == 0) {
-        return;
-    }
-
-    // move scores
-    int move_scores[moveList->count];
-    int sorted_count = 0;
-
-    // score and insert moves one by one
-    for (int count = 0; count < moveList->count; count++) {
-        uint16_t current_move = moveList->moves[count];
-        int current_score;
-
-        // if hash move available
-        if (tt_move == current_move)
-            current_score = 2000000000;
-        else
-        current_score = scoreMove(current_move, position);
-
-        // Find the correct position to insert the current move
-        int insert_pos = sorted_count;
-        while (insert_pos > 0 && move_scores[insert_pos - 1] < current_score) {
-            move_scores[insert_pos] = move_scores[insert_pos - 1];
-            moveList->moves[insert_pos] = moveList->moves[insert_pos - 1];
-            insert_pos--;
-        }
-
-        // Insert the current move and score
-        move_scores[insert_pos] = current_score;
-        moveList->moves[insert_pos] = current_move;
-
-        sorted_count++;
-    }
-}
-
-int quiescenceScoreMove(uint16_t move, board* position) {
-    // score capture move
-    if (getMoveCapture(move)) {
-        // init target piece
-
-        // init target piece
-        int target_piece = P;
-
-        uint8_t bb_piece = position->mailbox[getMoveTarget(move)];
-        // if there's a piece on the target square
-        if (bb_piece != NO_PIECE &&
-            getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
-            target_piece = bb_piece;
-        }
-
-        // score move by MVV LVA lookup [source piece][target piece]
-        return mvvLva[position->mailbox[getMoveSource(move)]][target_piece] + 1000000000;
-    }
-
-    return 0;
-}
-
-void quiescence_sort_moves(moves *moveList, board* position) {
-    if (moveList->count == 0) {
-        return;
-    }
-
-    // move scores
-    int move_scores[moveList->count];
-    int sorted_count = 0;
-
-    // score and insert moves one by one
-    for (int count = 0; count < moveList->count; count++) {
-        uint16_t current_move = moveList->moves[count];
-        int current_score;
-
-        // if hash move available
-        /*if (bestMove == current_move)
-            current_score = 2000000000;
-        else*/
-        current_score = quiescenceScoreMove(current_move, position);
-
-        // Find the correct position to insert the current move
-        int insert_pos = sorted_count;
-        while (insert_pos > 0 && move_scores[insert_pos - 1] < current_score) {
-            move_scores[insert_pos] = move_scores[insert_pos - 1];
-            moveList->moves[insert_pos] = moveList->moves[insert_pos - 1];
-            insert_pos--;
-        }
-
-        // Insert the current move and score
-        move_scores[insert_pos] = current_score;
-        moveList->moves[insert_pos] = current_move;
-
-        sorted_count++;
-    }
-}
-
 
 
 // enable PV move scoring
@@ -687,18 +644,17 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     // generate moves
     noisyGenerator(moveList, position);
 
-    // sort moves
-    quiescence_sort_moves(moveList, position);
-
-
     int futilityValue = bestScore + 100;
 
     // legal moves counter
     //int legal_moves = 0;
 
+    int move_scores[256];
+    init_quiescence_scores(moveList, move_scores, position);
 
     // loop over moves within a movelist
-    for (int count = 0; count < moveList->count; count++) {        
+    for (int count = 0; count < moveList->count; count++) {
+        pick_next_move(count, moveList, move_scores);
         uint16_t move = moveList->moves[count];
 
         if (bestScore > -mateFound) {
@@ -1089,8 +1045,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             noisyGenerator(capture_promos, pos);
 
-            sort_moves(capture_promos, tt_move, pos);
+            int move_scores[256];
+            init_move_scores(capture_promos, move_scores, tt_move, pos);
             for (int count = 0; count < capture_promos->count; count++) {
+                pick_next_move(count, capture_promos, move_scores);
                 uint16_t move = capture_promos->moves[count];
                 int move_history =
                 captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
@@ -1185,8 +1143,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // enable PV move scoring
         enable_pv_scoring(moveList, pos);
 
-    // sort moves
-    sort_moves(moveList, tt_move, pos);
+    int move_scores[256];
+    init_move_scores(moveList, move_scores, tt_move, pos);
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -1206,6 +1164,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
+        pick_next_move(count, moveList, move_scores);
         uint16_t currentMove = moveList->moves[count];
 
         if (currentMove == pos->isSingularMove[pos->ply]) {

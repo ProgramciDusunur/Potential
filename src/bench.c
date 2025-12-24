@@ -68,18 +68,15 @@ void benchmark(int depth, board* position, my_time* time) {
     int benchStartTime = getTimeMiliSecond();
     for (int i = 0;i < 52;i++) {
         parseFEN(benchmarkfens[i], position);
+        
         searchPosition(depth, position, true, time);
         // clear hash table
         clearHashTable();
 
         //clear history
-        clear_histories();
+        clear_histories();        
 
-        //clear static eval history
-        clearStaticEvaluationHistory(position);
-
-        totalNodes += position->nodes_searched;
-        //printf("position: %s\n", benchmarkfens[i]);
+        totalNodes += position->nodes_searched;        
     }
     int benchFinishTime = getTimeMiliSecond() - benchStartTime;
     printf("%llu nodes %llu nps", totalNodes, totalNodes / (benchFinishTime +1) * 1000);

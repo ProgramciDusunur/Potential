@@ -44,7 +44,7 @@ char promotedPieces[] = {
 char *unicodePieces[12] = {"♙", "♘", "♗", "♖", "♕", "♔",
                            "♟", "♞", "♝", "♜", "♛", "♚"};
 
-int charPieces[] = {
+char charPieces[] = {
         ['P'] = P,
         ['N'] = N,
         ['B'] = B,

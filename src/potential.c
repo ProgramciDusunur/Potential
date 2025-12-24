@@ -12,6 +12,7 @@
 #include "fen.h"
 #include "perft.h"
 #include "see.h"
+#include "generate_fen.h"
 
 
 
@@ -40,10 +41,19 @@ int main(int argc, char* argv[]) {
     initAll();
     int debug = 0;
     if (debug) {
-        /*board position;
-        parseFEN(startPosition, &position);
+        board position;        
+        parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", &position);
+        //printMailbox(&position);
+        
+        //printf("FEN: %s\n", get_fen(&position).str);
+        for (int i = 0;i < 100000;i++)  {
+            default_fen_generation(&position, 0);
+        }
+
+        
 
 
+        /*
         perftRoot(7, &position);
         printf("Nodes: %llu", perftNodes);*/
         
