@@ -10,11 +10,14 @@ void parseFEN(char *fen, board* position) {
     memset(position->bitboards, 0ULL, sizeof(position->bitboards));
     // reset board occupancies (bitboards)
     memset(position->occupancies, 0ULL, sizeof(position->occupancies));
+    // reset mailbox
+    memset(position->mailbox, NO_PIECE, sizeof(position->mailbox));
 
     // reset game state variables
     position->side = 0;
     position->enpassant = no_sq;
     position->castle = 0;
+    position->full_moves = 1;
 
     // reset repetition index
     position->repetitionIndex = 0;
@@ -41,6 +44,7 @@ void parseFEN(char *fen, board* position) {
                         piece = bbPiece;
                     }
                 }
+                
                 if (piece == -1) {
                     file--;
                 }
@@ -91,6 +95,10 @@ void parseFEN(char *fen, board* position) {
 
     // parse half move counter to init fifty move counter
     position->fifty = atoi(fen);
+
+    // handle full moves counter
+    fen+=3;    
+    position->full_moves = atoi(fen);    
 
     for (int piece = P; piece <= K; piece++) {
         position->occupancies[white] |= position->bitboards[piece];
