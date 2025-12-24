@@ -74,6 +74,7 @@
   int PROBCUT_IMPROVING_MARGIN = 30;
   int PROBCUT_SEE_NOISY_THRESHOLD = 100;
   int PROBCUT_NOISY_HISTORY_DIVISOR = 10240;
+  int PROBCUT_PV_NODE_SCALER = 1024;
 
 
 /*╔═══════════════════╗
@@ -1037,7 +1038,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int legal_moves = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
-    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
+    if (!in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1097,6 +1098,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                     // Capture History based reduction
                     adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
+
+                    if (pvNode) {
+                        adjusted_probcut_depth += PROBCUT_PV_NODE_SCALER;
+                    }
 
                     adjusted_probcut_depth /= 1024;
 
