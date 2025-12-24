@@ -45,6 +45,7 @@ typedef struct {
     int pvLength[maxPly];
     int pvTable[maxPly][maxPly];    
     threats pieceThreats;
+    int trend;
 
     int fifty;
 
