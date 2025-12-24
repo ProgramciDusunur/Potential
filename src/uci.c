@@ -74,7 +74,6 @@ uint16_t parse_move(char *move_string, board* position) {
 }
 
 
-
 // parse UCI "position" command
 void parse_position(char *command, board* position) {
     // shift pointer to the right where next token begins
