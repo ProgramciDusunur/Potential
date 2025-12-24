@@ -56,7 +56,7 @@ extern char *squareToCoordinates[];
 extern char asciiPieces[12];
 extern char promotedPieces[];
 extern char *unicodePieces[12];
-extern int charPieces[];
+extern char charPieces[];
 extern int minorPieces[6];
 extern int majorPieces[4];
 extern int krpPieces[6];
@@ -96,12 +96,4 @@ extern U64 enpassantKeys[64];
 extern U64 castleKeys[16];
 
 
-
-
-
-
-
-
-
-
-#endif //POTENTIAL_BOARD_CONSTANTS_H
+#endif //-POTENTIAL_BOARD_CONSTANTS_H

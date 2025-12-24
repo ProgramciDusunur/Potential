@@ -32,6 +32,7 @@ typedef struct {
     int side;
     int castle;
     int enpassant;
+    int full_moves;
 
     int ply;
     int seldepth;
@@ -160,6 +161,9 @@ typedef struct  {
     int score;
 } see;
 
+typedef struct {
+    char str[128]; // FEN string    
+} FenString;
 
 
 #endif //POTENTIAL_STRUCTS_H
