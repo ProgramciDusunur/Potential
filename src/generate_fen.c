@@ -70,21 +70,39 @@ FenString get_fen(board *pos) {
     return result;
 }
 
-void default_fen_generation(board *pos, int depth) {
-    moves moveList[1];
-    moveGenerator(moveList, pos);    
-
-    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
-        struct copyposition copyPosition;
-        copyBoard(pos, &copyPosition);
-        if (makeMove(moveList->moves[moveCount], allMoves, pos) == 0) {
-            // skip to the next move
-            continue;
-        }
-
-        //pBoard(pos);
+void default_fen_generation(board *pos, int current_ply) {    
+    if (current_ply == how_many_ply) {
         printf("info string genfens %s\n", get_fen(pos).str);
-
-        takeBack(pos, &copyPosition);
+        return;
     }
+
+    moves moveList[1];
+    moveGenerator(moveList, pos);
+    
+    int legal_moves[256];
+    int legal_count = 0;
+
+    for (int i = 0; i < moveList->count; i++) {
+        struct copyposition cp;
+        copyBoard(pos, &cp);
+
+        if (makeMove(moveList->moves[i], allMoves, pos)) {
+            legal_moves[legal_count++] = moveList->moves[i];
+        }        
+        takeBack(pos, &cp);
+    }
+    
+    if (legal_count == 0) return;
+    
+    int random_idx = rand() % legal_count;
+    int selected_move = legal_moves[random_idx];
+
+    struct copyposition cp_step;
+    copyBoard(pos, &cp_step);
+    
+    if (makeMove(selected_move, allMoves, pos)) {
+        default_fen_generation(pos, current_ply + 1);
+    }
+        
+    takeBack(pos, &cp_step);
 }

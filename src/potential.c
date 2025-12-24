@@ -39,14 +39,18 @@ void initAll(void) {
 
 int main(int argc, char* argv[]) {
     initAll();
-    int debug = 1;
+    int debug = 0;
     if (debug) {
         board position;        
         parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", &position);
         //printMailbox(&position);
         
         //printf("FEN: %s\n", get_fen(&position).str);
-        default_fen_generation(&position);
+        for (int i = 0;i < 100000;i++)  {
+            default_fen_generation(&position, 0);
+        }
+
+        
 
 
         /*
