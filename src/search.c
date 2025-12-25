@@ -1512,6 +1512,16 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return get_draw_score(pos);
     }
 
+    // Prior counter-move: if this node failed low, the parent fails high.
+    // We give a small history bonus to the prior.
+    uint16_t counter_move = pos->move[myMIN(pos->ply, maxPly - 1)];
+    bool counter_move_available = counter_move ? !getMoveCapture(counter_move) && !getMovePromote(counter_move) : false;
+
+    if (score <= originalAlpha && counter_move_available) {
+        int bonus = myMIN(originalAlpha - score * depth, 2048);
+        adjust_single_quiet_hist_entry(pos, pos->side, counter_move, bonus);
+    }
+
     if (!pos->isSingularMove[pos->ply]) {
         uint8_t hashFlag = hashFlagExact;
         if (alpha >= beta) {
