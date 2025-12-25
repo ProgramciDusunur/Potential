@@ -1367,6 +1367,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if (!improving && !in_check) {
             lmrReduction += IMPROVING_LMR_SCALER;
         }
+        
 
         if (notTactical) {
             // Reduce More
