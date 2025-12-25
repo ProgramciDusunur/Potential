@@ -212,13 +212,15 @@ void init_quiescence_scores(moves *moveList, int *move_scores, board* position) 
         
         if (getMoveCapture(move)) {
             int target_piece = P;
-            uint8_t bb_piece = position->mailbox[getMoveTarget(move)];
+            int16_t to = getMoveTarget(move);
+            uint8_t bb_piece = position->mailbox[to];
             
-            if (bb_piece != NO_PIECE && getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
+            if (bb_piece != NO_PIECE && getBit(position->bitboards[bb_piece], to)) {
                 target_piece = bb_piece;
             }
+            int mvv_lva_score = mvvLva[position->mailbox[getMoveSource(move)]][target_piece] * (2 * !is_square_threatened(position, to));
+            move_scores[count] = mvv_lva_score + 1000000000;
             
-            move_scores[count] = mvvLva[position->mailbox[getMoveSource(move)]][target_piece] + 1000000000;
         } else {
             move_scores[count] = 0;
         }
@@ -277,23 +279,24 @@ int scoreMove(uint16_t move, board* position) {
 
         // init target piece
         int target_piece = P;
+        int16_t to = getMoveTarget(move);
 
-        uint8_t bb_piece = position->mailbox[getMoveTarget(move)];
+        uint8_t bb_piece = position->mailbox[to];
         // if there's a piece on the target square
         if (bb_piece != NO_PIECE &&
-            getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
+            getBit(position->bitboards[bb_piece], to)) {
             target_piece = bb_piece;
         }
 
         int previous_move_target_square = getMoveTarget(position->move[myMAX(0, position->ply - 1)]);
-        int recapture_bonus = getMoveTarget(move) == previous_move_target_square ? 200000 : 0;
+        int recapture_bonus = to == previous_move_target_square ? 200000 : 0;
 
         int piece = position->mailbox[getMoveSource(move)];
 
         // score move by MVV LVA lookup [source piece][target piece]
-        captureScore += mvvLva[piece][target_piece];
+        captureScore += mvvLva[piece][target_piece] * (2 * !is_square_threatened(position, to));
 
-        captureScore += captureHistory[piece][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
+        captureScore += captureHistory[piece][to][position->mailbox[to]];
 
         captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
 
