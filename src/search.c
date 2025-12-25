@@ -1512,6 +1512,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return get_draw_score(pos);
     }
 
+    if (!rootNode && bestScore >= beta + 30 && abs(bestScore) < mateFound && abs(alpha) < mateFound) {
+        bestScore = (bestScore * (depth + 4) + beta) / (depth + 5);
+    }
+
     if (!pos->isSingularMove[pos->ply]) {
         uint8_t hashFlag = hashFlagExact;
         if (alpha >= beta) {
