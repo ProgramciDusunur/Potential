@@ -1424,12 +1424,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
+            if (!rootNode && currentMove == tt_move && tt_score < alpha && tt_flag == hashFlagBeta) {
+                new_depth -= 1;
+            }
 
             // if we have chance about to dive into quiescence search then extend
             if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
                 new_depth = myMAX(new_depth, 1);
             }
-
+            
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, new_depth, pos, time, false);
         }
