@@ -552,7 +552,7 @@ uint8_t isMaterialDraw(board *pos) {
     return 0;
 }
 
-void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, uint16_t move, double complexity, board* pos) {
+void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, uint16_t move, double complexity, board* pos, bool recapture) {
     double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
     double complexityScale = my_max_double(0.77 + clamp_double(complexity, 0.0, 200.0) / 400.0, 1.0);
@@ -561,7 +561,7 @@ void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, 
     double node_scaling_factor = (1.5f - not_bm_nodes_fraction) * 1.35f;
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
-                evalScale[evalStability] * node_scaling_factor * complexityScale, time->maxTime + time->starttime);    
+                evalScale[evalStability] * node_scaling_factor * complexityScale * (recapture ? 0.9f : 1.0f), time->maxTime + time->starttime);    
 }
 
 bool has_enemy_any_threat(board *pos) {
@@ -1581,6 +1581,8 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             break;
         }
 
+        bool recapture = 0;
+
         for (int i = 0; i < maxPly; ++i) {
             position->isSingularMove[i] = 0;
             position->staticEval[i] = noEval;
@@ -1654,6 +1656,10 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
         baseSearchScore = current_depth == 1 ? score : baseSearchScore;
         averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
 
+        if (getMoveTarget(previousBestMove) && getMoveCapture(position->pvTable[0][0]) && getMoveTarget(previousBestMove) == getMoveTarget(position->pvTable[0][0])) {
+            recapture = true;
+        }
+
 
         if (position->pvTable[0][0] == previousBestMove) {
             bestMoveStability = myMIN(bestMoveStability + 1, 4);
@@ -1675,7 +1681,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
         }
 
         if (time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0], complexity, position);
+            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0], complexity, position, recapture);
         }
         
         int endTime = getTimeMiliSecond();
