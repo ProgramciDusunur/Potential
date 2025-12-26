@@ -780,6 +780,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int rootNode = pos->ply == 0;
 
     uint16_t bestMove = 0;
+    uint64_t pos_key = 0;
     uint16_t tt_move = 0;
     int16_t tt_score = 0;
     uint8_t tt_hit = 0;
@@ -817,6 +818,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         (tt_hit =
                 readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv)) &&
                 !pvNode) {
+        pos_key = pos->hashKey;
         if (tt_depth >= depth) {
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
@@ -1422,12 +1424,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
+            if (!rootNode && currentMove == tt_move && tt_score < alpha && tt_flag == hashFlagBeta) {
+                new_depth -= 1;
+            }
 
             // if we have chance about to dive into quiescence search then extend
             if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
                 new_depth = myMAX(new_depth, 1);
             }
-
+            
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, new_depth, pos, time, false);
         }
@@ -1534,7 +1539,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
 
         // store hash entry with the score equal to alpha
-        writeHashEntry(pos->hashKey, bestScore, bestMove, depth, hashFlag, tt_pv, pos);
+        writeHashEntry(pos_key, bestScore, bestMove, depth, hashFlag, tt_pv, pos);
     }
     // node (move) fails low
     return bestScore;
