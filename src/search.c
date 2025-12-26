@@ -561,7 +561,7 @@ void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, 
     double node_scaling_factor = (1.5f - not_bm_nodes_fraction) * 1.35f;
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
-                evalScale[evalStability] * node_scaling_factor * complexityScale * (recapture ? 0.9f : 1.0f), time->maxTime + time->starttime);    
+                evalScale[evalStability] * node_scaling_factor * complexityScale * (recapture ? 0.75f : 1.0f), time->maxTime + time->starttime);    
 }
 
 bool has_enemy_any_threat(board *pos) {
