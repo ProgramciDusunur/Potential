@@ -1366,6 +1366,20 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += GOOD_EVAL_LMR_SCALER;
         }
 
+        // ╔══════════════════════════════╗
+        // ║              /\              ║
+        // ║             /  \             ║
+        // ║           <SCALER>           ║
+        // ║             \  /             ║
+        // ║              \/              ║
+        // ╟      «-·´¯`·.¸¸.»·´¯`·-»     ╢        
+        // ║                              ║
+        // ║     STC:  -3.12  +-  3.95    ║
+        // ║     LTC:   0.71  +-  1.28    ║
+        // ║    VLTC:   6.87  +-  4.51    ║
+        // ║                              ║
+        // ╚══════════════════════════════╝
+
         if (!improving && !in_check) {
             lmrReduction += IMPROVING_LMR_SCALER;
         }
