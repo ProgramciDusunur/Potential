@@ -1,7 +1,7 @@
 #include "generate_fen.h"
 
 // Default FEN generation settings
-const int how_many_ply = 8;
+const int how_many_ply = 2;
 
 FenString get_fen(board *pos) {
     const char* pieces = "PNBRQKpnbrqk";

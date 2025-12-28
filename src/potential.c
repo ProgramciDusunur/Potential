@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
         //printMailbox(&position);
         
         //printf("FEN: %s\n", get_fen(&position).str);
-        for (int i = 0;i < 100000;i++)  {
+        for (int i = 0;i < 10;i++)  {
             default_fen_generation(&position, 0);
         }
 
