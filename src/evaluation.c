@@ -418,32 +418,12 @@ int evaluate(board* position) {
                         score_midgame += mg_table[piece][square];
                         score_endgame += eg_table[piece][square];
 
-                        switch (piece) {
-                                case P:
-                                        if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
-                                                passed_pawn_count += 1;
-
-                                                // passed pawn can move bonus
-                                                if (!(getBit(position->occupancies[both], (square - 8)))) {
-                                                        score_midgame += passedCanMoveBonus;
-                                                        score_endgame += passedCanMoveBonus;
-                                                }
-                                        }
-                                break;
-                                case p:
-                                        if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
-                                                passed_pawn_count -= 1;
-
-                                                // passed pawn can move bonus
-                                                if (!(getBit(position->occupancies[both], (square + 8)))) {
-                                                        score_midgame -= passedCanMoveBonus;
-                                                        score_endgame -= passedCanMoveBonus;
-                                                }
-                                        }
-                                break;
+                        switch (piece) {                                
                                 case B:
-                                        score_midgame += countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        U64 bishop_attacks_white = getBishopAttacks(square, position->occupancies[both]);
+                                        
+                                        score_midgame += countBits(bishop_attacks_white);
+                                        score_endgame += countBits(bishop_attacks_white);
                                         break;
                                 case R:
 
@@ -463,8 +443,10 @@ int evaluate(board* position) {
                                         }
                                         break;
                                 case b:
-                                        score_midgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
+                                        U64 bishop_attacks_black = getBishopAttacks(square, position->occupancies[both]);                                        
+
+                                        score_midgame -= countBits(bishop_attacks_black);
+                                        score_endgame -= countBits(bishop_attacks_black);
                                         break;
                                 case r:
 
