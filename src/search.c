@@ -75,6 +75,7 @@
   int PROBCUT_IMPROVING_MARGIN = 30;
   int PROBCUT_SEE_NOISY_THRESHOLD = 100;
   int PROBCUT_NOISY_HISTORY_DIVISOR = 10240;
+  int PROBCUT_IMPROVING_REDUCTION = 1024;
 
 
 /*╔═══════════════════╗
@@ -1100,6 +1101,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                     // Capture History based reduction
                     adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
+
+                    // Improving based reduction
+                    if (!improving && !in_check) {
+                        adjusted_probcut_depth -= PROBCUT_IMPROVING_REDUCTION;
+                    }
 
                     adjusted_probcut_depth /= 1024;
 
