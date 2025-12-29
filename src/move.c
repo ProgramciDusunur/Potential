@@ -45,6 +45,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->occupanciesCopy[1] = p->occupancies[1];
     cp->occupanciesCopy[2] = p->occupancies[2];
     cp->fiftyCopy = p->fifty;
+    cp->fullMovesCopy = p->full_moves;
     memcpy(cp->mailboxCopy, p->mailbox, 64);
     cp->hashKeyCopy = p->hashKey;
     cp->pawnKeyCopy = p->pawnKey;
@@ -73,6 +74,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->occupancies[1] = cp->occupanciesCopy[1];
     p->occupancies[2] = cp->occupanciesCopy[2];
     p->fifty = cp->fiftyCopy;
+    p->full_moves = cp->fullMovesCopy;
     memcpy(p->mailbox, cp->mailboxCopy, 64);
     p->hashKey = cp->hashKeyCopy;
     p->pawnKey = cp->pawnKeyCopy;

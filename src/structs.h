@@ -108,6 +108,7 @@ struct copyposition {
     U64 krpKeyCopy;
 
     int fiftyCopy;
+    int fullMovesCopy;
 
     int sideCopy;
     int enpassantCopy;
