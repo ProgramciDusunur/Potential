@@ -13,6 +13,9 @@
 #include "search.h"
 #include "fen.h"
 #include "bench.h"
+#include "perft.h"
+#include "timeman.h"
+#include "generate_fen.h"
 
 
 #ifdef _WIN32

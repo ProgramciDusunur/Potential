@@ -3,8 +3,6 @@
 //
 
 #include "uci.h"
-#include "perft.h"
-#include "timeman.h"
 
 #define VERSION "3.13.35"
 #define BENCH_DEPTH 13
@@ -380,10 +378,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
     position->ply = 0;
     position->nmpPly = 0;
 
-
-    for (int i = 0; i < 64;i++) {
-        position->mailbox[i] = NO_PIECE;
-    }
+    parseFEN(startPosition, position);
 
     clearStaticEvaluationHistory(position);
 
@@ -437,15 +432,21 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
                                &how_many_fens_to_create, &seed, book_path, extra_args);
 
         if (items_scanned >= 3) {
-            fprintf(stderr, "Command: %s\n", command);
+           // Debug info
+            /*fprintf(stderr, "Command: %s\n", command);
             fprintf(stderr, "Generating FENs.. \n\n");
             fprintf(stderr, "  Extraction Successful:\n");
             fprintf(stderr, "  How Many FENs To Create:  %llu\n", how_many_fens_to_create);
             fprintf(stderr, "  Seed: %llu\n", seed);
-            fprintf(stderr, "  Book: %s\n", book_path);
+            fprintf(stderr, "  Book: %s\n", book_path);*/
+
+            for (uint64_t i = 0; i < how_many_fens_to_create;i++) {
+                default_fen_generation(position, 0);
+            }                                
         
             if (items_scanned > 3) {
-                fprintf(stderr, "  Extra Arguments = %s\n", extra_args);
+                // Debug info
+                //fprintf(stderr, "  Extra Arguments = %s\n", extra_args);
             }
 
             exit(0);
