@@ -1186,7 +1186,6 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
 
 
-
         bool isNotMated = bestScore > -mateFound;
 
         if (!rootNode && notTactical && isNotMated) {
