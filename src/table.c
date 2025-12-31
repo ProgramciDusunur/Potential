@@ -296,45 +296,108 @@ void clearHashTable(void) {
     }
 }
 
-// dynamically allocate memory for hash table
-void init_hash_table(int mb) {
-    // init hash size
-    U64 hash_size;
+size_t current_allocated_bytes = 0;
 
+void free_hash_table() {
+    if (hashTable == NULL) return;
+
+#ifdef _WIN32
+    VirtualFree(hashTable, 0, MEM_RELEASE);
+#else
+    if (current_allocated_bytes > 0) {
+        munmap(hashTable, current_allocated_bytes);
+    } else {
+        free(hashTable); 
+    }
+#endif
+    hashTable = NULL;
+    current_allocated_bytes = 0;
+}
+
+void init_hash_table(int mb) {
     int attempts = 0;
     int max_attempts = 5;
+    bool huge_pages_success = false;
 
-    // free hash table if not empty
+    // Clean up previous table if it exists
     if (hashTable != NULL) {
-        printf("Clearing hash memory...\n");
-        // free hash table dynamic memory
-        free(hashTable);
+        printf("info string Clearing hash memory...\n");
+        free_hash_table();
     }
 
     while (attempts < max_attempts) {
-        hash_size = 0x100000 * mb;
-        hash_entries = hash_size / sizeof(tt);
+        size_t bytes = (size_t)mb * 1024 * 1024;
+        void* ptr = NULL;
 
-        // allocate memory
-        hashTable = (tt *) malloc(hash_entries * sizeof(tt));
+#ifdef _WIN32
+        // --- Windows Large Pages Implementation ---
+        HANDLE hToken;
+        TOKEN_PRIVILEGES tp;
+        if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
+            if (LookupPrivilegeValue(NULL, SE_LOCK_MEMORY_NAME, &tp.Privileges[0].Luid)) {
+                tp.PrivilegeCount = 1;
+                tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+                AdjustTokenPrivileges(hToken, FALSE, &tp, 0, NULL, NULL);
+            }
+            CloseHandle(hToken);
+        }
 
-        // if allocation has failed
-        if (hashTable == NULL) {
-            printf("Couldn't allocate memory for hash table, trying %dMB...\n", mb / 2);
-            mb /= 2; // allocate with half size
+        SIZE_T lp_min = GetLargePageMinimum();
+        if (lp_min > 0) {
+            // Round up size to the nearest Large Page size
+            size_t rounded = (bytes + lp_min - 1) & ~(lp_min - 1);
+            ptr = VirtualAlloc(NULL, rounded, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE);
+            if (ptr) {
+                bytes = rounded;
+                huge_pages_success = true;
+            }
+        }
+
+        // Fallback to standard pages if Large Pages failed
+        if (!ptr) {
+            ptr = VirtualAlloc(NULL, bytes, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+            huge_pages_success = false;
+        }
+#else
+        // --- Linux Huge Pages Implementation ---
+        // Try explicit HugeTLB first
+        ptr = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+        
+        if (ptr != MAP_FAILED) {
+            huge_pages_success = true;
+        } else {
+            // Fallback to standard mmap with a hint to the kernel (Transparent Huge Pages)
+            ptr = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+            if (ptr != MAP_FAILED) {
+                madvise(ptr, bytes, MADV_HUGEPAGE);
+                huge_pages_success = false; // Hinted, but not guaranteed to be immediate
+            } else {
+                ptr = NULL;
+            }
+        }
+#endif
+
+        if (ptr == NULL || ptr == (void*)-1) {
+            printf("info string Couldn't allocate %dMB, trying %dMB...\n", mb, mb / 2);
+            mb /= 2;
             attempts++;
         } else {
-            // clear hash table
-            clearHashTable();                                                
-            printf("Hash is initialized with %d MB\n", mb);
+            hashTable = (tt*)ptr;
+            current_allocated_bytes = bytes;
+            hash_entries = bytes / sizeof(tt);
+            
+            clearHashTable(); 
+            
+            // Print allocation status to the UCI console
+            printf("info string Hash: %d MB | Huge Pages: %s\n", 
+                   mb, huge_pages_success ? "SUCCESS" : "FAILED (using standard pages)");
             return;
         }
     }
 
-    // if all attempts fail
     if (hashTable == NULL) {
-        printf("Failed to allocate memory for hash table after %d attempts\n", max_attempts);
-        exit(1); // or handle the error as needed
+        fprintf(stderr, "Critical Error: Failed to allocate hash table.\n");
+        exit(1);
     }
 }
 

@@ -13,6 +13,15 @@
 #include <stdlib.h>
 #include "magic.h"
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <sys/mman.h>
+#endif
 
 // no hash entry found constant
 #define noHashEntry 100000
