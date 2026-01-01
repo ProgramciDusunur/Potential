@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "timeman.h"
 
-#define VERSION "3.13.35"
+#define VERSION "3.14.35"
 #define BENCH_DEPTH 14
 
 double DEF_TIME_MULTIPLIER = 0.054;
@@ -433,15 +433,15 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         char book_path[1024] = {0};    
         char extra_args[1024] = {0};
 
-        int items_scanned = sscanf(command, "genfens %llu seed %llu book %s %[^\n]", 
-                               &how_many_fens_to_create, &seed, book_path, extra_args);
+        int items_scanned = sscanf(command, "genfens %" SCNu64 " seed %" SCNu64 " book %s %[^\n]", 
+                           &how_many_fens_to_create, &seed, book_path, extra_args);
 
         if (items_scanned >= 3) {
             fprintf(stderr, "Command: %s\n", command);
             fprintf(stderr, "Generating FENs.. \n\n");
             fprintf(stderr, "  Extraction Successful:\n");
-            fprintf(stderr, "  How Many FENs To Create:  %llu\n", how_many_fens_to_create);
-            fprintf(stderr, "  Seed: %llu\n", seed);
+            fprintf(stderr, " How Many FENs To Create: %" PRIu64 "\n", how_many_fens_to_create);
+            fprintf(stderr, " Seed: %" PRIu64 "\n", seed);
             fprintf(stderr, "  Book: %s\n", book_path);
         
             if (items_scanned > 3) {
@@ -530,7 +530,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         {
             // print engine info
             printf("id name Potential\n");
-            printf("id author ProgramciDusunur\n");
+            printf("id author Eren Araz\n");
             printf("option name Hash type spin default %d min 4 max %d\n",
                    default_hash_size, max_hash);
             printf("option name Threads type spin default %d min %d max %d\n", 1, 1,
