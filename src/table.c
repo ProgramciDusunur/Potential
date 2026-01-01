@@ -300,28 +300,56 @@ size_t current_allocated_bytes = 0;
 
 void free_hash_table() {
     if (hashTable == NULL) return;
+
 #ifdef _WIN32
     VirtualFree(hashTable, 0, MEM_RELEASE);
 #else
     munmap(hashTable, current_allocated_bytes);
 #endif
+
     hashTable = NULL;
     current_allocated_bytes = 0;
 }
 
 void init_hash_table(int mb) {
-    int attempts = 0;
-    int max_attempts = 5;
-    char status_msg[100] = "FAILED (standard pages)";
-
     if (hashTable != NULL) free_hash_table();
 
-    while (attempts < max_attempts) {
+    size_t total_physical_mem = 0;
+
+    /* Get Total Physical RAM from the System */
+#ifdef _WIN32
+    MEMORYSTATUSEX status;
+    status.dwLength = sizeof(status);
+    GlobalMemoryStatusEx(&status);
+    total_physical_mem = status.ullTotalPhys;
+#else
+    struct sysinfo si;
+    if (sysinfo(&si) == 0) {
+        total_physical_mem = (size_t)si.totalram * si.mem_unit;
+    }
+#endif
+
+    /* Safety Limit: 90% of Total Physical RAM to prevent OS swapping/freezing */
+    size_t requested_bytes = (size_t)mb * 1024 * 1024;
+    size_t safety_limit = (size_t)(total_physical_mem * 0.9);
+
+    if (total_physical_mem > 0 && requested_bytes > safety_limit) {
+        int capped_mb = (int)(safety_limit / (1024 * 1024));
+        printf("info string Warning: Requested %d MB exceeds safety limit (90%% of RAM). Clipping to %d MB.\n", mb, capped_mb);
+        mb = capped_mb;
+    }
+
+    int attempts = 0;
+    int max_attempts = 8;
+
+    while (attempts < max_attempts && mb >= 1) {
         size_t bytes = (size_t)mb * 1024 * 1024;
         void* ptr = NULL;
 
+        printf("info string Attempting to allocate %d MB...\n", mb);
+
 #ifdef _WIN32
-        // Try to enable SeLockMemoryPrivilege
+        /* Windows: Try Large Pages First */
         HANDLE hToken;
         if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
             TOKEN_PRIVILEGES tp;
@@ -338,41 +366,54 @@ void init_hash_table(int mb) {
             size_t rounded = (bytes + lp_min - 1) & ~(lp_min - 1);
             ptr = VirtualAlloc(NULL, rounded, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE);
             if (ptr) {
-                bytes = rounded;
-                snprintf(status_msg, sizeof(status_msg), "SUCCESS (Windows Large Pages)");
+                hashTable = (tt*)ptr;
+                current_allocated_bytes = rounded;
+                hash_entries = rounded / sizeof(tt);
+                clearHashTable();
+                printf("info string Hash: %d MB | Huge Pages: SUCCESS (Windows Large Pages)\n", mb);
+                return;
             }
         }
-        if (!ptr) ptr = VirtualAlloc(NULL, bytes, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        
+        printf("info string %d MB Huge Pages: FAILED. Trying Standard Pages...\n", mb);
+        ptr = VirtualAlloc(NULL, bytes, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
 #else
-        // Linux: Try Static Huge Pages first
+        /* Linux: Try Static Huge Pages First */
         ptr = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
         if (ptr != MAP_FAILED) {
-            snprintf(status_msg, sizeof(status_msg), "SUCCESS (Static Huge Pages)");
-        } else {
-            // Fallback to standard mmap + THP hint
-            ptr = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-            if (ptr != MAP_FAILED) {
-                madvise(ptr, bytes, MADV_HUGEPAGE);
-                snprintf(status_msg, sizeof(status_msg), "SUCCESS (Transparent Huge Pages hinted)");
-            } else {
-                ptr = NULL;
-            }
-        }
-#endif
-
-        if (ptr == NULL || ptr == (void*)-1) {
-            mb /= 2;
-            attempts++;
-        } else {
             hashTable = (tt*)ptr;
             current_allocated_bytes = bytes;
             hash_entries = bytes / sizeof(tt);
             clearHashTable();
-            printf("info string Hash: %d MB | Huge Pages: %s\n", mb, status_msg);
+            printf("info string Hash: %d MB | Huge Pages: SUCCESS (Static Huge Pages)\n", mb);
             return;
         }
+
+        printf("info string %d MB Huge Pages: FAILED. Trying Standard Pages...\n", mb);
+        ptr = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        if (ptr != MAP_FAILED) {
+            madvise(ptr, bytes, MADV_HUGEPAGE);
+        } else {
+            ptr = NULL; 
+        }
+#endif
+
+        if (ptr != NULL && ptr != (void*)-1) {
+            hashTable = (tt*)ptr;
+            current_allocated_bytes = bytes;
+            hash_entries = bytes / sizeof(tt);
+            clearHashTable();
+            printf("info string Hash: %d MB | Huge Pages: FAILED (using standard pages)\n", mb);
+            return;
+        } else {
+            printf("info string %d MB Standard Pages: FAILED. Halving size...\n", mb);
+            mb /= 2;
+            attempts++;
+        }
     }
+
+    fprintf(stderr, "Fatal error: Could not allocate memory for Hash Table.\n");
     exit(1);
 }
 
