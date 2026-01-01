@@ -346,7 +346,7 @@ void init_hash_table(int mb) {
 
 #else
         // Linux: Try Static Huge Pages first
-        ptr = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | ANONYMOUS | MAP_HUGETLB, -1, 0);
+        ptr = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
         if (ptr != MAP_FAILED) {
             snprintf(status_msg, sizeof(status_msg), "SUCCESS (Static Huge Pages)");
         } else {
