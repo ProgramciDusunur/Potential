@@ -325,3 +325,18 @@ void clear_histories(void) {
     memset(contCorrhist, 0, sizeof(contCorrhist));
     memset(krpCorrhist, 0, sizeof(krpCorrhist));
 }
+
+void quiet_history_aging(void) {
+    for (int side = 0; side < 2; side++) {
+        for (int from = 0; from < 64; from++) {
+            for (int to = 0; to < 64; to++) {
+                for (int threatSource = 0; threatSource < 2; threatSource++) {
+                    for (int threatTarget = 0; threatTarget < 2; threatTarget++) {
+                        int16_t *score = &quietHistory[side][from][to][threatSource][threatTarget];
+                        *score /= 2;
+                    }
+                }
+            }
+        }
+    }
+}
