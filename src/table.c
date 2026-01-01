@@ -351,7 +351,7 @@ void init_hash_table(int mb) {
             snprintf(status_msg, sizeof(status_msg), "SUCCESS (Static Huge Pages)");
         } else {
             // Fallback to standard mmap + THP hint
-            ptr = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | ANONYMOUS, -1, 0);
+            ptr = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
             if (ptr != MAP_FAILED) {
                 madvise(ptr, bytes, MADV_HUGEPAGE);
                 snprintf(status_msg, sizeof(status_msg), "SUCCESS (Transparent Huge Pages hinted)");
