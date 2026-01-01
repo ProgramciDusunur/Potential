@@ -16,8 +16,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifndef MAP_ANONYMOUS
-#define MAP_ANONYMOUS MAP_ANON
+
+#if defined(_WIN32) || defined(_WIN64)
+    #include <windows.h>
+#else
+    #include <sys/mman.h>
+    #include <unistd.h>
+        
+    #if !defined(MAP_ANONYMOUS)
+        #if defined(MAP_ANON)
+            #define MAP_ANONYMOUS MAP_ANON
+        #else
+            #define MAP_ANONYMOUS 0x20
+        #endif
+    #endif
+
+    /* Fix for missing MAP_HUGETLB on older kernels */
+    #ifndef MAP_HUGETLB
+        #define MAP_HUGETLB 0x40000
+    #endif
 #endif
 
 
