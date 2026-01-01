@@ -16,6 +16,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
+#endif
+
 
 #ifdef _WIN32
     #include <windows.h>

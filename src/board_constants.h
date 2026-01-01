@@ -53,7 +53,7 @@ inline int pieceColor(int piece) {
 }
 
 extern char *squareToCoordinates[];
-extern char asciiPieces[12];
+extern char asciiPieces[];
 extern char promotedPieces[];
 extern char *unicodePieces[12];
 extern char charPieces[];

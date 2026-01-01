@@ -28,7 +28,7 @@ char *squareToCoordinates[] = {
         "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1", "no"
 };
 
-char asciiPieces[12] = "PNBRQKpnbrqk";
+char asciiPieces[] = "PNBRQKpnbrqk";
 
 char promotedPieces[] = {
         [Q] = 'q',

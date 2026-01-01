@@ -13,6 +13,7 @@
 #include "search.h"
 #include "fen.h"
 #include "bench.h"
+#include <inttypes.h>
 
 
 #ifdef _WIN32
