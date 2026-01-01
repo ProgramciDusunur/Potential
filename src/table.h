@@ -22,6 +22,7 @@
 #else
     #include <sys/mman.h>
     #include <unistd.h>
+    #include <sys/sysinfo.h>
         
     #if !defined(MAP_ANONYMOUS)
         #if defined(MAP_ANON)
