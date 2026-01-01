@@ -178,12 +178,10 @@ void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *
 
 /* Update Correction History */
 
-static inline void apply_corrhist_update(int16_t *entry, const int scaledDiff, const int newWeight) {
-    // Standard weighted average formula to maintain node count
+static inline void apply_corrhist_update(int16_t *entry, const int scaledDiff, const int newWeight) {    
     int val = *entry;
     val = (val * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
-    
-    // Efficient clamping
+        
     if (val > CORRHIST_MAX) val = CORRHIST_MAX;
     else if (val < -CORRHIST_MAX) val = -CORRHIST_MAX;
 
@@ -215,18 +213,15 @@ void update_major_correction_hist(board *position, const int depth, const int di
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
-void update_non_pawn_corrhist(board *position, const int depth, const int diff) {
-    // 1. Ortak değişkenleri bir kez hesapla
+void update_non_pawn_corrhist(board *position, const int depth, const int diff) {    
     const int side = position->side;
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
-    const int mask = CORRHIST_SIZE - 1; // Bitwise mask
-
-    // 2. Beyaz non-pawn tablosu için pointer al ve güncelle
+    const int mask = CORRHIST_SIZE - 1;
+    
     int16_t *white_ptr = &NON_PAWN_CORRECTION_HISTORY[white][side][position->whiteNonPawnKey & mask];
     apply_corrhist_update(white_ptr, scaledDiff, newWeight);
-
-    // 3. Siyah non-pawn tablosu için pointer al ve güncelle
+    
     int16_t *black_ptr = &NON_PAWN_CORRECTION_HISTORY[black][side][position->blackNonPawnKey & mask];
     apply_corrhist_update(black_ptr, scaledDiff, newWeight);
 }
