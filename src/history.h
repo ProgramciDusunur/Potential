@@ -68,5 +68,4 @@ int adjust_eval_with_corrhist(board *pos, int rawEval);
 void clear_histories(void);
 void quiet_history_aging(void);
 
-
 #endif //POTENTIAL_HISTORY_H
