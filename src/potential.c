@@ -34,6 +34,7 @@ void initAll(void) {
     // init tranposition table
     init_hash_table(64);
     init_tables();
+    init_aging_simd();
 }
 
 

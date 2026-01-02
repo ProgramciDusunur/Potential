@@ -14,6 +14,7 @@
 #include "move.h"
 #include <stdio.h>
 #include <stdbool.h>
+#include <immintrin.h>
 
 
 enum {
@@ -67,5 +68,6 @@ void update_king_rook_pawn_corrhist(board *position, const int depth, const int 
 int adjust_eval_with_corrhist(board *pos, int rawEval);
 void clear_histories(void);
 void quiet_history_aging(void);
+void init_aging_simd();
 
 #endif //POTENTIAL_HISTORY_H
