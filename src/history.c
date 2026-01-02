@@ -317,19 +317,11 @@ void clear_histories(void) {
 }
 
 void age_all_histories(void) {
-    // 1. Quiet History (32,768 eleman)
+    // 1. Quiet History (32,768 elements)
     int16_t *q_ptr = (int16_t *)quietHistory;
     for (int i = 0; i < 32768; i++) q_ptr[i] >>= 1;
 
-    // 2. Continuation History (12 * 64 * 12 * 64 = 589,824 eleman)
-    int16_t *ch_ptr = (int16_t *)continuationHistory;
-    for (int i = 0; i < 589824; i++) ch_ptr[i] >>= 1;
-
-    // 4. Pawn History (2048 * 12 * 64 = 1,572,864 eleman)
-    int16_t *ph_ptr = (int16_t *)pawnHistory;
-    for (int i = 0; i < 1572864; i++) ph_ptr[i] >>= 1;
-
-    // 5. Capture History (12 * 64 * 13 = 9,984 eleman)
+    // 2. Capture History (12 * 64 * 13 = 9,984 elements)
     int16_t *cap_ptr = (int16_t *)captureHistory;
     for (int i = 0; i < 9984; i++) cap_ptr[i] >>= 1;
 }
