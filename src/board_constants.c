@@ -81,7 +81,6 @@ int krpPieces[6] = {K, k, R, r, P, p};
 int whiteNonPawnPieces[5] = { R, N, B, Q, K };
 int blackNonPawnPieces[5] = {r, n, b, q, k };
 
-
 const U64 notHFile = 9187201950435737471ULL;
 const U64 notAFile = 18374403900871474942ULL;
 const U64 not8Rank = 18446744073709551360ULL;

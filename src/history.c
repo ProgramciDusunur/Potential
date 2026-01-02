@@ -315,3 +315,11 @@ void clear_histories(void) {
     memset(contCorrhist, 0, sizeof(contCorrhist));
     memset(krpCorrhist, 0, sizeof(krpCorrhist));
 }
+
+void quiet_history_aging(void) {    
+    int16_t *p = (int16_t *)quietHistory;
+    
+    for (int i = 0; i < 32768; i++) {
+        p[i] >>= 1;
+    }
+}
