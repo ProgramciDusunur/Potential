@@ -12,7 +12,7 @@
   ╚═════════╝*/
 
 // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
-int16_t quietHistory[2][64][64][2][2];
+alignas(64) int16_t quietHistory[2][64][64][2][2];
 
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t continuationHistory[12][64][12][64];
@@ -318,59 +318,44 @@ void clear_histories(void) {
 
 
 
-typedef void (*AgingFunc)(int16_t*, int);
-AgingFunc best_aging_func = NULL;
+void quiet_history_aging(void) {    
+    int16_t *p = (int16_t *)quietHistory; 
+    const int total_elements = 32768;
 
-void age_scalar(int16_t* p, int n) {
-    for (int i = 0; i < n; i++) p[i] >>= 1;
-}
-
-#if defined(__SSE2__)
-void age_sse2(int16_t* p, int n) {
-    for (int i = 0; i < n; i += 8) {
-        _mm_storeu_si128((__m128i*)&p[i], _mm_srai_epi16(_mm_loadu_si128((__m128i*)&p[i]), 1));
-    }
-}
-#endif
-
-#if defined(__AVX2__)
-void age_avx2(int16_t* p, int n) {
-    for (int i = 0; i < n; i += 16) {
-        _mm256_storeu_si256((__m256i*)&p[i], _mm256_srai_epi16(_mm256_loadu_si256((__m256i*)&p[i]), 1));
-    }
-}
-#endif
-
-#if defined(__AVX512F__) && defined(__AVX512BW__)
-void age_avx512(int16_t* p, int n) {
-    for (int i = 0; i < n; i += 32) {
-        _mm512_storeu_si512((__m512i*)&p[i], _mm512_srai_epi16(_mm512_loadu_si512((__m512i*)&p[i]), 1));
-    }
-}
-#endif
-
-void init_aging_simd() {
-#if defined(__AVX512BW__)
+    #if defined(__AVX512F__) && defined(__AVX512BW__)
     if (__builtin_cpu_supports("avx512bw")) {
-        best_aging_func = age_avx512;
+        for (int i = 0; i < total_elements; i += 32) {            
+            __m512i data = _mm512_load_si512((__m512i*)&p[i]);
+            data = _mm512_srai_epi16(data, 1);
+            _mm512_store_si512((__m512i*)&p[i], data);
+        }
         return;
     }
-#endif
-#if defined(__AVX2__)
-    if (__builtin_cpu_supports("avx2")) {
-        best_aging_func = age_avx2;
-        return;
-    }
-#endif
-#if defined(__SSE2__)
-    if (__builtin_cpu_supports("sse2")) {
-        best_aging_func = age_sse2;
-        return;
-    }
-#endif
-    best_aging_func = age_scalar;
-}
+    #endif
 
-void quiet_history_aging(void) {
-    best_aging_func((int16_t*)quietHistory, 32768);
+    #if defined(__AVX2__)
+    if (__builtin_cpu_supports("avx2")) {
+        for (int i = 0; i < total_elements; i += 16) {            
+            __m256i data = _mm256_load_si256((__m256i*)&p[i]);
+            data = _mm256_srai_epi16(data, 1);
+            _mm256_store_si256((__m256i*)&p[i], data);
+        }
+        return;
+    }
+    #endif
+
+    #if defined(__SSE2__)
+    if (__builtin_cpu_supports("sse2")) {
+        for (int i = 0; i < total_elements; i += 8) {            
+            __m128i data = _mm_load_si128((__m128i*)&p[i]);
+            data = _mm_srai_epi16(data, 1);
+            _mm_store_si128((__m128i*)&p[i], data);
+        }
+        return;
+    }
+    #endif
+        
+    for (int i = 0; i < total_elements; i++) {
+        p[i] >>= 1;
+    }
 }

@@ -33,8 +33,7 @@ void initAll(void) {
     initializeLMRTable();
     // init tranposition table
     init_hash_table(64);
-    init_tables();
-    init_aging_simd();
+    init_tables(); 
 }
 
 

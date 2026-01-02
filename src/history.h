@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <immintrin.h>
-
+#include <stdalign.h>
 
 enum {
     maxQuietHistory = 16384,
@@ -24,7 +24,7 @@ enum {
 };
 
 // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
-extern int16_t quietHistory[2][64][64][2][2];
+extern alignas(64) int16_t quietHistory[2][64][64][2][2];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 extern int16_t continuationHistory[12][64][12][64];
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
@@ -68,6 +68,5 @@ void update_king_rook_pawn_corrhist(board *position, const int depth, const int 
 int adjust_eval_with_corrhist(board *pos, int rawEval);
 void clear_histories(void);
 void quiet_history_aging(void);
-void init_aging_simd();
 
 #endif //POTENTIAL_HISTORY_H
