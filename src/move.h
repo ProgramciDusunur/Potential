@@ -14,6 +14,13 @@
 #include "table.h"
 #include <stdbool.h>
 #include <stdint.h>
+#if defined(__x86_64__) || defined(_M_X64)
+    // Only x86 (Intel/AMD)
+    #include <immintrin.h>
+    #define USE_PEXT
+#elif defined(__aarch64__) || defined(__arm__)
+    // ARM (Pi 5 etc.)
+#endif
 
 enum {
     mf_normal = 0x0000,
@@ -64,15 +71,15 @@ extern U64 kingAttacks[64];
 extern U64 bishopAttacks[64][512];
 // Rook attack table [square][occupancies]
 extern U64 rookAttacks[64][4096];
+// PEXT
+extern U64 bishopAttacksPEXT[64][512];
+extern U64 rookAttacksPEXT[64][4096];
 
 
 void copyBoard(board *p, struct copyposition *cp);
 void takeBack(board *p, struct copyposition *cp);
 void addMove(moves *moveList, uint16_t move);
 bool isTactical(uint16_t move);
-U64 getBishopAttacks(int square, U64 occupancy);
-U64 getRookAttacks(int square, U64 occupancy);
-U64 getQueenAttacks(int square, U64 occupancy);
 U64 getKingAttacks(int square);
 U64 getPawnAttacks(uint8_t side, int square);
 U64 getKnightAttacks(int square);
@@ -85,5 +92,34 @@ void initLeaperAttacks();
 void addMoveToHistoryList(moves* list, uint16_t move);
 U64 pawn_threats(U64 pawnBitboard, int side);
 U64 knight_threats (U64 knightBB);
+
+// BISHOP ATTACKS
+static inline U64 getBishopAttacks(int square, U64 occupancy) {
+    #if defined(__BMI2__)    
+    return bishopAttacksPEXT[square][_pext_u64(occupancy, bishopMask[square])];
+    #endif
+    
+    occupancy &= bishopMask[square];
+    occupancy *= bishopMagic[square];
+    occupancy >>= 64 - bishopRelevantBits[square];
+    return bishopAttacks[square][occupancy];
+}
+
+// ROOK ATTACKS
+static inline U64 getRookAttacks(int square, U64 occupancy) {
+    #if defined(__BMI2__)
+    return rookAttacksPEXT[square][_pext_u64(occupancy, rookMask[square])];
+    #endif
+
+    occupancy &= rookMask[square];
+    occupancy *= rookMagic[square];
+    occupancy >>= 64 - rookRelevantBits[square];
+    return rookAttacks[square][occupancy];
+}
+
+// QUEEN ATTACKS
+static inline U64 getQueenAttacks(int square, U64 occupancy) {
+    return getBishopAttacks(square, occupancy) | getRookAttacks(square, occupancy);
+}
 
 #endif //POTENTIAL_MOVE_H

@@ -21,6 +21,9 @@ U64 kingAttacks[64];
 U64 bishopAttacks[64][512];
 // Rook attack table [square][occupancies]
 U64 rookAttacks[64][4096];
+// PEXT
+U64 bishopAttacksPEXT[64][512];
+U64 rookAttacksPEXT[64][4096];
 
 // Make sure the move isn't capture or promotion
 bool isTactical(uint16_t move) {
@@ -93,29 +96,6 @@ void addMove(moves *moveList, uint16_t move) {
     moveList->moves[moveList->count] = move;
     // increment move count
     moveList->count++;
-}
-
-// get bishop attacks
-U64 getBishopAttacks(int square, U64 occupancy) {
-    // get bishop attacks assuming current board occupancy
-    occupancy &= bishopMask[square];
-    occupancy *= bishopMagic[square];
-    occupancy >>= 64 - bishopRelevantBits[square];
-    return bishopAttacks[square][occupancy];
-}
-
-// get rook attacks
-U64 getRookAttacks(int square, U64 occupancy) {
-    // get rook attacks assuming current board occupancy
-    occupancy &= rookMask[square];
-    occupancy *= rookMagic[square];
-    occupancy >>= 64 - rookRelevantBits[square];
-    return rookAttacks[square][occupancy];
-}
-
-// get queen attacks
-U64 getQueenAttacks(int square, U64 occupancy) {
-    return getBishopAttacks(square, occupancy) | getRookAttacks(square, occupancy);
 }
 
 U64 getPawnAttacks(uint8_t side, int square) {
@@ -838,44 +818,37 @@ void noisyGenerator(moves *moveList, board* position) {
     }
 }
 
-// init slider piece's attack tables
 void initSlidersAttacks(int bishop) {
-    // init bishop & rook masks
     for (int square = 0; square < 64; square++) {
         bishopMask[square] = maskBishopAttacks(square);
         rookMask[square] = maskRookAttacks(square);
 
-        // init current mask
         U64 attackMask = bishop ? bishopMask[square] : rookMask[square];
-
-        // init relevant occupancy bit count
         int relevantBitsCount = countBits(attackMask);
+        int occupancyIndices = 1 << relevantBitsCount;
 
-        // init occupancyIndicies
-        int occupancIndicies = 1 << relevantBitsCount;
+        for (int index = 0; index < occupancyIndices; index++) {
+            U64 occupancy = setOccupancy(index, relevantBitsCount, attackMask);
 
-        // loop over occupancy indicies
-        for (int index = 0; index < occupancIndicies; index++) {
-            // bishop
             if (bishop) {
-                // int current occupancy variation
-                U64 occupancy = setOccupancy(index, relevantBitsCount, attackMask);
-
-                // init magic index
+                // Traditional Magics
                 int magicIndex = (occupancy * bishopMagic[square]) >> (64 - bishopRelevantBits[square]);
-
-                // init bishop attacks
                 bishopAttacks[square][magicIndex] = bishopAttack(square, occupancy);
+
+                // PEXT Tables
+                #if defined(__BMI2__)                
+                bishopAttacksPEXT[square][index] = bishopAttacks[square][magicIndex];
+                #endif
             }
-                // rook
             else {
-                U64 occupancy = setOccupancy(index, relevantBitsCount, attackMask);
-
-                // init magic index
+                // Traditional Magics
                 int magicIndex = (occupancy * rookMagic[square]) >> (64 - rookRelevantBits[square]);
-
-                // init bishop attacks
                 rookAttacks[square][magicIndex] = rookAttack(square, occupancy);
+
+                // PEXT Tables
+                #if defined(__BMI2__)
+                rookAttacksPEXT[square][index] = rookAttacks[square][magicIndex];
+                #endif
             }
         }
     }
@@ -923,3 +896,5 @@ U64 knight_threats (U64 knightBB) {
                    (knightBB & not1RankAndABFile)  << 6  ;    
     return attacks;
 }
+
+
