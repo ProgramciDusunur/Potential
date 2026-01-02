@@ -316,10 +316,46 @@ void clear_histories(void) {
     memset(krpCorrhist, 0, sizeof(krpCorrhist));
 }
 
-void quiet_history_aging(void) {    
+#include <immintrin.h>
+
+void quiet_history_aging(void) {
     int16_t *p = (int16_t *)quietHistory;
-    
-    for (int i = 0; i < 32768; i++) {
+    const int total_elements = 32768;
+
+    #if defined(__AVX512F__) && defined(__AVX512BW__)
+    if (__builtin_cpu_supports("avx512bw")) {
+        for (int i = 0; i < total_elements; i += 32) {
+            __m512i data = _mm512_loadu_si512((__m512i*)&p[i]);
+            data = _mm512_srai_epi16(data, 1);
+            _mm512_storeu_si512((__m512i*)&p[i], data);
+        }
+        return;
+    }
+    #endif
+
+    #if defined(__AVX2__)
+    if (__builtin_cpu_supports("avx2")) {
+        for (int i = 0; i < total_elements; i += 16) {
+            __m256i data = _mm256_loadu_si256((__m256i*)&p[i]);
+            data = _mm256_srai_epi16(data, 1);
+            _mm256_storeu_si256((__m256i*)&p[i], data);
+        }
+        return;
+    }
+    #endif
+
+    #if defined(__SSE2__)
+    if (__builtin_cpu_supports("sse2")) {
+        for (int i = 0; i < total_elements; i += 8) {
+            __m128i data = _mm_loadu_si128((__m128i*)&p[i]);
+            data = _mm_srai_epi16(data, 1);
+            _mm_storeu_si128((__m128i*)&p[i], data);
+        }
+        return;
+    }
+    #endif
+
+    for (int i = 0; i < total_elements; i++) {
         p[i] >>= 1;
     }
 }
