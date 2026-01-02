@@ -267,34 +267,48 @@ const int bishop_pair_bonus_endgame = 48;
 
 const int bishop_pair_bonus[] = {0, 8, 15, 23, 30, 38};
 
+#include <stdint.h>
+
+typedef int64_t Score;
+
+#define S(mg, eg) make_score(mg, eg)
+
+inline Score make_score(int mg, int eg) {
+    return (Score)((uint64_t)eg << 32) + (int32_t)mg;
+}
+
+inline int mg_of(Score s) { 
+    return (int)(int32_t)(s & 0xFFFFFFFFLL); 
+}
+
+inline int eg_of(Score s) {     
+    return (int)(int32_t)((s + 0x80000000LL) >> 32); 
+}
+
 // Pre-interpolated tables
 int mg_table[12][64]; // [piece][square] -> midgame score
 int eg_table[12][64]; // [piece][square] -> endgame score
 
-void init_tables() {
-        // White pieces (P, N, B, R, Q, K)
-        for (int piece = P; piece <= K; piece++) {
-                for (int square = 0; square < 64; square++) {
-                        mg_table[piece][square] = material_score[opening][piece]
-                                                + positional_score[opening][piece][square];
-                        eg_table[piece][square] = material_score[endgame][piece]
-                                                + positional_score[endgame][piece][square];
-                }
+Score packed_table[12][64];
+
+void init_tables() {    
+    for (int piece = P; piece <= K; piece++) {
+        for (int square = 0; square < 64; square++) {
+            int mg = material_score[opening][piece] + positional_score[opening][piece][square];
+            int eg = material_score[endgame][piece] + positional_score[endgame][piece][square];
+            packed_table[piece][square] = S(mg, eg);
         }
-
-
-
-        // Black pieces (p, n, b, r, q, k)
-        for (int piece = p; piece <= k; piece++) {
-                int piece_type = piece - p; // 0-5 (Pawn, Knight,... King)
-                for (int square = 0; square < 64; square++) {
-                        int mirrored_sq = mirrorScore[square];
-                        mg_table[piece][square] = material_score[opening][piece]
-                                                - positional_score[opening][piece_type][mirrored_sq];
-                        eg_table[piece][square] = material_score[endgame][piece]
-                                                - positional_score[endgame][piece_type][mirrored_sq];
-                }
+    }
+    
+    for (int piece = p; piece <= k; piece++) {
+        int piece_type = piece - p;
+        for (int square = 0; square < 64; square++) {
+            int mirrored_sq = mirrorScore[square];
+            int mg = material_score[opening][piece] - positional_score[opening][piece_type][mirrored_sq];
+            int eg = material_score[endgame][piece] - positional_score[endgame][piece_type][mirrored_sq];
+            packed_table[piece][square] = S(mg, eg);
         }
+    }
 }
 
 void get_threats(int side, board* pos) {
@@ -390,267 +404,108 @@ int get_game_phase_score(const board* position) {
 
 
 int evaluate(board* position) {
-        const int game_phase_score = get_game_phase_score(position);
+    const int game_phase_score = get_game_phase_score(position);
+    Score score = S(0, 0);
 
-        int score_midgame = 0, score_endgame = 0;
+    // Tehdit bitboardlarını sıfırla ve doldur
+    position->pieceThreats.pawnThreats = 0;
+    position->pieceThreats.knightThreats = 0;
+    position->pieceThreats.bishopThreats = 0;
+    position->pieceThreats.rookThreats = 0;
+    position->pieceThreats.queenThreats = 0;
+    position->pieceThreats.kingThreats = 0;
+    position->pieceThreats.stmThreats[white] = 0;
+    position->pieceThreats.stmThreats[black] = 0;
 
-        position->pieceThreats.pawnThreats = 0;
-        position->pieceThreats.knightThreats = 0;
-        position->pieceThreats.bishopThreats = 0;
-        position->pieceThreats.rookThreats = 0;
-        position->pieceThreats.queenThreats = 0;
-        position->pieceThreats.kingThreats = 0;
-        position->pieceThreats.stmThreats[white] = 0;
-        position->pieceThreats.stmThreats[black] = 0;
+    get_threats(position->side, position);
 
-        get_threats(position->side, position);
+    const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
+    const int blackKingSquare = getLS1BIndex(position->bitboards[k]);
+    int passed_pawn_count = 0;
+    
+    for (int piece = P; piece <= k; piece++) {
+        U64 bitboard = position->bitboards[piece];
+        while (bitboard) {
+            const int square = getLS1BIndex(bitboard);
+            score += packed_table[piece][square];
 
-        const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
-        const int blackKingSquare = getLS1BIndex(position->bitboards[k]);
-
-        int passed_pawn_count = 0;
-
-        for (int piece = P; piece <= k; piece++) {
-                U64 bitboard = position->bitboards[piece];
-
-                while (bitboard) {
-                        const int square = getLS1BIndex(bitboard);
-                        score_midgame += mg_table[piece][square];
-                        score_endgame += eg_table[piece][square];
-
-                        switch (piece) {
-                                case P:
-                                        if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
-                                                passed_pawn_count += 1;
-
-                                                // passed pawn can move bonus
-                                                if (!(getBit(position->occupancies[both], (square - 8)))) {
-                                                        score_midgame += passedCanMoveBonus;
-                                                        score_endgame += passedCanMoveBonus;
-                                                }
-                                        }
-                                break;
-                                case p:
-                                        if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
-                                                passed_pawn_count -= 1;
-
-                                                // passed pawn can move bonus
-                                                if (!(getBit(position->occupancies[both], (square + 8)))) {
-                                                        score_midgame -= passedCanMoveBonus;
-                                                        score_endgame -= passedCanMoveBonus;
-                                                }
-                                        }
-                                break;
-                                case B:
-                                        score_midgame += countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        score_endgame += countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        break;
-                                case R:
-
-                                        // Semi Open File Bonus
-                                        if ((position->bitboards[P] & fileMasks[square]) == 0) {
-                                                // add semi open file bonus
-                                                score_midgame += semi_open_file_score;
-                                                score_endgame += semi_open_file_score;
-                                        }
-
-                                        // open file
-                                        if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) {
-                                                // add open file bonus
-                                                score_midgame += rook_open_file;
-                                                score_endgame += rook_open_file;
-
-                                        }
-                                        break;
-                                case b:
-                                        score_midgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        score_endgame -= countBits(getBishopAttacks(square, position->occupancies[both]));
-                                        break;
-                                case r:
-
-                                        // Semi Open File Bonus
-                                        if ((position->bitboards[p] & fileMasks[square]) == 0) {
-                                                // add semi open file bonus
-                                                score_midgame -= semi_open_file_score;
-                                                score_endgame -= semi_open_file_score;
-                                        }
-
-                                        // open file
-                                        if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) {
-                                                // add open file bonus
-                                                score_midgame -= rook_open_file;
-                                                score_endgame -= rook_open_file;
-
-                                        }
-                                        break;
-                        }
-                        popBit(bitboard, square);
-                }
+            switch (piece) {
+                case P:
+                    if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
+                        passed_pawn_count++;
+                        if (!(getBit(position->occupancies[both], (square - 8))))
+                            score += S(passedCanMoveBonus, passedCanMoveBonus);
+                    }
+                    break;
+                case p:
+                    if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
+                        passed_pawn_count--;
+                        if (!(getBit(position->occupancies[both], (square + 8))))
+                            score -= S(passedCanMoveBonus, passedCanMoveBonus);
+                    }
+                    break;
+                case B: score += S(countBits(getBishopAttacks(square, position->occupancies[both])), countBits(getBishopAttacks(square, position->occupancies[both]))); break;
+                case b: score -= S(countBits(getBishopAttacks(square, position->occupancies[both])), countBits(getBishopAttacks(square, position->occupancies[both]))); break;
+                case R:
+                    if ((position->bitboards[P] & fileMasks[square]) == 0) score += S(semi_open_file_score, semi_open_file_score);
+                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) score += S(rook_open_file, rook_open_file);
+                    break;
+                case r:
+                    if ((position->bitboards[p] & fileMasks[square]) == 0) score -= S(semi_open_file_score, semi_open_file_score);
+                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) score -= S(rook_open_file, rook_open_file);
+                    break;
+            }
+            popBit(bitboard, square);
         }
-        
-        if (position->side == white) {
-            uint64_t blackKingRing = kingAttacks[blackKingSquare];
-        
-            int how_heavy_threats = 0;
+    }
+    
+    uint64_t bKingRing = kingAttacks[blackKingSquare];
+    uint64_t wKingRing = kingAttacks[whiteKingSquare];
 
-            // Pawn Threats
-            int pawn_threat_bonus = ((position->pieceThreats.pawnThreats & blackKingRing) != 0) * 3;            
+    int wThreats = ((position->pieceThreats.pawnThreats & bKingRing) != 0) * 3 +
+                   ((position->pieceThreats.knightThreats & bKingRing) != 0) * 8 +
+                   ((position->pieceThreats.bishopThreats & bKingRing) != 0) * 8 +
+                   ((position->pieceThreats.rookThreats & bKingRing) != 0) * 12 +
+                   ((position->pieceThreats.queenThreats & bKingRing) != 0) * 25;
+    if (wThreats > 25) wThreats += (wThreats / 8 * 4);
 
-            how_heavy_threats += pawn_threat_bonus;            
+    int bThreats = ((position->pieceThreats.pawnThreats & wKingRing) != 0) * 3 +
+                   ((position->pieceThreats.knightThreats & wKingRing) != 0) * 8 +
+                   ((position->pieceThreats.bishopThreats & wKingRing) != 0) * 8 +
+                   ((position->pieceThreats.rookThreats & wKingRing) != 0) * 12 +
+                   ((position->pieceThreats.queenThreats & wKingRing) != 0) * 25;
+    if (bThreats > 25) bThreats += (bThreats / 8 * 4);
 
-            // Knight Threats
-            int knight_threat_bonus = ((position->pieceThreats.knightThreats & blackKingRing) != 0) * 8;            
+    score += (position->side == white) ? S(wThreats, wThreats) : -S(bThreats, bThreats);
+    
+    int w_shield = countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]);
+    score += S(w_shield * king_shield_bonus_middlegame, w_shield * king_shield_bonus_endgame);
+    
+    int b_shield = countBits(kingAttacks[blackKingSquare] & position->occupancies[black]);
+    score -= S(b_shield * king_shield_bonus_middlegame, b_shield * king_shield_bonus_endgame);
+    
+    if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0) score -= S(king_semi_open_file_score, king_semi_open_file_score);
+    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[whiteKingSquare]) == 0) score -= S(king_open_file_score, king_open_file_score);
+    if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) score += S(king_semi_open_file_score, king_semi_open_file_score);
+    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[blackKingSquare]) == 0) score += S(king_open_file_score, king_open_file_score);
+    
+    if (countBits(position->bitboards[B]) == 2) score += S(bishop_pair_bonus_midgame, bishop_pair_bonus_endgame);
+    if (countBits(position->bitboards[b]) == 2) score -= S(bishop_pair_bonus_midgame, bishop_pair_bonus_endgame);
 
-            how_heavy_threats += knight_threat_bonus;
+    // Winnable Score
+    int winnable = 6 * passed_pawn_count + 8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]));
+    score += S(winnable, winnable);
 
-            // Bishop Threats
-            int bishop_threat_bonus = ((position->pieceThreats.bishopThreats & blackKingRing) != 0) * 8;            
+    // Unpack ve Final Interpolation
+    int mg = mg_of(score);
+    int eg = eg_of(score);
 
-            how_heavy_threats += bishop_threat_bonus;
-            
+    int final_score;
+    if (game_phase_score > opening_phase_score) final_score = mg;
+    else if (game_phase_score < endgame_phase_score) final_score = eg;
+    else final_score = (mg * game_phase_score + eg * (opening_phase_score - game_phase_score)) / opening_phase_score;
 
-            // Rook Threats
-            int rook_threat_bonus = ((position->pieceThreats.rookThreats & blackKingRing) != 0) * 12;            
-
-            how_heavy_threats += rook_threat_bonus;
-
-            // Queen Threats
-            int queen_threat_bonus = ((position->pieceThreats.queenThreats & blackKingRing) != 0) * 25;            
-
-            how_heavy_threats += queen_threat_bonus;
-
-            // Heavy Threats
-
-            // if our threats are heavy give it some bonus, like:
-            // One queen almost doing nothing, but with a minor or major piece
-            // it can be a heavy and dangerous threat
-            // so we can add a bonus to the score
-
-            how_heavy_threats += how_heavy_threats > 25 ? how_heavy_threats / 8 * 4 : 0;
-
-            score_midgame += how_heavy_threats;
-            score_endgame += how_heavy_threats;
-        } else {
-            uint64_t whiteKingRing = kingAttacks[whiteKingSquare];
-
-            int how_heavy_threats = 0;
-
-            // Pawn Threats
-            int pawn_threat_bonus = ((position->pieceThreats.pawnThreats & whiteKingRing) != 0) * 3;
-            how_heavy_threats += pawn_threat_bonus;
-            
-            // Knight Threats
-            int knight_threat_bonus = ((position->pieceThreats.knightThreats & whiteKingRing) != 0) * 8;
-            how_heavy_threats += knight_threat_bonus;                    
-
-            // Bishop Threats            
-            int bishop_threat_bonus = ((position->pieceThreats.bishopThreats & whiteKingRing) != 0) * 8;
-            how_heavy_threats += bishop_threat_bonus;
-            
-
-            // Rook Threats
-            int rook_threat_bonus = ((position->pieceThreats.rookThreats & whiteKingRing) != 0) * 12;
-            how_heavy_threats += rook_threat_bonus;
-            
-
-            // Queen Threats
-            int queen_threat_bonus = ((position->pieceThreats.queenThreats & whiteKingRing) != 0) * 25;
-            how_heavy_threats += queen_threat_bonus;
-
-            // Heavy Threats
-            
-            // if our threats are heavy give it some bonus, like:
-            // One queen almost doing nothing, but with a minor or major piece
-            // it can be a heavy and dangerous threat
-            // so we can add a bonus to the score
-
-            how_heavy_threats += how_heavy_threats > 25 ? how_heavy_threats / 8 * 4 : 0;
-
-            score_midgame -= how_heavy_threats;
-            score_endgame -= how_heavy_threats;
-
-        }                
-
-        // king safety bonus
-
-        // White
-
-        // King ring bonus
-        score_midgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_middlegame;
-        score_endgame += countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]) * king_shield_bonus_endgame;
-
-        // semi open file
-        if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0) {
-                // add semi open file penalty
-                score_midgame -= king_semi_open_file_score;
-                score_endgame -= king_semi_open_file_score;
-        }
-
-        // open file penalty
-        if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[whiteKingSquare]) == 0) {
-                // add open file penalty
-                score_midgame -= king_open_file_score;
-                score_endgame -= king_open_file_score;
-        }
-
-
-        // Black
-
-        // King ring bonus
-        score_midgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_middlegame;
-        score_endgame -= countBits(kingAttacks[blackKingSquare] & position->occupancies[black]) * king_shield_bonus_endgame;
-
-        // semi open file penalty
-        if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) {
-                // add semi open file penalty
-                score_midgame += king_semi_open_file_score;
-                score_endgame += king_semi_open_file_score;
-        }
-
-        // open file penalty
-        if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[blackKingSquare]) == 0) {
-                // add semi open file penalty
-                score_midgame += king_open_file_score;
-                score_endgame += king_open_file_score;
-        }
-
-        // bishop pair bonus
-
-        // White
-        if (countBits(position->bitboards[B]) == 2) {
-                score_midgame += bishop_pair_bonus_midgame;
-                score_endgame += bishop_pair_bonus_endgame;
-        }
-
-        // Black
-        if (countBits(position->bitboards[b]) == 2) {
-                score_midgame -= bishop_pair_bonus_midgame;
-                score_endgame -= bishop_pair_bonus_endgame;
-        }
-
-        int winnableScore = 0;
-        // winnable
-        //winnableScore += (position->side && (get_rank[getLS1BIndex(position->bitboards[k])] < 2)) * -20;
-        //winnableScore += (!position->side && (get_rank[getLS1BIndex(position->bitboards[K])] > 5)) * 20;
-
-        winnableScore +=  6 * passed_pawn_count +
-                8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]))
-        ;
-
-        score_midgame += winnableScore;
-        score_endgame += winnableScore;
-
-
-        int score;
-        if (game_phase_score > opening_phase_score)
-                score = score_midgame;
-        else if (game_phase_score < endgame_phase_score)
-                score = score_endgame;
-        else
-                score = (score_midgame * game_phase_score + score_endgame * (opening_phase_score - game_phase_score))
-                       / opening_phase_score;
-
-        return (position->side == white) ? score : -score;
+    return (position->side == white) ? final_score : -final_score;
 }
 
 
