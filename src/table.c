@@ -230,8 +230,8 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
     if (hashFlag == hashFlagExact || key != position->hashKey || depth + 2 * ttPv + 4 > hashEntry->depth) {
         // store score independent from the actual path
         // from root node (position) to current node (position)
-        if (score < -mateValue) score -= position->ply;
-        if (score > mateValue) score += position->ply;
+        if (score < -mateFound) score -= position->ply;
+        if (score > mateFound) score += position->ply;
 
 
         hashEntry->hashKey = get_hash_low_bits(position->hashKey);
@@ -260,9 +260,9 @@ int readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
         // extract stored score from TT entry
         int16_t score = hashEntry->score;
 
-        if (score < -mateValue)
+        if (score < -mateFound)
             score += position->ply;
-        if (score > mateValue)
+        if (score > mateFound)
             score -= position->ply;
 
         *move = hashEntry->bestMove;
