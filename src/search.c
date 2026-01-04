@@ -1291,7 +1291,21 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 extensions -= 2 + !pvNode;
             }
 
-            // Recapture Extension
+            // ╔══════════════════════════════╗
+            // ║              /\              ║
+            // ║             /  \             ║
+            // ║           <SCALER>           ║
+            // ║             \  /             ║
+            // ║              \/              ║
+            // ╟      «-·´¯`·.¸¸.»·´¯`·-»     ╢        
+            // ║                              ║
+            // ║     STC:   -1.42  +-  3.69   ║
+            // ║     LTC:   -6.85  +-  5.03   ║
+            // ║    VLTC:    0.71  +-  2.94   ║
+            // ║   VVLTC:    5.13  +-  4.04   ║            
+            // ╚══════════════════════════════╝
+
+            // ~~~~ Recapture Extension ~~~~ //
             else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
                 extensions += 1;
             }
