@@ -27,8 +27,9 @@
     ║ Null Move Pruning     ║
     ╚═══════════════════════╝*/
   int NMP_DEPTH = 3;  
-  int NMP_BASE_REDUCTION = 3;
-  int NMP_REDUCTION_DEPTH_DIVISOR = 3;
+  int NMP_BASE_REDUCTION = 4096;
+  int NMP_DEPTH_MULTIPLIER = 256;
+  int NMP_REDUCTION_DEPTH_DIVISOR = 1024;
   int NMP_EVAL_DIVISOR = 400;
   
   
@@ -935,7 +936,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         prefetch_hash_entry(pos->hashKey);
 
-        int R = NMP_BASE_REDUCTION + depth / NMP_REDUCTION_DEPTH_DIVISOR;
+        int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) / NMP_REDUCTION_DEPTH_DIVISOR;
 
         R += myMIN((ttAdjustedEval - beta) / NMP_EVAL_DIVISOR, 3);        
 
