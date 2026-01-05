@@ -553,10 +553,24 @@ uint8_t isMaterialDraw(board *pos) {
     return 0;
 }
 
+double calculate_complexity_factor(double complexity) {    
+    double x = clamp_double(complexity, 0.0, 200.0);
+
+    // Formula: Base + (Max_Boost) / (1 + exp(-(x - Midpoint) / Steepness))
+    // Base: 1.0 
+    // Max_Boost: 0.27
+    // Midpoint: 120.0
+    // Steepness: 15.0
+
+    double factor = 1.0 + 0.27 / (1.0 + exp(-(x - 120.0) / 15.0));
+
+    return factor;
+}
+
 void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, uint16_t move, double complexity, board* pos) {
     double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
-    double complexityScale = my_max_double(0.77 + clamp_double(complexity, 0.0, 200.0) / 400.0, 1.0);
+    double complexityScale = calculate_complexity_factor(complexity);
     double not_bm_nodes_fraction = 
        (double)nodes_spent_table[move & 4095] / (double)pos->nodes_searched;
     double node_scaling_factor = (1.5f - not_bm_nodes_fraction) * 1.35f;
