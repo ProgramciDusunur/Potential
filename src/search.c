@@ -103,7 +103,7 @@
   /*╔══════════╗
     ║ Razoring ║
     ╚══════════╝*/
-  int RAZORING_DEPTH = 3;
+  int RAZORING_DEPTH = 5;
   int RAZORING_FULL_MARGIN = 200;    
   int RAZORING_DEPTH_SCALE = 15;
   int RAZORING_VERIFY_MARGIN = 120;
