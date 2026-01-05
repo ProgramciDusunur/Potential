@@ -27,7 +27,7 @@
     ║ Null Move Pruning     ║
     ╚═══════════════════════╝*/
   int NMP_DEPTH = 3;  
-  int NMP_BASE_REDUCTION = 4096;
+  int NMP_BASE_REDUCTION = 5120;
   int NMP_DEPTH_MULTIPLIER = 256;
   int NMP_REDUCTION_DEPTH_DIVISOR = 1024;
   int NMP_EVAL_DIVISOR = 400;
