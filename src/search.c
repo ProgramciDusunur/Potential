@@ -1309,6 +1309,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // ~~~~ Recapture Extension ~~~~ //
             else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
                 extensions += 1;
+
+                // Double Recapture extension
+                int boosted_alpha = alpha + 40;
+                if (beta - boosted_alpha > 1) {
+                    extensions += 1;
+                }  
             }
             
             // Cut Node Extension
