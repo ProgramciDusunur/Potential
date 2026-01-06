@@ -898,7 +898,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     rfpMargin += 6 * depth * depth;
 
-    bool rfp_tt_pv_decision = !tt_pv || (tt_pv && tt_hit && tt_score >= beta + 90 - 15 * ((tt_depth + depth) / 2));    
+    bool rfp_tt_pv_decision = !tt_pv;    
 
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
