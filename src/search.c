@@ -867,7 +867,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     int ttAdjustedEval = static_eval;
 
-    if (!pos->isSingularMove[pos->ply] && tt_move && !in_check &&
+    if (!pos->isSingularMove[pos->ply] && tt_move && !in_check && tt_depth >= depth &&
         (tt_flag == hashFlagExact ||
          (tt_flag == hashFlagAlpha && tt_score >= static_eval) ||
          (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
