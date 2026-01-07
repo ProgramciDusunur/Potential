@@ -1202,7 +1202,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         int extensions = 0;
 
         // Singular Extensions
-        if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
+        int dynamic_limit = corrplexity ? depth * 3 / 6: depth * 2;
+        if (pos->ply < dynamic_limit && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateValue) {
             const int singularBeta = tt_score - (depth * 5 + (tt_pv && !pvNode) * 10) / 8;
