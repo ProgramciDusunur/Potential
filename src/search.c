@@ -778,7 +778,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
     int pvNode = beta - alpha > 1;
-
+    const bool allNode  = !(pvNode || cutNode);
     int rootNode = pos->ply == 0;
 
     uint16_t bestMove = 0;
@@ -1416,6 +1416,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
         }
         
+        // Scale up reductions for expected ALL nodes
+        if (allNode) {
+            lmrReduction += lmrReduction / (depth + 1);
+        }
 
         lmrReduction /= 1024;
 
