@@ -1395,7 +1395,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             if (depth >= 12) {
                 lmrReduction += 192 * !pvNode;
-                lmrReduction += 192 * pos->mailbox[getMoveSource(currentMove)] != P;
+                lmrReduction += 192 * pos->mailbox[getMoveTarget(currentMove)] != P;
                 lmrReduction += 128 * improving;
             }
 
