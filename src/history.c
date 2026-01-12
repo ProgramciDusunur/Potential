@@ -30,7 +30,7 @@ int16_t captureHistory[12][64][13];
   ║ Correction History ║
   ╚════════════════════╝*/
 
-int CORRHIST_WEIGHT_SCALE = 1024;
+int CORRHIST_WEIGHT_SCALE = 512;
 int CORRHIST_GRAIN = 256;
 int CORRHIST_LIMIT = 1024;
 int CORRHIST_SIZE = 16384;
