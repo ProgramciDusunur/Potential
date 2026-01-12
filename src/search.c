@@ -893,7 +893,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // Null Move Pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
-            ttAdjustedEval >= beta + 30 &&
+            ttAdjustedEval >= beta + 40 &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
@@ -1273,7 +1273,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // Negative Extensions
             else if (tt_score >= beta) {
-                extensions -= 2 + !pvNode;
+                extensions -= 3;
             }
 
             // ╔══════════════════════════════╗
