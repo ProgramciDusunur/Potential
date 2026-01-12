@@ -30,7 +30,7 @@ int16_t captureHistory[12][64][13];
   ║ Correction History ║
   ╚════════════════════╝*/
 
-int CORRHIST_WEIGHT_SCALE = 256;
+int CORRHIST_WEIGHT_SCALE = 1024;
 int CORRHIST_GRAIN = 256;
 int CORRHIST_LIMIT = 1024;
 int CORRHIST_SIZE = 16384;
@@ -178,9 +178,9 @@ void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *
 
 /* Update Correction History */
 
-static inline void apply_corrhist_update(int16_t *entry, const int scaledDiff, const int newWeight) {    
-    int val = *entry;
-    val = (val * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+static inline void apply_corrhist_update(int16_t *entry, const int newWeight, int depth) {    
+    int val = *entry;    
+    val = (val + CORRHIST_GRAIN + depth * newWeight) / CORRHIST_WEIGHT_SCALE;
         
     if (val > CORRHIST_MAX) val = CORRHIST_MAX;
     else if (val < -CORRHIST_MAX) val = -CORRHIST_MAX;
@@ -194,7 +194,7 @@ void update_pawn_correction_hist(board *position, const int depth, const int dif
     
     // Masking for faster indexing (assuming SIZE is power of 2)
     int16_t *entry = &PAWN_CORRECTION_HISTORY[position->side][position->pawnKey & (CORRHIST_SIZE - 1)];
-    apply_corrhist_update(entry, scaledDiff, newWeight);
+    apply_corrhist_update(entry, newWeight, depth);
 }
 
 void update_minor_correction_hist(board *position, const int depth, const int diff) {
@@ -202,7 +202,7 @@ void update_minor_correction_hist(board *position, const int depth, const int di
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
     int16_t *entry = &MINOR_CORRECTION_HISTORY[position->side][position->minorKey & (CORRHIST_SIZE - 1)];
-    apply_corrhist_update(entry, scaledDiff, newWeight);
+    apply_corrhist_update(entry, newWeight, depth);
 }
 
 void update_major_correction_hist(board *position, const int depth, const int diff) {
@@ -210,7 +210,7 @@ void update_major_correction_hist(board *position, const int depth, const int di
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
     int16_t *entry = &MAJOR_CORRECTION_HISTORY[position->side][position->majorKey & (CORRHIST_SIZE - 1)];
-    apply_corrhist_update(entry, scaledDiff, newWeight);
+    apply_corrhist_update(entry, newWeight, depth);
 }
 
 void update_non_pawn_corrhist(board *position, const int depth, const int diff) {    
@@ -220,10 +220,10 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff) 
     const int mask = CORRHIST_SIZE - 1;
     
     int16_t *white_ptr = &NON_PAWN_CORRECTION_HISTORY[white][side][position->whiteNonPawnKey & mask];
-    apply_corrhist_update(white_ptr, scaledDiff, newWeight);
+    apply_corrhist_update(white_ptr, newWeight, depth);
     
     int16_t *black_ptr = &NON_PAWN_CORRECTION_HISTORY[black][side][position->blackNonPawnKey & mask];
-    apply_corrhist_update(black_ptr, scaledDiff, newWeight);
+    apply_corrhist_update(black_ptr, newWeight, depth);
 }
 
 void update_king_rook_pawn_corrhist(board *position, const int depth, const int diff) {
@@ -231,10 +231,10 @@ void update_king_rook_pawn_corrhist(board *position, const int depth, const int 
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
     int16_t *entry = &krpCorrhist[position->side][position->krpKey & (CORRHIST_SIZE - 1)];
-    apply_corrhist_update(entry, scaledDiff, newWeight);
+    apply_corrhist_update(entry, newWeight, depth);
 }
 
-void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int scaledDiff, const int newWeight) {    
+void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int newWeight, int depth) {    
     if (pos->ply < pliesBack) return;
 
     const int idx1 = pos->ply - (pliesBack - 1);
@@ -248,7 +248,7 @@ void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const in
                                          [pos->piece[idx2]][getMoveTarget(m2)];
                 
         int val = *entry_ptr;
-        val = (val * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+        val = (val + CORRHIST_GRAIN + depth * newWeight) / CORRHIST_WEIGHT_SCALE;
                 
         if (val > CORRHIST_MAX) val = CORRHIST_MAX;
         else if (val < -CORRHIST_MAX) val = -CORRHIST_MAX;
@@ -274,8 +274,8 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
 
-    update_single_cont_corrhist_entry(pos, 2, scaledDiff, newWeight);
-    update_single_cont_corrhist_entry(pos, 4, scaledDiff, newWeight);
+    update_single_cont_corrhist_entry(pos, 2, newWeight, depth);
+    update_single_cont_corrhist_entry(pos, 4, newWeight, depth);
 }
 
 int adjust_eval_with_corrhist(board *pos, int rawEval) {       
