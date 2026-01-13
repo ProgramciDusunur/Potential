@@ -31,6 +31,7 @@
   int NMP_DEPTH_MULTIPLIER = 256;
   int NMP_REDUCTION_DEPTH_DIVISOR = 1024;
   int NMP_EVAL_DIVISOR = 400;
+  int NMP_SEE_NOISY_THRESHOLD = 250;
   
   
   /*╔═══════════════════════╗
@@ -891,7 +892,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         return ttAdjustedEval;
 
     // Null Move Pruning
-    if (!pos->isSingularMove[pos->ply] && !pvNode &&
+    if (!pos->isSingularMove[pos->ply] && cutNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
             ttAdjustedEval >= beta + 30 &&
             pos->ply >= pos->nmpPly &&
