@@ -58,6 +58,9 @@ void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *
 int getContinuationHistoryScore(board *pos, int offSet, uint16_t move);
 void updateCaptureHistory(board *position, uint16_t bestMove, int depth);
 void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, uint16_t bestMove);
+int standard_get_all_ch_score(board *pos, uint16_t move);
+void standard_single_ch_entry_update(board *pos, uint16_t move, const int offSet, const int bonus);
+void standard_update_all_ch(board *pos, uint16_t move, const int bonus);
 void update_pawn_correction_hist(board *position, const int depth, const int diff);
 void update_minor_correction_hist(board *position, const int depth, const int diff);
 void update_major_correction_hist(board *position, const int depth, const int diff);

@@ -98,7 +98,7 @@
     ╚══════════════════════════════╝*/
   int RFP_MARGIN = 52;
   int RFP_IMPROVING_MARGIN = 45;
-  int RFP_DEPTH = 11;
+  int RFP_DEPTH = 12;
   
   
   /*╔══════════╗
@@ -647,9 +647,10 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     noisyGenerator(moveList, position);
 
     int futilityValue = bestScore + 100;
+    int previous_move_target_square = getMoveTarget(position->move[myMAX(0, position->ply - 1)]);
 
     // legal moves counter
-    //int legal_moves = 0;
+    int legal_moves = 0;
 
     int move_scores[256];
     init_quiescence_scores(moveList, move_scores, position);
@@ -666,6 +667,11 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
             if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
                 bestScore = myMAX(bestScore, futilityValue);
+                continue;
+            }
+
+            // QS Late Move Pruning
+            if (getMoveTarget(move) != previous_move_target_square && legal_moves >= 3) {
                 continue;
             }
         }
@@ -693,7 +699,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
             continue;
         }
 
-        //legal_moves++;
+        legal_moves++;
 
         // increment nodes count
         position->nodes_searched++;
@@ -891,7 +897,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         return ttAdjustedEval;
 
     // Null Move Pruning
-    if (!pos->isSingularMove[pos->ply] && !pvNode &&
+    if (!pos->isSingularMove[pos->ply] && cutNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
             ttAdjustedEval >= beta + 40 &&
             pos->ply >= pos->nmpPly &&
@@ -1273,7 +1279,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // Negative Extensions
             else if (tt_score >= beta) {
-                extensions -= 3;
+                extensions -= -2 + !pvNode;
             }
 
             // ╔══════════════════════════════╗
@@ -1435,6 +1441,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+                if (notTactical && (score <= alpha || score >= beta)) {
+                    const int bonus = score <= alpha ? -getHistoryBonus(depth) : getHistoryBonus(depth);
+                    standard_update_all_ch(pos, currentMove, bonus);
+                }
             }
         }
         else if (!pvNode || legal_moves > 1) {
