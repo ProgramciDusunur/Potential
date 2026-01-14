@@ -31,6 +31,7 @@
   int NMP_DEPTH_MULTIPLIER = 256;
   int NMP_REDUCTION_DEPTH_DIVISOR = 1024;
   int NMP_EVAL_DIVISOR = 400;
+  int NMP_TT_SEE_THRESHOLD = 250;
   
   
   /*╔═══════════════════════╗
@@ -891,11 +892,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         return ttAdjustedEval;
 
     // Null Move Pruning
+    bool nmp_tt_see = tt_flag == hashFlagAlpha && tt_move && !SEE(pos, tt_move, NMP_TT_SEE_THRESHOLD);
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
             ttAdjustedEval >= beta + 30 &&
             pos->ply >= pos->nmpPly &&
-            !justPawns(pos)) {
+            !justPawns(pos) &&
+            nmp_tt_see) {
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(pos, &copyPosition);
