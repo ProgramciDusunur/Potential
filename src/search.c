@@ -891,7 +891,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         return ttAdjustedEval;
 
     // Null Move Pruning
-    if (!pos->isSingularMove[pos->ply] && !pvNode &&
+    if (!pos->isSingularMove[pos->ply] && cutNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
             ttAdjustedEval >= beta + 30 &&
             pos->ply >= pos->nmpPly &&
@@ -1245,7 +1245,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
 
                 // Triple Extension
-                int tripleMargin = TRIPLE_EXTENSION_MARGIN + 80 * !notTactical - (moveHistory / 512 * notTactical) - (corrplexity_value / 16);
+                int tripleMargin = TRIPLE_EXTENSION_MARGIN + 80 * !notTactical - (moveHistory / 512 * notTactical);
 
                 if (singularScore <= singularBeta - tripleMargin) {
                     extensions++;
