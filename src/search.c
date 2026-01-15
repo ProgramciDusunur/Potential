@@ -1025,7 +1025,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int legal_moves = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
-    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
+    bool probcut_fp = static_eval + 164 + 100 * depth <= alpha;
+    if (!pvNode && !in_check && !probcut_fp && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1044,13 +1045,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 if (!SEE(pos, move, PROBCUT_SEE_NOISY_THRESHOLD)) {
                     continue;
                 }
-
-                // Noisy Futility Pruning
-                int noisyFPMargin = static_eval + 164 + 100 * depth;
-                if (!pvNode && !in_check && noisyFPMargin <= alpha) {
-                    continue;
-                }
-
+                
                 struct copyposition copyPosition;
                 // preserve board state
                 copyBoard(pos, &copyPosition);
