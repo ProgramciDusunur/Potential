@@ -1455,6 +1455,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
                 new_depth = myMAX(new_depth, 1);
             }
+
+            // History based reduction
+            if (moveHistory < 0 && pawnHistoryValue < 0) {
+                new_depth -= 1;
+            }
             
             // do normal alpha beta search
             score = -negamax(-beta, -alpha, new_depth, pos, time, false);
