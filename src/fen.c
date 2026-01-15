@@ -60,7 +60,17 @@ void parseFEN(char *fen, board* position) {
     (*fen == 'w') ? (position->side = white) : (position->side = black);
     fen += 2;
     while (*fen != ' ') {
-        switch (*fen) {
+        // White Shredder FEN
+        if (*fen >= 'A' && *fen <= 'H') {            
+            int file = *fen - 'A';
+            
+        }
+        // Black Shredder FEN
+        else if (*fen >= 'a' && *fen <= 'h') {                        
+            int file = *fen - 'a';
+
+        } else {
+            switch (*fen) {
             case 'K':
                 position->castle |= wk;
                 break;
@@ -75,6 +85,7 @@ void parseFEN(char *fen, board* position) {
                 break;
             case '-':
                 break;
+            }
         }
         fen++;
     }
