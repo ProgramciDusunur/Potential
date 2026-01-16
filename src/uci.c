@@ -535,7 +535,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
                    default_hash_size, max_hash);
             printf("option name Threads type spin default %d min %d max %d\n", 1, 1,
                    1);
-            printf("option name UCI_Chess960 value true\n");
+            printf("option name UCI_Chess960 type check default true\n");
             printf("uciok\n");
         } else if (strncmp(input, "eval", 4) == 0) {
             printf("Evaluation: %d\n", evaluate(position));
