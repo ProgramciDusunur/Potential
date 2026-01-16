@@ -235,9 +235,9 @@ void init_quiescence_scores(moves *moveList, int *move_scores, board* position) 
             // 2 ply continuation history
             quiet_score += getContinuationHistoryScore(position, 2, move);
             // 4 ply continuation history
-            quiet_score += getContinuationHistoryScore(position, 4, move);
+            //quiet_score += getContinuationHistoryScore(position, 4, move);
             // pawn history
-            quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
+            //quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
             // NMP refutation move
             //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
