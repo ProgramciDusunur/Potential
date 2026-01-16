@@ -221,8 +221,27 @@ void init_quiescence_scores(moves *moveList, int *move_scores, board* position) 
             }
             
             move_scores[count] = mvvLva[position->mailbox[getMoveSource(move)]][target_piece] + 1000000000;
-        } else {
-            move_scores[count] = 0;
+        } 
+        // score quiet moves
+        else {
+            int quiet_score = 0;
+            quiet_score +=
+                // quiet main history 
+                quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)]
+                [is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))];
+
+            // 1 ply continuation history
+            quiet_score += getContinuationHistoryScore(position, 1, move);
+            // 2 ply continuation history
+            quiet_score += getContinuationHistoryScore(position, 2, move);
+            // 4 ply continuation history
+            quiet_score += getContinuationHistoryScore(position, 4, move);
+            // pawn history
+            quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
+            // NMP refutation move
+            //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+
+            move_scores[count] = quiet_score;
         }
     }
 }
