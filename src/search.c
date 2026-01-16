@@ -646,6 +646,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
     // create move list instance
     moves moveList[1];
+    moveList->count = 0;
     int move_scores[256];
 
     // generate moves
