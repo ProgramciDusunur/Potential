@@ -671,12 +671,12 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         pick_next_move(count, moveList, move_scores);
         uint16_t move = moveList->moves[count];
 
-        if (bestScore > -mateFound) {
+        if (bestScore > -mateFound && getMoveCapture(move)) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
             }
 
-            if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
+            if (futilityValue <= alpha && !SEE(position, move, 1)) {
                 bestScore = myMAX(bestScore, futilityValue);
                 continue;
             }
