@@ -652,7 +652,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     // generate moves
     if (in_check) {
         moveGenerator(moveList, position);
-        //init_move_scores(moveList, move_scores, tt_move, pos);
+        init_quiescence_scores(moveList, move_scores, position);
     } else {
         noisyGenerator(moveList, position);
         init_quiescence_scores(moveList, move_scores, position);
