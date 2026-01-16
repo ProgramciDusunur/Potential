@@ -1025,7 +1025,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int legal_moves = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
-    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
+    if (!in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1245,7 +1245,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
 
                 // Triple Extension
-                int tripleMargin = TRIPLE_EXTENSION_MARGIN + 80 * !notTactical - (moveHistory / 512 * notTactical);
+                int tripleMargin = TRIPLE_EXTENSION_MARGIN + 80 * !notTactical - (moveHistory / 512 * notTactical) - (corrplexity_value / 16);
 
                 if (singularScore <= singularBeta - tripleMargin) {
                     extensions++;
@@ -1414,13 +1414,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         // Reduce Less
         if (tt_pv) {
-            lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
+            lmrReduction -= TT_PV_LMR_SCALER + (1024 * pvNode) + (256 * improving);
         }
         
 
         lmrReduction /= 1024;
 
-        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth)) + pvNode;
+        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth + cutNode)) + pvNode;
 
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
