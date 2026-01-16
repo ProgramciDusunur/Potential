@@ -651,7 +651,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     // generate moves
     if (in_check) {
         moveGenerator(moveList, position);
-        init_move_scores(moveList, move_scores, tt_move, position);
+        //init_move_scores(moveList, move_scores, tt_move, pos);
     } else {
         noisyGenerator(moveList, position);
         init_quiescence_scores(moveList, move_scores, position);
@@ -671,12 +671,12 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         pick_next_move(count, moveList, move_scores);
         uint16_t move = moveList->moves[count];
 
-        if (bestScore > -mateFound && getMoveCapture(move)) {
+        if (bestScore > -mateFound) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
             }
 
-            if (futilityValue <= alpha && !SEE(position, move, 1)) {
+            if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
                 bestScore = myMAX(bestScore, futilityValue);
                 continue;
             }
