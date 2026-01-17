@@ -1235,7 +1235,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 extensions++;
 
                 // Double Extension                
-                int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
+                int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 512) - (pawnHistoryValue / 384) - 
+                (corrplexity_value / 16) - (pos->ply > pos->rootDepth) * 35;
 
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
@@ -1245,7 +1246,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
 
                 // Triple Extension
-                int tripleMargin = TRIPLE_EXTENSION_MARGIN + 80 * !notTactical - (moveHistory / 512 * notTactical);
+                int tripleMargin = TRIPLE_EXTENSION_MARGIN + 80 * !notTactical - (moveHistory / 512 * notTactical) - (pos->ply * 2 > pos->rootDepth * 3) * 50;
 
                 if (singularScore <= singularBeta - tripleMargin) {
                     extensions++;
