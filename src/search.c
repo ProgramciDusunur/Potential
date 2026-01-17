@@ -235,9 +235,9 @@ void init_quiescence_scores(moves *moveList, int *move_scores, board* position) 
             // 2 ply continuation history
             quiet_score += getContinuationHistoryScore(position, 2, move);
             // 4 ply continuation history
-            //quiet_score += getContinuationHistoryScore(position, 4, move);
+            quiet_score += getContinuationHistoryScore(position, 4, move);
             // pawn history
-            //quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
+            quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
             // NMP refutation move
             //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
@@ -612,7 +612,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
     int pvNode = beta - alpha > 1;
 
-    //int rootNode = position->ply == 0;
+    int rootNode = position->ply == 0;
 
     if (position->ply > position->seldepth) {
         position->seldepth = position->ply;
@@ -670,13 +670,12 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
     // generate moves
     if (in_check) {
-        moveGenerator(moveList, position);
-        init_quiescence_scores(moveList, move_scores, position);
+        moveGenerator(moveList, position);        
     } else {
         noisyGenerator(moveList, position);
-        init_quiescence_scores(moveList, move_scores, position);
     }
     
+    init_quiescence_scores(moveList, move_scores, position);
 
     int futilityValue = bestScore + 100;
 
@@ -691,7 +690,9 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         pick_next_move(count, moveList, move_scores);
         uint16_t move = moveList->moves[count];
 
-        if (bestScore > -mateFound) {
+        bool quiet_move = getMoveCapture(move) == 0 && getMovePromote(move) == 0;
+
+        if (!rootNode && bestScore > -mateFound && !quiet_move) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
             }
