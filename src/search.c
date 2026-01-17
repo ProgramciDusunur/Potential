@@ -1300,6 +1300,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 extensions -= 2;
             }
         }
+        // Low Depth Singular Extension
+        else if (!pos->isSingularMove[pos->ply] && currentMove == tt_move && depth <= 12 && !in_check && tt_flag == hashFlagAlpha) {
+            if (ttAdjustedEval <= alpha) {
+                extensions++;
+            }            
+        }
 
         struct copyposition copyPosition;
         // preserve board state
