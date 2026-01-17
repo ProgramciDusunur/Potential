@@ -1294,18 +1294,17 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
                 extensions += 1;
             }
+
+            // Low Depth Singular Extension
+            else if (!pos->isSingularMove[pos->ply] && currentMove == tt_move && depth <= 12 && !in_check && tt_flag == hashFlagAlpha && ttAdjustedEval <= alpha) {            
+                extensions++;            
+            }
             
             // Cut Node Extension
             else if (cutNode) {
                 extensions -= 2;
             }
-        }
-        // Low Depth Singular Extension
-        else if (!pos->isSingularMove[pos->ply] && currentMove == tt_move && depth <= 12 && !in_check && tt_flag == hashFlagAlpha) {
-            if (ttAdjustedEval <= alpha) {
-                extensions++;
-            }            
-        }
+        }        
 
         struct copyposition copyPosition;
         // preserve board state
