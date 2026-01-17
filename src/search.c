@@ -1209,7 +1209,6 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             const int singularBeta = tt_score - (depth * 5 + (tt_pv && !pvNode) * 10) / (8 - (!tt_pv && pvNode) * 5);
             const int singularDepth = (depth - 1) / 2;
 
-
             struct copyposition copyPosition;
             // preserve board state
             copyBoard(pos, &copyPosition);
