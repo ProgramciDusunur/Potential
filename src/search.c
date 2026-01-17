@@ -692,7 +692,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
         bool quiet_move = getMoveCapture(move) == 0 && getMovePromote(move) == 0;
 
-        if (!rootNode && bestScore > -mateFound && !quiet_move) {
+        if (!in_check && bestScore > -mateFound) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
             }
