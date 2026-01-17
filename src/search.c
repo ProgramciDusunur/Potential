@@ -896,7 +896,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             ttAdjustedEval >= beta + 30 &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos) &&
-            !(tt_move && isTactical(tt_move) && tt_flag == hashFlagAlpha && !SEE(pos, tt_move, 300))) {
+            !(tt_move && isTactical(tt_move) && tt_flag == hashFlagAlpha && !SEE(pos, tt_move, 500))) {
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(pos, &copyPosition);
