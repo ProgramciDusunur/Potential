@@ -310,10 +310,25 @@ int scoreMove(uint16_t move, board* position) {
     // score quiet moves
     else {
         int quiet_score = 0;
+
+        bool threat_source = is_square_threatened(position, getMoveSource(move));
+        bool threat_target = is_square_threatened(position, getMoveTarget(move));
+        int16_t source_square = getMoveSource(move);
+        int16_t target_square = getMoveTarget(move);
+        int piece = position->mailbox[source_square];
+
+        int from_hist_value = fromToHistory[position->side][source_square][target_square]
+            [threat_source][threat_target];
+
+        int piece_hist_value = pieceToHistory[position->side][piece][target_square]
+            [threat_source][threat_target];
+        
+        quiet_score += (from_hist_value + piece_hist_value) / 2;
+
         quiet_score +=
             // quiet main history 
-            quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)]
-            [is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))];
+            quietHistory[position->side][source_square][target_square]
+            [threat_source][threat_target];
 
         // 1 ply continuation history
         quiet_score += getContinuationHistoryScore(position, 1, move);
@@ -322,7 +337,7 @@ int scoreMove(uint16_t move, board* position) {
         // 4 ply continuation history
         quiet_score += getContinuationHistoryScore(position, 4, move);
         // pawn history
-        quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
+        quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[source_square]][target_square];
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
@@ -1510,6 +1525,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
+                        update_from_to_history(bestMove, pos->side, depth, badQuiets, pos);
+                        update_piece_to_history(bestMove, pos->side, depth, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets, quiet_history_score);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);                       
                         

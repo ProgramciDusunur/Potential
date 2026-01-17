@@ -26,6 +26,12 @@ int16_t pawnHistory[2048][12][64];
 // captureHistory [piece][toSquare][capturedPiece]
 int16_t captureHistory[12][64][13];
 
+// fromToHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
+int16_t fromToHistory[2][64][64][2][2];
+
+// pieceToHistory[side to move][piece][toSquare][threatSource][threatTarget]
+int16_t pieceToHistory[2][12][64][2][2];
+
 /*╔════════════════════╗
   ║ Correction History ║
   ╚════════════════════╝*/
@@ -173,6 +179,62 @@ void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
         updateAllCH(pos, badQuiets->moves[index], -bonus, quiet_hist_score);
+    }
+}
+
+void update_from_to_history(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos) {
+    int from = getMoveSource(bestMove);
+    int to = getMoveTarget(bestMove);
+
+    int bonus = getHistoryBonus(depth);
+    int score = fromToHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)];
+
+    fromToHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)] +=
+    scaledBonus(score, bonus, maxQuietHistory);
+
+    for (int index = 0; index < badQuiets->count; index++) {
+        if (badQuiets->moves[index] == bestMove) continue;
+
+        int badQuietFrom = getMoveSource(badQuiets->moves[index]);
+        int badQuietTo = getMoveTarget(badQuiets->moves[index]);
+
+        int badQuietScore = fromToHistory[side][badQuietFrom][badQuietTo]
+                                        [is_square_threatened(pos, badQuietFrom)]
+                                        [is_square_threatened(pos, badQuietTo)];
+
+        fromToHistory[side][badQuietFrom][badQuietTo]
+                       [is_square_threatened(pos, badQuietFrom)]
+                       [is_square_threatened(pos, badQuietTo)] +=
+        scaledBonus(badQuietScore, -bonus, maxQuietHistory);
+    }
+}
+
+void update_piece_to_history(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos) {
+    int piece = pos->mailbox[getMoveSource(bestMove)];
+    int to = getMoveTarget(bestMove);
+
+    int bonus = getHistoryBonus(depth);
+    int score = pieceToHistory[side][piece][to][is_square_threatened(pos, getMoveSource(bestMove))]
+                                         [is_square_threatened(pos, to)];
+
+    pieceToHistory[side][piece][to][is_square_threatened(pos, getMoveSource(bestMove))]
+                                 [is_square_threatened(pos, to)] +=
+    scaledBonus(score, bonus, maxQuietHistory);
+
+    for (int index = 0; index < badQuiets->count; index++) {
+        if (badQuiets->moves[index] == bestMove) continue;
+
+        int badQuietPiece = pos->mailbox[getMoveSource(badQuiets->moves[index])];
+        int badQuietTo = getMoveTarget(badQuiets->moves[index]);
+
+        int badQuietScore = pieceToHistory[side][badQuietPiece][badQuietTo]
+                                         [is_square_threatened(pos, getMoveSource(badQuiets->moves[index]))]
+                                         [is_square_threatened(pos, badQuietTo)];
+
+        pieceToHistory[side][badQuietPiece][badQuietTo]
+                       [is_square_threatened(pos, getMoveSource(badQuiets->moves[index]))]
+                       [is_square_threatened(pos, badQuietTo)] +=
+        scaledBonus(badQuietScore, -bonus, maxQuietHistory);
     }
 }
 
