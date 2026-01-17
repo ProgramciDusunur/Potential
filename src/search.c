@@ -320,15 +320,10 @@ int scoreMove(uint16_t move, board* position) {
         int from_hist_value = fromToHistory[position->side][source_square][target_square]
             [threat_source][threat_target];
 
-        int piece_hist_value = pieceToHistory[position->side][piece][target_square]
+        int piece_hist_value = pieceToHistory[piece][target_square]
             [threat_source][threat_target];
         
         quiet_score += (from_hist_value + piece_hist_value) / 2;
-
-        quiet_score +=
-            // quiet main history 
-            quietHistory[position->side][source_square][target_square]
-            [threat_source][threat_target];
 
         // 1 ply continuation history
         quiet_score += getContinuationHistoryScore(position, 1, move);
@@ -996,8 +991,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             int nmp_depth = depth - R;
 
             if (!isTactical(nmp_ref_move)) {
-                int refutation_bonus = 100 + 50 * nmp_depth;
-                adjust_single_quiet_hist_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
+                int refutation_bonus = 100 + 50 * nmp_depth;                
+                adjust_single_from_to_history_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
             }
         }
     }    
@@ -1178,10 +1173,28 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         int pawnHistoryValue = notTactical ? pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
 
-        int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
-                captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+        int moveHistory = 0;
+
+        if (notTactical) {
+            bool threat_source = is_square_threatened(pos, getMoveSource(currentMove));
+            bool threat_target = is_square_threatened(pos, getMoveTarget(currentMove));
+            int16_t source_square = getMoveSource(currentMove);
+            int16_t target_square = getMoveTarget(currentMove);
+            int piece = pos->mailbox[source_square];
+
+            int from_hist_value = fromToHistory[pos->side][source_square][target_square]
+            [threat_source][threat_target];
+
+            int piece_hist_value = pieceToHistory[piece][target_square]
+            [threat_source][threat_target];
+
+            moveHistory += (from_hist_value + piece_hist_value) / 2;
+
+            moveHistory += getContinuationHistoryScore(pos, 1, currentMove);
+            moveHistory += getContinuationHistoryScore(pos, 4, currentMove);
+        } else {
+            moveHistory = captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+        }       
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
 
@@ -1520,13 +1533,22 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // fail-hard beta cutoff
                 if (score >= beta) {
                     if (notTactical) {
-                        int quiet_history_score = 
-                        quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
+                        bool threat_source = is_square_threatened(pos, getMoveSource(currentMove));
+                        bool threat_target = is_square_threatened(pos, getMoveTarget(currentMove));
+                        int16_t source_square = getMoveSource(currentMove);
+                        int16_t target_square = getMoveTarget(currentMove);
+                        int piece = pos->mailbox[source_square];
 
-                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
+                        int from_hist_value = fromToHistory[pos->side][source_square][target_square]
+                        [threat_source][threat_target];
+
+                        int piece_hist_value = pieceToHistory[piece][target_square]
+                        [threat_source][threat_target];
+
+                        int quiet_history_score = (from_hist_value + piece_hist_value) / 2;
+                        
                         update_from_to_history(bestMove, pos->side, depth, badQuiets, pos);
-                        update_piece_to_history(bestMove, pos->side, depth, badQuiets, pos);
+                        update_piece_to_history(bestMove, depth, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets, quiet_history_score);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);                       
                         
@@ -1619,7 +1641,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
     uint8_t evalStability = 0;
     int baseSearchScore = -infinity;
 
-    quiet_history_aging();
+    from_to_history_aging();
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {

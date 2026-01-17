@@ -23,13 +23,12 @@ enum {
 };
 
 
-extern int16_t quietHistory[2][64][64][2][2];
 extern int16_t continuationHistory[12][64][12][64];
 extern int16_t contCorrhist[12][64][12][64];
 extern int16_t pawnHistory[2048][12][64];
 extern int16_t captureHistory[12][64][13];
 extern int16_t fromToHistory[2][64][64][2][2];
-extern int16_t pieceToHistory[2][12][64][2][2];
+extern int16_t pieceToHistory[12][64][2][2];
 extern int16_t krpCorrhist[2][16384];
 
 extern int CORRHIST_WEIGHT_SCALE;
@@ -44,8 +43,7 @@ extern int16_t MAJOR_CORRECTION_HISTORY[2][16384];
 extern int16_t NON_PAWN_CORRECTION_HISTORY[2][2][16384];
 
 int scaledBonus(int score, int bonus, int gravity);
-void adjust_single_quiet_hist_entry(board *pos, int side, uint16_t move, int bonus);
-void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos);
+void adjust_single_from_to_history_entry(board *pos, int side, uint16_t move, int bonus);
 void updatePawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets);
 void updateSingleCHScore(board *pos, uint16_t move, const int offSet, const int bonus, int quiet_hist_score);
 int getAllCHScore(board *pos, uint16_t move, int quiet_hist_score);
@@ -55,7 +53,7 @@ void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *
 int getContinuationHistoryScore(board *pos, int offSet, uint16_t move);
 void updateCaptureHistory(board *position, uint16_t bestMove, int depth);
 void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, uint16_t bestMove);
-void update_piece_to_history(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos);
+void update_piece_to_history(uint16_t bestMove, int depth, moves *badQuiets, board *pos);
 void update_from_to_history(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos);
 void update_pawn_correction_hist(board *position, const int depth, const int diff);
 void update_minor_correction_hist(board *position, const int depth, const int diff);
@@ -65,7 +63,7 @@ void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const in
 void update_king_rook_pawn_corrhist(board *position, const int depth, const int diff);
 int adjust_eval_with_corrhist(board *pos, int rawEval);
 void clear_histories(void);
-void quiet_history_aging(void);
+void from_to_history_aging(void);
 
 
 #endif //POTENTIAL_HISTORY_H
