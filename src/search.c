@@ -1391,7 +1391,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
-                lmrReduction += QUIET_NON_PV_LMR_SCALER;
+                lmrReduction += QUIET_NON_PV_LMR_SCALER + (!in_check && depth >= 12) * 512;
             }
 
             // Futility LMR
