@@ -985,7 +985,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 adjust_single_quiet_hist_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
             }
         }
-    }    
+    }
+
+    // Refutation Extension
+    int16_t refutation_move = pos->nmp_refutation_move[pos->ply];
+    if (pos->ply < 2 * pos->rootDepth && !isTactical(refutation_move) && depth >= 8 && tt_flag == hashFlagAlpha && abs(tt_score) < mateValue) {
+        depth++;
+    }
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
