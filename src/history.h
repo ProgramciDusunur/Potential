@@ -34,6 +34,8 @@ extern int16_t pawnHistory[2048][12][64];
 extern int16_t captureHistory[12][64][13];
 // kingRookPawn Correction History [side to move][key]
 extern int16_t krpCorrhist[2][16384];
+// pieceToHistory[piece][toSquare][threatSource][threatTarget]
+extern int16_t pieceToHistory[12][64][2][2];
 
 extern int CORRHIST_WEIGHT_SCALE;
 extern int CORRHIST_GRAIN;
@@ -56,6 +58,7 @@ void updateAllCH(board *pos, uint16_t move, int bonus, int quiet_hist_score);
 int getHistoryBonus(int depth);
 void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets, int quiet_hist_score);
 int getContinuationHistoryScore(board *pos, int offSet, uint16_t move);
+void update_piece_to_history(uint16_t bestMove, int depth, moves *badQuiets, board *pos);
 void updateCaptureHistory(board *position, uint16_t bestMove, int depth);
 void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, uint16_t bestMove);
 void update_pawn_correction_hist(board *position, const int depth, const int diff);

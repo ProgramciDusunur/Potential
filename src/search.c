@@ -309,11 +309,19 @@ int scoreMove(uint16_t move, board* position) {
     }
     // score quiet moves
     else {
+        int16_t source_square = getMoveSource(move);
+        int16_t target_square = getMoveTarget(move);
+        int16_t piece = position->mailbox[source_square];
+        bool threat_source = is_square_threatened(position, source_square);
+        bool threat_target = is_square_threatened(position, target_square);
+
         int quiet_score = 0;
+
+        
         quiet_score +=
             // quiet main history 
-            quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)]
-            [is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))];
+            (quietHistory[position->side][source_square][target_square]
+            [threat_source][threat_target] + pieceToHistory[piece][target_square][threat_source][threat_target]) / 2;
 
         // 1 ply continuation history
         quiet_score += getContinuationHistoryScore(position, 1, move);
@@ -1510,6 +1518,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
+                        update_piece_to_history(bestMove, depth, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets, quiet_history_score);
                         updatePawnHistory(pos, bestMove, depth, badQuiets);                       
                         
