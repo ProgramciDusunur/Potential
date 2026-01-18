@@ -316,10 +316,15 @@ void clear_histories(void) {
     memset(krpCorrhist, 0, sizeof(krpCorrhist));
 }
 
-void quiet_history_aging(void) {    
+void age_histories(void) {
     int16_t *p = (int16_t *)quietHistory;
     
     for (int i = 0; i < 32768; i++) {
         p[i] >>= 1;
+    }
+
+    int16_t *c = (int16_t *)captureHistory;
+    for (int i = 0; i < 9216; i++) {
+        c[i] >>= 1;
     }
 }

@@ -66,7 +66,7 @@ void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const in
 void update_king_rook_pawn_corrhist(board *position, const int depth, const int diff);
 int adjust_eval_with_corrhist(board *pos, int rawEval);
 void clear_histories(void);
-void quiet_history_aging(void);
+void age_histories(void);
 
 
 #endif //POTENTIAL_HISTORY_H
