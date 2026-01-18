@@ -275,6 +275,7 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
     const int newWeight = 4 * myMIN(depth + 1, 16);
 
     update_single_cont_corrhist_entry(pos, 2, scaledDiff, newWeight);
+    update_single_cont_corrhist_entry(pos, 3, scaledDiff, newWeight);
     update_single_cont_corrhist_entry(pos, 4, scaledDiff, newWeight);
 }
 
