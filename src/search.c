@@ -1548,7 +1548,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     if (score <= originalAlpha && pos->move[myMIN(pos->ply, maxPly - 1)] != 0 && counter_move_available) {
         int pcm_bonus = 0;
 
-        pcm_bonus += myMIN(80 * depth, 1024);
+        pcm_bonus += myMIN(originalAlpha - score * depth, 2048);
 
         adjust_single_quiet_hist_entry(pos, pos->side, counter_move, pcm_bonus);
     }
