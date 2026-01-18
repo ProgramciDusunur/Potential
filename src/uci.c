@@ -417,6 +417,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
     }
 
     if (argc >= 2 && strncmp(argv[1], "genfens", 7) == 0) {
+        sm64_state = 0;
         char buffer[2048] = "";
         char* command = argv[1];
 
@@ -437,15 +438,24 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
                            &how_many_fens_to_create, &seed, book_path, extra_args);
 
         if (items_scanned >= 3) {
-            fprintf(stderr, "Command: %s\n", command);
+            printf("Generating FENs...\n");
+            // Debugging output
+            /*fprintf(stderr, "Command: %s\n", command);
             fprintf(stderr, "Generating FENs.. \n\n");
             fprintf(stderr, "  Extraction Successful:\n");
             fprintf(stderr, " How Many FENs To Create: %" PRIu64 "\n", how_many_fens_to_create);
             fprintf(stderr, " Seed: %" PRIu64 "\n", seed);
-            fprintf(stderr, "  Book: %s\n", book_path);
+            fprintf(stderr, "  Book: %s\n", book_path);*/
+            sm64_state = seed;
+            board position;
+            parseFEN(startPosition, &position);
+
+            for (uint64_t i = 0; i < how_many_fens_to_create; i++) {
+                default_fen_generation(&position, 0);
+            }
         
             if (items_scanned > 3) {
-                fprintf(stderr, "  Extra Arguments = %s\n", extra_args);
+                //fprintf(stderr, "  Extra Arguments = %s\n", extra_args);
             }
 
             exit(0);

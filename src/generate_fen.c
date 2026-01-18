@@ -94,7 +94,7 @@ void default_fen_generation(board *pos, int current_ply) {
     
     if (legal_count == 0) return;
     
-    int random_idx = rand() % legal_count;
+    int random_idx = get_random_uint64_number() % legal_count;
     int selected_move = legal_moves[random_idx];
 
     struct copyposition cp_step;

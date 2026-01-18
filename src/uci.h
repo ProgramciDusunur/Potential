@@ -14,6 +14,8 @@
 #include "fen.h"
 #include "bench.h"
 #include <inttypes.h>
+#include "generate_fen.h"
+#include "magic.h"
 
 
 #ifdef _WIN32
