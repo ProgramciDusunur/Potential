@@ -1541,7 +1541,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return get_draw_score(pos);
     } else if (bestMove) {
         if (!pvNode) {
-            ttMoveHistory[pos->side] += bestMove == tt_move ? 400 : -350;
+            ttMoveHistory[pos->side] += bestMove == tt_move ? 600 : -450;
         }
         
     }
