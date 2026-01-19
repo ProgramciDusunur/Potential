@@ -58,6 +58,8 @@
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
   int IMPROVING_LMR_SCALER = 1024;
+  int TT_MOVE_HISTORY_LMR_MULTIPLIER = 256;
+  int TT_MOVE_HISTORY_LMR_DIVISOR = 8192;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -1388,6 +1390,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += IMPROVING_LMR_SCALER;
         }
 
+        // tt move history based reduction
+        lmrReduction += (ttMoveHistory[pos->side] * TT_MOVE_HISTORY_LMR_MULTIPLIER) / TT_MOVE_HISTORY_LMR_DIVISOR;
+
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
@@ -1415,8 +1420,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // Reduce Less
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
-        }
-        
+        }                
 
         lmrReduction /= 1024;
 
@@ -1538,6 +1542,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         else
             // return stalemate score
             return get_draw_score(pos);
+    } else if (bestMove) {
+        if (!pvNode) {
+            ttMoveHistory[pos->side] += bestMove == tt_move ? 600 : -450;
+        }
     }
 
     if (!pos->isSingularMove[pos->ply]) {
