@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "timeman.h"
 
-#define VERSION "3.17.41"
+#define VERSION "3.18.41"
 #define BENCH_DEPTH 14
 
 double DEF_TIME_MULTIPLIER = 0.054;
@@ -72,7 +72,6 @@ uint16_t parse_move(char *move_string, board* position) {
     // return illegal move
     return 0;
 }
-
 
 // parse UCI "position" command
 void parse_position(char *command, board* position) {
