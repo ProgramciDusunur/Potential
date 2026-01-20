@@ -1552,7 +1552,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
             !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
 
-            int corrhistBonus = clamp(bestScore - static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
+            int corrhistBonus = clamp((bestScore - static_eval) * depth / (8 - 2 * pvNode), -CORRHIST_LIMIT, CORRHIST_LIMIT);
             update_pawn_correction_hist(pos, depth, corrhistBonus);
             update_minor_correction_hist(pos, depth, corrhistBonus);
             update_major_correction_hist(pos, depth, corrhistBonus);
