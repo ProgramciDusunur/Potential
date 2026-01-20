@@ -574,6 +574,24 @@ int get_draw_score(board *pos) {
     return (pos->nodes_searched & 3) - 2; // Randomize between -2 and +2
 }
 
+int adaptive_probcut_margin(int depth) {
+    int base = 100;
+
+    int log_table[32] = {
+        0, 0, 1, 1, 2, 2, 2, 2,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        4, 4, 4, 4, 4, 4, 4, 4,
+        4, 4, 4, 4, 4, 4, 4, 4
+    };
+
+    int log_depth = log_table[myMIN(depth, 31)];
+
+    // add small linear boost at deeper depths
+    int depth_bonus = depth >= 16 ? (depth - 16) * 5 : 0;
+
+    return base + (log_depth * 55) + depth_bonus;
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, my_time* time) {
     if (time->isNodeLimit) {
@@ -1024,7 +1042,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // legal moves counter
     int legal_moves = 0;
 
-    int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
+    int probcut_beta = beta + adaptive_probcut_margin(depth) - PROBCUT_IMPROVING_MARGIN * improving;
     if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
