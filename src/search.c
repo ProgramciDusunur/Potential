@@ -891,7 +891,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         return ttAdjustedEval;
 
     // Null Move Pruning
-    if (!pos->isSingularMove[pos->ply] && !pvNode &&
+    if (!pos->isSingularMove[pos->ply] && cutNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
             ttAdjustedEval >= beta + 30 &&
             pos->ply >= pos->nmpPly &&
@@ -1236,7 +1236,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                 // Double Extension                
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
-
+                doubleMargin -= ttMoveHistory[pos->side] / 1000;
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
 
@@ -1355,7 +1355,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         // Reduce More
         if (cutNode) {
-            lmrReduction += CUT_NODE_LMR_SCALER + !tt_move * 1024;
+            lmrReduction += CUT_NODE_LMR_SCALER + !tt_move * 1024 - (tt_score < beta) * 256;
         }
 
         if (tt_pv && tt_hit && tt_score <= alpha) {
@@ -1538,6 +1538,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         else
             // return stalemate score
             return get_draw_score(pos);
+    } else if (bestMove) {
+        if (!pvNode) {
+            ttMoveHistory[pos->side] += bestMove == tt_move ? 600 : -450;
+        }
     }
 
     if (!pos->isSingularMove[pos->ply]) {

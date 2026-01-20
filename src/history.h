@@ -34,6 +34,9 @@ extern int16_t pawnHistory[2048][12][64];
 extern int16_t captureHistory[12][64][13];
 // kingRookPawn Correction History [side to move][key]
 extern int16_t krpCorrhist[2][16384];
+// tt move history [side]
+extern int16_t ttMoveHistory[2];
+
 
 extern int CORRHIST_WEIGHT_SCALE;
 extern int CORRHIST_GRAIN;
