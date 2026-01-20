@@ -574,6 +574,24 @@ int get_draw_score(board *pos) {
     return (pos->nodes_searched & 3) - 2; // Randomize between -2 and +2
 }
 
+int adaptive_sprobcut_margin(int depth) {
+    int base = 100;
+
+    int log_table[32] = {
+        0, 0, 1, 1, 2, 2, 2, 2,
+        3, 3, 3, 3, 3, 3, 3, 3,
+        4, 4, 4, 4, 4, 4, 4, 4,
+        4, 4, 4, 4, 4, 4, 4, 4
+    };
+
+    int log_depth = log_table[myMIN(depth, 31)];
+
+    // add small linear boost at deeper depths
+    int depth_bonus = depth >= 16 ? (depth - 16) * 5 : 0;
+
+    return base + (log_depth * 55) + depth_bonus;
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, board* position, my_time* time) {
     if (time->isNodeLimit) {
@@ -1107,7 +1125,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
     }
 
-    int small_probcut_beta = beta + SPROBCUT_BETA_MARGIN;
+    int small_probcut_beta = beta + adaptive_sprobcut_margin(depth);
     
     // Small Probcut
     if (!pos->isSingularMove[pos->ply] && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
