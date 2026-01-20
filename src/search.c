@@ -1273,7 +1273,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // Negative Extensions
             else if (tt_score >= beta) {
-                extensions -= 2 + !pvNode;
+                extensions -= (cutNode ? 3 : 2) + !pvNode;
             }
 
             // ╔══════════════════════════════╗
