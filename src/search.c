@@ -74,6 +74,7 @@
   int PROBCUT_DEPTH = 5;
   int PROBCUT_DEPTH_SUBTRACTOR = 4;
   int PROBCUT_IMPROVING_MARGIN = 30;
+  int PROBCUT_LONG_TERM_IMPROVING_MARGIN = 15;
   int PROBCUT_SEE_NOISY_THRESHOLD = 100;
   int PROBCUT_NOISY_HISTORY_DIVISOR = 10240;
 
@@ -848,18 +849,25 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     int static_eval = adjust_eval_with_corrhist(pos, raw_eval);
 
-    bool improving = false;
+    bool improving = false, long_term_improving = false;
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
 
-    int pastStack = -1;
+    int pastStack = -1, long_term_past_stack = -1;
 
     pos->staticEval[pos->ply] = static_eval;
 
-    pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval  ?  pos->ply - 2 : -1;
+    pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval ? pos->ply - 2 : -1;    
 
-    improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
+    if (!in_check) {
+        improving = pastStack > -1 && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
+        long_term_improving = pos->ply >= 6 && pos->staticEval[pos->ply] > pos->staticEval[pos->ply - 2] &&
+                              pos->staticEval[pos->ply - 2] > pos->staticEval[pos->ply - 4] && 
+                              pos->staticEval[pos->ply - 4] > pos->staticEval[pos->ply - 6];
+    }
+
+    
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
@@ -1024,7 +1032,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // legal moves counter
     int legal_moves = 0;
 
-    int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
+    int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving - PROBCUT_LONG_TERM_IMPROVING_MARGIN * long_term_improving;
     if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
