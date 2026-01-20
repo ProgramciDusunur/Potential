@@ -851,6 +851,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     bool improving = false;
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
+    bool high_corrplexity = abs(raw_eval - static_eval) > 200;
     int corrplexity_value = abs(raw_eval - static_eval);
 
     int pastStack = -1;
@@ -1175,7 +1176,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         if (!rootNode && notTactical && isNotMated) {
 
-            int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
+            int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - (improving || high_corrplexity));
 
             // Late Move Pruning
             if (legal_moves>= lmpThreshold) {
