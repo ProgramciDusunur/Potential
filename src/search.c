@@ -1435,6 +1435,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+                if (notTactical && (score <= alpha || score >= beta)) {
+                    const int bonus = score <= alpha ? -getHistoryBonus(depth) : getHistoryBonus(depth);
+                    standard_update_all_ch(pos, currentMove, bonus);
+                }
             }
         }
         else if (!pvNode || legal_moves > 1) {
