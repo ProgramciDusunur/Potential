@@ -1236,7 +1236,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                 // Double Extension                
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);                
-                doubleMargin -= pos->ttMoveHistory[pos->side].history / (pos->ttMoveHistory[pos->side].move == currentMove ? 500 : 1000);
+                doubleMargin -= pos->ttMoveHistory[pos->side].history / (pos->ttMoveHistory[pos->side].move == currentMove ? 750 : 1000);
 
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
