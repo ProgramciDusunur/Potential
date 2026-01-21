@@ -500,7 +500,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0) {
             // clear all histories
-            clear_histories();
+            clear_histories(position);
 
             // clear hash table
             clearHashTable();

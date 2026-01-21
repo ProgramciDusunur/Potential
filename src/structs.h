@@ -26,6 +26,11 @@ typedef struct  {
 } threats;
 
 typedef struct {
+    uint16_t move;
+    int16_t history;
+} ttMoveHistory;
+
+typedef struct {
     U64 bitboards[12];
     U64 occupancies[3];
     uint8_t mailbox[64];
@@ -45,6 +50,7 @@ typedef struct {
     int pvLength[maxPly];
     int pvTable[maxPly][maxPly];    
     threats pieceThreats;
+    ttMoveHistory ttMoveHistory[2];
 
     int fifty;
 
@@ -165,6 +171,5 @@ typedef struct  {
 typedef struct {
     char str[128]; // FEN string    
 } FenString;
-
 
 #endif //POTENTIAL_STRUCTS_H

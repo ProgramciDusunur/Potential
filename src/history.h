@@ -34,8 +34,6 @@ extern int16_t pawnHistory[2048][12][64];
 extern int16_t captureHistory[12][64][13];
 // kingRookPawn Correction History [side to move][key]
 extern int16_t krpCorrhist[2][16384];
-// tt move history [side]
-extern int16_t ttMoveHistory[2];
 
 extern int CORRHIST_WEIGHT_SCALE;
 extern int CORRHIST_GRAIN;
@@ -67,7 +65,7 @@ void update_non_pawn_corrhist(board *position, const int depth, const int diff);
 void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int scaledDiff, const int newWeight);
 void update_king_rook_pawn_corrhist(board *position, const int depth, const int diff);
 int adjust_eval_with_corrhist(board *pos, int rawEval);
-void clear_histories(void);
+void clear_histories(board *pos);
 void quiet_history_aging(void);
 
 

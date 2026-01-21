@@ -74,7 +74,7 @@ void benchmark(int depth, board* position, my_time* time) {
         clearHashTable();
 
         //clear history
-        clear_histories();        
+        clear_histories(position);        
 
         totalNodes += position->nodes_searched;        
     }

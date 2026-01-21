@@ -26,9 +26,6 @@ int16_t pawnHistory[2048][12][64];
 // captureHistory [piece][toSquare][capturedPiece]
 int16_t captureHistory[12][64][13];
 
-// tt move history [side]
-int16_t ttMoveHistory[2];
-
 /*╔════════════════════╗
   ║ Correction History ║
   ╚════════════════════╝*/
@@ -306,7 +303,7 @@ int adjust_eval_with_corrhist(board *pos, int rawEval) {
     return rawEval;
 }
 
-void clear_histories(void) {
+void clear_histories(board *pos) {
     memset(quietHistory, 0, sizeof(quietHistory));            
     memset(captureHistory, 0, sizeof(captureHistory));
     memset(PAWN_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
@@ -317,7 +314,7 @@ void clear_histories(void) {
     memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
     memset(contCorrhist, 0, sizeof(contCorrhist));
     memset(krpCorrhist, 0, sizeof(krpCorrhist));
-    memset(ttMoveHistory, 0, sizeof(ttMoveHistory));
+    memset(pos->ttMoveHistory, 0, sizeof(pos->ttMoveHistory));
 }
 
 void quiet_history_aging(void) {    
