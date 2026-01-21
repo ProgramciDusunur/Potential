@@ -1236,7 +1236,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                 // Double Extension                
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
-                doubleMargin -= ttMoveHistory[pos->side] / 750;
+                doubleMargin -= ttMoveHistory[pos->side] / 1000;
 
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
@@ -1541,9 +1541,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return get_draw_score(pos);
     } else if (bestMove) {
         if (!pvNode) {
-            ttMoveHistory[pos->side] += bestMove == tt_move ? 600 : -450;
-        }
-        
+            ttMoveHistory[pos->side] += bestMove == tt_move ? 400 : -750;
+        }        
     }
 
 
