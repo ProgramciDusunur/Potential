@@ -1550,7 +1550,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
 
         if (!in_check && !pos->isSingularMove[pos->ply]) {
-            static_eval += (get_correction_value(pos) - correction_value) * depth / 16;
+            static_eval += (get_correction_value(pos) - correction_value) * depth / 64;
         }
         
         if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
