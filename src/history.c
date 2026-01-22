@@ -312,7 +312,8 @@ int get_correction_value(board *pos) {
         + MAJOR_CORRECTION_HISTORY[side][pos->majorKey & mask]
         + krpCorrhist[side][pos->krpKey & mask]
         + NON_PAWN_CORRECTION_HISTORY[white][side][pos->whiteNonPawnKey & mask]
-        + NON_PAWN_CORRECTION_HISTORY[black][side][pos->blackNonPawnKey & mask]) / CORRHIST_GRAIN;
+        + NON_PAWN_CORRECTION_HISTORY[black][side][pos->blackNonPawnKey & mask]
+        + adjust_single_cont_corrhist_entry(pos, 2)) / CORRHIST_GRAIN;
 
 
     return correction;
