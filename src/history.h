@@ -48,13 +48,11 @@ extern int16_t NON_PAWN_CORRECTION_HISTORY[2][2][16384];
 
 int scaledBonus(int score, int bonus, int gravity);
 void adjust_single_quiet_hist_entry(board *pos, int side, uint16_t move, int bonus);
-void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos);
-void updatePawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets);
 void updateSingleCHScore(board *pos, uint16_t move, const int offSet, const int bonus, int quiet_hist_score);
 int getAllCHScore(board *pos, uint16_t move, int quiet_hist_score);
 void updateAllCH(board *pos, uint16_t move, int bonus, int quiet_hist_score);
 int getHistoryBonus(int depth);
-void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets, int quiet_hist_score);
+void update_quiet_histories(board *pos, uint16_t bestMove, int depth, moves *badQuiets);
 int getContinuationHistoryScore(board *pos, int offSet, uint16_t move);
 void updateCaptureHistory(board *position, uint16_t bestMove, int depth);
 void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, uint16_t bestMove);

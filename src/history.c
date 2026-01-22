@@ -71,47 +71,6 @@ void adjust_single_quiet_hist_entry(board *pos, int side, uint16_t move, int bon
     quietHistory[side][from][to][threatSource][threatTarget] += bonus;
 }
 
-void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos) {
-    int from = getMoveSource(bestMove);
-    int to = getMoveTarget(bestMove);
-
-    int bonus = getHistoryBonus(depth);
-    int score = quietHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)];
-
-    quietHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)] += scaledBonus(score, bonus, maxQuietHistory);
-
-    for (int index = 0; index < badQuiets->count; index++) {
-        if (badQuiets->moves[index] == bestMove) continue;
-        
-        int badQuietFrom = getMoveSource(badQuiets->moves[index]);
-        int badQuietTo = getMoveTarget(badQuiets->moves[index]);
-
-        int badQuietScore = quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)];        
-
-        quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)] +=
-        scaledBonus(badQuietScore, -bonus, maxQuietHistory);
-    }
-}
-
-void updatePawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets) {
-    int from = getMoveSource(bestMove);
-    int to = getMoveTarget(bestMove);
-
-    int bonus = getHistoryBonus(depth);
-    int score = pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to];
-
-    pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
-
-    for (int index = 0; index < badQuiets->count; index++) {
-        if (badQuiets->moves[index] == bestMove) continue;
-
-        int badQuietFrom = getMoveSource(badQuiets->moves[index]);
-        int badQuietTo = getMoveTarget(badQuiets->moves[index]);
-
-        pawnHistory[pos->pawnKey % 2048][pos->mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
-    }
-}
-
 void updateCaptureHistory(board *position, uint16_t bestMove, int depth) {
     int piece = position->mailbox[getMoveSource(bestMove)];
     int to = getMoveTarget(bestMove);
@@ -165,14 +124,40 @@ void updateAllCH(board *pos, uint16_t move, int bonus, int quiet_hist_score) {
     updateSingleCHScore(pos, move, 4, bonus, quiet_hist_score);
 }
 
-void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets, int quiet_hist_score) {
+void update_quiet_histories(board *pos, uint16_t bestMove, int depth, moves *badQuiets) {
+    int16_t from = getMoveSource(bestMove);
+    int16_t to = getMoveTarget(bestMove);
+    int16_t piece = pos->mailbox[from];
+    bool threatSource = is_square_threatened(pos, from);
+    bool threatTarget = is_square_threatened(pos, to);
+    
+
     int bonus = getHistoryBonus(depth);
 
+    int16_t quiet_hist_score = quietHistory[pos->side][from][to][threatSource][threatTarget];
+    quietHistory[pos->side][from][to][threatSource][threatTarget] += scaledBonus(quiet_hist_score, bonus, maxQuietHistory);    
+
+    int16_t pawn_hist_score = pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to];
+    pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to] += scaledBonus(pawn_hist_score, bonus, maxPawnHistory);
+
     updateAllCH(pos, bestMove, bonus, quiet_hist_score);
+    
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
+        
+        int16_t badQuietFrom = getMoveSource(badQuiets->moves[index]);
+        int16_t badQuietTo = getMoveTarget(badQuiets->moves[index]);
+
+        bool badQuietThreatSource = is_square_threatened(pos, badQuietFrom);
+        bool badQuietThreatTarget = is_square_threatened(pos, badQuietTo);
+
+        int16_t badQuietScore = quietHistory[pos->side][badQuietFrom][badQuietTo][badQuietThreatSource][badQuietThreatTarget];
+
+        quietHistory[pos->side][badQuietFrom][badQuietTo][badQuietThreatSource][badQuietThreatTarget] +=
+        scaledBonus(badQuietScore, -bonus, maxQuietHistory);
         updateAllCH(pos, badQuiets->moves[index], -bonus, quiet_hist_score);
+        pawnHistory[pos->pawnKey % 2048][pos->mailbox[badQuietFrom]][badQuietTo] += scaledBonus(pawn_hist_score, -bonus, maxPawnHistory);
     }
 }
 
