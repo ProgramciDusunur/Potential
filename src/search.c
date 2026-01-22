@@ -773,6 +773,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // variable to store current move's score (from the static evaluation perspective)
     int score = 0;
+    int bestScore = -infinity;
 
     depth = myMIN(depth, maxPly - 1);
 
@@ -982,6 +983,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             if (!isTactical(nmp_ref_move)) {
                 int refutation_bonus = 100 + 50 * nmp_depth;
+                refutation_bonus += 150 * (!in_check && bestScore <= pos->staticEval[pos->ply] - 100);
+                
                 adjust_single_quiet_hist_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
             }
         }
@@ -1135,9 +1138,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     init_move_scores(moveList, move_scores, tt_move, pos);
 
     // number of moves searched in a move list
-    int moves_searched = 0;
-
-    int bestScore = -infinity;    
+    int moves_searched = 0;    
 
     // legal moves counter
     legal_moves = 0;
