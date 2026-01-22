@@ -1442,6 +1442,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
                 new_depth = myMAX(new_depth, 1);
             }
+
+            if (!tt_move && cutNode) {
+                new_depth -= 1;
+            }
             
             score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
         }
