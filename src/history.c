@@ -323,6 +323,7 @@ void clear_histories(void) {
     memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
     memset(contCorrhist, 0, sizeof(contCorrhist));
     memset(krpCorrhist, 0, sizeof(krpCorrhist));
+    memset(cutoffHistory, 0, sizeof(cutoffHistory));
 }
 
 void quiet_history_aging(void) {    
