@@ -285,6 +285,9 @@ int adjust_eval_with_corrhist(board *pos, int rawEval) {
     const int side = pos->side;
     const int mask = CORRHIST_SIZE - 1;
 
+    int game_phase = get_game_phase_score(pos);
+    int phase_factor = myMIN(game_phase, opening_phase_score);
+
     // Batch memory access    
     int adjust = PAWN_CORRECTION_HISTORY[side][pos->pawnKey & mask]
                + MINOR_CORRECTION_HISTORY[side][pos->minorKey & mask]
@@ -293,6 +296,9 @@ int adjust_eval_with_corrhist(board *pos, int rawEval) {
                + NON_PAWN_CORRECTION_HISTORY[white][side][pos->whiteNonPawnKey & mask]
                + NON_PAWN_CORRECTION_HISTORY[black][side][pos->blackNonPawnKey & mask]
                + adjust_single_cont_corrhist_entry(pos, 2);
+    
+    int phase_weight = 128 + (256 - phase_factor * 128 / opening_phase_score);
+    adjust = adjust * phase_weight / 256;
 
     const int mateFound = mateValue - maxPly;
     
