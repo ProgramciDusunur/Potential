@@ -172,7 +172,8 @@ void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
-        updateAllCH(pos, badQuiets->moves[index], -bonus, quiet_hist_score);
+        int scaled_bonus = bonus + index * 30;
+        updateAllCH(pos, badQuiets->moves[index], -scaled_bonus, quiet_hist_score);
     }
 }
 
