@@ -5,6 +5,7 @@
 #include "history.h"
 #include "evaluation.h"
 #include "utils.h"
+#include <stdint.h>
 
 
 /*╔═════════╗
@@ -50,6 +51,9 @@ int16_t NON_PAWN_CORRECTION_HISTORY[2][2][16384];
 
 // king rook pawn correction history [side to move][key]
 int16_t krpCorrhist[2][16384];
+
+// cutoff history [side to move]
+int16_t cutoffHistory[2];
 
 /* Update History */
 
@@ -175,6 +179,10 @@ void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *
         if (badQuiets->moves[index] == bestMove) continue;
         updateAllCH(pos, badQuiets->moves[index], -bonus, quiet_hist_score);
     }
+}
+
+void updateCutoffHistory(board *pos, int bonus) {    
+    cutoffHistory[pos->side] += scaledBonus(cutoffHistory[pos->side], bonus, maxCutoffHistory);
 }
 
 /* Update Correction History */

@@ -3,6 +3,7 @@
 //
 
 #include "search.h"
+#include <stdint.h>
 
 
 /*███████████████████████████████████████████████████████████████████████████████*\
@@ -887,7 +888,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
-        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
+        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20 + (cutoffHistory[pos->side] / 32))
         return ttAdjustedEval;
 
     // Null Move Pruning
@@ -1538,6 +1539,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         else
             // return stalemate score
             return get_draw_score(pos);
+    }
+
+    if (!pvNode) {
+        int16_t bonus = bestScore >= beta ? 700 : -700;
+        updateCutoffHistory(pos, bonus);
     }
 
     if (!pos->isSingularMove[pos->ply]) {

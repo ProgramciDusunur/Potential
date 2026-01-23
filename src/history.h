@@ -19,7 +19,8 @@
 enum {
     maxQuietHistory = 16384,
     maxPawnHistory = 16384,
-    maxCaptureHistory = 16384
+    maxCaptureHistory = 16384,
+    maxCutoffHistory = 8192
 };
 
 // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
@@ -34,6 +35,8 @@ extern int16_t pawnHistory[2048][12][64];
 extern int16_t captureHistory[12][64][13];
 // kingRookPawn Correction History [side to move][key]
 extern int16_t krpCorrhist[2][16384];
+// cutoffHistory [side to move]
+extern int16_t cutoffHistory[2];
 
 extern int CORRHIST_WEIGHT_SCALE;
 extern int CORRHIST_GRAIN;
@@ -58,6 +61,7 @@ void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *
 int getContinuationHistoryScore(board *pos, int offSet, uint16_t move);
 void updateCaptureHistory(board *position, uint16_t bestMove, int depth);
 void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, uint16_t bestMove);
+void updateCutoffHistory(board *pos, int bonus);
 void update_pawn_correction_hist(board *position, const int depth, const int diff);
 void update_minor_correction_hist(board *position, const int depth, const int diff);
 void update_major_correction_hist(board *position, const int depth, const int diff);
