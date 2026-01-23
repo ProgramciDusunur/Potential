@@ -849,6 +849,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int static_eval = adjust_eval_with_corrhist(pos, raw_eval);
 
     bool improving = false;
+    bool avoided_null_move_pruning = false;
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
@@ -981,6 +982,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             int nmp_depth = depth - R;
 
             if (!isTactical(nmp_ref_move)) {
+                avoided_null_move_pruning = true;
                 int refutation_bonus = 100 + 50 * nmp_depth;
                 adjust_single_quiet_hist_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
             }
@@ -1299,6 +1301,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             else if (cutNode) {
                 extensions -= 2;
             }
+        }
+
+        // ~~~~ NMP Refutation Extension ~~~~
+        if (currentMove == tt_move && avoided_null_move_pruning && !rootNode && depth >= 6 && !pos->isSingularMove[pos->ply]) {
+            extensions++; 
         }
 
         struct copyposition copyPosition;
