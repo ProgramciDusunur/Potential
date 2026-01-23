@@ -45,6 +45,7 @@ extern int16_t PAWN_CORRECTION_HISTORY[2][16384];
 extern int16_t MINOR_CORRECTION_HISTORY[2][16384];
 extern int16_t MAJOR_CORRECTION_HISTORY[2][16384];
 extern int16_t NON_PAWN_CORRECTION_HISTORY[2][2][16384];
+extern int16_t THREAT_CORRECTION_HISTORY[2][4][16384];
 
 int scaledBonus(int score, int bonus, int gravity);
 void adjust_single_quiet_hist_entry(board *pos, int side, uint16_t move, int bonus);
@@ -64,6 +65,7 @@ void update_major_correction_hist(board *position, const int depth, const int di
 void update_non_pawn_corrhist(board *position, const int depth, const int diff);
 void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int scaledDiff, const int newWeight);
 void update_king_rook_pawn_corrhist(board *position, const int depth, const int diff);
+void update_threat_correction_hist(board *pos, const int depth, const int diff);
 int adjust_eval_with_corrhist(board *pos, int rawEval);
 void clear_histories(void);
 void quiet_history_aging(void);

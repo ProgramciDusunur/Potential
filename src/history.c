@@ -51,6 +51,9 @@ int16_t NON_PAWN_CORRECTION_HISTORY[2][2][16384];
 // king rook pawn correction history [side to move][key]
 int16_t krpCorrhist[2][16384];
 
+// threat correction history [side to move][threat index][threat key]
+int16_t THREAT_CORRECTION_HISTORY[2][4][16384];
+
 /* Update History */
 
 int getHistoryBonus(int depth) {
@@ -279,11 +282,39 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
     update_single_cont_corrhist_entry(pos, 4, scaledDiff, newWeight);
 }
 
+int get_threat_index(board *pos) {
+    bool we_threaten = (pos->pieceThreats.stmThreats[pos->side] & 
+                        pos->occupancies[pos->side ^ 1]) != 0;
+    bool enemy_threatens = (pos->pieceThreats.stmThreats[pos->side ^ 1] & 
+                            pos->occupancies[pos->side]) != 0;
+    return (we_threaten << 1) | enemy_threatens;
+}
+
+U64 generate_threat_key(board *pos) {
+    return pos->pieceThreats.stmThreats[white] ^ 
+           (pos->pieceThreats.stmThreats[black] * 0x9E3779B97F4A7C15ULL);
+}
+
+void update_threat_correction_hist(board *pos, const int depth, const int diff) {
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = 4 * myMIN(depth + 1, 16);
+    const int mask = CORRHIST_SIZE - 1;
+    
+    int threat_idx = get_threat_index(pos);
+    U64 threat_key = generate_threat_key(pos);
+    
+    int16_t *entry = &THREAT_CORRECTION_HISTORY[pos->side][threat_idx][threat_key & mask];
+    apply_corrhist_update(entry, scaledDiff, newWeight);
+}
+
 int adjust_eval_with_corrhist(board *pos, int rawEval) {       
     rawEval = (rawEval * (300 - pos->fifty)) / 300;
     
     const int side = pos->side;
     const int mask = CORRHIST_SIZE - 1;
+
+    int threat_idx = get_threat_index(pos);
+    U64 threat_key = generate_threat_key(pos);
 
     // Batch memory access    
     int adjust = PAWN_CORRECTION_HISTORY[side][pos->pawnKey & mask]
@@ -292,8 +323,11 @@ int adjust_eval_with_corrhist(board *pos, int rawEval) {
                + krpCorrhist[side][pos->krpKey & mask]
                + NON_PAWN_CORRECTION_HISTORY[white][side][pos->whiteNonPawnKey & mask]
                + NON_PAWN_CORRECTION_HISTORY[black][side][pos->blackNonPawnKey & mask]
-               + adjust_single_cont_corrhist_entry(pos, 2);
+               + adjust_single_cont_corrhist_entry(pos, 2)
+               + THREAT_CORRECTION_HISTORY[side][threat_idx][threat_key & mask];
 
+    
+    
     const int mateFound = mateValue - maxPly;
     
     rawEval += adjust / CORRHIST_GRAIN;
