@@ -86,10 +86,11 @@ void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQu
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
-        int badQuietScore = quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)];        
+        int badQuietScore = quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)];
+        int scaled_bonus = bonus + index * 30;
 
         quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)] +=
-        scaledBonus(badQuietScore, -bonus, maxQuietHistory);
+        scaledBonus(badQuietScore, -scaled_bonus, maxQuietHistory);
     }
 }
 
