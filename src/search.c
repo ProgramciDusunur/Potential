@@ -853,13 +853,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
 
-    int pastStack = -1;
+    bool improving_2_ply = false;
+    bool improving_4_ply = false;
 
     pos->staticEval[pos->ply] = static_eval;
 
-    pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval  ?  pos->ply - 2 : -1;
+    improving_2_ply = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval ? pos->staticEval[pos->ply] > pos->staticEval[pos->ply - 2] : false;
+    improving_4_ply = pos->ply >= 4 && pos->staticEval[pos->ply - 4] != noEval ? pos->staticEval[pos->ply] > pos->staticEval[pos->ply - 4] : false;
 
-    improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
+    improving = !in_check && (improving_2_ply || improving_4_ply);
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
