@@ -57,6 +57,7 @@
   int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
+  int NO_THREAT_LMR_SCALER = 1024;
   int IMPROVING_LMR_SCALER = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
@@ -1386,6 +1387,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         if (!improving && !in_check) {
             lmrReduction += IMPROVING_LMR_SCALER;
+        }
+
+        if (!in_check && !has_enemy_any_threat(pos)) {
+            lmrReduction += NO_THREAT_LMR_SCALER;
         }
 
         if (notTactical) {
