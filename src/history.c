@@ -163,6 +163,11 @@ void updateSingleCHScore(board *pos, uint16_t move, const int offSet, const int 
 void updateAllCH(board *pos, uint16_t move, int bonus, int quiet_hist_score) {
     updateSingleCHScore(pos, move, 1, bonus, quiet_hist_score);
     updateSingleCHScore(pos, move, 2, bonus, quiet_hist_score);
+
+    // only update the first 2 conthist entries if we are in a check position
+    if (pos->inCheck[pos->ply]) {
+        return;
+    }
     updateSingleCHScore(pos, move, 4, bonus, quiet_hist_score);
 }
 
