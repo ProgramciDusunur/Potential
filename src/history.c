@@ -108,8 +108,9 @@ void updatePawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiet
 
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
+        int scaled_bonus = bonus + index * 30;
 
-        pawnHistory[pos->pawnKey % 2048][pos->mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
+        pawnHistory[pos->pawnKey % 2048][pos->mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -scaled_bonus, maxPawnHistory);
     }
 }
 
