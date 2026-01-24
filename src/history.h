@@ -24,8 +24,8 @@ enum {
 
 // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
 extern int16_t quietHistory[2][64][64][2][2];
-// continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-extern int16_t continuationHistory[12][64][12][64];
+// continuationHistory[inCheck][isCapture][previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+extern int16_t continuationHistory[2][2][12][64][12][64];
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 extern int16_t contCorrhist[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]

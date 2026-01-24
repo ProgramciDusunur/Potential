@@ -842,6 +842,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
     
+    pos->inCheck[pos->ply] = in_check;
+    
 
     // get static evaluation score
     int raw_eval = evaluate(pos);

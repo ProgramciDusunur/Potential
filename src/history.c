@@ -14,8 +14,8 @@
 // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
 int16_t quietHistory[2][64][64][2][2];
 
-// continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-int16_t continuationHistory[12][64][12][64];
+// continuationHistory[inCheck][isCapture][previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+int16_t continuationHistory[2][2][12][64][12][64];
 
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t contCorrhist[12][64][12][64];
@@ -146,16 +146,22 @@ int getAllCHScore(board *pos, uint16_t move, int quiet_hist_score) {
 
 int getContinuationHistoryScore(board *pos, int offSet, uint16_t move) {
     const int ply = pos->ply - offSet;
-    return ply >= 0 ? continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
+    const int inCheck = pos->inCheck[pos->ply];
+    const int isCapture = getMoveCapture(move) != 0;
+    
+    return ply >= 0 ? continuationHistory[inCheck][isCapture][pos->piece[ply]][getMoveTarget(pos->move[ply])]
                               [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] : 0;
 }
 
 void updateSingleCHScore(board *pos, uint16_t move, const int offSet, const int bonus, int quiet_hist_score) {
     int base_conthist_score = getAllCHScore(pos, move, quiet_hist_score);
     const int ply = pos->ply - offSet;
+    const int inCheck = pos->inCheck[pos->ply];
+    const int isCapture = getMoveCapture(move) != 0;
+
     if (ply >= 0) {
         const int scaledBonus = bonus - base_conthist_score * abs(bonus) / maxQuietHistory;
-        continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
+        continuationHistory[inCheck][isCapture][pos->piece[ply]][getMoveTarget(pos->move[ply])]
                               [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
     }
 }

@@ -54,6 +54,8 @@ typedef struct {
 
     uint16_t piece[maxPly];
     uint16_t move[maxPly];
+    uint8_t inCheck[maxPly];
+    uint8_t isCapture[maxPly];
     U64 nodes_searched;
 
     bool benchmark;
