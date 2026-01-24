@@ -849,6 +849,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int static_eval = adjust_eval_with_corrhist(pos, raw_eval);
 
     bool improving = false;
+    bool tt_capture = tt_move && getMoveCapture(tt_move);
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
@@ -994,7 +995,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         int razor_depth = myMIN(myMIN(depth, RAZORING_DEPTH), max_razor_index);
 
         if (razor_depth > 0) {
-            const int margin = RAZORING_MARGIN[razor_depth];
+            const int margin = RAZORING_MARGIN[razor_depth] - 200 * tt_capture;
 
             if (ttAdjustedEval + margin <= alpha) {
                 const bool allow_full_razor = depth == 1 ||
