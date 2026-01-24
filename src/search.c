@@ -3,6 +3,13 @@
 //
 
 #include "search.h"
+#include "cuckoo.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <sys/time.h>
+#endif
 
 
 /*███████████████████████████████████████████████████████████████████████████████*\
@@ -584,6 +591,14 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         communicate(time, position);
     }
 
+    // upcoming repetition detection
+    if (alpha < 0 && hasUpcomingRepetition(position)) {
+        alpha = 0;
+        if (alpha >= beta) {
+            return alpha;
+        }
+    }
+
     if (position->ply > maxPly - 1) {
         // evaluate position
         return evaluate(position);
@@ -807,6 +822,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return get_draw_score(pos);
         }        
 
+        // upcoming repetition detection
+        if (alpha < 0 && hasUpcomingRepetition(pos)) {
+            alpha = 0;
+            if (alpha >= beta) {
+                return alpha;
+            }
+        }
 
         // Mate distance pruning
         alpha = myMAX(alpha, -mateValue + (int)pos->ply);
@@ -835,7 +857,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // recursion escapre condition
     if (depth <= 0)
         // run quiescence search
-        return quiescence(alpha, beta, pos, time);        
+        return quiescence(alpha, beta, pos, time);
 
     // is king in check
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :

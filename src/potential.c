@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 
 
 
@@ -12,7 +16,9 @@
 #include "fen.h"
 #include "perft.h"
 #include "see.h"
+#include "see.h"
 #include "generate_fen.h"
+#include "cuckoo.h"
 
 
 
@@ -34,6 +40,8 @@ void initAll(void) {
     // init tranposition table
     init_hash_table(64);
     init_tables();
+    // init cuckoo
+    initCuckoo();
 }
 
 

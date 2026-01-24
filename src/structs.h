@@ -166,5 +166,10 @@ typedef struct {
     char str[128]; // FEN string    
 } FenString;
 
+typedef struct {
+    U64 key;
+    uint16_t move;
+} CuckooEntry;
+
 
 #endif //POTENTIAL_STRUCTS_H
