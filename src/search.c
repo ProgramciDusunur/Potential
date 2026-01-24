@@ -1345,12 +1345,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             pos->piece[myMIN(pos->ply, maxPly - 1)] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
             //captureMoves++;
             addMoveToHistoryList(noisyMoves, currentMove);
-        }
-
-        if (failHighCount > 0 && score >= beta) {
-            failHighCount++;
-            break;
-        }
+        }        
 
         uint64_t nodes_before_search = pos->nodes_searched;
 
@@ -1475,6 +1470,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         // take move back
         takeBack(pos, &copyPosition);
+
+        if (failHighCount > 0 && score >= beta) {
+            failHighCount++;
+            break;
+        }
 
         if (rootNode) {
             nodes_spent_table[currentMove & 4095] += pos->nodes_searched - nodes_before_search;
