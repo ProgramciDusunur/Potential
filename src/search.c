@@ -1150,6 +1150,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     const int originalAlpha = alpha;
 
+    int failHighCount = 0;
+
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
         pick_next_move(count, moveList, move_scores);
@@ -1345,6 +1347,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             addMoveToHistoryList(noisyMoves, currentMove);
         }
 
+        if (failHighCount > 0 && score >= beta) {
+            failHighCount++;
+            break;
+        }
+
         uint64_t nodes_before_search = pos->nodes_searched;
 
         int new_depth = depth - 1 + extensions;
@@ -1520,8 +1527,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                     // always penalize bad noisy moves
                     updateCaptureHistoryMalus(pos, depth, noisyMoves, bestMove);
 
-                    // node (move) fails high
-                    break;
+                    if (!rootNode || score > beta + 365 / depth) {
+                        break;
+                    } else {
+                        failHighCount++;
+                        alpha = beta - 1;
+                    }
                 }
             }
         }
