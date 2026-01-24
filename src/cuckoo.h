@@ -1,7 +1,3 @@
-//
-// Created by Potential Engine Team
-//
-
 #ifndef POTENTIAL_CUCKOO_H
 #define POTENTIAL_CUCKOO_H
 

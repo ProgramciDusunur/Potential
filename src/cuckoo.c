@@ -1,7 +1,3 @@
-//
-// Created by Potential Engine Team
-//
-
 #include "cuckoo.h"
 #include "board_constants.h"
 #include "move.h"
@@ -21,12 +17,9 @@ static inline int H2(U64 key) {
     return (int)((key >> 16) & CUCKOO_MASK);
 }
 
-// Insert logic
 void insertCuckoo(U64 key, uint16_t move) {
     int index1 = H1(key);
     int index2 = H2(key);
-
-    // Try slot 1
     if (cuckooTable[0][index1].move == 0) {
         cuckooTable[0][index1].key = key;
         cuckooTable[0][index1].move = move;
