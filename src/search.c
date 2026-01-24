@@ -1358,7 +1358,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += CUT_NODE_LMR_SCALER + !tt_move * 1024;
         }
 
-        if (tt_pv && tt_hit && tt_score <= alpha) {
+        if (tt_pv && tt_hit && tt_score <= alpha && tt_flag == hashFlagBeta) {
             lmrReduction += TT_PV_FAIL_LOW_LMR_SCALER;
         }
 
