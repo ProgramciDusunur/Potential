@@ -4,9 +4,10 @@
 
 #include "search.h"
 
-#if defined(__SSE4_1__)
+#if defined(__AVX2__) || defined(__SSE4_1__)
 #include <immintrin.h>
 #endif
+
 
 
 /*███████████████████████████████████████████████████████████████████████████████*\
@@ -182,46 +183,101 @@ void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
     int bestIndex = moveNum;
     int bestScore = move_scores[moveNum];
     int i = moveNum + 1;
-
-#if defined(__SSE4_1__)
     int count = moveList->count;
-    
+
+#if defined(__AVX2__)
+    // High-performance AVX2 path for 8-way parallel move picking
+    if (i + 8 <= count) {
+        __m256i best_val_v = _mm256_set1_epi32(bestScore);
+        __m256i best_idx_v = _mm256_set1_epi32(bestIndex);
+        __m256i cur_idx_v = _mm256_set_epi32(i + 7, i + 6, i + 5, i + 4, i + 3, i + 2, i + 1, i);
+        __m256i step_v = _mm256_set1_epi32(8);
+
+        for (; i + 8 <= count; i += 8) {
+            __m256i scores_v = _mm256_loadu_si256((__m256i const*)&move_scores[i]);
+            __m256i mask_v = _mm256_cmpgt_epi32(scores_v, best_val_v);
+
+            best_val_v = _mm256_blendv_epi8(best_val_v, scores_v, mask_v);
+            best_idx_v = _mm256_blendv_epi8(best_idx_v, cur_idx_v, mask_v);
+
+            cur_idx_v = _mm256_add_epi32(cur_idx_v, step_v);
+        }
+
+        // Horizontal reduction: 8 -> 4
+        __m128i vlink_l = _mm256_extracti128_si256(best_val_v, 0);
+        __m128i vlink_h = _mm256_extracti128_si256(best_val_v, 1);
+        __m128i ilink_l = _mm256_extracti128_si256(best_idx_v, 0);
+        __m128i ilink_h = _mm256_extracti128_si256(best_idx_v, 1);
+
+        __m128i m128 = _mm_cmpgt_epi32(vlink_h, vlink_l);
+        __m128i v128 = _mm_blendv_epi8(vlink_l, vlink_h, m128);
+        __m128i i128 = _mm_blendv_epi8(ilink_l, ilink_h, m128);
+
+        // Horizontal reduction: 4 -> 2
+        __m128i v_shuf = _mm_shuffle_epi32(v128, _MM_SHUFFLE(1, 0, 3, 2));
+        __m128i i_shuf = _mm_shuffle_epi32(i128, _MM_SHUFFLE(1, 0, 3, 2));
+        m128 = _mm_cmpgt_epi32(v_shuf, v128);
+        v128 = _mm_blendv_epi8(v128, v_shuf, m128);
+        i128 = _mm_blendv_epi8(i128, i_shuf, m128);
+
+        // Horizontal reduction: 2 -> 1
+        v_shuf = _mm_shuffle_epi32(v128, _MM_SHUFFLE(2, 3, 0, 1));
+        i_shuf = _mm_shuffle_epi32(i128, _MM_SHUFFLE(2, 3, 0, 1));
+        m128 = _mm_cmpgt_epi32(v_shuf, v128);
+        v128 = _mm_blendv_epi8(v128, v_shuf, m128);
+        i128 = _mm_blendv_epi8(i128, i_shuf, m128);
+
+        int finalScore = _mm_cvtsi128_si32(v128);
+        int finalIndex = _mm_cvtsi128_si32(i128);
+
+        if (finalScore > bestScore) {
+            bestScore = finalScore;
+            bestIndex = finalIndex;
+        }
+    }
+#elif defined(__SSE4_1__)
     if (i + 4 <= count) {
         __m128i best_val_v = _mm_set1_epi32(bestScore);
         __m128i best_idx_v = _mm_set1_epi32(bestIndex);
-        __m128i current_idx_v = _mm_set_epi32(i + 3, i + 2, i + 1, i);
-        __m128i step = _mm_set1_epi32(4);
+        __m128i cur_idx_v = _mm_set_epi32(i + 3, i + 2, i + 1, i);
+        __m128i step_v = _mm_set1_epi32(4);
 
         for (; i + 4 <= count; i += 4) {
-            __m128i val_v = _mm_loadu_si128((__m128i const*)&move_scores[i]);
-            __m128i mask = _mm_cmpgt_epi32(val_v, best_val_v);
+            __m128i scores_v = _mm_loadu_si128((__m128i const*)&move_scores[i]);
+            __m128i mask_v = _mm_cmpgt_epi32(scores_v, best_val_v);
 
-            best_val_v = _mm_blendv_epi8(best_val_v, val_v, mask);
-            best_idx_v = _mm_blendv_epi8(best_idx_v, current_idx_v, mask);
+            best_val_v = _mm_blendv_epi8(best_val_v, scores_v, mask_v);
+            best_idx_v = _mm_blendv_epi8(best_idx_v, cur_idx_v, mask_v);
 
-            current_idx_v = _mm_add_epi32(current_idx_v, step);
+            cur_idx_v = _mm_add_epi32(cur_idx_v, step_v);
         }
 
-        int32_t val_arr[4];
-        int32_t idx_arr[4];
-        _mm_storeu_si128((__m128i*)val_arr, best_val_v);
-        _mm_storeu_si128((__m128i*)idx_arr, best_idx_v);
+        // Horizontal reduction: 4 -> 2
+        __m128i v_shuf = _mm_shuffle_epi32(best_val_v, _MM_SHUFFLE(1, 0, 3, 2));
+        __m128i i_shuf = _mm_shuffle_epi32(best_idx_v, _MM_SHUFFLE(1, 0, 3, 2));
+        __m128i mask = _mm_cmpgt_epi32(v_shuf, best_val_v);
+        __m128i v128 = _mm_blendv_epi8(best_val_v, v_shuf, mask);
+        __m128i i128 = _mm_blendv_epi8(best_idx_v, i_shuf, mask);
 
-        int bestLane = 0;
-        for (int j = 1; j < 4; j++) {
-            if (val_arr[j] > val_arr[bestLane]) {
-                bestLane = j;
-            }
-        }
+        // Horizontal reduction: 2 -> 1
+        v_shuf = _mm_shuffle_epi32(v128, _MM_SHUFFLE(2, 3, 0, 1));
+        i_shuf = _mm_shuffle_epi32(i128, _MM_SHUFFLE(2, 3, 0, 1));
+        mask = _mm_cmpgt_epi32(v_shuf, v128);
+        v128 = _mm_blendv_epi8(v128, v_shuf, mask);
+        i128 = _mm_blendv_epi8(i128, i_shuf, mask);
 
-        if (val_arr[bestLane] > bestScore) {
-            bestScore = val_arr[bestLane];
-            bestIndex = idx_arr[bestLane];
+        int finalScore = _mm_cvtsi128_si32(v128);
+        int finalIndex = _mm_cvtsi128_si32(i128);
+
+        if (finalScore > bestScore) {
+            bestScore = finalScore;
+            bestIndex = finalIndex;
         }
     }
 #endif
 
-    for (; i < moveList->count; i++) {
+    // Scalar fallback handles remainders and non-SIMD platforms
+    for (; i < count; i++) {
         if (move_scores[i] > bestScore) {
             bestScore = move_scores[i];
             bestIndex = i;
