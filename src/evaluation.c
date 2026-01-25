@@ -309,6 +309,9 @@ void init_tables() {
             packed_table[piece][square] = S(mg, eg);
         }
     }
+    for (int piece = N; piece <= Q; piece++) {
+        phase_scores[piece - N] = phase_scores[piece - N + 4] = material_score[opening][piece];
+    }
 }
 
 void get_threats(int side, board* pos) {
@@ -371,6 +374,13 @@ bool is_square_threatened(board *pos, int square) {
     return (pos->pieceThreats.stmThreats[!pos->side] & (1ULL << square)) != 0;
 }
 
+
+int64_t phase_scores[8];
+
+#ifdef __x86_64__
+#include <immintrin.h>
+#endif
+
 // get game phase score
 int get_game_phase_score(const board* position) {
     /*
@@ -384,17 +394,30 @@ int get_game_phase_score(const board* position) {
         2 * queen material score in the opening
     */
 
+
+#if defined(__AVX512F__) && defined(__AVX512VPOPCNTDQ__)
+    __m512i material_values = _mm512_loadu_epi64(phase_scores); 
+
+    __m256i white_pieces = _mm256_loadu_si256((const __m256i *)&position->bitboards[N]);
+    __m256i black_pieces = _mm256_loadu_si256((const __m256i *)&position->bitboards[n]);
+
+    __m512i pieces = _mm512_inserti64x4(_mm512_castsi256_si512(white_pieces), black_pieces, 1);
+    __m512i popcounts = _mm512_popcnt_epi64(pieces);
+
+    return _mm512_reduce_add_epi64(_mm512_mullo_epi64(popcounts, material_values));
+#endif
+
     // white & black game phase scores
     int white_piece_scores = 0, black_piece_scores = 0;
 
     // loop over white pieces
     for (int piece = N; piece <= Q; piece++)
-        white_piece_scores += countBits(position->bitboards[piece]) * material_score[opening][piece];
+        white_piece_scores += countBits(position->bitboards[piece]) * phase_scores[piece - N];
 
 
     // loop over white pieces
     for (int piece = n; piece <= q; piece++)
-        black_piece_scores += countBits(position->bitboards[piece]) * -material_score[opening][piece];
+        black_piece_scores += countBits(position->bitboards[piece]) * phase_scores[piece - n];
 
 
 
