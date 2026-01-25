@@ -4,6 +4,11 @@
 
 #include "search.h"
 
+#if defined(__AVX2__) || defined(__SSE4_1__)
+#include <immintrin.h>
+#endif
+
+
 
 /*███████████████████████████████████████████████████████████████████████████████*\
   ██                                                                           ██
@@ -146,16 +151,39 @@
 
 // position repetition detection
 int isRepetition(board* position) {
-    // loop over repetition indicies range
-    for (int index = 0; index < position->repetitionIndex; index++) {
-        // if we found the hash key same with a current
-        if (position->repetitionTable[index] == position->hashKey) {
-            // we found a repetition
+    U64 target = position->hashKey;
+    int limit = position->repetitionIndex;
+    int index = 0;
+
+#if defined(__AVX2__)
+    // AVX2 path: Compare 4 U64 hash keys at a time
+    if (limit >= 4) {
+        __m256i target_v = _mm256_set1_epi64x(target);
+        for (; index <= limit - 4; index += 4) {
+            __m256i keys_v = _mm256_loadu_si256((__m256i const*)&position->repetitionTable[index]);
+            __m256i cmp = _mm256_cmpeq_epi64(keys_v, target_v);
+            if (!_mm256_testz_si256(cmp, cmp)) return 1;
+        }
+    }
+#elif defined(__SSE4_1__)
+    // SSE4.1 path: Compare 2 U64 hash keys at a time
+    if (limit >= 2) {
+        __m128i target_v = _mm_set1_epi64x(target);
+        for (; index <= limit - 2; index += 2) {
+            __m128i keys_v = _mm_loadu_si128((__m128i const*)&position->repetitionTable[index]);
+            __m128i cmp = _mm_cmpeq_epi64(keys_v, target_v);
+            if (_mm_movemask_epi8(cmp) != 0) return 1;
+        }
+    }
+#endif
+
+    // Scalar fallback handles remainders and non-SIMD platforms
+    for (; index < limit; index++) {
+        if (position->repetitionTable[index] == target) {
             return 1;
         }
     }
 
-    // if no repetition found
     return 0;
 }
 
