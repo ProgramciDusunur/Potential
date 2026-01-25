@@ -304,6 +304,22 @@ int adjust_eval_with_corrhist(board *pos, int rawEval) {
     return rawEval;
 }
 
+int get_correction_value(board *pos) {
+    const int side = pos->side;
+    const int mask = CORRHIST_SIZE - 1;
+
+    int correction = (PAWN_CORRECTION_HISTORY[side][pos->pawnKey & mask]
+        + MINOR_CORRECTION_HISTORY[side][pos->minorKey & mask]
+        + MAJOR_CORRECTION_HISTORY[side][pos->majorKey & mask]
+        + krpCorrhist[side][pos->krpKey & mask]
+        + NON_PAWN_CORRECTION_HISTORY[white][side][pos->whiteNonPawnKey & mask]
+        + NON_PAWN_CORRECTION_HISTORY[black][side][pos->blackNonPawnKey & mask]
+        + adjust_single_cont_corrhist_entry(pos, 2)) / CORRHIST_GRAIN;
+
+
+    return correction;
+}
+
 void clear_histories(void) {
     memset(quietHistory, 0, sizeof(quietHistory));            
     memset(captureHistory, 0, sizeof(captureHistory));
