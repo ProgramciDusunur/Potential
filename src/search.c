@@ -4,6 +4,10 @@
 
 #include "search.h"
 
+#if defined(__SSE4_1__)
+#include <immintrin.h>
+#endif
+
 
 /*███████████████████████████████████████████████████████████████████████████████*\
   ██                                                                           ██
@@ -177,8 +181,47 @@ void initializeLMRTable(void) {
 void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
     int bestIndex = moveNum;
     int bestScore = move_scores[moveNum];
+    int i = moveNum + 1;
 
-    for (int i = moveNum + 1; i < moveList->count; i++) {
+#if defined(__SSE4_1__)
+    int count = moveList->count;
+    
+    if (i + 4 <= count) {
+        __m128i best_val_v = _mm_set1_epi32(bestScore);
+        __m128i best_idx_v = _mm_set1_epi32(bestIndex);
+        __m128i current_idx_v = _mm_set_epi32(i + 3, i + 2, i + 1, i);
+        __m128i step = _mm_set1_epi32(4);
+
+        for (; i + 4 <= count; i += 4) {
+            __m128i val_v = _mm_loadu_si128((__m128i const*)&move_scores[i]);
+            __m128i mask = _mm_cmpgt_epi32(val_v, best_val_v);
+
+            best_val_v = _mm_blendv_epi8(best_val_v, val_v, mask);
+            best_idx_v = _mm_blendv_epi8(best_idx_v, current_idx_v, mask);
+
+            current_idx_v = _mm_add_epi32(current_idx_v, step);
+        }
+
+        int32_t val_arr[4];
+        int32_t idx_arr[4];
+        _mm_storeu_si128((__m128i*)val_arr, best_val_v);
+        _mm_storeu_si128((__m128i*)idx_arr, best_idx_v);
+
+        int bestLane = 0;
+        for (int j = 1; j < 4; j++) {
+            if (val_arr[j] > val_arr[bestLane]) {
+                bestLane = j;
+            }
+        }
+
+        if (val_arr[bestLane] > bestScore) {
+            bestScore = val_arr[bestLane];
+            bestIndex = idx_arr[bestLane];
+        }
+    }
+#endif
+
+    for (; i < moveList->count; i++) {
         if (move_scores[i] > bestScore) {
             bestScore = move_scores[i];
             bestIndex = i;
