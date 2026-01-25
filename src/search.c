@@ -975,6 +975,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
+    int correction_value = get_correction_value(pos);
 
     int pastStack = -1;
 
@@ -1357,8 +1358,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             if (singularScore < singularBeta) {
                 extensions++;
 
+                int correction_adj = abs(correction_value) / 5000;                
+
                 // Double Extension                
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
+                doubleMargin -= correction_adj;
 
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
