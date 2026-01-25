@@ -185,8 +185,7 @@ void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
     int i = moveNum + 1;
     int count = moveList->count;
 
-#if defined(__AVX2__)
-    // High-performance AVX2 path for 8-way parallel move picking
+#if defined(__AVX2__)    
     if (i + 8 <= count) {
         __m256i best_val_v = _mm256_set1_epi32(bestScore);
         __m256i best_idx_v = _mm256_set1_epi32(bestIndex);
@@ -209,23 +208,38 @@ void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
         __m128i ilink_l = _mm256_extracti128_si256(best_idx_v, 0);
         __m128i ilink_h = _mm256_extracti128_si256(best_idx_v, 1);
 
-        __m128i m128 = _mm_cmpgt_epi32(vlink_h, vlink_l);
-        __m128i v128 = _mm_blendv_epi8(vlink_l, vlink_h, m128);
-        __m128i i128 = _mm_blendv_epi8(ilink_l, ilink_h, m128);
+        // Stable selection: Prefer higher score, or lower index on tie
+        __m128i m_gt = _mm_cmpgt_epi32(vlink_h, vlink_l);
+        __m128i m_eq = _mm_cmpeq_epi32(vlink_h, vlink_l);
+        __m128i m_lt_idx = _mm_cmpgt_epi32(ilink_l, ilink_h); // lane_l index > lane_h index
+        __m128i m_use_h = _mm_or_si128(m_gt, _mm_and_si128(m_eq, m_lt_idx));
+
+        __m128i v128 = _mm_blendv_epi8(vlink_l, vlink_h, m_use_h);
+        __m128i i128 = _mm_blendv_epi8(ilink_l, ilink_h, m_use_h);
 
         // Horizontal reduction: 4 -> 2
         __m128i v_shuf = _mm_shuffle_epi32(v128, _MM_SHUFFLE(1, 0, 3, 2));
         __m128i i_shuf = _mm_shuffle_epi32(i128, _MM_SHUFFLE(1, 0, 3, 2));
-        m128 = _mm_cmpgt_epi32(v_shuf, v128);
-        v128 = _mm_blendv_epi8(v128, v_shuf, m128);
-        i128 = _mm_blendv_epi8(i128, i_shuf, m128);
+        
+        m_gt = _mm_cmpgt_epi32(v_shuf, v128);
+        m_eq = _mm_cmpeq_epi32(v_shuf, v128);
+        m_lt_idx = _mm_cmpgt_epi32(i128, i_shuf);
+        m_use_h = _mm_or_si128(m_gt, _mm_and_si128(m_eq, m_lt_idx));
+
+        v128 = _mm_blendv_epi8(v128, v_shuf, m_use_h);
+        i128 = _mm_blendv_epi8(i128, i_shuf, m_use_h);
 
         // Horizontal reduction: 2 -> 1
         v_shuf = _mm_shuffle_epi32(v128, _MM_SHUFFLE(2, 3, 0, 1));
         i_shuf = _mm_shuffle_epi32(i128, _MM_SHUFFLE(2, 3, 0, 1));
-        m128 = _mm_cmpgt_epi32(v_shuf, v128);
-        v128 = _mm_blendv_epi8(v128, v_shuf, m128);
-        i128 = _mm_blendv_epi8(i128, i_shuf, m128);
+        
+        m_gt = _mm_cmpgt_epi32(v_shuf, v128);
+        m_eq = _mm_cmpeq_epi32(v_shuf, v128);
+        m_lt_idx = _mm_cmpgt_epi32(i128, i_shuf);
+        m_use_h = _mm_or_si128(m_gt, _mm_and_si128(m_eq, m_lt_idx));
+
+        v128 = _mm_blendv_epi8(v128, v_shuf, m_use_h);
+        i128 = _mm_blendv_epi8(i128, i_shuf, m_use_h);
 
         int finalScore = _mm_cvtsi128_si32(v128);
         int finalIndex = _mm_cvtsi128_si32(i128);
@@ -255,16 +269,26 @@ void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
         // Horizontal reduction: 4 -> 2
         __m128i v_shuf = _mm_shuffle_epi32(best_val_v, _MM_SHUFFLE(1, 0, 3, 2));
         __m128i i_shuf = _mm_shuffle_epi32(best_idx_v, _MM_SHUFFLE(1, 0, 3, 2));
-        __m128i mask = _mm_cmpgt_epi32(v_shuf, best_val_v);
-        __m128i v128 = _mm_blendv_epi8(best_val_v, v_shuf, mask);
-        __m128i i128 = _mm_blendv_epi8(best_idx_v, i_shuf, mask);
+        
+        __m128i m_gt = _mm_cmpgt_epi32(v_shuf, best_val_v);
+        __m128i m_eq = _mm_cmpeq_epi32(v_shuf, best_val_v);
+        __m128i m_lt_idx = _mm_cmpgt_epi32(best_idx_v, i_shuf);
+        __m128i m_use_h = _mm_or_si128(m_gt, _mm_and_si128(m_eq, m_lt_idx));
+
+        __m128i v128 = _mm_blendv_epi8(best_val_v, v_shuf, m_use_h);
+        __m128i i128 = _mm_blendv_epi8(best_idx_v, i_shuf, m_use_h);
 
         // Horizontal reduction: 2 -> 1
         v_shuf = _mm_shuffle_epi32(v128, _MM_SHUFFLE(2, 3, 0, 1));
         i_shuf = _mm_shuffle_epi32(i128, _MM_SHUFFLE(2, 3, 0, 1));
-        mask = _mm_cmpgt_epi32(v_shuf, v128);
-        v128 = _mm_blendv_epi8(v128, v_shuf, mask);
-        i128 = _mm_blendv_epi8(i128, i_shuf, mask);
+        
+        m_gt = _mm_cmpgt_epi32(v_shuf, v128);
+        m_eq = _mm_cmpeq_epi32(v_shuf, v128);
+        m_lt_idx = _mm_cmpgt_epi32(i128, i_shuf);
+        m_use_h = _mm_or_si128(m_gt, _mm_and_si128(m_eq, m_lt_idx));
+
+        v128 = _mm_blendv_epi8(v128, v_shuf, m_use_h);
+        i128 = _mm_blendv_epi8(i128, i_shuf, m_use_h);
 
         int finalScore = _mm_cvtsi128_si32(v128);
         int finalIndex = _mm_cvtsi128_si32(i128);
