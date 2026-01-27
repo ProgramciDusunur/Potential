@@ -1316,7 +1316,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
             } else { // Noisy Moves
                 int captured_piece = pos->mailbox[getMoveTarget(currentMove)];
-                int noisy_futility_margin = static_eval + 200 + 100 * lmrDepth +
+                int noisy_futility_margin = static_eval + 200 + 82 * depth +
                         FUTILITY_PIECE_VALUES[captured_piece];
                 if (noisy_futility_margin <= alpha) {
                     continue;
