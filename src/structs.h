@@ -26,6 +26,14 @@ typedef struct  {
 } threats;
 
 typedef struct {
+    int16_t quiet_main[maxPly];
+    int16_t one_ply_conthist[maxPly];
+    int16_t two_ply_conthist[maxPly];
+    int16_t four_ply_conthist[maxPly];
+    int16_t capture_history[maxPly];
+} history_info;
+
+typedef struct {
     U64 bitboards[12];
     U64 occupancies[3];
     uint8_t mailbox[64];
@@ -46,6 +54,7 @@ typedef struct {
     int pvTable[maxPly][maxPly];    
     threats pieceThreats;
     int phase_score;
+    history_info history_info;
 
     int fifty;
 
@@ -167,6 +176,5 @@ typedef struct  {
 typedef struct {
     char str[128]; // FEN string    
 } FenString;
-
 
 #endif //POTENTIAL_STRUCTS_H

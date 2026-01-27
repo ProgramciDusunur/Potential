@@ -1280,16 +1280,33 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         if (currentMove == pos->isSingularMove[pos->ply]) {
             continue;
-        }
+        }        
 
         bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromote(currentMove) == 0;
 
-        int pawnHistoryValue = notTactical ? pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
+         
+        int16_t pawnHistoryValue = 0;
+        int moveHistory = 0;
 
-        int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
-                captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+        if (notTactical) {
+
+            pos->history_info.quiet_main[pos->ply] = quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)][is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
+            pos->history_info.one_ply_conthist[pos->ply] = getContinuationHistoryScore(pos, 1, currentMove);
+            pos->history_info.two_ply_conthist[pos->ply] = getContinuationHistoryScore(pos, 2, currentMove);
+            pos->history_info.four_ply_conthist[pos->ply] = getContinuationHistoryScore(pos, 4, currentMove);
+
+            pawnHistoryValue = pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)];
+
+            moveHistory += pos->history_info.quiet_main[pos->ply];
+            moveHistory += pos->history_info.one_ply_conthist[pos->ply];
+            moveHistory += pos->history_info.two_ply_conthist[pos->ply];
+            moveHistory += pos->history_info.four_ply_conthist[pos->ply];
+        } else {
+            pos->history_info.capture_history[pos->ply] = captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+            moveHistory += pos->history_info.capture_history[pos->ply];
+        }
+        
+        
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
 
@@ -1306,7 +1323,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
 
             // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
+            if (lmrDepth <= FP_DEPTH && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + 
+                pos->history_info.quiet_main[pos->ply] / 32 <= alpha) {
                 continue;
             }
             // Quiet History Pruning
