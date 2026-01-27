@@ -3,6 +3,7 @@
 //
 
 #include "fen.h"
+#include "evaluation.h"
 
 // parse FEN string
 void parseFEN(char *fen, board* position) {
@@ -117,5 +118,6 @@ void parseFEN(char *fen, board* position) {
     position->whiteNonPawnKey = generate_white_np_hash_key(position);
     position->blackNonPawnKey = generate_black_np_hash_key(position);
     position->krpKey = generate_krp_key(position);
+    position->psqtScore = generate_psqt_score(position);
 }
 

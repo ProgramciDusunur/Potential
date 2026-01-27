@@ -6,6 +6,8 @@
 #ifndef POTENTIAL_STRUCTS_H
 #define POTENTIAL_STRUCTS_H
 
+#define maxPly 256
+
 #include <stdbool.h>
 #include "stdint.h"
 
@@ -13,9 +15,9 @@
 #define U64 unsigned long long
 #endif
 
-#define maxPly 256
+#include "board_constants.h"
 
-typedef struct  {
+typedef struct {
     uint64_t pawnThreats;
     uint64_t knightThreats;
     uint64_t bishopThreats;
@@ -71,6 +73,7 @@ typedef struct {
     U64 krpKey;
 
     int gamePhase;
+    Score psqtScore;
 } board;
 
 
@@ -113,6 +116,7 @@ struct copyposition {
     int sideCopy;
     int enpassantCopy;
     int castleCopy;
+    Score psqtScoreCopy;
 };
 
 typedef struct {

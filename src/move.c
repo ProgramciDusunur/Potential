@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include "move.h"
 #include "fen.h"
+#include "evaluation.h"
 
 #if __AVX512VBMI2__
 #include <immintrin.h>
@@ -58,6 +59,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->blackNonPawnKeyCopy = p->blackNonPawnKey;
     cp->krpKeyCopy = p->krpKey;
     cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
+    cp->psqtScoreCopy = p->psqtScore;
 }
 
 void takeBack(board *p, struct copyposition *cp) {
@@ -87,6 +89,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->blackNonPawnKey = cp->blackNonPawnKeyCopy;
     p->krpKey = cp->krpKeyCopy;
     p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
+    p->psqtScore = cp->psqtScoreCopy;
 }
 
 
@@ -170,6 +173,7 @@ inline static void addPiece(board* position, int piece, int square) {
     setBit(position->occupancies[both], square);
     position->mailbox[square] = piece;
     toggleHashesForPiece(position, piece, square);
+    position->psqtScore += packed_table[piece][square];
 }
 
 inline static void removePiece(board* position, int piece, int square) {
@@ -179,6 +183,7 @@ inline static void removePiece(board* position, int piece, int square) {
     popBit(position->occupancies[both], square);
     position->mailbox[square] = NO_PIECE;
     toggleHashesForPiece(position, piece, square);
+    position->psqtScore -= packed_table[piece][square];
 }
 
 // make move on chess board

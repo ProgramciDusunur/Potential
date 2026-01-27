@@ -5,13 +5,13 @@
 #ifndef POTENTIAL_EVALUATION_H
 #define POTENTIAL_EVALUATION_H
 
-#pragma once
-
-#include "bit_manipulation.h"
-#include "mask.h"
-#include "move.h"
-#include "values.h"
+#include <stdint.h>
 #include <stdbool.h>
+#include "structs.h"
+
+Score make_score(int mg, int eg);
+int mg_of(Score s);
+int eg_of(Score s);
 
 
 /**********************************\
@@ -103,9 +103,7 @@ extern const int bishop_pair_bonus_midgame;
 extern const int bishop_pair_bonus_endgame;
 extern const int bishop_pair_bonus[];
 
-extern int mg_table[12][64]; // [piece][square] -> midgame score
-extern int eg_table[12][64]; // [piece][square] -> endgame score
-
+extern Score packed_table[12][64];
 
 int get_game_phase_score(const board* position);
 void get_threats(int side, board* pos);
@@ -113,5 +111,6 @@ void init_tables();
 int evaluate(board* position);
 void clearStaticEvaluationHistory(board* position);
 bool is_square_threatened(board *pos, int square);
+Score generate_psqt_score(board *pos);
 
 #endif //POTENTIAL_EVALUATION_H

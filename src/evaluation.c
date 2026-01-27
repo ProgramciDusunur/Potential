@@ -3,7 +3,12 @@
 //
 
 #include "evaluation.h"
-
+#include "structs.h"
+#include "bit_manipulation.h"
+#include "mask.h"
+#include "move.h"
+#include "values.h"
+#include "board_constants.h"
 #include "utils.h"
 
 
@@ -269,26 +274,19 @@ const int bishop_pair_bonus[] = {0, 8, 15, 23, 30, 38};
 
 #include <stdint.h>
 
-typedef int64_t Score;
-
-#define S(mg, eg) make_score(mg, eg)
-
-inline Score make_score(int mg, int eg) {
+Score make_score(int mg, int eg) {
     return (Score)((uint64_t)eg << 32) + (int32_t)mg;
 }
 
-inline int mg_of(Score s) { 
-    return (int)(int32_t)(s & 0xFFFFFFFFLL); 
+int mg_of(Score s) {
+    return (int)(int32_t)(s & 0xFFFFFFFFLL);
 }
 
-inline int eg_of(Score s) {     
-    return (int)(int32_t)((s + 0x80000000LL) >> 32); 
+int eg_of(Score s) {
+    return (int)(int32_t)((s + 0x80000000LL) >> 32);
 }
 
 // Pre-interpolated tables
-int mg_table[12][64]; // [piece][square] -> midgame score
-int eg_table[12][64]; // [piece][square] -> endgame score
-
 Score packed_table[12][64];
 
 void init_tables() {    
@@ -296,7 +294,7 @@ void init_tables() {
         for (int square = 0; square < 64; square++) {
             int mg = material_score[opening][piece] + positional_score[opening][piece][square];
             int eg = material_score[endgame][piece] + positional_score[endgame][piece][square];
-            packed_table[piece][square] = S(mg, eg);
+            packed_table[piece][square] = make_score(mg, eg);
         }
     }
     
@@ -306,7 +304,7 @@ void init_tables() {
             int mirrored_sq = mirrorScore[square];
             int mg = material_score[opening][piece] - positional_score[opening][piece_type][mirrored_sq];
             int eg = material_score[endgame][piece] - positional_score[endgame][piece_type][mirrored_sq];
-            packed_table[piece][square] = S(mg, eg);
+            packed_table[piece][square] = make_score(mg, eg);
         }
     }
 }
@@ -405,7 +403,7 @@ int get_game_phase_score(const board* position) {
 
 int evaluate(board* position) {
     const int game_phase_score = get_game_phase_score(position);
-    Score score = S(0, 0);
+    Score score = position->psqtScore;
 
     // Tehdit bitboardlarını sıfırla ve doldur
     position->pieceThreats.pawnThreats = 0;
@@ -422,37 +420,36 @@ int evaluate(board* position) {
     const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
     const int blackKingSquare = getLS1BIndex(position->bitboards[k]);
     int passed_pawn_count = 0;
-    
+
     for (int piece = P; piece <= k; piece++) {
         U64 bitboard = position->bitboards[piece];
         while (bitboard) {
             const int square = getLS1BIndex(bitboard);
-            score += packed_table[piece][square];
 
             switch (piece) {
                 case P:
                     if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
                         passed_pawn_count++;
                         if (!(getBit(position->occupancies[both], (square - 8))))
-                            score += S(passedCanMoveBonus, passedCanMoveBonus);
+                            score += make_score(passedCanMoveBonus, passedCanMoveBonus);
                     }
                     break;
                 case p:
                     if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
                         passed_pawn_count--;
                         if (!(getBit(position->occupancies[both], (square + 8))))
-                            score -= S(passedCanMoveBonus, passedCanMoveBonus);
+                            score -= make_score(passedCanMoveBonus, passedCanMoveBonus);
                     }
                     break;
-                case B: score += S(countBits(getBishopAttacks(square, position->occupancies[both])), countBits(getBishopAttacks(square, position->occupancies[both]))); break;
-                case b: score -= S(countBits(getBishopAttacks(square, position->occupancies[both])), countBits(getBishopAttacks(square, position->occupancies[both]))); break;
+                case B: score += make_score(countBits(getBishopAttacks(square, position->occupancies[both])), countBits(getBishopAttacks(square, position->occupancies[both]))); break;
+                case b: score -= make_score(countBits(getBishopAttacks(square, position->occupancies[both])), countBits(getBishopAttacks(square, position->occupancies[both]))); break;
                 case R:
-                    if ((position->bitboards[P] & fileMasks[square]) == 0) score += S(semi_open_file_score, semi_open_file_score);
-                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) score += S(rook_open_file, rook_open_file);
+                    if ((position->bitboards[P] & fileMasks[square]) == 0) score += make_score(semi_open_file_score, semi_open_file_score);
+                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) score += make_score(rook_open_file, rook_open_file);
                     break;
                 case r:
-                    if ((position->bitboards[p] & fileMasks[square]) == 0) score -= S(semi_open_file_score, semi_open_file_score);
-                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) score -= S(rook_open_file, rook_open_file);
+                    if ((position->bitboards[p] & fileMasks[square]) == 0) score -= make_score(semi_open_file_score, semi_open_file_score);
+                    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) score -= make_score(rook_open_file, rook_open_file);
                     break;
             }
             popBit(bitboard, square);
@@ -476,25 +473,25 @@ int evaluate(board* position) {
                    ((position->pieceThreats.queenThreats & wKingRing) != 0) * 25;
     if (bThreats > 25) bThreats += (bThreats / 8 * 4);
 
-    score += (position->side == white) ? S(wThreats, wThreats) : -S(bThreats, bThreats);
+    score += (position->side == white) ? make_score(wThreats, wThreats) : -make_score(bThreats, bThreats);
     
     int w_shield = countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]);
-    score += S(w_shield * king_shield_bonus_middlegame, w_shield * king_shield_bonus_endgame);
+    score += make_score(w_shield * king_shield_bonus_middlegame, w_shield * king_shield_bonus_endgame);
     
     int b_shield = countBits(kingAttacks[blackKingSquare] & position->occupancies[black]);
-    score -= S(b_shield * king_shield_bonus_middlegame, b_shield * king_shield_bonus_endgame);
+    score -= make_score(b_shield * king_shield_bonus_middlegame, b_shield * king_shield_bonus_endgame);
     
-    if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0) score -= S(king_semi_open_file_score, king_semi_open_file_score);
-    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[whiteKingSquare]) == 0) score -= S(king_open_file_score, king_open_file_score);
-    if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) score += S(king_semi_open_file_score, king_semi_open_file_score);
-    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[blackKingSquare]) == 0) score += S(king_open_file_score, king_open_file_score);
+    if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0) score -= make_score(king_semi_open_file_score, king_semi_open_file_score);
+    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[whiteKingSquare]) == 0) score -= make_score(king_open_file_score, king_open_file_score);
+    if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) score += make_score(king_semi_open_file_score, king_semi_open_file_score);
+    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[blackKingSquare]) == 0) score += make_score(king_open_file_score, king_open_file_score);
     
-    if (countBits(position->bitboards[B]) == 2) score += S(bishop_pair_bonus_midgame, bishop_pair_bonus_endgame);
-    if (countBits(position->bitboards[b]) == 2) score -= S(bishop_pair_bonus_midgame, bishop_pair_bonus_endgame);
+    if (countBits(position->bitboards[B]) == 2) score += make_score(bishop_pair_bonus_midgame, bishop_pair_bonus_endgame);
+    if (countBits(position->bitboards[b]) == 2) score -= make_score(bishop_pair_bonus_midgame, bishop_pair_bonus_endgame);
 
     // Winnable Score
     int winnable = 6 * passed_pawn_count + 8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]));
-    score += S(winnable, winnable);
+    score += make_score(winnable, winnable);
 
     // Unpack ve Final Interpolation
     int mg = mg_of(score);
@@ -506,6 +503,19 @@ int evaluate(board* position) {
     else final_score = (mg * game_phase_score + eg * (opening_phase_score - game_phase_score)) / opening_phase_score;
 
     return (position->side == white) ? final_score : -final_score;
+}
+
+Score generate_psqt_score(board* position) {
+    Score score = make_score(0, 0);
+    for (int piece = P; piece <= k; piece++) {
+        U64 bitboard = position->bitboards[piece];
+        while (bitboard) {
+            const int square = getLS1BIndex(bitboard);
+            score += packed_table[piece][square];
+            popBit(bitboard, square);
+        }
+    }
+    return score;
 }
 
 
