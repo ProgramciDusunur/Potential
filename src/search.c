@@ -583,10 +583,31 @@ int SEE(board *pos, uint16_t move, int threshold) {
     occupied = (occupied ^ (1ull << from)) | (1ull << to);
     if (enpassant)
         occupied ^= (1ull << pos->enpassant);
-
-    // Get all pieces which attack the target square. And with occupied
-    // so that we do not let the same piece attack twice
+    
     attackers = all_attackers_to_square(pos, occupied, to) & occupied;
+    
+    
+    uint64_t stmPinned = pos->pinned[pos->side];
+    uint64_t oppPinned = pos->pinned[pos->side ^ 1];
+    uint64_t allPinned = stmPinned | oppPinned;
+    
+    if (attackers & allPinned) {
+        
+        int us = pos->side;
+        int them = us ^ 1;
+        
+        int ourKingSq = getLS1BIndex(pos->bitboards[us == white ? K : k]);
+        int theirKingSq = getLS1BIndex(pos->bitboards[them == white ? K : k]);
+        
+        uint64_t ourRay = RayBB[ourKingSq][to];
+        uint64_t theirRay = RayBB[theirKingSq][to];        
+        
+        uint64_t allowed = (~allPinned) 
+                         | (stmPinned & ourRay) 
+                         | (oppPinned & theirRay);
+        
+        attackers &= allowed;
+    }
 
     // Now our opponents turn to recapture
     colour = pos->side ^ 1;
