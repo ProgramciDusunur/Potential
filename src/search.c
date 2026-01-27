@@ -1417,6 +1417,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
                 extensions += 1;
             }
+
+            else if (!isTactical(pos->nmp_refutation_move[pos->ply]) && depth >= 8 && ttAdjustedEval <= alpha && tt_flag == hashFlagAlpha) {
+                extensions += 1;
+            }
             
             // Cut Node Extension
             else if (cutNode) {
