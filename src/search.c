@@ -69,8 +69,8 @@
   /*╔═══════════════════════╗
     ║ Late Move Pruning     ║
     ╚═══════════════════════╝*/
-  int LMP_BASE = 4;
-  int LMP_MULTIPLIER = 3;
+  int LMP_BASE = 6;
+  int LMP_MULTIPLIER = 2;
 
 /*╔═════════════╗
   ║   Probcut   ║
