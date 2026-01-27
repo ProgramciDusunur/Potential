@@ -58,6 +58,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->blackNonPawnKeyCopy = p->blackNonPawnKey;
     cp->krpKeyCopy = p->krpKey;
     cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
+    cp->phase_scoreCopy = p->phase_score;
 }
 
 void takeBack(board *p, struct copyposition *cp) {
@@ -87,6 +88,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->blackNonPawnKey = cp->blackNonPawnKeyCopy;
     p->krpKey = cp->krpKeyCopy;
     p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
+    p->phase_score = cp->phase_scoreCopy;
 }
 
 
@@ -164,21 +166,24 @@ inline static void toggleHashesForPiece(board* position, int piece, int square) 
     }
 }
 
-inline static void addPiece(board* position, int piece, int square) {
+inline static void addPiece(board* position, int piece, int square) {    
+    position->phase_score += get_piece_phase_score(piece);
     setBit(position->bitboards[piece], square);
     setBit(position->occupancies[pieceColor(piece)], square);
-    setBit(position->occupancies[both], square);
+    setBit(position->occupancies[both], square);    
     position->mailbox[square] = piece;
-    toggleHashesForPiece(position, piece, square);
+    toggleHashesForPiece(position, piece, square);    
 }
 
 inline static void removePiece(board* position, int piece, int square) {
-    assert(position->mailbox[square] == piece);
+    assert(position->mailbox[square] == piece);    
+    position->phase_score -= get_piece_phase_score(piece);
     popBit(position->bitboards[piece], square);
     popBit(position->occupancies[pieceColor(piece)], square);
-    popBit(position->occupancies[both], square);
+    popBit(position->occupancies[both], square);    
     position->mailbox[square] = NO_PIECE;
     toggleHashesForPiece(position, piece, square);
+    
 }
 
 // make move on chess board

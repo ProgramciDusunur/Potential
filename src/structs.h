@@ -45,6 +45,7 @@ typedef struct {
     int pvLength[maxPly];
     int pvTable[maxPly][maxPly];    
     threats pieceThreats;
+    int phase_score;
 
     int fifty;
 
@@ -98,6 +99,7 @@ struct copyposition {
     U64 bitboardsCopy[12];
     U64 occupanciesCopy[3];
     uint8_t mailboxCopy[64];
+    int phase_scoreCopy;
 
     U64 hashKeyCopy;
     U64 pawnKeyCopy;

@@ -10,6 +10,7 @@
 #include "bit_manipulation.h"
 #include "table.h"
 #include <string.h>
+#include "evaluation.h"
 
 #pragma once
 
