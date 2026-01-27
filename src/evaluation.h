@@ -105,6 +105,7 @@ extern const int bishop_pair_bonus[];
 
 extern int mg_table[12][64]; // [piece][square] -> midgame score
 extern int eg_table[12][64]; // [piece][square] -> endgame score
+extern const int piece_scores[13];
 
 
 int get_game_phase_score(const board* position);

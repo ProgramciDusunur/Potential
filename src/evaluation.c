@@ -29,6 +29,8 @@ const int material_score[2][12] =
                 // Endgame material score
                 {94, 281, 297, 512, 936, 0, -94, -281, -297, -512, -936, 0}
         };
+// Piece scores for incremental evaluation
+const int piece_scores[13] = {82, 337, 365, 477, 1025, 0, -82, -337, -365, -477, -1025, 0, 0};
 
 // SEE Material Array
 const int seeMaterial[12] = {100, 300, 300, 500, 900, 12000, -100, -300, -300, -500, -900, -12000};
@@ -402,9 +404,8 @@ int get_game_phase_score(const board* position) {
     return white_piece_scores + black_piece_scores;
 }
 
-int get_piece_phase_score(uint8_t piece) {
-    if (piece == P || piece == p || piece == K || piece == k) return 0;
-    int val = material_score[opening][piece];
+int get_piece_phase_score(uint8_t piece) {    
+    int val = piece_scores[piece];
     return val < 0 ? -val : val;
 }
 
