@@ -583,8 +583,10 @@ int SEE(board *pos, uint16_t move, int threshold) {
     occupied = (occupied ^ (1ull << from)) | (1ull << to);
     if (enpassant)
         occupied ^= (1ull << pos->enpassant);
-    
-    attackers = all_attackers_to_square(pos, occupied, to) & occupied;           
+
+    // Get all pieces which attack the target square. And with occupied
+    // so that we do not let the same piece attack twice
+    attackers = all_attackers_to_square(pos, occupied, to) & occupied;
 
     // Now our opponents turn to recapture
     colour = pos->side ^ 1;
