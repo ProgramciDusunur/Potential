@@ -30,7 +30,7 @@ const int material_score[2][12] =
                 {94, 281, 297, 512, 936, 0, -94, -281, -297, -512, -936, 0}
         };
 // Piece scores for incremental evaluation
-const int piece_scores[13] = {82, 337, 365, 477, 1025, 0, -82, -337, -365, -477, -1025, 0, 0};
+const int piece_scores[13] = {0, 337, 365, 477, 1025, 0, 0, -337, -365, -477, -1025, 0, 0};
 
 // SEE Material Array
 const int seeMaterial[12] = {100, 300, 300, 500, 900, 12000, -100, -300, -300, -500, -900, -12000};
