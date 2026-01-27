@@ -63,6 +63,7 @@
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
   int IMPROVING_LMR_SCALER = 1024;
+  int CORRECTION_LMR_DIVISOR = 5000;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -975,6 +976,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
+    int correction_value = get_correction_value(pos);
 
     int pastStack = -1;
 
@@ -1540,6 +1542,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
         }
         
+        // correction based reduction
+        lmrReduction -= abs(correction_value) / CORRECTION_LMR_DIVISOR;
 
         lmrReduction /= 1024;
 
