@@ -185,7 +185,85 @@ void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
     int i = moveNum + 1;
     int count = moveList->count;
 
-#if defined(__AVX2__)    
+#if defined(__AVX512F__)
+    if (i + 16 <= count) {
+        __m512i best_val_v = _mm512_set1_epi32(bestScore);
+        __m512i best_idx_v = _mm512_set1_epi32(bestIndex);
+        __m512i cur_idx_v = _mm512_set_epi32(
+            i+15, i+14, i+13, i+12, i+11, i+10, i+9, i+8,
+            i+7,  i+6,  i+5,  i+4,  i+3,  i+2,  i+1, i
+        );
+        __m512i step_v = _mm512_set1_epi32(16);
+
+        for (; i + 16 <= count; i += 16) {
+            __m512i scores_v = _mm512_loadu_si512((void const*)&move_scores[i]);
+            __mmask16 k = _mm512_cmp_epi32_mask(scores_v, best_val_v, _MM_CMPINT_GT);
+
+            if (k) {
+                best_val_v = _mm512_mask_blend_epi32(k, best_val_v, scores_v);
+                best_idx_v = _mm512_mask_blend_epi32(k, best_idx_v, cur_idx_v);
+            }
+            cur_idx_v = _mm512_add_epi32(cur_idx_v, step_v);
+        }
+
+        __m256i val_lo = _mm512_castsi512_si256(best_val_v);
+        __m256i val_hi = _mm512_extracti64x4_epi64(best_val_v, 1);
+        __m256i idx_lo = _mm512_castsi512_si256(best_idx_v);
+        __m256i idx_hi = _mm512_extracti64x4_epi64(best_idx_v, 1);
+
+        __m256i m_gt = _mm256_cmpgt_epi32(val_hi, val_lo);
+        __m256i m_eq = _mm256_cmpeq_epi32(val_hi, val_lo);
+        __m256i m_lt_idx = _mm256_cmpgt_epi32(idx_lo, idx_hi);
+        __m256i m_use_h = _mm256_or_si256(m_gt, _mm256_and_si256(m_eq, m_lt_idx));
+
+        __m256i best_val_256 = _mm256_blendv_epi8(val_lo, val_hi, m_use_h);
+        __m256i best_idx_256 = _mm256_blendv_epi8(idx_lo, idx_hi, m_use_h);
+
+        __m128i v128 = _mm256_castsi256_si128(best_val_256);
+        __m128i v128_h = _mm256_extracti128_si256(best_val_256, 1);
+        __m128i i128 = _mm256_castsi256_si128(best_idx_256);
+        __m128i i128_h = _mm256_extracti128_si256(best_idx_256, 1);
+
+        __m128i m128_gt = _mm_cmpgt_epi32(v128_h, v128);
+        __m128i m128_eq = _mm_cmpeq_epi32(v128_h, v128);
+        __m128i m128_lt_idx = _mm_cmpgt_epi32(i128, i128_h);
+        __m128i m128_use_h = _mm_or_si128(m128_gt, _mm_and_si128(m128_eq, m128_lt_idx));
+
+        v128 = _mm_blendv_epi8(v128, v128_h, m128_use_h);
+        i128 = _mm_blendv_epi8(i128, i128_h, m128_use_h);
+
+        __m128i v_shuf = _mm_shuffle_epi32(v128, _MM_SHUFFLE(1, 0, 3, 2));
+        __m128i i_shuf = _mm_shuffle_epi32(i128, _MM_SHUFFLE(1, 0, 3, 2));
+        
+        m128_gt = _mm_cmpgt_epi32(v_shuf, v128);
+        m128_eq = _mm_cmpeq_epi32(v_shuf, v128);
+        m128_lt_idx = _mm_cmpgt_epi32(i128, i_shuf);
+        m128_use_h = _mm_or_si128(m128_gt, _mm_and_si128(m128_eq, m128_lt_idx));
+
+        v128 = _mm_blendv_epi8(v128, v_shuf, m128_use_h);
+        i128 = _mm_blendv_epi8(i128, i_shuf, m128_use_h);
+
+        v_shuf = _mm_shuffle_epi32(v128, _MM_SHUFFLE(2, 3, 0, 1));
+        i_shuf = _mm_shuffle_epi32(i128, _MM_SHUFFLE(2, 3, 0, 1));
+        
+        m128_gt = _mm_cmpgt_epi32(v_shuf, v128);
+        m128_eq = _mm_cmpeq_epi32(v_shuf, v128);
+        m128_lt_idx = _mm_cmpgt_epi32(i128, i_shuf);
+        m128_use_h = _mm_or_si128(m128_gt, _mm_and_si128(m128_eq, m128_lt_idx));
+
+        v128 = _mm_blendv_epi8(v128, v_shuf, m128_use_h);
+        i128 = _mm_blendv_epi8(i128, i_shuf, m128_use_h);
+
+        int finalScore = _mm_cvtsi128_si32(v128);
+        int finalIndex = _mm_cvtsi128_si32(i128);
+
+        if (finalScore > bestScore) {
+            bestScore = finalScore;
+            bestIndex = finalIndex;
+        }
+    }
+
+#elif defined(__AVX2__)    
     if (i + 8 <= count) {
         __m256i best_val_v = _mm256_set1_epi32(bestScore);
         __m256i best_idx_v = _mm256_set1_epi32(bestIndex);
