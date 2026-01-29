@@ -301,44 +301,43 @@ void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
         }
     }
 
-    #elif defined(__ARM_NEON)
-    // (128-bit NEON) Implementation    
-    if (i + 4 <= count) {        
-        int32x4_t best_val_v = vdupq_n_s32(bestScore);
-        int32x4_t best_idx_v = vdupq_n_s32(bestIndex);
-                
-        int32_t start_idxs[4] = {i, i+1, i+2, i+3};
-        int32x4_t cur_idx_v = vld1q_s32(start_idxs);
-        int32x4_t step_v = vdupq_n_s32(4);
-        
-        for (; i + 4 <= count; i += 4) {
-            int32x4_t scores_v = vld1q_s32((const int32_t*)&move_scores[i]);
-                                    
-            uint32x4_t mask_v = vcgtq_s32(scores_v, best_val_v);
+   #elif defined(__ARM_NEON)
+    if (count - i >= 8) {
+        int32x4_t max_val_v = vdupq_n_s32(bestScore);
+        int j = i;
+
+        for (; j <= count - 16; j += 16) {
+            __builtin_prefetch(&move_scores[j + 32]);
             
-            best_val_v = vbslq_s32(mask_v, scores_v, best_val_v);
-            best_idx_v = vbslq_s32(mask_v, cur_idx_v, best_idx_v);
-            
-            cur_idx_v = vaddq_s32(cur_idx_v, step_v);
+            int32x4_t v0 = vld1q_s32(&move_scores[j]);
+            int32x4_t v1 = vld1q_s32(&move_scores[j + 4]);
+            int32x4_t v2 = vld1q_s32(&move_scores[j + 8]);
+            int32x4_t v3 = vld1q_s32(&move_scores[j + 12]);
+
+            max_val_v = vmaxq_s32(max_val_v, v0);
+            max_val_v = vmaxq_s32(max_val_v, v1);
+            max_val_v = vmaxq_s32(max_val_v, v2);
+            max_val_v = vmaxq_s32(max_val_v, v3);
         }
-        
-        int32_t final_vals[4];
-        int32_t final_idxs[4];
-        vst1q_s32(final_vals, best_val_v);
-        vst1q_s32(final_idxs, best_idx_v);
 
-        for (int k = 0; k < 4; k++) {
-            if (final_vals[k] > bestScore) {
-                bestScore = final_vals[k];
-                bestIndex = final_idxs[k];
-            } 
+        for (; j <= count - 4; j += 4) {
+            max_val_v = vmaxq_s32(max_val_v, vld1q_s32(&move_scores[j]));
+        }
 
-            else if (final_vals[k] == bestScore) {
-                if (final_idxs[k] < bestIndex) {
-                    bestIndex = final_idxs[k];
+        int32_t potential_max = vmaxvq_s32(max_val_v);
+
+        if (potential_max > bestScore) {
+            bestScore = potential_max;
+            
+            #pragma GCC novector
+            for (int k = i; k < j; k++) {
+                if (move_scores[k] == potential_max) {
+                    bestIndex = k;
+                    break;
                 }
             }
         }
+        i = j;
     }
 #endif
 
