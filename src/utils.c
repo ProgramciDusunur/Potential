@@ -144,3 +144,7 @@ bool is_mate_score(int score) {
     return (score >= mateFound && score <= mateValue) || 
     (score <= -mateFound && score >= -mateValue);
 }
+
+void update_pinned(board *pos) {
+    
+}
