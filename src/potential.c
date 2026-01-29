@@ -39,16 +39,16 @@ void initAll(void) {
 
 int main(int argc, char* argv[]) {
     initAll();
-    int debug = 0;
+    int debug = 1;
     if (debug) {
         board position;
-        parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", &position);
-        //printMailbox(&position);
+        parseFEN("6k1/6r1/3q2N1/4N3/8/8/6K1/8 b - - 0 1", &position);
         
-        //printf("FEN: %s\n", get_fen(&position).str);
-        for (int i = 0;i < 10;i++)  {
-            default_fen_generation(&position, 0);
+        uint16_t move = encodeMove(d6, d5, mf_capture);
+        if (SEE(&position, move, 300)) {
+            printf("Threshold true!");
         }
+    
 
         
 
