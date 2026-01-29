@@ -1421,6 +1421,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
                 extensions += 1;
             }
+
+            // ~~~~ Threat Extension ~~~~ //
+            else if (!isTactical(pos->nmp_refutation_move[pos->ply])) {
+                extensions += 1;
+            }
             
             // Cut Node Extension
             else if (cutNode) {
