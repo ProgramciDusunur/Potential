@@ -185,6 +185,10 @@ void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
     int i = moveNum + 1;
     int count = moveList->count;
 
+    #if !defined(__AVX512F__)
+    #error "only test on AVX512 machines"
+    #endif
+
 #if defined(__AVX512F__)
     if (i + 16 <= count) {
         __m512i best_val_v = _mm512_set1_epi32(bestScore);
