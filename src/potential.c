@@ -42,12 +42,14 @@ int main(int argc, char* argv[]) {
     int debug = 1;
     if (debug) {
         board position;
-        parseFEN("6k1/6r1/3q2N1/4N3/8/8/6K1/8 b - - 0 1", &position);
+     parseFEN("8/8/8/k2n4/8/4P3/8/K2N1r2 b - - 0 1", &position);
         
-        uint16_t move = encodeMove(d6, d5, mf_capture);
-        if (SEE(&position, move, 300)) {
-            printf("Threshold true!");
-        }
+    uint16_t move = encodeMove(d5, e3, mf_capture);
+    
+   
+   
+    int is_profitable = SEE(&position, move, 0);
+    
     
 
         
