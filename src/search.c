@@ -6,6 +6,8 @@
 
 #if defined(__AVX2__) || defined(__SSE4_1__)
 #include <immintrin.h>
+#elif defined(__ARM_NEON)
+#include <arm_neon.h>
 #endif
 
 
@@ -330,7 +332,7 @@ void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
                 bestScore = final_vals[k];
                 bestIndex = final_idxs[k];
             } 
-                        
+
             else if (final_vals[k] == bestScore) {
                 if (final_idxs[k] < bestIndex) {
                     bestIndex = final_idxs[k];
