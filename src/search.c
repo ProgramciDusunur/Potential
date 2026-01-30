@@ -972,6 +972,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     int static_eval = adjust_eval_with_corrhist(pos, raw_eval);
 
     bool improving = false;
+    bool tt_capture = tt_move && getMoveCapture(tt_move);
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
@@ -1363,6 +1364,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // Double Extension                
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
                 doubleMargin -= correction_adj;
+                doubleMargin -= !tt_capture * 75;
 
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
@@ -1489,7 +1491,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             lmrReduction += TT_PV_FAIL_LOW_LMR_SCALER;
         }
 
-        if (tt_hit && getMoveCapture(tt_move)) {
+        if (tt_hit && tt_capture) {
             lmrReduction += TT_CAPTURE_LMR_SCALER;
         }
 
