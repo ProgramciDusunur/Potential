@@ -1332,7 +1332,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateValue) {
             const int singularBeta = tt_score - (depth * 5 + (tt_pv && !pvNode) * 10) / 8;
-            const int singularDepth = (depth - 1) / 2;
+            const int singularDepth = depth / 2;
 
 
             struct copyposition copyPosition;
