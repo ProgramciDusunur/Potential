@@ -1376,6 +1376,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // Triple Extension
                 int tripleMargin = TRIPLE_EXTENSION_MARGIN + 80 * !notTactical - (moveHistory / 512 * notTactical);
                 tripleMargin -= correction_adj;
+                doubleMargin -= !tt_capture * 100;
                 
 
                 if (singularScore <= singularBeta - tripleMargin) {
