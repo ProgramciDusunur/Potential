@@ -1016,12 +1016,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
         return ttAdjustedEval;
 
+    
+    const int nmp_see_threshold = 2 * SEE_PIECE_VALUES[PAWN];
     // Null Move Pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
             ttAdjustedEval >= beta + 30 &&
             pos->ply >= pos->nmpPly &&
-            !justPawns(pos)) {
+            !justPawns(pos) &&
+            !(tt_flag == hashFlagAlpha && tt_capture && !SEE(pos, tt_move, nmp_see_threshold))) {
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(pos, &copyPosition);
