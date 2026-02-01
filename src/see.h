@@ -12,5 +12,6 @@
 
 void initSuits(void);
 void testSEE(void);
+void init_helper_bb(void);
 
 #endif //POTENTIAL_SEE_H

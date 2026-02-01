@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
    
     int is_profitable = SEE(&position, move, 0);
     
-    
+    init_helper_bb();
 
         
 
