@@ -1017,7 +1017,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         return ttAdjustedEval;
 
     
-    const int nmp_see_threshold = 2 * SEE_PIECE_VALUES[PAWN];
+    const int nmp_see_threshold = SEE_PIECE_VALUES[BISHOP];
     // Null Move Pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
