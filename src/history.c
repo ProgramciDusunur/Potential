@@ -26,6 +26,9 @@ int16_t pawnHistory[2048][12][64];
 // captureHistory [piece][toSquare][capturedPiece]
 int16_t captureHistory[12][64][13];
 
+// continuation continuation correction history [prevprevMoveSource][prevprevMoveTarget]
+int16_t followUpCorrhist[64][64];
+
 /*╔════════════════════╗
   ║ Correction History ║
   ╚════════════════════╝*/
@@ -235,6 +238,27 @@ void update_king_rook_pawn_corrhist(board *position, const int depth, const int 
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
+void update_follow_up_corrhist(board *pos, const int depth, const int diff) {
+    if (pos->ply < 2) return;
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = 4 * myMIN(depth + 1, 16);    
+    int16_t *entry_ptr = &followUpCorrhist[getMoveSource(pos->move[pos->ply - 2])]
+                                                   [getMoveTarget(pos->move[pos->ply - 2])];
+
+    apply_corrhist_update(entry_ptr, scaledDiff, newWeight);
+}
+
+inline int adjust_single_followup_corrhist_entry(board *pos) {    
+    if (pos->ply >= 2) {
+        const int m = pos->move[pos->ply - 2];
+
+        if (m) {
+            return followUpCorrhist[getMoveSource(m)][getMoveTarget(m)];
+        }
+    }
+    return 0;
+}
+
 void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int scaledDiff, const int newWeight) {    
     if (pos->ply < pliesBack) return;
 
@@ -292,6 +316,7 @@ int adjust_eval_with_corrhist(board *pos, int rawEval) {
                + krpCorrhist[side][pos->krpKey & mask]
                + NON_PAWN_CORRECTION_HISTORY[white][side][pos->whiteNonPawnKey & mask]
                + NON_PAWN_CORRECTION_HISTORY[black][side][pos->blackNonPawnKey & mask]
+               + adjust_single_followup_corrhist_entry(pos);
                + adjust_single_cont_corrhist_entry(pos, 2);
 
     const int mateFound = mateValue - maxPly;
