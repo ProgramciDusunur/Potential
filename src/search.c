@@ -3,6 +3,7 @@
 //
 
 #include "search.h"
+#include <ctype.h>
 
 #if defined(__AVX2__) || defined(__SSE4_1__)
 #include <immintrin.h>
@@ -125,8 +126,8 @@
   int SE_DEPTH = 5;
   int SE_TT_DEPTH_SUBTRACTOR = 3;
   // Positive Extensions
-  int DOUBLE_EXTENSION_MARGIN = 20;
-  int TRIPLE_EXTENSION_MARGIN = 40;
+  int DOUBLE_EXTENSION_MARGIN = -55;
+  int TRIPLE_EXTENSION_MARGIN = -60;
   int QUADRUPLE_EXTENSION_MARGIN = 85;
   // Negative Extensions
   int DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
@@ -1282,7 +1283,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             continue;
         }
 
-        bool notTactical = getMoveCapture(currentMove) == 0 && getMovePromote(currentMove) == 0;
+        bool isCapture = getMoveCapture(currentMove) != 0;
+        bool isPromotion = getMovePromote(currentMove) != 0;
+        bool tactical = isCapture || isPromotion;
+        bool notTactical = !tactical;
 
         int pawnHistoryValue = notTactical ? pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
 
@@ -1360,9 +1364,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 int correction_adj = abs(correction_value) / 2875;                
 
                 // Double Extension                
-                int doubleMargin = DOUBLE_EXTENSION_MARGIN + 40 * !notTactical - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
+                int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
                 doubleMargin -= correction_adj;
-                doubleMargin -= !tt_capture * 75;
+                doubleMargin += isCapture * 75;
+                doubleMargin += isPromotion * 0; 
+                doubleMargin += tactical * 40;
 
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
@@ -1372,8 +1378,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 }
 
                 // Triple Extension
-                int tripleMargin = TRIPLE_EXTENSION_MARGIN + 80 * !notTactical - (moveHistory / 512 * notTactical);
+                int tripleMargin = TRIPLE_EXTENSION_MARGIN - (moveHistory / 512 * notTactical);
                 tripleMargin -= correction_adj;
+                tripleMargin += isCapture * 100;
+                tripleMargin += isPromotion * 0;
+                tripleMargin += tactical * 80;
                 
 
                 if (singularScore <= singularBeta - tripleMargin) {
