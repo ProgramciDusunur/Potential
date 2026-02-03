@@ -260,12 +260,12 @@ void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const in
 
 static inline int adjust_single_cont_corrhist_entry(board *pos, const int pliesBack) {    
     if (pos->ply >= pliesBack) {
-        const int m1 = pos->move[pos->ply - (pliesBack - 1)];
-        const int m2 = pos->move[pos->ply - pliesBack];
+        const int m1 = pos->move[pos->ply - pliesBack];
+        const int m2 = pos->move[pos->ply];
 
         if (m1 && m2) {
-            return contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(m1)]
-                               [pos->piece[pos->ply - pliesBack]][getMoveTarget(m2)];
+            return contCorrhist[pos->piece[pos->ply - pliesBack]][getMoveTarget(m1)]
+                               [pos->piece[pos->ply]][getMoveTarget(m2)];
         }
     }
     return 0;
