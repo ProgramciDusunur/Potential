@@ -238,8 +238,8 @@ void update_king_rook_pawn_corrhist(board *position, const int depth, const int 
 void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int scaledDiff, const int newWeight) {    
     if (pos->ply < pliesBack) return;
 
-    const int idx1 = pos->ply - (pliesBack - 1);
-    const int idx2 = pos->ply - pliesBack;
+    const int idx1 = pos->ply - pliesBack;
+    const int idx2 = pos->ply;
     
     const int m1 = pos->move[idx1];
     const int m2 = pos->move[idx2];
@@ -260,12 +260,12 @@ void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const in
 
 static inline int adjust_single_cont_corrhist_entry(board *pos, const int pliesBack) {    
     if (pos->ply >= pliesBack) {
-        const int m1 = pos->move[pos->ply - (pliesBack - 1)];
-        const int m2 = pos->move[pos->ply - pliesBack];
+        const int m1 = pos->move[pos->ply - pliesBack];
+        const int m2 = pos->move[pos->ply];
 
         if (m1 && m2) {
-            return contCorrhist[pos->piece[pos->ply - (pliesBack - 1)]][getMoveTarget(m1)]
-                               [pos->piece[pos->ply - pliesBack]][getMoveTarget(m2)];
+            return contCorrhist[pos->piece[pos->ply - pliesBack]][getMoveTarget(m1)]
+                               [pos->piece[pos->ply]][getMoveTarget(m2)];
         }
     }
     return 0;
@@ -292,7 +292,8 @@ int adjust_eval_with_corrhist(board *pos, int rawEval) {
                + krpCorrhist[side][pos->krpKey & mask]
                + NON_PAWN_CORRECTION_HISTORY[white][side][pos->whiteNonPawnKey & mask]
                + NON_PAWN_CORRECTION_HISTORY[black][side][pos->blackNonPawnKey & mask]
-               + adjust_single_cont_corrhist_entry(pos, 2);
+               + adjust_single_cont_corrhist_entry(pos, 2)
+               + adjust_single_cont_corrhist_entry(pos, 4);
 
     const int mateFound = mateValue - maxPly;
     
