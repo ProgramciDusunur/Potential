@@ -241,7 +241,7 @@ void update_king_rook_pawn_corrhist(board *position, const int depth, const int 
 void update_counter_move_corrhist(board *pos, const int depth, const int diff) {
     if (pos->ply < 1) return;
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);    
+    const int newWeight = myMIN(depth + 1, 16);
     int16_t *entry_ptr = &counterMoveCorrhist[getMoveSource(pos->move[pos->ply - 1])]
                                                    [getMoveTarget(pos->move[pos->ply - 1])];
 
