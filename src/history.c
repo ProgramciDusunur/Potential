@@ -238,8 +238,8 @@ void update_king_rook_pawn_corrhist(board *position, const int depth, const int 
 void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int scaledDiff, const int newWeight) {    
     if (pos->ply < pliesBack) return;
 
-    const int idx1 = pos->ply - (pliesBack - 1);
-    const int idx2 = pos->ply - pliesBack;
+    const int idx1 = pos->ply - pliesBack;
+    const int idx2 = pos->ply;
     
     const int m1 = pos->move[idx1];
     const int m2 = pos->move[idx2];
