@@ -276,7 +276,9 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
     const int newWeight = 4 * myMIN(depth + 1, 16);
 
     update_single_cont_corrhist_entry(pos, 2, scaledDiff, newWeight);
+    update_single_cont_corrhist_entry(pos, 3, scaledDiff, newWeight);
     update_single_cont_corrhist_entry(pos, 4, scaledDiff, newWeight);
+    update_single_cont_corrhist_entry(pos, 5, scaledDiff, newWeight);
 }
 
 int adjust_eval_with_corrhist(board *pos, int rawEval) {       
@@ -293,7 +295,9 @@ int adjust_eval_with_corrhist(board *pos, int rawEval) {
                + NON_PAWN_CORRECTION_HISTORY[white][side][pos->whiteNonPawnKey & mask]
                + NON_PAWN_CORRECTION_HISTORY[black][side][pos->blackNonPawnKey & mask]
                + adjust_single_cont_corrhist_entry(pos, 2)
-               + adjust_single_cont_corrhist_entry(pos, 4);
+               + adjust_single_cont_corrhist_entry(pos, 3)               
+               + adjust_single_cont_corrhist_entry(pos, 4)
+               + adjust_single_cont_corrhist_entry(pos, 5);
 
     const int mateFound = mateValue - maxPly;
     
