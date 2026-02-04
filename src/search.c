@@ -1363,7 +1363,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             if (singularScore < singularBeta) {
                 extensions++;
 
-                int correction_adj = abs(correction_value) / 2875;                
+                int correction_adj = abs(correction_value) / 4105;                
 
                 // Double Extension                
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
