@@ -28,6 +28,7 @@ typedef struct  {
 typedef struct {
     U64 bitboards[12];
     U64 occupancies[3];
+    U64 pinned[2];
     uint8_t mailbox[64];
     int side;
     int castle;
@@ -98,7 +99,7 @@ typedef struct {
 struct copyposition {
     U64 bitboardsCopy[12];
     U64 occupanciesCopy[3];
-    uint8_t mailboxCopy[64];
+    uint8_t mailboxCopy[64];    
     int phase_scoreCopy;
 
     U64 hashKeyCopy;

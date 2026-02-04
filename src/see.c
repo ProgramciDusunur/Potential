@@ -173,5 +173,7 @@ void update_pinned(board *pos) {
     U64 my_pieces = pos->occupancies[pos->side];
     U64 enemy_pieces = pos->occupancies[!pos->side];
     int king_square = getLS1BIndex(pos->bitboards[pos->side == white ? K : k]);
+    
+
 }
 
