@@ -327,7 +327,6 @@ int get_correction_value(board *pos) {
     int correction = pawn_correction + minor_correction + major_correction +
                     krp_correction + white_non_pawn_correction + black_non_pawn_correction +
                     continuation_correction;
-
     return correction;
 }
 
