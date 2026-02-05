@@ -350,9 +350,8 @@ void init_quiescence_scores(moves *moveList, int *move_scores, board* position) 
             int capture_score = 0;
 
             capture_score += recapture_bonus;
-            capture_score += mvvLva[bb_piece][target_piece] + 1000000000;
             
-            move_scores[count] = capture_score;
+            move_scores[count] = mvvLva[position->mailbox[getMoveSource(move)]][target_piece] + 1000000000 + capture_score;
         } else {
             move_scores[count] = 0;
         }
