@@ -11,8 +11,8 @@
   ║ History ║
   ╚═════════╝*/
 
-// quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
-int16_t quietHistory[2][64][64][2][2];
+// quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget][extended]
+int16_t quietHistory[2][64][64][2][2][1];
 
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 int16_t continuationHistory[12][64][12][64];
@@ -67,18 +67,20 @@ void adjust_single_quiet_hist_entry(board *pos, int side, uint16_t move, int bon
 
     bool threatSource = is_square_threatened(pos, from);
     bool threatTarget = is_square_threatened(pos, to);
+    bool extended = pos->extended_move.move == move ? 1 : 0;
     
-    quietHistory[side][from][to][threatSource][threatTarget] += bonus;
+    quietHistory[side][from][to][threatSource][threatTarget][extended] += bonus;
 }
 
 void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
+    bool extended = pos->extended_move.move == bestMove ? 1 : 0;
 
     int bonus = getHistoryBonus(depth);
-    int score = quietHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)];
+    int score = quietHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)][extended];
 
-    quietHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)] += scaledBonus(score, bonus, maxQuietHistory);
+    quietHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)][extended] += scaledBonus(score, bonus, maxQuietHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
@@ -86,10 +88,11 @@ void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQu
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
-        int badQuietScore = quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)];
+        int badQuietScore = quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)][0];
         int scaled_bonus = bonus + index * 30;
+        
 
-        quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)] +=
+        quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)][0] +=
         scaledBonus(badQuietScore, -scaled_bonus, maxQuietHistory);
     }
 }

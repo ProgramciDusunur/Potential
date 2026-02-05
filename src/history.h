@@ -22,8 +22,8 @@ enum {
     maxCaptureHistory = 16384
 };
 
-// quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
-extern int16_t quietHistory[2][64][64][2][2];
+// quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget][extended]
+extern int16_t quietHistory[2][64][64][2][2][1];
 // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
 extern int16_t continuationHistory[12][64][12][64];
 // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]

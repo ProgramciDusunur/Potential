@@ -434,10 +434,11 @@ int scoreMove(uint16_t move, board* position) {
     // score quiet moves
     else {
         int quiet_score = 0;
+        bool extended = position->extended_move.move == move ? 1 : 0;        
         quiet_score +=
             // quiet main history 
             quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)]
-            [is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))];
+            [is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))][extended];
 
         // 1 ply continuation history
         quiet_score += getContinuationHistoryScore(position, 1, move);
@@ -1293,7 +1294,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         int pawnHistoryValue = notTactical ? pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
 
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
+                                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))][pos->extended_move.move == currentMove ? 1 : 0] +
                 getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
                 captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
@@ -1361,6 +1362,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // Singular Extension
             if (singularScore < singularBeta) {
+                pos->extended_move.move = currentMove;
+                pos->extended_move.extended_ply = pos->ply;
                 extensions++;
 
                 int correction_adj = abs(correction_value) / 2875;                
@@ -1647,7 +1650,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                     if (notTactical) {
                         int quiet_history_score = 
                         quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
+                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))][pos->extended_move.move == currentMove ? 1 : 0];
 
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets, quiet_history_score);

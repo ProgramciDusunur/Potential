@@ -26,6 +26,13 @@ typedef struct  {
 } threats;
 
 typedef struct {
+    // last extended move
+    uint16_t move; 
+    
+    int8_t extended_ply;
+} ExtendedMoves;
+
+typedef struct {
     U64 bitboards[12];
     U64 occupancies[3];
     uint8_t mailbox[64];
@@ -52,6 +59,8 @@ typedef struct {
     int staticEval[maxPly];
     uint16_t nmp_refutation_move[maxPly];
     int isSingularMove[maxPly];
+    ExtendedMoves extended_move;
+
 
     uint16_t piece[maxPly];
     uint16_t move[maxPly];
