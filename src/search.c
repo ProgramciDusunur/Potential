@@ -864,6 +864,10 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         hashFlag = hashFlagBeta;
     }
 
+    if (bestScore >= beta && bestScore < mateFound && beta < mateFound) {
+        bestScore = beta + (bestScore - beta) / 3;
+    }
+
 
     // store hash entry with the score equal to alpha
     writeHashEntry(position->hashKey, bestScore, bestMove, 0, hashFlag, tt_pv, position);
@@ -1087,7 +1091,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 return score;
             }
                 
-            pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
+            pos->nmpPly = pos->ply + (depth - R) * 4 / 2;
             int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, false);
             pos->nmpPly = 0;
 
