@@ -419,7 +419,8 @@ int scoreMove(uint16_t move, board* position) {
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[piece][target_piece];
 
-        captureScore += captureHistory[piece][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
+        captureScore += captureHistory[piece][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]]
+                              [is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))];
 
         captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
 
@@ -1165,7 +1166,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 pick_next_move(count, capture_promos, move_scores);
                 uint16_t move = capture_promos->moves[count];
                 int move_history =
-                captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
+                captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]]
+                             [is_square_threatened(pos, getMoveSource(move))][is_square_threatened(pos, getMoveTarget(move))];
 
                 if (!SEE(pos, move, PROBCUT_SEE_NOISY_THRESHOLD)) {
                     continue;
@@ -1295,7 +1297,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
                 getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
-                captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+                captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]]
+                                             [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
 

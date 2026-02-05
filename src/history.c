@@ -23,8 +23,8 @@ int16_t contCorrhist[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
 int16_t pawnHistory[2048][12][64];
 
-// captureHistory [piece][toSquare][capturedPiece]
-int16_t captureHistory[12][64][13];
+// captureHistory[piece][toSquare][capturedPiece][threatSource][threatTarget]
+int16_t captureHistory[12][64][13][2][2];
 
 /*╔════════════════════╗
   ║ Correction History ║
@@ -117,11 +117,13 @@ void updateCaptureHistory(board *position, uint16_t bestMove, int depth) {
     int piece = position->mailbox[getMoveSource(bestMove)];
     int to = getMoveTarget(bestMove);
     int capturedPiece = position->mailbox[getMoveTarget(bestMove)];
+    bool threatFrom = is_square_threatened(position, getMoveSource(bestMove));
+    bool threatTo = is_square_threatened(position, to);
 
     int bonus = getHistoryBonus(depth);
-    int score = captureHistory[piece][to][capturedPiece];
+    int score = captureHistory[piece][to][capturedPiece][threatFrom][threatTo];
 
-    captureHistory[piece][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);
+    captureHistory[piece][to][capturedPiece][threatFrom][threatTo] += scaledBonus(score, bonus, maxCaptureHistory);
 }
 
 void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, uint16_t bestMove) {
@@ -129,12 +131,15 @@ void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, ui
         int noisyPiece = position->mailbox[getMoveSource(noisyMoves->moves[index])];
         int noisyTo = getMoveTarget(noisyMoves->moves[index]);
         int noisyCapturedPiece = position->mailbox[getMoveTarget(noisyMoves->moves[index])];
+        bool noisyThreatFrom = is_square_threatened(position, getMoveSource(noisyMoves->moves[index]));
+        bool noisyThreatTo = is_square_threatened(position, noisyTo);
 
         if (noisyMoves->moves[index] == bestMove) continue;
 
-        int noisyMoveScore = captureHistory[noisyPiece][noisyTo][noisyCapturedPiece];        
+        int noisyMoveScore = captureHistory[noisyPiece][noisyTo][noisyCapturedPiece][noisyThreatFrom][noisyThreatTo];        
 
-        captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] += scaledBonus(noisyMoveScore, -getHistoryBonus(depth), maxCaptureHistory);
+        captureHistory[noisyPiece][noisyTo][noisyCapturedPiece][noisyThreatFrom][noisyThreatTo] += 
+                scaledBonus(noisyMoveScore, -getHistoryBonus(depth), maxCaptureHistory);
     }
 }
 
