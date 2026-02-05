@@ -749,7 +749,15 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
     evaluation = adjust_eval_with_corrhist(position, evaluation);
 
-    score = bestScore = tt_hit ? tt_score : evaluation;
+    score = bestScore = evaluation;
+
+    if (tt_move &&
+        (tt_flag == hashFlagExact ||
+         (tt_flag == hashFlagAlpha && tt_score >= evaluation) ||
+         (tt_flag == hashFlagBeta && tt_score <= evaluation))) {
+
+        score = bestScore = tt_score;
+    }    
 
     // fail-hard beta cutoff
     if (evaluation >= beta) {
