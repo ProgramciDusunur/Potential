@@ -281,9 +281,7 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
     update_single_cont_corrhist_entry(pos, 5, scaledDiff, newWeight);
 }
 
-int adjust_eval_with_corrhist(board *pos, int rawEval) {       
-    rawEval = (rawEval * (300 - pos->fifty)) / 330;
-
+int adjust_eval_with_corrhist(board *pos, int rawEval) {
     int used50_count = pos->fifty < 30 ? 0 : ((pos->fifty - 30) / 10) * 10 + 30;
     rawEval = (rawEval * (300 - used50_count)) / 330;
 
