@@ -968,7 +968,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     
 
     // get static evaluation score
-    int raw_eval = evaluate(pos);
+    int raw_eval = pos->enpassant == no_sq ? evaluate(pos) : quiescence(alpha, beta, pos, time);
 
     int static_eval = adjust_eval_with_corrhist(pos, raw_eval);
 
