@@ -282,8 +282,11 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
 }
 
 int adjust_eval_with_corrhist(board *pos, int rawEval) {       
-    rawEval = (rawEval * (300 - pos->fifty)) / 300;
-    
+    rawEval = (rawEval * (300 - pos->fifty)) / 330;
+
+    int used50_count = pos->fifty < 30 ? 0 : ((pos->fifty - 30) / 10) * 10 + 30;
+    rawEval = (rawEval * (300 - used50_count)) / 330;
+
     const int side = pos->side;
     const int mask = CORRHIST_SIZE - 1;
 
