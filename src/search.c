@@ -1241,6 +1241,15 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return small_probcut_beta;            
     }
 
+    // in check razoring
+    if (in_check && pos->ply && pos->staticEval[pos->ply - 1] != noEval && 
+        (myMAX(-mateFound, pos->staticEval[pos->ply - 1])) < alpha - 450 - 250 * depth * depth) {
+            int razoring_score = quiescence(alpha - 1, alpha, pos, time);
+            if (razoring_score < alpha) {
+                return razoring_score;
+            }
+    }
+
     bool enemy_has_no_threats = !has_enemy_any_threat(pos);
 
 
