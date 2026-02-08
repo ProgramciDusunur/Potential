@@ -4,6 +4,7 @@
 
 #include "search.h"
 #include <ctype.h>
+#include <stdlib.h>
 
 #if defined(__AVX2__) || defined(__SSE4_1__)
 #include <immintrin.h>
@@ -104,7 +105,7 @@
     ╚══════════════════════════════╝*/
   int RFP_MARGIN = 52;
   int RFP_IMPROVING_MARGIN = 45;
-  int RFP_DEPTH = 11;
+  int RFP_DEPTH = 14;
   
   
   /*╔══════════╗
@@ -1007,6 +1008,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
     rfpMargin += 6 * depth * depth;
+    rfpMargin += abs(correction_value) / 3072;
 
     bool rfp_tt_pv_decision = !tt_pv || (tt_pv && tt_hit && tt_score >= beta + 90 - 15 * ((tt_depth + depth) / 2));    
 
