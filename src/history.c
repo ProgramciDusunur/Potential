@@ -36,6 +36,14 @@ int CORRHIST_LIMIT = 1024;
 int CORRHIST_SIZE = 16384;
 int CORRHIST_MAX = 16384;
 
+int PAWN_CORRHIST_WEIGHT = 0;
+int MINOR_CORRHIST_WEIGHT = 8192;
+int MAJOR_CORRHIST_WEIGHT = 8192;
+int KRP_CORRHIST_WEIGHT = 8192;
+int WHITE_NONPAWN_CORRHIST_WEIGHT = 8192;
+int BLACK_NONPAWN_CORRHIST_WEIGHT = 8192;
+int CONT_CORRHIST_WEIGHT = 8192;
+
 // pawn correction history [side to move][key]
 int16_t PAWN_CORRECTION_HISTORY[2][16384];
 
@@ -321,9 +329,13 @@ int get_correction_value(board *pos) {
     const int black_non_pawn_correction = NON_PAWN_CORRECTION_HISTORY[black][side][pos->blackNonPawnKey & mask];
     const int continuation_correction = adjust_single_cont_corrhist_entry(pos, 2);
     
-    int correction = pawn_correction + minor_correction + major_correction +
-                    krp_correction + white_non_pawn_correction + black_non_pawn_correction +
-                    continuation_correction;
+    int correction = (pawn_correction * PAWN_CORRHIST_WEIGHT +
+                      minor_correction * MINOR_CORRHIST_WEIGHT +
+                      major_correction * MAJOR_CORRHIST_WEIGHT +
+                      krp_correction * KRP_CORRHIST_WEIGHT +
+                      white_non_pawn_correction * WHITE_NONPAWN_CORRHIST_WEIGHT +
+                      black_non_pawn_correction * BLACK_NONPAWN_CORRHIST_WEIGHT +
+                      continuation_correction * CONT_CORRHIST_WEIGHT) / 8192;
 
     return correction;
 }
