@@ -1404,7 +1404,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 // ╚═══════════════════════════╝
 
                 // ~~~~ Quadruple Extension ~~~~ //
-                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + 170 * !notTactical;
+                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + 170 * !notTactical - (moveHistory / 384) - (pawnHistoryValue / 256) - (corrplexity_value / 8);                
+                quadrupleMargin -= correction_adj;
 
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
