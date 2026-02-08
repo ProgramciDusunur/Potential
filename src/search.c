@@ -1081,7 +1081,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
 
              // Skip verification if null move score is much above beta (scaled by depth)
-            if (score >= beta + 30) {
+            int nmpVerifyMargin = 30 + abs(correction_value) / 512;
+            if (score >= beta + nmpVerifyMargin) {
                 pos->move[myMIN(pos->ply, maxPly - 1)] = 0;
                 pos->piece[myMIN(pos->ply, maxPly - 1)] = 0;
                 return score;
