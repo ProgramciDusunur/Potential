@@ -34,6 +34,7 @@ void initAll(void) {
     // init tranposition table
     init_hash_table(64);
     init_tables();
+    init_helper_bb();
 }
 
 
@@ -42,16 +43,34 @@ int main(int argc, char* argv[]) {
     int debug = 0;
     if (debug) {
         board position;
-        parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", &position);
-        //printMailbox(&position);
+     parseFEN("8/8/8/k2n4/8/4P3/8/K2N1r2 w - - 0 1", &position);
         
-        //printf("FEN: %s\n", get_fen(&position).str);
-        for (int i = 0;i < 10;i++)  {
-            default_fen_generation(&position, 0);
-        }
+    /*uint16_t move = encodeMove(d5, e3, mf_capture);
+    
+   
+   
+    int is_profitable = SEE(&position, move, 0);
+    int kingSquare = getLS1BIndex(position.side == white ? position.bitboards[K] : position.bitboards[k]);
+    U64 opp_rooks = position.bitboards[ (position.side == white) ? r : R] 
+                    | position.bitboards[ (position .side == white) ? q : Q];
+    
+    U64 opp_bishops = position.bitboards[ (position.side == white) ? b : B] 
+                    | position.bitboards[ (position .side == white) ? q : Q];
+    
+    U64 potentialAttackers = getBishopAttacks(kingSquare, position.occupancies[!position.side]) &
+                            opp_bishops | 
+                            getRookAttacks(kingSquare, position.occupancies[!position.side]) & opp_rooks;*/
 
+    
+
+    /*while (potentialAttackers) {        
+        int square = getLS1BIndex(potentialAttackers);
+        //U64 line = lineBB[whiteKingSq][square];
+        printBitboard(potentialAttackers);
+        popBit(potentialAttackers, square);
+    }*/
         
-
+    //printBitboard(potentialAttackers);
 
         /*
         perftRoot(7, &position);

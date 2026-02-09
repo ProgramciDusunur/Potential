@@ -74,6 +74,9 @@ extern U64 rookAttacks[64][4096];
 // PEXT
 extern U64 bishopAttacksPEXT[64][512];
 extern U64 rookAttacksPEXT[64][4096];
+// Helper bitboards for pinned pieces
+extern uint64_t lineBB[64][64];
+extern uint64_t rayBB[64][64];
 
 
 void copyBoard(board *p, struct copyposition *cp);

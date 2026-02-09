@@ -24,6 +24,9 @@ U64 rookAttacks[64][4096];
 // PEXT
 U64 bishopAttacksPEXT[64][512];
 U64 rookAttacksPEXT[64][4096];
+// Helper bitboards for pinned pieces
+uint64_t lineBB[64][64];
+uint64_t rayBB[64][64];
 
 // Make sure the move isn't capture or promotion
 bool isTactical(uint16_t move) {

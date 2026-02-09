@@ -12,5 +12,7 @@
 
 void initSuits(void);
 void testSEE(void);
+void init_helper_bb(void);
+void update_pinned(board *pos);
 
 #endif //POTENTIAL_SEE_H

@@ -583,16 +583,29 @@ int SEE(board *pos, uint16_t move, int threshold) {
     occupied = (occupied ^ (1ull << from)) | (1ull << to);
     if (enpassant)
         occupied ^= (1ull << pos->enpassant);
-
-    // Get all pieces which attack the target square. And with occupied
-    // so that we do not let the same piece attack twice
+    
     attackers = all_attackers_to_square(pos, occupied, to) & occupied;
+    
+    U64 white_pinned = pos->pinned[white] & attackers;
+    U64 black_pinned = pos->pinned[black] & attackers;
+    U64 pinned = white_pinned | black_pinned;
+
+    
+    if (pinned) {
+        int white_king = getLS1BIndex(pos->bitboards[K]);
+        int black_king = getLS1BIndex(pos->bitboards[k]);
+
+        U64 white_mask = lineBB[white_king][to] | rayBB[white_king][to];
+        U64 black_mask = lineBB[black_king][to] | rayBB[black_king][to];
+
+        attackers &= ~pinned | (white_pinned & white_mask) | (black_pinned & black_mask);
+    }
+           
 
     // Now our opponents turn to recapture
     colour = pos->side ^ 1;
 
     while (1) {
-
         // If we have no more attackers left we lose
         myAttackers = attackers & pos->occupancies[colour];
         if (myAttackers == 0ull) {
@@ -1256,6 +1269,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     if (pos->followPv)
         // enable PV move scoring
         enable_pv_scoring(moveList, pos);
+
+    
+    update_pinned(pos);
 
     int move_scores[256];
     init_move_scores(moveList, move_scores, tt_move, pos);
