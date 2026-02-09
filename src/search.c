@@ -1369,9 +1369,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             // take move back
             takeBack(pos, &copyPosition);
 
+            pos->singularPly++;
 
             const int singularScore =
                     negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, cutNode);
+            
+            pos->singularPly--;
 
             pos->isSingularMove[pos->ply] = 0;
 
@@ -1379,7 +1382,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             if (singularScore < singularBeta) {
                 extensions++;
 
-                int correction_adj = abs(correction_value) / 2875;                
+                int correction_adj = abs(correction_value) / 2875;
+
+                if (pos->singularPly > 2) {
+                    printf("Singular Ply: %d\n", pos->singularPly);
+                }
+                
 
                 // Double Extension                
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
@@ -1387,6 +1395,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 doubleMargin += isCapture * 75;
                 doubleMargin += isPromotion * 0; 
                 doubleMargin += tactical * 40;
+                doubleMargin -= pos->singularPly * 20;
 
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
@@ -1772,6 +1781,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
             position->staticEval[i] = noEval;
             position->piece[i] = 0;
             position->move[i] = 0;
+            position->singularPly = 0;
         }
 
         position->seldepth = 0;
