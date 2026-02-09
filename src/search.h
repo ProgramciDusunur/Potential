@@ -16,6 +16,7 @@
 #include "uci.h"
 #include <stdint.h>
 #include "utils.h"
+#include "see.h"
 
 extern int LMR_FULL_DEPTH_MOVES;
 extern int LMR_REDUCTION_LIMIT;

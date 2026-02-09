@@ -173,7 +173,38 @@ void update_pinned(board *pos) {
     U64 my_pieces = pos->occupancies[pos->side];
     U64 enemy_pieces = pos->occupancies[!pos->side];
     int king_square = getLS1BIndex(pos->bitboards[pos->side == white ? K : k]);
-    
 
+    pos->pinned[pos->side] = 0ULL;
+
+    
+    U64 potential_pinners_orth = (pos->bitboards[pos->side == white ? r : R] | pos->bitboards[pos->side == white ? q : Q]) &
+                                 getRookAttacks(king_square, enemy_pieces);
+
+    while (potential_pinners_orth) {
+        int pinner_square = getLS1BIndex(potential_pinners_orth);
+        U64 ray = lineBB[king_square][pinner_square] & occupancy;
+
+        if (countBits(ray) == 1) {
+            if (ray & my_pieces) {
+                pos->pinned[pos->side] |= ray;
+            }
+        }
+        popBit(potential_pinners_orth, pinner_square);
+    }
+    
+    U64 potential_pinners_diag = (pos->bitboards[pos->side == white ? b : B] | pos->bitboards[pos->side == white ? q : Q]) &
+                                 getBishopAttacks(king_square, enemy_pieces);
+
+    while (potential_pinners_diag) {
+        int pinner_square = getLS1BIndex(potential_pinners_diag);
+        U64 ray = rayBB[king_square][pinner_square] & occupancy;
+
+        if (countBits(ray) == 1) {
+            if (ray & my_pieces) {
+                pos->pinned[pos->side] |= ray;
+            }
+        }
+        popBit(potential_pinners_diag, pinner_square);
+    }
 }
 

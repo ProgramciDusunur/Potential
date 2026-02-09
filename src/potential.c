@@ -40,12 +40,12 @@ void initAll(void) {
 
 int main(int argc, char* argv[]) {
     initAll();
-    int debug = 1;
+    int debug = 0;
     if (debug) {
         board position;
      parseFEN("8/8/8/k2n4/8/4P3/8/K2N1r2 w - - 0 1", &position);
         
-    uint16_t move = encodeMove(d5, e3, mf_capture);
+    /*uint16_t move = encodeMove(d5, e3, mf_capture);
     
    
    
@@ -59,16 +59,16 @@ int main(int argc, char* argv[]) {
     
     U64 potentialAttackers = getBishopAttacks(kingSquare, position.occupancies[!position.side]) &
                             opp_bishops | 
-                            getRookAttacks(kingSquare, position.occupancies[!position.side]) & opp_rooks;
+                            getRookAttacks(kingSquare, position.occupancies[!position.side]) & opp_rooks;*/
 
     
 
-    while (potentialAttackers) {        
+    /*while (potentialAttackers) {        
         int square = getLS1BIndex(potentialAttackers);
         //U64 line = lineBB[whiteKingSq][square];
         printBitboard(potentialAttackers);
         popBit(potentialAttackers, square);
-    }
+    }*/
         
     //printBitboard(potentialAttackers);
 
