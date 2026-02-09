@@ -58,6 +58,9 @@ typedef struct {
     uint16_t move[maxPly];
     U64 nodes_searched;
 
+    long long se_confirmed_count;
+    long long se_refuted_count;
+
     bool benchmark;
 
     int followPv;

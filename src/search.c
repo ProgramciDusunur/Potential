@@ -698,9 +698,24 @@ void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, 
     double not_bm_nodes_fraction = 
        (double)nodes_spent_table[move & 4095] / (double)pos->nodes_searched;
     double node_scaling_factor = (1.5f - not_bm_nodes_fraction) * 1.35f;
+
+    double se_instability_factor = 1.0;
+    if (pos->nodes_searched > 1000) {
+        // If many SE refutations (we thought moves were singular but they weren't), the position is chaotic/unclear.
+        // Increase time.
+        // Ratio of refutations to confirmed SEs.
+        long long total_se = pos->se_confirmed_count + pos->se_refuted_count;
+        if (total_se > 0) {
+            double refutation_ratio = (double)pos->se_refuted_count / total_se;
+            // If 50% refuted -> 1.25x time? 
+            // If 0% refuted -> 1.0x time? 
+            se_instability_factor = 1.0 + (refutation_ratio * 0.5); 
+        }
+    }
+
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
-                evalScale[evalStability] * node_scaling_factor * complexityScale, time->maxTime + time->starttime);    
+                evalScale[evalStability] * node_scaling_factor * complexityScale * se_instability_factor, time->maxTime + time->starttime);    
 }
 
 bool has_enemy_any_threat(board *pos) {
@@ -1377,6 +1392,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // Singular Extension
             if (singularScore < singularBeta) {
+                pos->se_confirmed_count++;
                 extensions++;
 
                 int correction_adj = abs(correction_value) / 2875;                
@@ -1429,6 +1445,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
             // Negative Extensions
             else if (tt_score >= beta) {
+                pos->se_refuted_count++;
                 extensions -= 2 + !pvNode;
             }
 
@@ -1734,6 +1751,9 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
     // reset nodes counter
     position->nodes_searched = 0;
+    
+    position->se_confirmed_count = 0;
+    position->se_refuted_count = 0;
 
     // reset follow PV flags
     position->followPv = 0;
