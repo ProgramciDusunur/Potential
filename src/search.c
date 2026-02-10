@@ -436,7 +436,7 @@ int scoreMove(uint16_t move, board* position) {
     }
     // score quiet moves
     else {
-        U64 non_pawn_key = position->whiteNonPawnKey | position->blackNonPawnKey;
+        U64 non_pawn_key = position->majorKey | position->minorKey;
         int quiet_score = 0;
         quiet_score +=
             // quiet main history 

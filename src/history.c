@@ -121,7 +121,7 @@ void updateNonPawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQu
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
     int piece = pos->mailbox[from];
-    U64 nonPawnKey = pos->whiteNonPawnKey | pos->blackNonPawnKey;
+    U64 nonPawnKey = pos->majorKey | pos->minorKey;
 
     int bonus = getHistoryBonus(depth);
     int score = nonPawnHistory[nonPawnKey % 2048][piece][to];
