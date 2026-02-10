@@ -61,6 +61,10 @@ int getHistoryBonus(int depth) {
     return myMIN(10 + 200 * depth, 4096);
 }
 
+int non_pawn_history_bonus(int depth) {
+    return myMIN(5 + 100 * depth, 2048);
+}
+
 int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
 }
@@ -123,7 +127,7 @@ void updateNonPawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQu
     int piece = pos->mailbox[from];
     U64 nonPawnKey = pos->majorKey | pos->minorKey;
 
-    int bonus = getHistoryBonus(depth);
+    int bonus = non_pawn_history_bonus(depth);
     int score = nonPawnHistory[nonPawnKey % 2048][piece][to];
 
     nonPawnHistory[nonPawnKey % 2048][piece][to] += scaledBonus(score, bonus, maxNonPawnHistory);
