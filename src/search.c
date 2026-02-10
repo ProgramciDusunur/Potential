@@ -4,6 +4,7 @@
 
 #include "search.h"
 #include <ctype.h>
+#include <stdint.h>
 
 #if defined(__AVX2__) || defined(__SSE4_1__)
 #include <immintrin.h>
@@ -416,12 +417,14 @@ int scoreMove(uint16_t move, board* position) {
 
         int piece = position->mailbox[getMoveSource(move)];
 
+        uint16_t move_history = captureHistory[piece][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
+
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[piece][target_piece];
 
-        captureScore += captureHistory[piece][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
+        captureScore += move_history;
 
-        captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD) ? 1000000000 : -1000000;
+        captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD - move_history / 32) ? 1000000000 : -1000000;
 
         captureScore += recapture_bonus;
         
