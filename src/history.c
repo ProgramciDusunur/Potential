@@ -23,8 +23,12 @@ int16_t contCorrhist[12][64][12][64];
 // pawnHistory [pawnKey][piece][to]
 int16_t pawnHistory[2048][12][64];
 
+// nonPawnHistory [nonPawnKey][piece][to]
+int16_t nonPawnHistory[2048][12][64];
+
 // captureHistory [piece][toSquare][capturedPiece]
 int16_t captureHistory[12][64][13];
+
 
 /*╔════════════════════╗
   ║ Correction History ║
@@ -110,6 +114,28 @@ void updatePawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiet
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
         pawnHistory[pos->pawnKey % 2048][pos->mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
+    }
+}
+
+void updateNonPawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets) {
+    int from = getMoveSource(bestMove);
+    int to = getMoveTarget(bestMove);
+    int piece = pos->mailbox[from];
+    U64 nonPawnKey = pos->whiteNonPawnKey | pos->blackNonPawnKey;
+
+    int bonus = getHistoryBonus(depth);
+    int score = nonPawnHistory[nonPawnKey % 2048][piece][to];
+
+    nonPawnHistory[nonPawnKey % 2048][piece][to] += scaledBonus(score, bonus, maxNonPawnHistory);
+
+    for (int index = 0; index < badQuiets->count; index++) {
+        if (badQuiets->moves[index] == bestMove) continue;
+
+        int badQuietFrom = getMoveSource(badQuiets->moves[index]);
+        int badQuietTo = getMoveTarget(badQuiets->moves[index]);
+        int badQuietPiece = pos->mailbox[badQuietFrom];
+
+        nonPawnHistory[nonPawnKey % 2048][badQuietPiece][badQuietTo] += scaledBonus(score, -bonus, maxNonPawnHistory);
     }
 }
 

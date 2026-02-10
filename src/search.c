@@ -436,6 +436,7 @@ int scoreMove(uint16_t move, board* position) {
     }
     // score quiet moves
     else {
+        U64 non_pawn_key = position->whiteNonPawnKey | position->blackNonPawnKey;
         int quiet_score = 0;
         quiet_score +=
             // quiet main history 
@@ -450,6 +451,8 @@ int scoreMove(uint16_t move, board* position) {
         quiet_score += getContinuationHistoryScore(position, 4, move);
         // pawn history
         quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
+        // non-pawn history
+        quiet_score += nonPawnHistory[non_pawn_key % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
@@ -1670,7 +1673,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
                         updateContinuationHistory(pos, bestMove, depth, badQuiets, quiet_history_score);
-                        updatePawnHistory(pos, bestMove, depth, badQuiets);                       
+                        updatePawnHistory(pos, bestMove, depth, badQuiets);
+                        updateNonPawnHistory(pos, bestMove, depth, badQuiets);
                         
                     } else { // noisy moves
                         updateCaptureHistory(pos, bestMove, depth);

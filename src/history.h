@@ -19,7 +19,8 @@
 enum {
     maxQuietHistory = 16384,
     maxPawnHistory = 16384,
-    maxCaptureHistory = 16384
+    maxCaptureHistory = 16384,
+    maxNonPawnHistory = 16384
 };
 
 // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
@@ -34,6 +35,8 @@ extern int16_t pawnHistory[2048][12][64];
 extern int16_t captureHistory[12][64][13];
 // kingRookPawn Correction History [side to move][key]
 extern int16_t krpCorrhist[2][16384];
+// nonPawnHistory [nonPawnKey][piece][to]
+extern int16_t nonPawnHistory[2048][12][64];
 
 extern int CORRHIST_WEIGHT_SCALE;
 extern int CORRHIST_GRAIN;
@@ -66,6 +69,7 @@ void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const in
 void update_king_rook_pawn_corrhist(board *position, const int depth, const int diff);
 int adjust_eval_with_corrhist(board *pos, int rawEval);
 int get_correction_value(board *pos);
+void updateNonPawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets);
 void clear_histories(void);
 void quiet_history_aging(void);
 
