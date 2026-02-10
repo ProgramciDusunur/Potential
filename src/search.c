@@ -787,9 +787,10 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     noisyGenerator(moveList, position);
 
     int futilityValue = bestScore + 100;
+    int previous_move_target_square = getMoveTarget(position->move[myMAX(0, position->ply - 1)]);
 
     // legal moves counter
-    //int legal_moves = 0;
+    int legal_moves = 0;
 
     int move_scores[256];
     init_quiescence_scores(moveList, move_scores, position);
@@ -797,15 +798,22 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
         pick_next_move(count, moveList, move_scores);
-        uint16_t move = moveList->moves[count];
-
+        uint16_t move = moveList->moves[count];        
+        
         if (bestScore > -mateFound) {
+            // QS SEE Pruning
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
             }
 
+            // QS Futility Pruning
             if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
                 bestScore = myMAX(bestScore, futilityValue);
+                continue;
+            }
+
+            // QS Late Move Pruning
+            if (getMoveTarget(move) != previous_move_target_square && legal_moves >= 3) {
                 continue;
             }
         }
@@ -833,7 +841,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
             continue;
         }
 
-        //legal_moves++;
+        legal_moves++;
 
         // increment nodes count
         position->nodes_searched++;
