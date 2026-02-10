@@ -424,7 +424,7 @@ int scoreMove(uint16_t move, board* position) {
 
         captureScore += move_history;
 
-        captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD - move_history / 32) ? 1000000000 : -1000000;
+        captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD - move_history / 64) ? 1000000000 : -1000000;
 
         captureScore += recapture_bonus;
         
