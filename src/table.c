@@ -5,6 +5,7 @@
 #include "table.h"
 
 U64 sideKey;
+U64 FMR[100 / 10];
 U64 hash_entries = 0;
 tt *hashTable = NULL;
 
@@ -204,7 +205,8 @@ U64 generate_krp_key(board *position) {
     return final_key;
 }
 
-uint64_t get_hash_index(uint64_t hash) {
+uint64_t get_hash_index(uint64_t hash, uint8_t fmr_key) {
+    hash ^= FMR[fmr_key / 10];
     return ((uint128_t)hash * (uint128_t)hash_entries) >> 64;
 }
 
@@ -212,16 +214,16 @@ uint32_t get_hash_low_bits(uint64_t hash) {
     return (uint32_t)hash;
 }
 
-void prefetch_hash_entry(uint64_t hash_key) {
-    const uint64_t index = get_hash_index(hash_key);
+void prefetch_hash_entry(uint64_t hash_key, uint8_t fmr_key) {
+    const uint64_t index = get_hash_index(hash_key, fmr_key);
     __builtin_prefetch(&hashTable[index]);
 }
 
 
-void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position) {
+void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[get_hash_index(position->hashKey)];
+    tt *hashEntry = &hashTable[get_hash_index(position->hashKey, fmr_key)];
 
     if (bestMove != 0 || key != position->hashKey) {
         hashEntry->bestMove = bestMove;
@@ -249,10 +251,10 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
 
 // read hash entry data
 int readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
-                    uint8_t *tt_depth, uint8_t *tt_flag, bool *tt_pv) {
+                    uint8_t *tt_depth, uint8_t *tt_flag, bool *tt_pv, uint8_t fmr_key) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[get_hash_index(position->hashKey)];
+    tt *hashEntry = &hashTable[get_hash_index(position->hashKey, fmr_key)];
 
     // make sure we're dealing with the exact position we need
     if (hashEntry->hashKey == get_hash_low_bits(position->hashKey)) {
@@ -395,6 +397,14 @@ void initRandomKeys(void) {
         // init castling keys
         castleKeys[index] = get_random_uint64_number();
     }
-    // loop over castling keys
+    // init random side key
     sideKey = get_random_uint64_number();
+
+    for (int i = 0; i < 100 / 10; i++) {
+        if (i * 10 <= 50) {
+            FMR[i] = get_random_uint64_number();
+        } else {
+            FMR[i] = 0ULL;
+        }
+    }
 }
