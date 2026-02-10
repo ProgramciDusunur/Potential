@@ -1386,6 +1386,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                 // Double Extension                
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
+                doubleMargin -= ttMoveHistory[pos->side] / 1000;
                 doubleMargin -= correction_adj;
                 doubleMargin += isCapture * 75;
                 doubleMargin += isPromotion * 0; 
@@ -1697,7 +1698,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         else
             // return stalemate score
             return get_draw_score(pos);
+    } else if (bestMove) {
+        if (!pvNode) {
+            int bonus = bestMove == tt_move ? 200 + 60 * depth : -(100 + 30 * depth);
+            ttMoveHistory[pos->side] += myMAX(-ttMoveHistory[pos->side] / 512, bonus);
+        }
+
     }
+
 
     if (!pos->isSingularMove[pos->ply]) {
         uint8_t hashFlag = hashFlagExact;

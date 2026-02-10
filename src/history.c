@@ -26,6 +26,9 @@ int16_t pawnHistory[2048][12][64];
 // captureHistory [piece][toSquare][capturedPiece]
 int16_t captureHistory[12][64][13];
 
+// tt move history [side]
+int16_t ttMoveHistory[2];
+
 /*╔════════════════════╗
   ║ Correction History ║
   ╚════════════════════╝*/
@@ -339,6 +342,7 @@ void clear_histories(void) {
     memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
     memset(contCorrhist, 0, sizeof(contCorrhist));
     memset(krpCorrhist, 0, sizeof(krpCorrhist));
+    memset(ttMoveHistory, 0, sizeof(ttMoveHistory));
 }
 
 void quiet_history_aging(void) {    
