@@ -180,6 +180,10 @@ void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *
     }
 }
 
+void update_tt_move_history(int side, int bonus) {
+    ttMoveHistory[side] += scaledBonus(ttMoveHistory[side], bonus, max_tt_move_history);
+}
+
 /* Update Correction History */
 
 static inline void apply_corrhist_update(int16_t *entry, const int scaledDiff, const int newWeight) {    

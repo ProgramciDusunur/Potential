@@ -1700,8 +1700,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             return get_draw_score(pos);
     } else if (bestMove) {
         if (!pvNode) {
-            int bonus = bestMove == tt_move ? 200 + 60 * depth : -(100 + 30 * depth);
-            ttMoveHistory[pos->side] += myMAX(-ttMoveHistory[pos->side] / 512, bonus);
+            int bonus = bestMove == tt_move ? getHistoryBonus(depth) : -getHistoryBonus(depth);
+            update_tt_move_history(pos->side, bonus);
         }
 
     }
