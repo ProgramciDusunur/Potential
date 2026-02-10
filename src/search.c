@@ -446,6 +446,8 @@ int scoreMove(uint16_t move, board* position) {
         quiet_score += getContinuationHistoryScore(position, 1, move);
         // 2 ply continuation history
         quiet_score += getContinuationHistoryScore(position, 2, move);
+        // 3 ply continuation history
+        quiet_score += getContinuationHistoryScore(position, 3, move);
         // 4 ply continuation history
         quiet_score += getContinuationHistoryScore(position, 4, move);
         // pawn history
