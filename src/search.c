@@ -798,9 +798,10 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     for (int count = 0; count < moveList->count; count++) {
         pick_next_move(count, moveList, move_scores);
         uint16_t move = moveList->moves[count];
-
+        int16_t move_history =
+        captureHistory[position->mailbox[getMoveSource(move)]][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
         if (bestScore > -mateFound) {
-            if (!SEE(position, move, QS_SEE_THRESHOLD)) {
+            if (!SEE(position, move, QS_SEE_THRESHOLD - move_history / 32)) {
                 continue;
             }
 
