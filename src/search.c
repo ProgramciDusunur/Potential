@@ -446,8 +446,12 @@ int scoreMove(uint16_t move, board* position) {
         quiet_score += getContinuationHistoryScore(position, 1, move);
         // 2 ply continuation history
         quiet_score += getContinuationHistoryScore(position, 2, move);
+        // 3 ply continuation history
+        quiet_score += getContinuationHistoryScore(position, 3, move);
         // 4 ply continuation history
         quiet_score += getContinuationHistoryScore(position, 4, move);
+        // 6 ply continuation history
+        quiet_score += getContinuationHistoryScore(position, 6, move);
         // pawn history
         quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
