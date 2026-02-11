@@ -286,7 +286,7 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
 
 void update_partition_corrhist(board *pos, const int depth, const int diff) {
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
+    const int newWeight = myMIN(depth + 1, 16);
     
     for (int i = 0; i < 4; i++) {
         // Shift 16 bits for each partition
