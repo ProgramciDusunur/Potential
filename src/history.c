@@ -51,6 +51,9 @@ int16_t NON_PAWN_CORRECTION_HISTORY[2][2][16384];
 // king rook pawn correction history [side to move][key]
 int16_t krpCorrhist[2][16384];
 
+// Partition hash correction history
+int16_t partHashCorrhist[2][4][16384];
+
 /* Update History */
 
 int getHistoryBonus(int depth) {
@@ -281,6 +284,19 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
     update_single_cont_corrhist_entry(pos, 5, scaledDiff, newWeight);
 }
 
+void update_partition_corrhist(board *position, const int depth, const int diff) {
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = 4 * myMIN(depth + 1, 16);
+    
+    for (int i = 0; i < 4; i++) {
+        // Shift 16 bits for each partition
+        uint16_t partitionKey = (position->partitionHashKey >> (i * 16)) & 0xFFFF;
+        int16_t *entry = &partHashCorrhist[position->side][i][partitionKey & (CORRHIST_SIZE - 1)];
+        apply_corrhist_update(entry, scaledDiff, newWeight);
+    }
+}
+
+
 int adjust_eval_with_corrhist(board *pos, int rawEval) {       
     rawEval = (rawEval * (300 - pos->fifty)) / 300;
     
@@ -298,6 +314,11 @@ int adjust_eval_with_corrhist(board *pos, int rawEval) {
                + adjust_single_cont_corrhist_entry(pos, 3)               
                + adjust_single_cont_corrhist_entry(pos, 4)
                + adjust_single_cont_corrhist_entry(pos, 5);
+               
+    for (int i = 0; i < 4; i++) {
+        uint16_t partitionKey = (pos->partitionHashKey >> (i * 16)) & 0xFFFF;
+        adjust += partHashCorrhist[side][i][partitionKey & mask];
+    }
 
     const int mateFound = mateValue - maxPly;
     
@@ -321,9 +342,15 @@ int get_correction_value(board *pos) {
     const int black_non_pawn_correction = NON_PAWN_CORRECTION_HISTORY[black][side][pos->blackNonPawnKey & mask];
     const int continuation_correction = adjust_single_cont_corrhist_entry(pos, 2);
     
+    int partition_correction = 0;
+    for (int i = 0; i < 4; i++) {
+        uint16_t partitionKey = (pos->partitionHashKey >> (i * 16)) & 0xFFFF;
+        partition_correction += partHashCorrhist[side][i][partitionKey & mask];
+    }
+    
     int correction = pawn_correction + minor_correction + major_correction +
                     krp_correction + white_non_pawn_correction + black_non_pawn_correction +
-                    continuation_correction;
+                    continuation_correction + partition_correction;
 
     return correction;
 }
@@ -339,6 +366,7 @@ void clear_histories(void) {
     memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
     memset(contCorrhist, 0, sizeof(contCorrhist));
     memset(krpCorrhist, 0, sizeof(krpCorrhist));
+    memset(partHashCorrhist, 0, sizeof(partHashCorrhist));
 }
 
 void quiet_history_aging(void) {    

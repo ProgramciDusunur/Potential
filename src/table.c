@@ -7,6 +7,7 @@
 U64 sideKey;
 U64 hash_entries = 0;
 tt *hashTable = NULL;
+U64 partitionPieceKeys[13][64];
 
 __extension__ typedef unsigned __int128 uint128_t;
 
@@ -204,6 +205,26 @@ U64 generate_krp_key(board *position) {
     return final_key;
 }
 
+U64 generate_partition_hash_key(board *position) {
+    uint64_t final_key = 0ULL;
+    uint64_t bitboard;
+
+    for (int i = P; i <= k; i++) {
+        bitboard = position->bitboards[i];
+
+        while (bitboard) {
+            int square = getLS1BIndex(bitboard);
+
+            final_key ^= partitionPieceKeys[i][square];
+            popBit(bitboard, square);
+        }
+
+    }
+    return final_key;
+}
+
+
+
 uint64_t get_hash_index(uint64_t hash) {
     return ((uint128_t)hash * (uint128_t)hash_entries) >> 64;
 }
@@ -383,6 +404,13 @@ void initRandomKeys(void) {
         // loop over board squares
         for (int square = 0; square < 64; square++) {
             pieceKeys[piece][square] = get_random_uint64_number();
+            
+            // Partition hash keys initialization (Mosaic Hash)
+            // 16-bit hash shifted to one of 4 positions
+            U64 r = get_random_uint64_number();
+            U64 short_hash = r & 0xFFFF;
+            U64 shift = (r >> 16) & 3; 
+            partitionPieceKeys[piece][square] = short_hash << (shift * 16);
         }
     }
     // loop over board squares

@@ -60,6 +60,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->whiteNonPawnKeyCopy = p->whiteNonPawnKey;
     cp->blackNonPawnKeyCopy = p->blackNonPawnKey;
     cp->krpKeyCopy = p->krpKey;
+    cp->partitionHashKeyCopy = p->partitionHashKey;
     cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
     cp->phase_scoreCopy = p->phase_score;
 }
@@ -90,6 +91,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->whiteNonPawnKey = cp->whiteNonPawnKeyCopy;
     p->blackNonPawnKey = cp->blackNonPawnKeyCopy;
     p->krpKey = cp->krpKeyCopy;
+    p->partitionHashKey = cp->partitionHashKeyCopy;
     p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
     p->phase_score = cp->phase_scoreCopy;
 }
@@ -148,6 +150,7 @@ bool isKRP(int piece) {
 
 inline static void toggleHashesForPiece(board* position, int piece, int square) {
     position->hashKey ^= pieceKeys[piece][square];
+    position->partitionHashKey ^= partitionPieceKeys[piece][square];
     if (piece == P || piece == p) {
         position->pawnKey ^= pieceKeys[piece][square];
         position->krpKey ^= pieceKeys[piece][square];
