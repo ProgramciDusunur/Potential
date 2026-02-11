@@ -286,7 +286,7 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
 
 void update_partition_corrhist(board *pos, const int depth, const int diff) {
     const int scaledDiff = diff * CORRHIST_GRAIN;
-    const int newWeight = myMIN(depth + 1, 16);
+    const int newWeight = 4 * myMIN(depth + 1, 16);
     
     for (int i = 0; i < 4; i++) {
         // Shift 16 bits for each partition
@@ -317,7 +317,7 @@ int adjust_eval_with_corrhist(board *pos, int rawEval) {
                
     for (int i = 0; i < 4; i++) {
         uint16_t partitionKey = (pos->partitionHashKey >> (i * 16)) & 0xFFFF;
-        adjust += partHashCorrhist[i][partitionKey & mask];
+        adjust += partHashCorrhist[i][partitionKey & mask] / 4;
     }
 
     const int mateFound = mateValue - maxPly;
