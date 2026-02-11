@@ -342,15 +342,15 @@ int get_correction_value(board *pos) {
     const int black_non_pawn_correction = NON_PAWN_CORRECTION_HISTORY[black][side][pos->blackNonPawnKey & mask];
     const int continuation_correction = adjust_single_cont_corrhist_entry(pos, 2);
     
-    int partition_correction = 0;
+    /*int partition_correction = 0;
     for (int i = 0; i < 4; i++) {
         uint16_t partitionKey = (pos->partitionHashKey >> (i * 16)) & 0xFFFF;
         partition_correction += partHashCorrhist[side][i][partitionKey & mask];
-    }
+    }*/
     
     int correction = pawn_correction + minor_correction + major_correction +
                     krp_correction + white_non_pawn_correction + black_non_pawn_correction +
-                    continuation_correction + partition_correction;
+                    continuation_correction;
 
     return correction;
 }
