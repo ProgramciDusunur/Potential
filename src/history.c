@@ -52,7 +52,7 @@ int16_t NON_PAWN_CORRECTION_HISTORY[2][2][16384];
 int16_t krpCorrhist[2][16384];
 
 // Partition hash correction history
-int16_t partHashCorrhist[2][4][16384];
+int16_t partHashCorrhist[4][16384];
 
 /* Update History */
 
@@ -284,14 +284,14 @@ void update_continuation_corrhist(board *pos, const int depth, const int diff) {
     update_single_cont_corrhist_entry(pos, 5, scaledDiff, newWeight);
 }
 
-void update_partition_corrhist(board *position, const int depth, const int diff) {
+void update_partition_corrhist(board *pos, const int depth, const int diff) {
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
     for (int i = 0; i < 4; i++) {
         // Shift 16 bits for each partition
-        uint16_t partitionKey = (position->partitionHashKey >> (i * 16)) & 0xFFFF;
-        int16_t *entry = &partHashCorrhist[position->side][i][partitionKey & (CORRHIST_SIZE - 1)];
+        uint16_t partitionKey = (pos->partitionHashKey >> (i * 16)) & 0xFFFF;
+        int16_t *entry = &partHashCorrhist[i][partitionKey & (CORRHIST_SIZE - 1)];
         apply_corrhist_update(entry, scaledDiff, newWeight);
     }
 }
@@ -317,7 +317,7 @@ int adjust_eval_with_corrhist(board *pos, int rawEval) {
                
     for (int i = 0; i < 4; i++) {
         uint16_t partitionKey = (pos->partitionHashKey >> (i * 16)) & 0xFFFF;
-        adjust += partHashCorrhist[side][i][partitionKey & mask];
+        adjust += partHashCorrhist[i][partitionKey & mask];
     }
 
     const int mateFound = mateValue - maxPly;
