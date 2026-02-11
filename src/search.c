@@ -453,7 +453,7 @@ int scoreMove(uint16_t move, board* position) {
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
-        return quiet_score;        
+        return quiet_score;
     }
     return 0;
 }
@@ -751,7 +751,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
     // read hash entry
     if (position->ply &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv)) && !pvNode) {
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, position->fifty)) && !pvNode) {
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
@@ -838,7 +838,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         // increment nodes count
         position->nodes_searched++;
 
-        prefetch_hash_entry(position->hashKey);
+        prefetch_hash_entry(position->hashKey, position->fifty);
 
         // score current move
         score = -quiescence(-beta, -alpha, position, time);
@@ -882,7 +882,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
 
     // store hash entry with the score equal to alpha
-    writeHashEntry(position->hashKey, bestScore, bestMove, 0, hashFlag, tt_pv, position);
+    writeHashEntry(position->hashKey, bestScore, bestMove, 0, hashFlag, tt_pv, position, position->fifty);
 
     // node (move) fails low
     return bestScore;
@@ -958,7 +958,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // read hash entry
     if (!pos->isSingularMove[pos->ply] && !rootNode &&
         (tt_hit =
-                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv)) &&
+                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty)) &&
                 !pvNode) {
         pos_key = pos->hashKey;
         if (tt_depth >= depth) {
@@ -1060,7 +1060,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // hash the side
         pos->hashKey ^= sideKey;
 
-        prefetch_hash_entry(pos->hashKey);
+        prefetch_hash_entry(pos->hashKey, pos->fifty);
 
         int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) / NMP_REDUCTION_DEPTH_DIVISOR;
 
@@ -1215,7 +1215,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                     continue;
                 }
 
-                prefetch_hash_entry(pos->hashKey);
+                prefetch_hash_entry(pos->hashKey, pos->fifty);
                 pos->nodes_searched++;
                 legal_moves++;
 
@@ -1243,7 +1243,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 takeBack(pos, &copyPosition);
 
                 if (probcut_value >= probcut_beta) {
-                    writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos);
+                    writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos, pos->fifty);
                     return probcut_value;
                 }
             }
@@ -1487,7 +1487,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         // increment nodes count
         pos->nodes_searched++;
 
-        prefetch_hash_entry(pos->hashKey);
+        prefetch_hash_entry(pos->hashKey, pos->fifty);
 
         // increment legal moves
         legal_moves++;
@@ -1721,7 +1721,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         }
 
         // store hash entry with the score equal to alpha
-        writeHashEntry(pos_key, bestScore, bestMove, depth, hashFlag, tt_pv, pos);
+        writeHashEntry(pos_key, bestScore, bestMove, depth, hashFlag, tt_pv, pos, pos->fifty);
     }
     // node (move) fails low
     return bestScore;

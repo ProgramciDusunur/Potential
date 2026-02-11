@@ -52,7 +52,8 @@
 #define hashFlagAlpha 2
 #define hashFlagBeta  3
 
-
+// fifty move rule key[fifty move count / fmr granularity]
+extern U64 FMR[100 / 10];
 // random side key
 extern U64 sideKey;
 extern U64 hash_entries;
@@ -60,12 +61,12 @@ extern tt *hashTable;
 
 int hash_full(void);
 U64 generateHashKey(board* position);
-uint64_t get_hash_index(uint64_t hash);
+uint64_t get_hash_index(uint64_t hash, uint8_t fmr_key);
 uint32_t get_hash_low_bits(uint64_t hash);
-void prefetch_hash_entry(uint64_t hash_key);
-void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position);
+void prefetch_hash_entry(uint64_t hash_key, uint8_t fmr_key);
+void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key);
 int readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
-                  uint8_t *tt_depth, uint8_t *tt_flag, bool *tt_pv);
+                    uint8_t *tt_depth, uint8_t *tt_flag, bool *tt_pv, uint8_t fmr_key);
 U64 generatePawnKey(board* position);
 U64 generateMinorKey(board *position);
 U64 generateMajorKey(board *position);
