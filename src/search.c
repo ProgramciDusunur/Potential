@@ -1132,7 +1132,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
         !pvNode && !in_check && depth <= RAZORING_DEPTH) {                
-        const int margin = depth * 100;
+        int margin = depth * 100;
+        margin += 6 * depth * depth;
 
         if (ttAdjustedEval + margin <= alpha) {
             const bool allow_full_razor = depth == 1 ||
