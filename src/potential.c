@@ -43,35 +43,8 @@ int main(int argc, char* argv[]) {
     int debug = 0;
     if (debug) {
         board position;
-     parseFEN("8/8/8/k2n4/8/4P3/8/K2N1r2 w - - 0 1", &position);
-        
-    /*uint16_t move = encodeMove(d5, e3, mf_capture);
+        parseFEN(startPosition, &position);
     
-   
-   
-    int is_profitable = SEE(&position, move, 0);
-    int kingSquare = getLS1BIndex(position.side == white ? position.bitboards[K] : position.bitboards[k]);
-    U64 opp_rooks = position.bitboards[ (position.side == white) ? r : R] 
-                    | position.bitboards[ (position .side == white) ? q : Q];
-    
-    U64 opp_bishops = position.bitboards[ (position.side == white) ? b : B] 
-                    | position.bitboards[ (position .side == white) ? q : Q];
-    
-    U64 potentialAttackers = getBishopAttacks(kingSquare, position.occupancies[!position.side]) &
-                            opp_bishops | 
-                            getRookAttacks(kingSquare, position.occupancies[!position.side]) & opp_rooks;*/
-
-    
-
-    /*while (potentialAttackers) {        
-        int square = getLS1BIndex(potentialAttackers);
-        //U64 line = lineBB[whiteKingSq][square];
-        printBitboard(potentialAttackers);
-        popBit(potentialAttackers, square);
-    }*/
-        
-    //printBitboard(potentialAttackers);
-
         /*
         perftRoot(7, &position);
         printf("Nodes: %llu", perftNodes);*/
@@ -84,9 +57,12 @@ int main(int argc, char* argv[]) {
     } else {
         board *position = (board *)malloc(sizeof(board));
         my_time *time_ctrl = (my_time *)malloc(sizeof(my_time));
-        uciProtocol(argc, argv, position, time_ctrl);
+        int safety_margin = 10;
+        SearchStack *ss = (SearchStack *)malloc(sizeof(SearchStack) * maxPly + safety_margin);
+        uciProtocol(argc, argv, position, time_ctrl, ss);
         free(position);
         free(time_ctrl);
+        free(ss);
     }
     return 0;
 }

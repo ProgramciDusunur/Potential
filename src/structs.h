@@ -49,8 +49,7 @@ typedef struct {
     int phase_score;
 
     int fifty;
-
-    int staticEval[maxPly];
+    
     uint16_t nmp_refutation_move[maxPly];
     int isSingularMove[maxPly];
 
@@ -169,5 +168,9 @@ typedef struct {
     char str[128]; // FEN string    
 } FenString;
 
+typedef struct {
+    int cutoff_count;
+    int staticEval;
+} SearchStack;
 
 #endif //POTENTIAL_STRUCTS_H
