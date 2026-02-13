@@ -715,7 +715,7 @@ int get_draw_score(board *pos) {
 }
 
 // quiescence search
-int quiescence(int alpha, int beta, board* position, my_time* time) {
+int quiescence(int alpha, int beta, board* position, my_time* time, SearchStack *ss) {
     if (time->isNodeLimit) {
         check_node_limit(time, position);
     }
@@ -841,7 +841,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
         prefetch_hash_entry(position->hashKey, position->fifty);
 
         // score current move
-        score = -quiescence(-beta, -alpha, position, time);
+        score = -quiescence(-beta, -alpha, position, time, ss + 1);
 
         // decrement ply
         position->ply--;
@@ -890,7 +890,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time) {
 
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutNode) {
+int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchStack *ss, bool cutNode) {
     if (time->isNodeLimit) {
         check_node_limit(time, pos);
     }
@@ -975,7 +975,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
     // recursion escapre condition
     if (depth <= 0)
         // run quiescence search
-        return quiescence(alpha, beta, pos, time);        
+        return quiescence(alpha, beta, pos, time, ss);        
 
     // is king in check
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
@@ -993,15 +993,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
-    int correction_value = get_correction_value(pos);
+    int correction_value = get_correction_value(pos);    
 
-    int pastStack = -1;
+    ss->staticEval = static_eval;    
 
-    pos->staticEval[pos->ply] = static_eval;
-
-    pastStack = pos->ply >= 2 && pos->staticEval[pos->ply - 2] != noEval  ?  pos->ply - 2 : -1;
-
-    improving = pastStack > -1 && !in_check && pos->staticEval[pos->ply] > pos->staticEval[pastStack];
+    improving = !in_check && pos->ply >= 2 && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
@@ -1018,7 +1014,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         ttAdjustedEval = tt_score;
     }
 
-    improving |= pos->staticEval[pos->ply] >= beta + 100;
+    improving |= ss->staticEval >= beta + 100;
 
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
@@ -1068,7 +1064,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, depth - R, pos, time, !cutNode);
+        score = -negamax(-beta, -beta + 1, depth - R, pos, time, ss + 1, !cutNode);
 
         // decrement ply
         pos->ply--;
@@ -1104,7 +1100,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
                 
             pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
-            int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, false);
+            int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, ss, false);
             pos->nmpPly = 0;
 
             if (verificationScore >= beta) {
@@ -1143,13 +1139,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 (depth <= RAZORING_FULL_D && ttAdjustedEval + margin + RAZORING_FULL_MARGIN <= alpha);
 
                 if (allow_full_razor) {
-                    return quiescence(alpha, beta, pos, time);
+                    return quiescence(alpha, beta, pos, time, ss);
                 }
 
                 const int capped_alpha = myMAX(alpha - margin, -mateValue);
                 const int razor_alpha = capped_alpha;
                 const int razor_beta = razor_alpha + 1;
-                int razor_score = quiescence(razor_alpha, razor_beta, pos, time);
+                int razor_score = quiescence(razor_alpha, razor_beta, pos, time, ss);
 
                 // We proved a fail low.
                 if (razor_score <= razor_alpha) {                       
@@ -1220,7 +1216,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 legal_moves++;
 
 
-                int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time);
+                int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time, ss + 1);
 
                 if (probcut_value >= probcut_beta) {
                     int adjusted_probcut_depth = probcut_depth * 1024;
@@ -1230,7 +1226,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
                     adjusted_probcut_depth /= 1024;
 
-                    probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, !cutNode);
+                    probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, ss + 1, !cutNode);
                 }
 
                 // decrement ply
@@ -1374,7 +1370,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
 
             const int singularScore =
-                    negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, cutNode);
+                    negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, ss, cutNode);
 
             pos->isSingularMove[pos->ply] = 0;
 
@@ -1584,7 +1580,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
-            score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, true);
+            score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, ss + 1, true);
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
@@ -1593,7 +1589,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 new_depth -= doShallower;
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
-                score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+                score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, ss + 1, !cutNode);
             }
         }
         else if (!pvNode || legal_moves > 1) {
@@ -1602,7 +1598,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
                 new_depth = myMAX(new_depth, 1);
             }
             
-            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, !cutNode);
+            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, ss + 1, !cutNode);
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
@@ -1616,7 +1612,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
             }
             
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, new_depth, pos, time, false);
+            score = -negamax(-beta, -alpha, new_depth, pos, time, ss + 1, false);
         }
 
         // decrement ply
@@ -1728,7 +1724,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 }
 
 // search position for the best move
-void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
+void searchPosition(int depth, board* position, bool benchmark, my_time* time, SearchStack* ss) {
     // define best score variable
     int score = 0;
 
@@ -1744,8 +1740,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
     
     memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
     memset(position->pvTable, 0, sizeof(position->pvTable));
-    memset(position->pvLength, 0, sizeof(position->pvLength));
-    memset(position->staticEval, 0, sizeof(position->staticEval));    
+    memset(position->pvLength, 0, sizeof(position->pvLength));    
 
     // define initial alpha beta bounds
     int alpha = -infinity;
@@ -1772,7 +1767,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
         for (int i = 0; i < maxPly; ++i) {
             position->isSingularMove[i] = 0;
-            position->staticEval[i] = noEval;
+            (ss + i)->staticEval = noEval;
             position->piece[i] = 0;
             position->move[i] = 0;
         }
@@ -1807,7 +1802,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time) {
 
             position->followPv = 1;
             // find best move within a given position
-            score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), position, time, false);
+            score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), position, time, ss, false);
 
             if (score == infinity) {
                 // Restore the saved best line

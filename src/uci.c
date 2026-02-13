@@ -148,7 +148,7 @@ void parse_position(char *command, board* position) {
 
 
 
-void goCommand(char *command, board* position, my_time* time) {
+void goCommand(char *command, board* position, my_time* time, SearchStack* ss) {
 
     // reset time control
     resetTimeControl(time);
@@ -259,7 +259,7 @@ void goCommand(char *command, board* position, my_time* time) {
            time->time, time->starttime, time->stoptime, depth, time->timeset);
 
     // search position
-    searchPosition(depth, position, false, time);
+    searchPosition(depth, position, false, time, ss);
 
 }
 
@@ -374,7 +374,7 @@ void check_node_limit(my_time* time, board *pos) {
 }
 
 
-void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
+void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, SearchStack *ss) {
     //board *position = (board *)malloc(sizeof(board));
 
     position->ply = 0;
@@ -385,7 +385,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         position->mailbox[i] = NO_PIECE;
     }
 
-    clearStaticEvaluationHistory(position);
+    clearStaticEvaluationHistory(ss);
 
     //time *time_ctrl = (time *)malloc(sizeof(time));
 
@@ -410,7 +410,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..\n");
-        benchmark(BENCH_DEPTH, position, time_ctrl);
+        benchmark(BENCH_DEPTH, position, time_ctrl, ss);
         printf("\n");
         fflush(NULL);
         return;
@@ -506,7 +506,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             clearHashTable();
 
             //clear static eval history
-            clearStaticEvaluationHistory(position);    
+            clearStaticEvaluationHistory(ss);    
             
             // call parse position function
             parse_position("position startpos", position);                    
@@ -514,7 +514,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0) {
             // call parse go function
-            goCommand(input, position, time_ctrl);                 
+            goCommand(input, position, time_ctrl, ss);
         }
         else if (!strncmp(input, "setoption name Hash value ", 26)) {
             // init MB
@@ -560,7 +560,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             printf("total: %llu\n", perftNodes);
             printf("nps: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration));
         } else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(BENCH_DEPTH, position, time_ctrl);
+            benchmark(BENCH_DEPTH, position, time_ctrl, ss);
         }
     }
 }

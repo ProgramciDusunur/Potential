@@ -113,7 +113,7 @@ int get_piece_phase_score(uint8_t piece);
 void get_threats(int side, board* pos);
 void init_tables();
 int evaluate(board* position);
-void clearStaticEvaluationHistory(board* position);
+void clearStaticEvaluationHistory(SearchStack* ss);
 bool is_square_threatened(board *pos, int square);
 
 #endif //POTENTIAL_EVALUATION_H

@@ -62,6 +62,7 @@ void update_pawn_correction_hist(board *position, const int depth, const int dif
 void update_minor_correction_hist(board *position, const int depth, const int diff);
 void update_major_correction_hist(board *position, const int depth, const int diff);
 void update_non_pawn_corrhist(board *position, const int depth, const int diff);
+void update_continuation_corrhist(board *pos, const int depth, const int diff);
 void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int scaledDiff, const int newWeight);
 void update_king_rook_pawn_corrhist(board *position, const int depth, const int diff);
 int adjust_eval_with_corrhist(board *pos, int rawEval);

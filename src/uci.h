@@ -24,11 +24,11 @@
 #include <unistd.h>
 #endif
 
-void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl);
+void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, SearchStack *ss);
 void check_node_limit(my_time* time, board *pos);
 uint16_t parse_move(char *move_string, board* position);
 void parse_position(char *command, board* position);
-void goCommand(char *command, board* position, my_time* time);
+void goCommand(char *command, board* position, my_time* time, SearchStack* ss);
 void printMoveList(moves *moveList);
 int areSubStringsEqual(char *command, char *uciCommand, int stringSize);
 void read_input(my_time* time, board* pos);
