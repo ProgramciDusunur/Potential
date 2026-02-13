@@ -943,11 +943,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     }
 
     if (!rootNode) {        
-
         if (isRepetition(pos) || isMaterialDraw(pos)) {
             return get_draw_score(pos);
-        }        
-
+        }
 
         // Mate distance pruning
         alpha = myMAX(alpha, -mateValue + (int)pos->ply);
@@ -999,6 +997,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     ss->staticEval = static_eval;    
 
     improving = !in_check && pos->ply >= 2 && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
+    (ss + 2)->cutoff_count = 0;
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
@@ -1526,7 +1525,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             lmrReduction += GOOD_EVAL_LMR_SCALER;
         }
 
-        if ((ss + 1)->cutoff_count > 1) {
+        if ((ss + 1)->cutoff_count > 3) {
             lmrReduction += CUTOFF_LMR_SCALER;
         }
 
