@@ -111,7 +111,7 @@
   /*╔══════════╗
     ║ Razoring ║
     ╚══════════╝*/
-  int RAZORING_DEPTH = 3;
+  int RAZORING_DEPTH = 6;
   int RAZORING_FULL_MARGIN = 200;    
   int RAZORING_DEPTH_SCALE = 15;
   int RAZORING_VERIFY_MARGIN = 120;
@@ -1131,34 +1131,29 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, bool cutN
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
-        !pvNode && !in_check && depth <= RAZORING_DEPTH) {
-        int max_razor_index = 4;
-        int razor_depth = myMIN(myMIN(depth, RAZORING_DEPTH), max_razor_index);
+        !pvNode && !in_check && depth <= RAZORING_DEPTH) {                
+        const int margin = depth * 100;
 
-        if (razor_depth > 0) {
-            const int margin = RAZORING_MARGIN[razor_depth];
+        if (ttAdjustedEval + margin <= alpha) {
+            const bool allow_full_razor = depth == 1 ||
+            (depth <= RAZORING_FULL_D && ttAdjustedEval + margin + RAZORING_FULL_MARGIN <= alpha);
 
-            if (ttAdjustedEval + margin <= alpha) {
-                const bool allow_full_razor = depth == 1 ||
-                (depth <= RAZORING_FULL_D && ttAdjustedEval + margin + RAZORING_FULL_MARGIN <= alpha);
+            if (allow_full_razor) {
+                return quiescence(alpha, beta, pos, time);
+            }
 
-                if (allow_full_razor) {
-                    return quiescence(alpha, beta, pos, time);
-                }
+            const int capped_alpha = myMAX(alpha - margin, -mateValue);
+            const int razor_alpha = capped_alpha;
+            const int razor_beta = razor_alpha + 1;
+            int razor_score = quiescence(razor_alpha, razor_beta, pos, time);
 
-                const int capped_alpha = myMAX(alpha - margin, -mateValue);
-                const int razor_alpha = capped_alpha;
-                const int razor_beta = razor_alpha + 1;
-                int razor_score = quiescence(razor_alpha, razor_beta, pos, time);
+            // We proved a fail low.
+            if (razor_score <= razor_alpha) {                       
+                return razor_score;
+            }
 
-                // We proved a fail low.
-                if (razor_score <= razor_alpha) {                       
-                    return razor_score;
-                }
-
-                if (razor_score >= razor_beta + RAZORING_VERIFY_MARGIN && depth <= RAZORING_VERIFY_D) {                    
-                    depth -= myMIN(RAZORING_TRIM, depth - 1);
-                }
+            if (razor_score >= razor_beta + RAZORING_VERIFY_MARGIN && depth <= RAZORING_VERIFY_D) {                    
+                depth -= myMIN(RAZORING_TRIM, depth - 1);
             }
         }
     }
