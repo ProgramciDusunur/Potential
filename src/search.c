@@ -65,6 +65,7 @@
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
   int IMPROVING_LMR_SCALER = 1024;
+  int CUTOFF_LMR_SCALER = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -941,7 +942,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
         }       
     }
 
-    if (!rootNode) {
+    if (!rootNode) {        
 
         if (isRepetition(pos) || isMaterialDraw(pos)) {
             return get_draw_score(pos);
@@ -1525,6 +1526,10 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             lmrReduction += GOOD_EVAL_LMR_SCALER;
         }
 
+        if ((ss + 1)->cutoff_count > 1) {
+            lmrReduction += CUTOFF_LMR_SCALER;
+        }
+
         // ╔══════════════════════════════╗
         // ║              /\              ║
         // ║             /  \             ║
@@ -1659,6 +1664,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
+                    ss->cutoff_count++;
                     if (notTactical) {
                         int quiet_history_score = 
                         quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
@@ -1768,6 +1774,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time, S
         for (int i = 0; i < maxPly; ++i) {
             position->isSingularMove[i] = 0;
             (ss + i)->staticEval = noEval;
+            (ss + i)->cutoff_count = 0;
             position->piece[i] = 0;
             position->move[i] = 0;
         }

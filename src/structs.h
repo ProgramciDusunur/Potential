@@ -169,7 +169,7 @@ typedef struct {
 } FenString;
 
 typedef struct {
-    int cutoff_count;
+    int16_t cutoff_count;
     int staticEval;
 } SearchStack;
 
