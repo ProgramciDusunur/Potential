@@ -65,7 +65,7 @@
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
   int IMPROVING_LMR_SCALER = 1024;
-  int CUTOFF_LMR_SCALER = 1024;
+  int CUTOFF_LMR_SCALER = 512;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -1525,7 +1525,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             lmrReduction += GOOD_EVAL_LMR_SCALER;
         }
 
-        if ((ss + 1)->cutoff_count > 5) {
+        if ((ss + 1)->cutoff_count > 3) {
             lmrReduction += CUTOFF_LMR_SCALER;
         }
 
