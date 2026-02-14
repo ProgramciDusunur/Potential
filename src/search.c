@@ -1019,7 +1019,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
     // static evaluation difference to improve quiet move ordering 
     if (!rootNode && !pos->isSingularMove[pos->ply] && (ss - 1)->staticEval != noEval && pos->move[myMIN(pos->ply - 1, maxPly - 1)] != 0 && counter_move_available && !(ss - 1)->in_check) {
-        int eval_diff = clamp(-(ss - 1)->staticEval + ss->staticEval, -25, 25);
+        int eval_diff = clamp(-((ss - 1)->staticEval + ss->staticEval), -50, 50);
         adjust_single_quiet_hist_entry(pos, !pos->side, counter_move, eval_diff);
     }
 
