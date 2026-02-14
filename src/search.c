@@ -956,7 +956,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     }
 
     // read hash entry
-    if (!pos->isSingularMove[pos->ply] && !rootNode &&
+    if (!ss->singular_move && !rootNode &&
         (tt_hit =
                 readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty)) &&
                 !pvNode) {
@@ -997,7 +997,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
     ss->staticEval = static_eval;    
 
-    improving = !in_check && pos->ply >= 2 && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
+    improving = !in_check && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
@@ -1006,7 +1006,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
     int ttAdjustedEval = static_eval;
 
-    if (!pos->isSingularMove[pos->ply] && tt_move && !in_check &&
+    if (!ss->singular_move && tt_move && !in_check &&
         (tt_flag == hashFlagExact ||
          (tt_flag == hashFlagAlpha && tt_score >= static_eval) ||
          (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
@@ -1023,13 +1023,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     bool rfp_tt_pv_decision = !tt_pv || (tt_pv && tt_hit && tt_score >= beta + 90 - 15 * ((tt_depth + depth) / 2));    
 
     // Reverse Futility Pruning
-    if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
+    if (!ss->singular_move && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
         ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
         return ttAdjustedEval;
 
     // Null Move Pruning
-    if (!pos->isSingularMove[pos->ply] && !pvNode &&
+    if (!ss->singular_move && !pvNode &&
         depth >= NMP_DEPTH && !in_check && !rootNode &&
             ttAdjustedEval >= beta + 30 &&
             pos->ply >= pos->nmpPly &&
@@ -1113,9 +1113,9 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
         // Refutation, our opponent has an argument
         if (score < beta) {
             // store null move refutation move
-            pos->nmp_refutation_move[pos->ply] = pos->move[myMIN(pos->ply, maxPly - 1)];
+            ss->nmp_refutation_move = pos->move[myMIN(pos->ply, maxPly - 1)];
 
-            uint16_t nmp_ref_move = pos->nmp_refutation_move[pos->ply];
+            uint16_t nmp_ref_move = ss->nmp_refutation_move;
             int nmp_depth = depth - R;
 
             if (!isTactical(nmp_ref_move)) {
@@ -1126,7 +1126,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     }    
 
     // razoring
-    if (!pos->isSingularMove[pos->ply] &&
+    if (!ss->singular_move &&
         !pvNode && !in_check && depth <= RAZORING_DEPTH) {
         int max_razor_index = 4;
         int razor_depth = myMIN(myMIN(depth, RAZORING_DEPTH), max_razor_index);
@@ -1163,7 +1163,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     int legal_moves = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
-    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
+    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !ss->singular_move &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1248,7 +1248,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     int small_probcut_beta = beta + SPROBCUT_BETA_MARGIN;
     
     // Small Probcut
-    if (!pos->isSingularMove[pos->ply] && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
+    if (!ss->singular_move && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
         tt_score >= small_probcut_beta && abs(tt_score) < mateValue && abs(beta) < mateValue) {
             return small_probcut_beta;            
     }
@@ -1296,7 +1296,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
         pick_next_move(count, moveList, move_scores);
         uint16_t currentMove = moveList->moves[count];
 
-        if (currentMove == pos->isSingularMove[pos->ply]) {
+        if (currentMove == ss->singular_move) {
             continue;
         }
 
@@ -1347,7 +1347,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
         int extensions = 0;
 
         // Singular Extensions
-        if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !pos->isSingularMove[pos->ply] &&
+        if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !ss->singular_move &&
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateValue) {
             const int singularBeta = tt_score - (depth * 5 + (tt_pv && !pvNode) * 10) / 8;
@@ -1363,7 +1363,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 continue;
             }
 
-            pos->isSingularMove[pos->ply] = currentMove;
+            ss->singular_move = currentMove;
 
             // take move back
             takeBack(pos, &copyPosition);
@@ -1372,7 +1372,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             const int singularScore =
                     negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, ss, cutNode);
 
-            pos->isSingularMove[pos->ply] = 0;
+            ss->singular_move = 0;
 
             // Singular Extension
             if (singularScore < singularBeta) {
@@ -1695,7 +1695,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             return get_draw_score(pos);
     }
 
-    if (!pos->isSingularMove[pos->ply]) {
+    if (!ss->singular_move) {
         uint8_t hashFlag = hashFlagExact;
         if (alpha >= beta) {
             hashFlag = hashFlagAlpha;
@@ -1766,7 +1766,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time, S
         }
 
         for (int i = 0; i < maxPly; ++i) {
-            position->isSingularMove[i] = 0;
+            (ss + i)->singular_move = 0;
             (ss + i)->staticEval = noEval;
             position->piece[i] = 0;
             position->move[i] = 0;

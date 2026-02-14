@@ -516,7 +516,7 @@ int evaluate(board* position) {
 
 
 void clearStaticEvaluationHistory(SearchStack* ss) {
-    for (int i = 0;i < 64;i++) {
+    for (int i = -STACK_OFFSET;i < maxPly + STACK_OFFSET;i++) {        
         (ss + i)->staticEval = noEval;
     }
 }

@@ -48,10 +48,7 @@ typedef struct {
     threats pieceThreats;
     int phase_score;
 
-    int fifty;
-    
-    uint16_t nmp_refutation_move[maxPly];
-    int isSingularMove[maxPly];
+    int fifty;        
 
     uint16_t piece[maxPly];
     uint16_t move[maxPly];
@@ -171,6 +168,8 @@ typedef struct {
 typedef struct {
     int cutoff_count;
     int staticEval;
+    uint16_t singular_move;
+    uint16_t nmp_refutation_move;
 } SearchStack;
 
 #endif //POTENTIAL_STRUCTS_H
