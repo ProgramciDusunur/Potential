@@ -1018,7 +1018,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     bool counter_move_available = counter_move ? !getMoveCapture(counter_move) && !getMovePromote(counter_move) : false;
 
     // static evaluation difference to improve quiet move ordering 
-    if (pos->move[myMIN(pos->ply - 1, maxPly - 1)] != 0 && counter_move_available && !(ss - 1)->in_check) {
+    if (!rootNode && !pos->isSingularMove[pos->ply] && pos->move[myMIN(pos->ply - 1, maxPly - 1)] != 0 && counter_move_available && !(ss - 1)->in_check) {
         int eval_diff = clamp(-(ss - 1)->staticEval + ss->staticEval, -100, 100);            
         adjust_single_quiet_hist_entry(pos, !pos->side, counter_move, eval_diff);
     }
