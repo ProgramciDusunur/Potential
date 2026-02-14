@@ -978,7 +978,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
         return quiescence(alpha, beta, pos, time, ss);        
 
     // is king in check
-    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
+    ss->in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
     
@@ -997,7 +997,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
     ss->staticEval = static_eval;    
 
-    improving = !in_check && pos->ply >= 2 && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
+    improving = !ss->in_check && pos->ply >= 2 && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
 
     // Internal Iterative Reductions
     if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
@@ -1006,12 +1006,22 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
     int ttAdjustedEval = static_eval;
 
-    if (!pos->isSingularMove[pos->ply] && tt_move && !in_check &&
+    if (!pos->isSingularMove[pos->ply] && tt_move && !ss->in_check &&
         (tt_flag == hashFlagExact ||
          (tt_flag == hashFlagAlpha && tt_score >= static_eval) ||
          (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
 
         ttAdjustedEval = tt_score;
+    }
+
+    uint16_t counter_move = pos->move[myMIN(pos->ply - 1, maxPly - 1)];
+    bool counter_move_available = counter_move ? !getMoveCapture(counter_move) && !getMovePromote(counter_move) : false;
+
+    // static evaluation difference to improve quiet move ordering 
+    if (pos->move[myMIN(pos->ply - 1, maxPly - 1)] != 0 && counter_move_available && !(ss - 1)->in_check) {
+        int eval_diff = clamp(-(ss - 1)->staticEval + ss->staticEval, -200, 200);
+        adjust_single_quiet_hist_entry(pos, pos->side, counter_move, eval_diff);
+
     }
 
     improving |= ss->staticEval >= beta + 100;
@@ -1024,13 +1034,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
     // Reverse Futility Pruning
     if (!pos->isSingularMove[pos->ply] && rfp_tt_pv_decision &&
-        depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
+        depth <= RFP_DEPTH && !pvNode && !ss->in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
         ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
         return ttAdjustedEval;
 
     // Null Move Pruning
     if (!pos->isSingularMove[pos->ply] && !pvNode &&
-        depth >= NMP_DEPTH && !in_check && !rootNode &&
+        depth >= NMP_DEPTH && !ss->in_check && !rootNode &&
             ttAdjustedEval >= beta + 30 &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
@@ -1127,7 +1137,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
     // razoring
     if (!pos->isSingularMove[pos->ply] &&
-        !pvNode && !in_check && depth <= RAZORING_DEPTH) {
+        !pvNode && !ss->in_check && depth <= RAZORING_DEPTH) {
         int max_razor_index = 4;
         int razor_depth = myMIN(myMIN(depth, RAZORING_DEPTH), max_razor_index);
 
@@ -1163,7 +1173,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     int legal_moves = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
-    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
+    if (!pvNode && !ss->in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !pos->isSingularMove[pos->ply] &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1185,7 +1195,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
                 // Noisy Futility Pruning
                 int noisyFPMargin = static_eval + 164 + 100 * depth;
-                if (!pvNode && !in_check && noisyFPMargin <= alpha) {
+                if (!pvNode && !ss->in_check && noisyFPMargin <= alpha) {
                     continue;
                 }
 
@@ -1327,11 +1337,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             }
 
             // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
+            if (lmrDepth <= FP_DEPTH && !ss->in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
                 continue;
             }
             // Quiet History Pruning
-            if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
+            if (lmrDepth <= 4 && !ss->in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
                 break;
             }
 
@@ -1521,7 +1531,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             lmrReduction += TT_CAPTURE_LMR_SCALER;
         }
 
-        if (enemy_has_no_threats && !in_check && static_eval - 365 > beta) {
+        if (enemy_has_no_threats && !ss->in_check && static_eval - 365 > beta) {
             lmrReduction += GOOD_EVAL_LMR_SCALER;
         }
 
@@ -1539,7 +1549,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
         // ║                              ║
         // ╚══════════════════════════════╝
 
-        if (!improving && !in_check) {
+        if (!improving && !ss->in_check) {
             lmrReduction += IMPROVING_LMR_SCALER;
         }
 
@@ -1550,7 +1560,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             }
 
             // Futility LMR
-            lmrReduction += (static_eval + 164 + 82 * depth <= alpha && !in_check) * 1024;
+            lmrReduction += (static_eval + 164 + 82 * depth <= alpha && !ss->in_check) * 1024;
 
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
@@ -1685,7 +1695,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     // we don't have any legal moves to make in the current postion
     if (legal_moves == 0) {
         // king is in check
-        if (in_check)
+        if (ss->in_check)
             // return mating score (assuming closest distance to mating pos)
             return -mateValue + pos->ply;
 
@@ -1703,7 +1713,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             hashFlag = hashFlagBeta;
         }
 
-        if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
+        if (!ss->in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
             !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
             !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
 

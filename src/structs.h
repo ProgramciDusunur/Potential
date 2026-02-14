@@ -171,6 +171,7 @@ typedef struct {
 typedef struct {
     int cutoff_count;
     int staticEval;
+    bool in_check;
 } SearchStack;
 
 #endif //POTENTIAL_STRUCTS_H
