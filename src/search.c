@@ -1701,7 +1701,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     bool counter_move_available = counter_move ? !getMoveCapture(counter_move) && !getMovePromote(counter_move) : false;
 
     if (score <= originalAlpha && pos->move[myMIN(pos->ply - 1, maxPly - 1)] != 0 && counter_move_available) {
-        int pcm_bonus = myMIN(5 + 100 * depth, 2048);
+        int pcm_bonus = getHistoryBonus(depth);
 
         adjust_single_quiet_hist_entry(pos, pos->side, counter_move, pcm_bonus);
     }
