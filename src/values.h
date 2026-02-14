@@ -19,5 +19,10 @@ enum {
    noEval = 200000
 };
 
+enum {
+   STACK_OFFSET = 10,
+   STACK_SAFETY_MARGIN = 20
+};
+
 
 #endif //POTENTIAL_VALUES_H

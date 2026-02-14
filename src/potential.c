@@ -55,14 +55,28 @@ int main(int argc, char* argv[]) {
         
 
     } else {
+        int safety_margin = STACK_SAFETY_MARGIN;
+        int offset = STACK_OFFSET; // offset for safety margin to allow negative indexing in the search stack
+
         board *position = (board *)malloc(sizeof(board));
         my_time *time_ctrl = (my_time *)malloc(sizeof(my_time));
-        int safety_margin = 10;
-        SearchStack *ss = (SearchStack *)malloc(sizeof(SearchStack) * maxPly + safety_margin);
+
+        // allocate search stack with a safety margin to prevent overflow
+        //                             Safety Margin Layot
+        //      [-10 ply safety margin ... max ply ... +10 ply safety margin]        
+        SearchStack *ss_base = (SearchStack *)malloc(sizeof(SearchStack) * (maxPly + safety_margin));
+
+        if (!ss_base) {
+            fprintf(stderr, "Failed to allocate memory for search stack\n");
+            return 1;
+        }
+
+        SearchStack *ss = ss_base + offset; // shift pointer to the middle of the allocated stack to create a safety margin for negative indices
+
         uciProtocol(argc, argv, position, time_ctrl, ss);
         free(position);
         free(time_ctrl);
-        free(ss);
+        free(ss_base);
     }
     return 0;
 }
