@@ -57,8 +57,12 @@ int main(int argc, char* argv[]) {
     } else {
         board *position = (board *)malloc(sizeof(board));
         my_time *time_ctrl = (my_time *)malloc(sizeof(my_time));
-        int safety_margin = 10;
-        SearchStack *ss = (SearchStack *)malloc(sizeof(SearchStack) * maxPly + safety_margin);
+        int safety_margin = 20;
+        // allocate search stack with a safety margin to prevent overflow
+        //                             Safety Margin Layot
+        //      [-10 ply safety margin ... max ply ... +10 ply safety margin]        
+        SearchStack *ss = (SearchStack *)malloc(sizeof(SearchStack) * (maxPly + safety_margin));
+        ss += 10; // shift pointer to the middle of the allocated stack to create a safety margin for negative indices
         uciProtocol(argc, argv, position, time_ctrl, ss);
         free(position);
         free(time_ctrl);
