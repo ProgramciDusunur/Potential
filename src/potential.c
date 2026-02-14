@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 
 
@@ -38,12 +39,23 @@ void initAll(void) {
 }
 
 
+// Ortak cüzdan (Shared Resource)
+volatile long long counter = 0; 
+
+void* sayac_arttir(void* arg) {
+    for (int i = 0; i < 10000000; i++) {
+        counter++; // Kritik işlem!
+    }
+    return NULL;
+}
+
+
 int main(int argc, char* argv[]) {
     initAll();
-    int debug = 0;
+    int debug = 1;
     if (debug) {
-        board position;
-        parseFEN(startPosition, &position);
+        /*board position;
+        parseFEN(startPosition, &position);*/
     
         /*
         perftRoot(7, &position);
@@ -52,6 +64,24 @@ int main(int argc, char* argv[]) {
 
         //perftRoot(7, &position);
         //printf("Nodes: %llu", perftNodes);
+
+        pthread_t t1, t2;
+
+        pthread_create(&t1, NULL, sayac_arttir, NULL);
+        pthread_create(&t2, NULL, sayac_arttir, NULL);
+
+        pthread_join(t1, NULL);
+        pthread_join(t2, NULL);
+
+        printf("Beklenen: 20000000\n");
+        printf("Gerçekleşen: %lld\n", counter);
+        
+        if (counter != 20000000) {
+            printf("😱 HATA! Bazı sayılar kayboldu!\n");
+        } else {
+            printf("✅ Tam isabet!\n");
+        }
+        return 0;
         
 
     } else {
