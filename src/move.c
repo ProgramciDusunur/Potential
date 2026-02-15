@@ -62,6 +62,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->krpKeyCopy = p->krpKey;
     cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
     cp->phase_scoreCopy = p->phase_score;
+    memcpy(cp->psqt_scoreCopy, p->psqt_score, sizeof(p->psqt_score));
 }
 
 void takeBack(board *p, struct copyposition *cp) {
@@ -92,6 +93,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->krpKey = cp->krpKeyCopy;
     p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
     p->phase_score = cp->phase_scoreCopy;
+    memcpy(p->psqt_score, cp->psqt_scoreCopy, sizeof(p->psqt_score));
 }
 
 
@@ -171,8 +173,11 @@ inline static void toggleHashesForPiece(board* position, int piece, int square) 
 
 inline static void addPiece(board* position, int piece, int square) {    
     position->phase_score += get_piece_phase_score(piece);
+    int color = pieceColor(piece);
+    for (int bucket = 0; bucket < 2; bucket++)
+        position->psqt_score[color][bucket] += packed_table[bucket][piece][square];
     setBit(position->bitboards[piece], square);
-    setBit(position->occupancies[pieceColor(piece)], square);
+    setBit(position->occupancies[color], square);
     setBit(position->occupancies[both], square);    
     position->mailbox[square] = piece;
     toggleHashesForPiece(position, piece, square);    
@@ -181,8 +186,11 @@ inline static void addPiece(board* position, int piece, int square) {
 inline static void removePiece(board* position, int piece, int square) {
     assert(position->mailbox[square] == piece);    
     position->phase_score -= get_piece_phase_score(piece);
+    int color = pieceColor(piece);
+    for (int bucket = 0; bucket < 2; bucket++)
+        position->psqt_score[color][bucket] -= packed_table[bucket][piece][square];
     popBit(position->bitboards[piece], square);
-    popBit(position->occupancies[pieceColor(piece)], square);
+    popBit(position->occupancies[color], square);
     popBit(position->occupancies[both], square);    
     position->mailbox[square] = NO_PIECE;
     toggleHashesForPiece(position, piece, square);

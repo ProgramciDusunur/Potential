@@ -288,27 +288,31 @@ inline int eg_of(Score s) {
 }
 
 // Pre-interpolated tables
-int mg_table[12][64]; // [piece][square] -> midgame score
-int eg_table[12][64]; // [piece][square] -> endgame score
+int mg_table[12][64];
+int eg_table[12][64];
 
-Score packed_table[12][64];
+Score packed_table[2][12][64];
 
-void init_tables() {    
-    for (int piece = P; piece <= K; piece++) {
-        for (int square = 0; square < 64; square++) {
-            int mg = material_score[opening][piece] + positional_score[opening][piece][square];
-            int eg = material_score[endgame][piece] + positional_score[endgame][piece][square];
-            packed_table[piece][square] = S(mg, eg);
+void init_tables() {
+    for (int bucket = 0; bucket < 2; bucket++) {
+        int mirror = bucket * 7;
+        for (int piece = P; piece <= K; piece++) {
+            for (int square = 0; square < 64; square++) {
+                int psq = square ^ mirror;
+                int mg = material_score[opening][piece] + positional_score[opening][piece][psq];
+                int eg = material_score[endgame][piece] + positional_score[endgame][piece][psq];
+                packed_table[bucket][piece][square] = S(mg, eg);
+            }
         }
-    }
-    
-    for (int piece = p; piece <= k; piece++) {
-        int piece_type = piece - p;
-        for (int square = 0; square < 64; square++) {
-            int mirrored_sq = mirrorScore[square];
-            int mg = material_score[opening][piece] - positional_score[opening][piece_type][mirrored_sq];
-            int eg = material_score[endgame][piece] - positional_score[endgame][piece_type][mirrored_sq];
-            packed_table[piece][square] = S(mg, eg);
+        for (int piece = p; piece <= k; piece++) {
+            int piece_type = piece - p;
+            for (int square = 0; square < 64; square++) {
+                int psq = square ^ mirror;
+                int mirrored_sq = mirrorScore[psq];
+                int mg = material_score[opening][piece] - positional_score[opening][piece_type][mirrored_sq];
+                int eg = material_score[endgame][piece] - positional_score[endgame][piece_type][mirrored_sq];
+                packed_table[bucket][piece][square] = S(mg, eg);
+            }
         }
     }
 }
@@ -427,13 +431,15 @@ int evaluate(board* position) {
 
     const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
     const int blackKingSquare = getLS1BIndex(position->bitboards[k]);
+    int whiteBucket = (whiteKingSquare % 8) >= 4 ? 1 : 0;
+    int blackBucket = (blackKingSquare % 8) >= 4 ? 1 : 0;
+    score += position->psqt_score[white][whiteBucket] + position->psqt_score[black][blackBucket];
     int passed_pawn_count = 0;
     
     for (int piece = P; piece <= k; piece++) {
         U64 bitboard = position->bitboards[piece];
         while (bitboard) {
             const int square = getLS1BIndex(bitboard);
-            score += packed_table[piece][square];
 
             switch (piece) {
                 case P:

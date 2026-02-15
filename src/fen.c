@@ -118,5 +118,17 @@ void parseFEN(char *fen, board* position) {
     position->blackNonPawnKey = generate_black_np_hash_key(position);
     position->krpKey = generate_krp_key(position);
     position->phase_score = get_game_phase_score(position);
+
+    memset(position->psqt_score, 0, sizeof(position->psqt_score));
+    for (int piece = P; piece <= k; piece++) {
+        U64 bb = position->bitboards[piece];
+        int color = pieceColor(piece);
+        while (bb) {
+            int sq = getLS1BIndex(bb);
+            for (int bucket = 0; bucket < 2; bucket++)
+                position->psqt_score[color][bucket] += packed_table[bucket][piece][sq];
+            popBit(bb, sq);
+        }
+    }
 }
 
