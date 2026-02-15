@@ -7,7 +7,8 @@
 #define POTENTIAL_STRUCTS_H
 
 #include <stdbool.h>
-#include "stdint.h"
+#include <stdatomic.h>
+#include <stdint.h>
 
 #ifndef U64
 #define U64 unsigned long long
@@ -206,16 +207,16 @@ typedef struct {
 } SearchData;
 
 typedef struct {
-    uint64_t nodes_searched;
+    _Atomic uint64_t nodes_searched;
     int16_t seldepth;
-    int16_t rootDepth;
-    bool stopped; 
+    uint8_t rootDepth;
+    _Atomic bool stopped;
 } SearchInfo;
 
 typedef struct {
     int16_t id;
-    SearchInfo info;
-    SearchData data;
+    SearchInfo search_i;
+    SearchData search_d;
     board pos;
 } ThreadData;
 

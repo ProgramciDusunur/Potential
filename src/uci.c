@@ -10,6 +10,8 @@
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
+int thread_count = 1;
+
 double DEF_TIME_MULTIPLIER = 0.054;
 double DEF_INC_MULTIPLIER = 0.85;
 double MAX_TIME_MULTIPLIER = 0.76;
@@ -376,7 +378,7 @@ void check_node_limit(my_time* time, board *pos) {
 
 
 void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, SearchStack *ss) {
-    //board *position = (board *)malloc(sizeof(board));
+    ThreadData *threads = init_threads(thread_count);
 
     position->ply = 0;
     position->nmpPly = 0;
@@ -531,8 +533,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
             printf("Set hash table size to %dMB\n", mb);
             init_hash_table(mb);
         }
-        else if (!strncmp(input, "setoption name Threads value ", 29)) {
-            int thread_count;
+        else if (!strncmp(input, "setoption name Threads value ", 29)) {            
             sscanf(input, "%*s %*s %*s %*s %d", &thread_count);
             if(thread_count < 1) thread_count = 1;
             if(thread_count > MAX_THREADS) thread_count = MAX_THREADS;

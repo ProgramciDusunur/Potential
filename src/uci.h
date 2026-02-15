@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include "generate_fen.h"
 #include "magic.h"
+#include "threads.h"
 
 
 #ifdef _WIN32
