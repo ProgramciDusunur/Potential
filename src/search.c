@@ -1290,6 +1290,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     //int captureMoves = 0;
 
     const int originalAlpha = alpha;
+    int8_t alpha_raises = 0;
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
@@ -1523,7 +1524,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
         if (enemy_has_no_threats && !in_check && static_eval - 365 > beta) {
             lmrReduction += GOOD_EVAL_LMR_SCALER;
-        }
+        }        
 
         // ╔══════════════════════════════╗
         // ║              /\              ║
@@ -1566,6 +1567,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             // capture history based reduction, same logic as the quiet history
             lmrReduction -= moveHistory / NOISY_HISTORY_LMR_DIVISOR;
         }
+
+        lmrReduction += alpha_raises * 64;
 
         // Reduce Less
         if (tt_pv) {
@@ -1640,6 +1643,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             if (score > alpha) {
                 // store best move (for TT or anything)
                 bestMove = currentMove;
+                alpha_raises++;
 
                 // PV node (move)
                 alpha = score;
