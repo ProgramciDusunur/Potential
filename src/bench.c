@@ -79,5 +79,5 @@ void benchmark(int depth, board* position, my_time* time, SearchStack* ss) {
         totalNodes += position->nodes_searched;        
     }
     int benchFinishTime = getTimeMiliSecond() - benchStartTime;
-    printf("%llu nodes %llu nps", totalNodes, totalNodes / (benchFinishTime +1) * 1000);
+    printf("%llu nodes %llu nps\n", totalNodes, totalNodes / (benchFinishTime +1) * 1000);    
 }
