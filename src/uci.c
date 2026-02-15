@@ -8,6 +8,7 @@
 
 #define VERSION "3.24.48"
 #define BENCH_DEPTH 14
+#define MAX_THREADS 512
 
 double DEF_TIME_MULTIPLIER = 0.054;
 double DEF_INC_MULTIPLIER = 0.85;
@@ -466,9 +467,8 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
     }
 
     // main loop
-    while (1)
-    {
-        // reset user /GUI input
+    while (1) {
+         // reset user /GUI input
         memset(input, 0, sizeof(input));
 
         // make sure output reaches the GUI
@@ -491,13 +491,13 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
             continue;
         }
 
-            // parse UCI "position" command
-        else if (strncmp(input, "position", 8) == 0)
-        {
+        // parse UCI "position" command
+        else if (strncmp(input, "position", 8) == 0) {
             // call parse position function
             parse_position(input, position);            
         }
-            // parse UCI "ucinewgame" command
+
+        // parse UCI "ucinewgame" command
         else if (strncmp(input, "ucinewgame", 10) == 0) {
             // clear all histories
             clear_histories();
@@ -511,7 +511,8 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
             // call parse position function
             parse_position("position startpos", position);                    
         }
-            // parse UCI "go" command
+
+        // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0) {
             // call parse go function
             goCommand(input, position, time_ctrl, ss);
@@ -530,27 +531,39 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
             printf("Set hash table size to %dMB\n", mb);
             init_hash_table(mb);
         }
-            // parse UCI "quit" command
-        else if (strncmp(input, "quit", 4) == 0)
+        else if (!strncmp(input, "setoption name Threads value ", 29)) {
+            int thread_count;
+            sscanf(input, "%*s %*s %*s %*s %d", &thread_count);
+            if(thread_count < 1) thread_count = 1;
+            if(thread_count > MAX_THREADS) thread_count = MAX_THREADS;
+            printf("info threads count %d\n", thread_count);
+        }
+        // parse UCI "quit" command
+        else if (strncmp(input, "quit", 4) == 0) {
             // quit from the chess engine program executions
             break;
-
-            // parse UCI "uci" command
-        else if (strncmp(input, "uci", 3) == 0)
-        {
+        }
+            
+        // parse UCI "uci" command
+        else if (strncmp(input, "uci", 3) == 0) {        
             // print engine info
             printf("id name Potential\n");
             printf("id author Eren Araz\n");
             printf("option name Hash type spin default %d min 4 max %d\n",
                    default_hash_size, max_hash);
-            printf("option name Threads type spin default %d min %d max %d\n", 1, 1,
-                   1);
+            printf("option name Threads type spin default 1 min 1 max %d\n", MAX_THREADS);
             printf("uciok\n");
-        } else if (strncmp(input, "eval", 4) == 0) {
+        } 
+        
+        else if (strncmp(input, "eval", 4) == 0) {
             printf("Evaluation: %d\n", evaluate(position));
-        } else if (strncmp(input, "perftsuite", 10) == 0) {
+        } 
+
+        else if (strncmp(input, "perftsuite", 10) == 0) {
             perftSuite();
-        } else if (strncmp(input, "perft", 5) == 0) {
+        } 
+
+        else if (strncmp(input, "perft", 5) == 0) {
             int depth;
             sscanf(input, "%*s %d", &depth);
             perftNodes = 0;
@@ -559,8 +572,10 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
             int duration = getTimeMiliSecond() - startTime;
             printf("total: %llu\n", perftNodes);
             printf("nps: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration));
-        } else if (strncmp(input, "bench", 5) == 0) {
+        } 
+
+        else if (strncmp(input, "bench", 5) == 0) {
             benchmark(BENCH_DEPTH, position, time_ctrl, ss);
         }
-    }
+    }    
 }
