@@ -986,7 +986,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     // get static evaluation score
     int raw_eval = evaluate(pos);
 
-    int static_eval = adjust_eval_with_corrhist(pos, raw_eval);
+    int static_eval = ss->singular_move ? raw_eval : adjust_eval_with_corrhist(pos, raw_eval);
 
     bool improving = false;
     bool tt_capture = tt_move && getMoveCapture(tt_move);
