@@ -170,6 +170,7 @@ typedef struct {
     int staticEval;
     uint16_t singular_move;
     uint16_t nmp_refutation_move;
+    bool isPvNode;
 } SearchStack;
 
 #endif //POTENTIAL_STRUCTS_H

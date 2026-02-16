@@ -995,7 +995,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     int corrplexity_value = abs(raw_eval - static_eval);
     int correction_value = get_correction_value(pos);    
 
-    ss->staticEval = static_eval;    
+    ss->staticEval = static_eval;
+    ss->isPvNode = pvNode;
 
     improving = !in_check && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
 
@@ -1575,7 +1576,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
         lmrReduction /= 1024;
 
-        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth)) + pvNode;
+        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth)) + pvNode 
+                            + (!cutNode && (ss - 1)->isPvNode && legal_moves < 8);
 
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
