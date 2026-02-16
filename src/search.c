@@ -65,7 +65,6 @@
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
   int IMPROVING_LMR_SCALER = 1024;
-  int NMP_REFUTATION_MOVE_SCALER = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -106,7 +105,7 @@
     ╚══════════════════════════════╝*/
   int RFP_MARGIN = 52;
   int RFP_IMPROVING_MARGIN = 45;
-  int RFP_DEPTH = 11;
+  int RFP_DEPTH = 14;
   
   
   /*╔══════════╗
@@ -1580,9 +1579,6 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
         }
-
-        // NMP refutation move based reduction
-        lmrReduction -= (ss->nmp_refutation_move == currentMove) * NMP_REFUTATION_MOVE_SCALER;
         
 
         lmrReduction /= 1024;
