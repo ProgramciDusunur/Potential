@@ -1590,6 +1590,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, ss + 1, !cutNode);
+            } else if (score > alpha && score < bestScore + new_depth) {
+                new_depth--;
             }
         }
         else if (!pvNode || legal_moves > 1) {
