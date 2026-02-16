@@ -530,14 +530,14 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
             if(mb > max_hash) mb = max_hash;
 
             // set hash table size in MB
-            printf("Set hash table size to %dMB\n", mb);
+            printf("info string set Hash to value %dMB\n", mb);
             init_hash_table(mb);
         }
         else if (!strncmp(input, "setoption name Threads value ", 29)) {            
             sscanf(input, "%*s %*s %*s %*s %d", &thread_count);
             if(thread_count < 1) thread_count = 1;
             if(thread_count > MAX_THREADS) thread_count = MAX_THREADS;
-            printf("info threads count %d\n", thread_count);
+            printf("info string set Threads to value %d\n", thread_count);
         }
         // parse UCI "quit" command
         else if (strncmp(input, "quit", 4) == 0) {
