@@ -1026,7 +1026,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     if (!ss->singular_move && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
         ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
-        return (ttAdjustedEval + beta) / 2;
+        return ttAdjustedEval;
 
     // Null Move Pruning
     if (!ss->singular_move && !pvNode &&
@@ -1583,7 +1583,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
         lmrReduction /= 1024;
 
-        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth)) + pvNode;
+        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth + cutNode)) + pvNode;
 
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
