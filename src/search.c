@@ -65,6 +65,7 @@
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
   int IMPROVING_LMR_SCALER = 1024;
+  int NMP_REFUTATION_MOVE_SCALER = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -1579,11 +1580,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
         }
+
+        // NMP refutation move based reduction
+        lmrReduction -= (ss->nmp_refutation_move == currentMove) * NMP_REFUTATION_MOVE_SCALER;
         
 
         lmrReduction /= 1024;
 
-        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth + cutNode)) + pvNode;
+        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth)) + pvNode;
 
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
