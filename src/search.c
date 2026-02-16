@@ -1026,7 +1026,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     if (!ss->singular_move && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
         ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
-        return ttAdjustedEval;
+        return (ttAdjustedEval + beta) / 2;
 
     // Null Move Pruning
     if (!ss->singular_move && !pvNode &&
@@ -1239,9 +1239,6 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 takeBack(pos, &copyPosition);
 
                 if (probcut_value >= probcut_beta) {
-                    // Update capture history according to probcut result
-                    updateCaptureHistory(pos, tt_move, probcut_depth);
-                    
                     writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos, pos->fifty);
                     return probcut_value;
                 }
