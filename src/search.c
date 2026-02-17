@@ -1621,8 +1621,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
             int new_alpha = alpha;
 
-            if (legal_moves > 1 && !rootNode && pos->rootDepth > 8) {
-                new_alpha = (score + alpha) / 2;
+            if (legal_moves > 1 && !rootNode) {
+                new_alpha = score - 50 > alpha ? (score * 2 + alpha) / 3 : (score + alpha) / 2;
             }
             
             // do normal alpha beta search
