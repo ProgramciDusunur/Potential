@@ -1642,8 +1642,8 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
             if (score > alpha) {
                 // store best move (for TT or anything)
-                bestMove = currentMove;
-                alpha_raises++;
+                bestMove = currentMove;                
+                alpha_raises += score > alpha + 50;
 
                 // PV node (move)
                 alpha = score;
