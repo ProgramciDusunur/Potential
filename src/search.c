@@ -130,6 +130,7 @@
   int DOUBLE_EXTENSION_MARGIN = -55;
   int TRIPLE_EXTENSION_MARGIN = -60;
   int QUADRUPLE_EXTENSION_MARGIN = 85;
+  int QUINTUPLE_EXTENSION_MARGIN = 130;
   // Negative Extensions
   int DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
   int TRIPLE_NEGATIVE_EXTENSION_MARGIN = 90;
@@ -1424,6 +1425,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
+
+                // ~~~~ Quintuple Extension ~~~~ //
+                int quintupleMargin = QUINTUPLE_EXTENSION_MARGIN;
+                if (singularScore <= singularBeta - quintupleMargin && pawnHistoryValue >= 8192 && moveHistory >= 12288) {
+                    extensions++;
+                }
             }
 
             else if (singularBeta >= beta) {
@@ -1621,7 +1628,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
             int new_alpha = alpha;
 
-            if (legal_moves > 4 && !rootNode) {
+            if (legal_moves > 1 && !rootNode) {
                 new_alpha = (score + alpha) / 2;
             }
             
