@@ -15,6 +15,7 @@
 #endif
 
 #define maxPly 256
+#define MAX_THREADS 512
 
 typedef struct  {
     uint64_t pawnThreats;
@@ -219,5 +220,14 @@ typedef struct {
     SearchData search_d;
     board pos;
 } ThreadData;
+
+typedef struct {
+    ThreadData *threads[MAX_THREADS];
+    int thread_count;
+
+    _Atomic bool stop;
+    _Atomic uint64_t nodes_total;
+    board root_pos;
+} ThreadPool;
 
 #endif //POTENTIAL_STRUCTS_H
