@@ -10,7 +10,7 @@ ThreadData *init_threads(int thread_count) {
 uint64_t total_nodes(ThreadData *threads, int thread_count) {
     uint64_t total_nodes = 0;
     for (int i = 0;i < thread_count;i++) {        
-        total_nodes += atomic_load_explicit(&threads[i].search_i.nodes_searched, memory_order_relaxed);
+        total_nodes += load_rlx(threads->search_i.nodes_searched);
     }
     return total_nodes;
 }
