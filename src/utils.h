@@ -11,9 +11,9 @@
 #include "values.h"
 
 // Relaxed atomic helpers, they are from Berserk engine
-#define atomic_load_rlx(x) atomic_load_explicit(&(x), memory_order_relaxed)
-#define atomic_inc_rlx(x)  atomic_fetch_add_explicit(&(x), 1, memory_order_relaxed)
-#define atomic_dec_rlx(x)  atomic_fetch_sub_explicit(&(x), 1, memory_order_relaxed)
+#define load_rlx(x) atomic_load_explicit(&(x), memory_order_relaxed)
+#define inc_rlx(x)  atomic_fetch_add_explicit(&(x), 1, memory_order_relaxed)
+#define dec_rlx(x)  atomic_fetch_sub_explicit(&(x), 1, memory_order_relaxed)
 
 
 bool is_mate_score(int score);
