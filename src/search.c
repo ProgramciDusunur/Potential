@@ -1163,7 +1163,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     int legal_moves = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
-    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !ss->singular_move &&
+    if (!in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !ss->singular_move &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1622,7 +1622,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             int new_alpha = alpha;
 
             if (legal_moves > 1 && !rootNode) {
-                new_alpha = score - 50 > alpha ? (score * 2 + alpha) / 3 : (score + alpha) / 2;
+                new_alpha = (score + alpha) / 2;
             }
             
             // do normal alpha beta search
