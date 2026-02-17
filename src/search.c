@@ -1427,11 +1427,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             }
 
             else if (singularBeta >= beta) {
-                extensions -= 2 + !pvNode;
+                extensions -= 3;
             }
 
             else if (singularScore >= beta + 50) {
-                extensions -= 2 + !pvNode;
+                extensions -= 3;
+                depth -= singularScore >= beta + 100;                
             }
 
             // Negative Extensions
