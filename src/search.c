@@ -1431,8 +1431,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             }
 
             else if (singularScore >= beta + 50) {
-                extensions -= 3;
-                depth -= singularScore >= beta + 100 && !pvNode;                
+                extensions -= 3;                
             }
 
             // Negative Extensions
@@ -1622,7 +1621,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
             int new_alpha = alpha;
 
-            if (legal_moves > 1 && !rootNode) {
+            if (legal_moves > 4 && !rootNode) {
                 new_alpha = (score + alpha) / 2;
             }
             
