@@ -11,20 +11,6 @@
   ║ History ║
   ╚═════════╝*/
 
-// quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
-int16_t quietHistory[2][64][64][2][2];
-
-// continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-int16_t continuationHistory[12][64][12][64];
-
-// continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-int16_t contCorrhist[12][64][12][64];
-
-// pawnHistory [pawnKey][piece][to]
-int16_t pawnHistory[2048][12][64];
-
-// captureHistory [piece][toSquare][capturedPiece]
-int16_t captureHistory[12][64][13];
 
 /*╔════════════════════╗
   ║ Correction History ║
@@ -61,24 +47,24 @@ int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
 }
 
-void adjust_single_quiet_hist_entry(board *pos, int side, uint16_t move, int bonus) {
+void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int bonus) {
     int from = getMoveSource(move);
     int to = getMoveTarget(move);
-
-    bool threatSource = is_square_threatened(pos, from);
-    bool threatTarget = is_square_threatened(pos, to);
     
-    quietHistory[side][from][to][threatSource][threatTarget] += bonus;
+    bool threatSource = is_square_threatened(&t->pos, from);
+    bool threatTarget = is_square_threatened(&t->pos, to);
+    
+    t->search_d.quietHistory[side][from][to][threatSource][threatTarget] += bonus;
 }
 
-void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos) {
+void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int depth, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
     int bonus = getHistoryBonus(depth);
-    int score = quietHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)];
+    int score = t->search_d.quietHistory[side][from][to][is_square_threatened(&t->pos, from)][is_square_threatened(&t->pos, to)];
 
-    quietHistory[side][from][to][is_square_threatened(pos, from)][is_square_threatened(pos, to)] += scaledBonus(score, bonus, maxQuietHistory);
+    t->search_d.quietHistory[side][from][to][is_square_threatened(&t->pos, from)][is_square_threatened(&t->pos, to)] += scaledBonus(score, bonus, maxQuietHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
@@ -86,22 +72,22 @@ void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQu
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
-        int badQuietScore = quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)];
+        int badQuietScore = t->search_d.quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(&t->pos, badQuietFrom)][is_square_threatened(&t->pos, badQuietTo)];
         int scaled_bonus = bonus + index * 30;
 
-        quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(pos, badQuietFrom)][is_square_threatened(pos, badQuietTo)] +=
+        t->search_d.quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(&t->pos, badQuietFrom)][is_square_threatened(&t->pos, badQuietTo)] +=
         scaledBonus(badQuietScore, -scaled_bonus, maxQuietHistory);
     }
 }
 
-void updatePawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets) {
+void updatePawnHistory(ThreadData *t, uint16_t bestMove, int depth, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
     int bonus = getHistoryBonus(depth);
-    int score = pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to];
+    int score = t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[from]][to];
 
-    pawnHistory[pos->pawnKey % 2048][pos->mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
+    t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
@@ -109,71 +95,71 @@ void updatePawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiet
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
-        pawnHistory[pos->pawnKey % 2048][pos->mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
+        t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
     }
 }
 
-void updateCaptureHistory(board *position, uint16_t bestMove, int depth) {
-    int piece = position->mailbox[getMoveSource(bestMove)];
+void updateCaptureHistory(ThreadData *t, uint16_t bestMove, int depth) {
+    int piece = t->pos.mailbox[getMoveSource(bestMove)];
     int to = getMoveTarget(bestMove);
-    int capturedPiece = position->mailbox[getMoveTarget(bestMove)];
+    int capturedPiece = t->pos.mailbox[getMoveTarget(bestMove)];
 
     int bonus = getHistoryBonus(depth);
-    int score = captureHistory[piece][to][capturedPiece];
+    int score = t->search_d.captureHistory[piece][to][capturedPiece];
 
-    captureHistory[piece][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);
+    t->search_d.captureHistory[piece][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);
 }
 
-void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, uint16_t bestMove) {
+void updateCaptureHistoryMalus(ThreadData *t, int depth, moves *noisyMoves, uint16_t bestMove) {
     for (int index = 0; index < noisyMoves->count; index++) {
-        int noisyPiece = position->mailbox[getMoveSource(noisyMoves->moves[index])];
+        int noisyPiece = t->pos.mailbox[getMoveSource(noisyMoves->moves[index])];
         int noisyTo = getMoveTarget(noisyMoves->moves[index]);
-        int noisyCapturedPiece = position->mailbox[getMoveTarget(noisyMoves->moves[index])];
+        int noisyCapturedPiece = t->pos.mailbox[getMoveTarget(noisyMoves->moves[index])];
 
         if (noisyMoves->moves[index] == bestMove) continue;
 
-        int noisyMoveScore = captureHistory[noisyPiece][noisyTo][noisyCapturedPiece];        
+        int noisyMoveScore = t->search_d.captureHistory[noisyPiece][noisyTo][noisyCapturedPiece];        
 
-        captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] += scaledBonus(noisyMoveScore, -getHistoryBonus(depth), maxCaptureHistory);
+        t->search_d.captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] += scaledBonus(noisyMoveScore, -getHistoryBonus(depth), maxCaptureHistory);
     }
 }
 
-int getAllCHScore(board *pos, uint16_t move, int quiet_hist_score) {
-    return (getContinuationHistoryScore(pos, 1, move) + quiet_hist_score) / 2 +
-           getContinuationHistoryScore(pos, 2, move) +
-           getContinuationHistoryScore(pos, 4, move);
+int getAllCHScore(ThreadData *t, uint16_t move, int quiet_hist_score) {
+    return (getContinuationHistoryScore(t, 1, move) + quiet_hist_score) / 2 +
+           getContinuationHistoryScore(t, 2, move) +
+           getContinuationHistoryScore(t, 4, move);
 }
 
-int getContinuationHistoryScore(board *pos, int offSet, uint16_t move) {
-    const int ply = pos->ply - offSet;
-    return ply >= 0 ? continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
-                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] : 0;
+int getContinuationHistoryScore(ThreadData *t, int offSet, uint16_t move) {
+    const int ply = t->pos.ply - offSet;
+    return ply >= 0 ? t->search_d.continuationHistory[t->pos.piece[ply]][getMoveTarget(t->pos.move[ply])]
+                              [t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] : 0;
 }
 
-void updateSingleCHScore(board *pos, uint16_t move, const int offSet, const int bonus, int quiet_hist_score) {
-    int base_conthist_score = getAllCHScore(pos, move, quiet_hist_score);
-    const int ply = pos->ply - offSet;
+void updateSingleCHScore(ThreadData *t, uint16_t move, const int offSet, const int bonus, int quiet_hist_score) {
+    int base_conthist_score = getAllCHScore(t, move, quiet_hist_score);
+    const int ply = t->pos.ply - offSet;
     if (ply >= 0) {
         const int scaledBonus = bonus - base_conthist_score * abs(bonus) / maxQuietHistory;
-        continuationHistory[pos->piece[ply]][getMoveTarget(pos->move[ply])]
-                              [pos->mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
+        t->search_d.continuationHistory[t->pos.piece[ply]][getMoveTarget(t->pos.move[ply])]
+                              [t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
     }
 }
 
-void updateAllCH(board *pos, uint16_t move, int bonus, int quiet_hist_score) {
-    updateSingleCHScore(pos, move, 1, bonus, quiet_hist_score);
-    updateSingleCHScore(pos, move, 2, bonus, quiet_hist_score);
-    updateSingleCHScore(pos, move, 4, bonus, quiet_hist_score);
+void updateAllCH(ThreadData *t, uint16_t move, int bonus, int quiet_hist_score) {
+    updateSingleCHScore(t, move, 1, bonus, quiet_hist_score);
+    updateSingleCHScore(t, move, 2, bonus, quiet_hist_score);
+    updateSingleCHScore(t, move, 4, bonus, quiet_hist_score);
 }
 
-void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets, int quiet_hist_score) {
+void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int depth, moves *badQuiets, int quiet_hist_score) {
     int bonus = getHistoryBonus(depth);
 
-    updateAllCH(pos, bestMove, bonus, quiet_hist_score);
+    updateAllCH(t, bestMove, bonus, quiet_hist_score);
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
-        updateAllCH(pos, badQuiets->moves[index], -bonus, quiet_hist_score);
+        updateAllCH(t, badQuiets->moves[index], -bonus, quiet_hist_score);
     }
 }
 
@@ -258,7 +244,7 @@ void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const in
     }
 }
 
-static inline int adjust_single_cont_corrhist_entry(board *pos, const int pliesBack) {    
+static inline int adjust_single_cont_corrhist_entry(ThreadData *t, const int pliesBack) {    
     if (pos->ply >= pliesBack) {
         const int m1 = pos->move[pos->ply - pliesBack];
         const int m2 = pos->move[pos->ply];
@@ -331,22 +317,33 @@ int get_correction_value(board *pos) {
 }
 
 void clear_histories(void) {
-    memset(quietHistory, 0, sizeof(quietHistory));            
-    memset(captureHistory, 0, sizeof(captureHistory));
-    memset(PAWN_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
-    memset(pawnHistory, 0, sizeof(pawnHistory));
-    memset(continuationHistory, 0, sizeof(continuationHistory));
+    int how_many_threads = thread_pool.thread_count;
+
+    for (int i = 1;i < how_many_threads;i++) {
+        memset(thread_pool.threads[i]->search_d.quietHistory, 0, sizeof(thread_pool.threads[i]->search_d.quietHistory));
+        memset(thread_pool.threads[i]->search_d.captureHistory, 0, sizeof(thread_pool.threads[i]->search_d.captureHistory));
+        memset(thread_pool.threads[i]->search_d.pawnHistory, 0, sizeof(thread_pool.threads[i]->search_d.pawnHistory));
+        memset(thread_pool.threads[i]->search_d.continuationHistory, 0, sizeof(thread_pool.threads[i]->search_d.captureHistory));
+        memset(thread_pool.threads[i]->search_d.contCorrhist, 0, sizeof(thread_pool.threads[i]->search_d.contCorrhist));
+    }
+
+    
+    memset(PAWN_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));    
     memset(MINOR_CORRECTION_HISTORY, 0, sizeof(PAWN_CORRECTION_HISTORY));
     memset(MAJOR_CORRECTION_HISTORY, 0, sizeof(MAJOR_CORRECTION_HISTORY));
-    memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));
-    memset(contCorrhist, 0, sizeof(contCorrhist));
+    memset(NON_PAWN_CORRECTION_HISTORY, 0, sizeof(NON_PAWN_CORRECTION_HISTORY));    
     memset(krpCorrhist, 0, sizeof(krpCorrhist));
 }
 
-void quiet_history_aging(void) {    
-    int16_t *p = (int16_t *)quietHistory;
-    
-    for (int i = 0; i < 32768; i++) {
-        p[i] >>= 1;
-    }
+void quiet_history_aging(void) {
+    int how_many_threads = thread_pool.thread_count;
+
+    // don't touch the main thread [0], age other searcher workers histories
+    for (int i = 1;i < how_many_threads;i++) {
+        int16_t *p = (int16_t *)thread_pool.threads[i]->search_d.quietHistory;
+
+        for (int i = 0; i < 32768; i++) {
+            p[i] >>= 1;
+        }
+    }            
 }

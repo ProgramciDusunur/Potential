@@ -1,5 +1,6 @@
 #include "threads.h"
 
+ThreadPool thread_pool;
 
 ThreadData *init_threads(int thread_count) {
     ThreadData *threads;
