@@ -225,8 +225,7 @@ typedef struct {
     ThreadData *threads[MAX_THREADS];
     int thread_count;
 
-    _Atomic bool stop;
-    _Atomic uint64_t nodes_total;
+    _Atomic bool stop;    
     board root_pos;
 } ThreadPool;
 
