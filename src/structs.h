@@ -192,25 +192,25 @@ typedef struct {
 
 
     // pawn correction history [side to move][key]
-    int16_t PAWN_CORRECTION_HISTORY[2][16384];
+    int16_t pawn_corrhist[2][16384];
 
     // minor correction history [side to move][key]
-    int16_t MINOR_CORRECTION_HISTORY[2][16384];
+    int16_t minor_corrhist[2][16384];
 
     // major correction history [side to move][key]
-    int16_t MAJOR_CORRECTION_HISTORY[2][16384];
+    int16_t major_corrhist[2][16384];
 
     // non pawn correction history [side to move][key]
-    int16_t NON_PAWN_CORRECTION_HISTORY[2][2][16384];
+    int16_t non_pawn_corrhist[2][2][16384];
 
     // king rook pawn correction history [side to move][key]
-    int16_t krpCorrhist[2][16384];
+    int16_t krp_corrhist[2][16384];
 } SearchData;
 
 typedef struct {
     _Atomic uint64_t nodes_searched;
     int16_t seldepth;
-    uint8_t rootDepth;
+    int16_t rootDepth;
     _Atomic bool stopped;
 } SearchInfo;
 

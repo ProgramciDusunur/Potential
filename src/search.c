@@ -364,11 +364,11 @@ void init_quiescence_scores(moves *moveList, int *move_scores, board* position) 
 */
 
 // score moves
-int scoreMove(uint16_t move, board* position) {
+int scoreMove(uint16_t move, ThreadData *t) {
     // make sure we are dealing with PV move
-    if (position->scorePv && position->pvTable[0][position->ply] == move) {
+    if (t->pos.scorePv && t->pos.pvTable[0][t->pos.ply] == move) {
         // disable score PV flag
-        position->scorePv = 0;
+        t->pos.scorePv = 0;
 
         // give PV move the highest score to search it first
         return 1500000000;
@@ -376,7 +376,7 @@ int scoreMove(uint16_t move, board* position) {
 
     // score promotion move
     if (getMovePromote(move)) {
-        switch (getMovePromotedPiece(position->side, move)) {
+        switch (getMovePromotedPiece(t->pos.side, move)) {
             case q:
             case Q:
                 return 1000000000;
@@ -405,26 +405,26 @@ int scoreMove(uint16_t move, board* position) {
         // init target piece
         int target_piece = P;
 
-        uint8_t bb_piece = position->mailbox[getMoveTarget(move)];
+        uint8_t bb_piece = t->pos.mailbox[getMoveTarget(move)];
         // if there's a piece on the target square
         if (bb_piece != NO_PIECE &&
-            getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
+            getBit(t->pos.bitboards[bb_piece], getMoveTarget(move))) {
             target_piece = bb_piece;
         }
 
-        int previous_move_target_square = getMoveTarget(position->move[myMAX(0, position->ply - 1)]);
+        int previous_move_target_square = getMoveTarget(t->pos.move[myMAX(0, t->pos.ply - 1)]);
         int recapture_bonus = getMoveTarget(move) == previous_move_target_square ? 200000 : 0;
 
-        int piece = position->mailbox[getMoveSource(move)];
+        int piece = t->pos.mailbox[getMoveSource(move)];
 
-        int16_t move_history = captureHistory[piece][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
+        int16_t move_history = t->search_d.captureHistory[piece][getMoveTarget(move)][t->pos.mailbox[getMoveTarget(move)]];
 
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[piece][target_piece];
 
         captureScore += move_history;
 
-        captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD - move_history / 32) ? 1000000000 : -1000000;
+        captureScore += SEE(&t->pos, move, SEE_MOVE_ORDERING_THRESHOLD - move_history / 32) ? 1000000000 : -1000000;
 
         captureScore += recapture_bonus;
         
@@ -439,17 +439,17 @@ int scoreMove(uint16_t move, board* position) {
         int quiet_score = 0;
         quiet_score +=
             // quiet main history 
-            quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)]
-            [is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))];
+            t->search_d.quietHistory[t->pos.side][getMoveSource(move)][getMoveTarget(move)]
+            [is_square_threatened(&t->pos, getMoveSource(move))][is_square_threatened(&t->pos, getMoveTarget(move))];
 
         // 1 ply continuation history
-        quiet_score += getContinuationHistoryScore(position, 1, move);
+        quiet_score += getContinuationHistoryScore(t, 1, move);
         // 2 ply continuation history
-        quiet_score += getContinuationHistoryScore(position, 2, move);
+        quiet_score += getContinuationHistoryScore(t, 2, move);
         // 4 ply continuation history
-        quiet_score += getContinuationHistoryScore(position, 4, move);
+        quiet_score += getContinuationHistoryScore(t, 4, move);
         // pawn history
-        quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
+        quiet_score += t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 

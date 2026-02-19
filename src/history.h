@@ -16,48 +16,39 @@
 #include <stdbool.h>
 #include "threads.h"
 
-
 enum {
     maxQuietHistory = 16384,
     maxPawnHistory = 16384,
     maxCaptureHistory = 16384
 };
 
-// kingRookPawn Correction History [side to move][key]
-extern int16_t krpCorrhist[2][16384];
-
 extern int CORRHIST_WEIGHT_SCALE;
 extern int CORRHIST_GRAIN;
 extern int CORRHIST_LIMIT;
 extern int CORRHIST_SIZE;
 extern int CORRHIST_MAX;
-  
-extern int16_t PAWN_CORRECTION_HISTORY[2][16384];
-extern int16_t MINOR_CORRECTION_HISTORY[2][16384];
-extern int16_t MAJOR_CORRECTION_HISTORY[2][16384];
-extern int16_t NON_PAWN_CORRECTION_HISTORY[2][2][16384];
 
 int scaledBonus(int score, int bonus, int gravity);
-void adjust_single_quiet_hist_entry(board *pos, int side, uint16_t move, int bonus);
-void updateQuietMoveHistory(uint16_t bestMove, int side, int depth, moves *badQuiets, board *pos);
-void updatePawnHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets);
-void updateSingleCHScore(board *pos, uint16_t move, const int offSet, const int bonus, int quiet_hist_score);
-int getAllCHScore(board *pos, uint16_t move, int quiet_hist_score);
-void updateAllCH(board *pos, uint16_t move, int bonus, int quiet_hist_score);
+void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int bonus);
+void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int depth, moves *badQuiets);
+void updatePawnHistory(ThreadData *t, uint16_t bestMove, int depth, moves *badQuiets);
+void updateSingleCHScore(ThreadData *t, uint16_t move, const int offSet, const int bonus, int quiet_hist_score);
+int getAllCHScore(ThreadData *t, uint16_t move, int quiet_hist_score);
+void updateAllCH(ThreadData *t, uint16_t move, int bonus, int quiet_hist_score);
 int getHistoryBonus(int depth);
-void updateContinuationHistory(board *pos, uint16_t bestMove, int depth, moves *badQuiets, int quiet_hist_score);
-int getContinuationHistoryScore(board *pos, int offSet, uint16_t move);
-void updateCaptureHistory(board *position, uint16_t bestMove, int depth);
-void updateCaptureHistoryMalus(board *position, int depth, moves *noisyMoves, uint16_t bestMove);
-void update_pawn_correction_hist(board *position, const int depth, const int diff);
-void update_minor_correction_hist(board *position, const int depth, const int diff);
-void update_major_correction_hist(board *position, const int depth, const int diff);
-void update_non_pawn_corrhist(board *position, const int depth, const int diff);
-void update_continuation_corrhist(board *pos, const int depth, const int diff);
-void update_single_cont_corrhist_entry(board *pos, const int pliesBack, const int scaledDiff, const int newWeight);
-void update_king_rook_pawn_corrhist(board *position, const int depth, const int diff);
-int adjust_eval_with_corrhist(board *pos, int rawEval);
-int get_correction_value(board *pos);
+void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int depth, moves *badQuiets, int quiet_hist_score);
+int getContinuationHistoryScore(ThreadData *t, int offSet, uint16_t move);
+void updateCaptureHistory(ThreadData *t, uint16_t bestMove, int depth);
+void updateCaptureHistoryMalus(ThreadData *t, int depth, moves *noisyMoves, uint16_t bestMove);
+void update_pawn_correction_hist(ThreadData *t, const int depth, const int diff);
+void update_minor_correction_hist(ThreadData *t, const int depth, const int diff);
+void update_major_correction_hist(ThreadData *t, const int depth, const int diff);
+void update_non_pawn_corrhist(ThreadData *t, const int depth, const int diff);
+void update_continuation_corrhist(ThreadData *t, const int depth, const int diff);
+void update_single_cont_corrhist_entry(ThreadData *t, const int pliesBack, const int scaledDiff, const int newWeight);
+void update_king_rook_pawn_corrhist(ThreadData *t, const int depth, const int diff);
+int adjust_eval_with_corrhist(ThreadData *t, int rawEval);
+int get_correction_value(ThreadData *t);
 void clear_histories(void);
 void quiet_history_aging(void);
 

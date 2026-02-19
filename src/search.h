@@ -28,7 +28,7 @@ extern int LMR_TABLE[2][maxPly][maxPly];
 int isRepetition(board* position);
 uint8_t isMaterialDraw(board *pos);
 void initializeLMRTable(void);
-int scoreMove(uint16_t move, board* position);
+int scoreMove(uint16_t move, ThreadData *t);
 void enable_pv_scoring(moves *moveList, board* position);
 void printMove(uint16_t move);
 int getLmrReduction(int depth, int moveNumber, bool isQuiet);
