@@ -1592,7 +1592,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, ss + 1, !cutNode);
 
                 // Post LMR search extension
-                if (!rootNode && doDeeper && score > alpha + 50) {
+                if (!rootNode && doDeeper && score > alpha && pos->rootDepth > 5) {
                     new_depth++;
                 }
             }
