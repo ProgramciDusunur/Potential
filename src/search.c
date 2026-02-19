@@ -1404,6 +1404,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 tripleMargin += isCapture * 100;
                 tripleMargin += isPromotion * 0;
                 tripleMargin += tactical * 80;
+                tripleMargin -= ss->singular_ply * 50;
                 
 
                 if (singularScore <= singularBeta - tripleMargin) {

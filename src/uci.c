@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "timeman.h"
 
-#define VERSION "3.24.49"
+#define VERSION "3.24.50"
 #define BENCH_DEPTH 14
 
 double DEF_TIME_MULTIPLIER = 0.054;
