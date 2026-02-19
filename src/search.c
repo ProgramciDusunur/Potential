@@ -1588,8 +1588,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 bool doShallower = score < bestScore + new_depth;
                 new_depth -= doShallower;
                 new_depth += doDeeper;
-                new_depth -= historyReduction;
+                new_depth -= historyReduction;                
                 score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, ss + 1, !cutNode);
+
+                // Post LMR search extension
+                if (score > alpha + 50) {
+                    new_depth++;
+                }
             }
         }
         else if (!pvNode || legal_moves > 1) {
