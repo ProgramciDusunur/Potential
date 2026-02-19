@@ -170,6 +170,7 @@ typedef struct {
     int staticEval;
     uint16_t singular_move;
     uint16_t nmp_refutation_move;
+    uint8_t singular_ply;
 } SearchStack;
 
 #endif //POTENTIAL_STRUCTS_H
