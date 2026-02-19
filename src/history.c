@@ -165,7 +165,7 @@ void update_pawn_correction_hist(ThreadData *t, const int depth, const int diff)
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
     // Masking for faster indexing (assuming SIZE is power of 2)
-    int16_t *entry = t->search_d.pawn_corrhist[t->pos.side][t->pos.pawnKey & (CORRHIST_SIZE - 1)];
+    int16_t *entry = &t->search_d.pawn_corrhist[t->pos.side][t->pos.pawnKey & (CORRHIST_SIZE - 1)];
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
@@ -173,7 +173,7 @@ void update_minor_correction_hist(ThreadData *t, const int depth, const int diff
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
-    int16_t *entry = t->search_d.minor_corrhist[t->pos.side][t->pos.minorKey & (CORRHIST_SIZE - 1)];
+    int16_t *entry = &t->search_d.minor_corrhist[t->pos.side][t->pos.minorKey & (CORRHIST_SIZE - 1)];
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
@@ -181,7 +181,7 @@ void update_major_correction_hist(ThreadData *t, const int depth, const int diff
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
-    int16_t *entry = t->search_d.major_corrhist[t->pos.side][t->pos.majorKey & (CORRHIST_SIZE - 1)];
+    int16_t *entry = &t->search_d.major_corrhist[t->pos.side][t->pos.majorKey & (CORRHIST_SIZE - 1)];
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
@@ -191,10 +191,10 @@ void update_non_pawn_corrhist(ThreadData *t, const int depth, const int diff) {
     const int newWeight = 4 * myMIN(depth + 1, 16);
     const int mask = CORRHIST_SIZE - 1;
     
-    int16_t *white_ptr = t->search_d.non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask];
+    int16_t *white_ptr = &t->search_d.non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask];
     apply_corrhist_update(white_ptr, scaledDiff, newWeight);
     
-    int16_t *black_ptr = t->search_d.non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask];
+    int16_t *black_ptr = &t->search_d.non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask];
     apply_corrhist_update(black_ptr, scaledDiff, newWeight);
 }
 
@@ -202,7 +202,7 @@ void update_king_rook_pawn_corrhist(ThreadData *t, const int depth, const int di
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
-    int16_t *entry = t->search_d.krp_corrhist[t->pos.side][t->pos.krpKey & (CORRHIST_SIZE - 1)];
+    int16_t *entry = &t->search_d.krp_corrhist[t->pos.side][t->pos.krpKey & (CORRHIST_SIZE - 1)];
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
