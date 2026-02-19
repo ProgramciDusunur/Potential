@@ -715,7 +715,8 @@ int get_draw_score(board *pos) {
 }
 
 // quiescence search
-int quiescence(int alpha, int beta, board* position, my_time* time, SearchStack *ss) {
+int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *ss) {
+    board *position = &t->pos;
     if (time->isNodeLimit) {
         check_node_limit(time, position);
     }
@@ -890,7 +891,9 @@ int quiescence(int alpha, int beta, board* position, my_time* time, SearchStack 
 
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchStack *ss, bool cutNode) {
+int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, SearchStack *ss, bool cutNode) {
+    board *pos = &t->pos;
+
     if (time->isNodeLimit) {
         check_node_limit(time, pos);
     }
@@ -1177,7 +1180,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 pick_next_move(count, capture_promos, move_scores);
                 uint16_t move = capture_promos->moves[count];
                 int move_history =
-                captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
+                t->search_d.captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
 
                 if (!SEE(pos, move, PROBCUT_SEE_NOISY_THRESHOLD)) {
                     continue;
@@ -1305,12 +1308,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
         bool tactical = isCapture || isPromotion;
         bool notTactical = !tactical;
 
-        int pawnHistoryValue = notTactical ? pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
+        int pawnHistoryValue = notTactical ? t->search_d.pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
 
-        int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
+        int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
-                captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+                getContinuationHistoryScore(t, 1, currentMove) + getContinuationHistoryScore(t, 4, currentMove): 
+                t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
 
@@ -1661,7 +1664,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 if (score >= beta) {
                     if (notTactical) {
                         int quiet_history_score = 
-                        quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
+                        t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
                         updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
@@ -1724,7 +1727,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 }
 
 // search position for the best move
-void searchPosition(int depth, board* position, bool benchmark, my_time* time, SearchStack* ss) {
+void searchPosition(int depth, board* position, bool benchmark, ThreadData *t, my_time* time, SearchStack* ss) {
     // define best score variable
     int score = 0;
 
