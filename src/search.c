@@ -1373,7 +1373,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             const int singularScore =
                     negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, ss, cutNode);
 
-            ss->singular_ply++;
+            ss->singular_ply--;
 
             ss->singular_move = 0;
 
