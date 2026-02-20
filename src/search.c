@@ -1366,15 +1366,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             ss->singular_move = currentMove;
 
             // take move back
-            takeBack(pos, &copyPosition);
-
-            ss->singular_ply++;
+            takeBack(pos, &copyPosition);            
 
             const int singularScore =
                     negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, ss, cutNode);
-
-            ss->singular_ply++;
-
+            
             ss->singular_move = 0;
 
             // Singular Extension
@@ -1384,14 +1380,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 int correction_adj = abs(correction_value) / 2875;                
 
                 // Double Extension                
-                int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
+                /*int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
                 doubleMargin -= correction_adj;
                 doubleMargin += isCapture * 75;
                 doubleMargin += isPromotion * 0; 
                 doubleMargin += tactical * 40;
-                doubleMargin -= ss->singular_ply * 25;
+                doubleMargin -= ss->singular_ply * 25;*/
 
-                if (!pvNode && singularScore <= singularBeta - doubleMargin) {
+                if (!pvNode) {
                     extensions++;
 
                     // Low Depth Extension

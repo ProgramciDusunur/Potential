@@ -169,8 +169,7 @@ typedef struct {
     int cutoff_count;
     int staticEval;
     uint16_t singular_move;
-    uint16_t nmp_refutation_move;
-    uint8_t singular_ply;
+    uint16_t nmp_refutation_move;    
 } SearchStack;
 
 #endif //POTENTIAL_STRUCTS_H
