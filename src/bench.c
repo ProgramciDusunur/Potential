@@ -70,7 +70,7 @@ void benchmark(int depth, ThreadData *t, my_time* time, SearchStack* ss) {
     for (int i = 0;i < 52;i++) {
         parseFEN(benchmarkfens[i], position);
         
-        searchPosition(depth, position, t, true, time, ss);
+        searchPosition(depth, position, true, t, time, ss);
         // clear hash table
         clearHashTable();
 

@@ -321,14 +321,14 @@ void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
     }
 }
 
-void init_move_scores(moves *moveList, int *move_scores, uint16_t tt_move, board* position) {
+void init_move_scores(moves *moveList, int *move_scores, uint16_t tt_move, ThreadData *t) {
     for (int count = 0; count < moveList->count; count++) {
         uint16_t current_move = moveList->moves[count];
         
         if (tt_move == current_move) {
             move_scores[count] = 2000000000;
         } else {
-            move_scores[count] = scoreMove(current_move, position);
+            move_scores[count] = scoreMove(current_move, t);
         }
     }
 }
@@ -764,7 +764,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     // evaluate position
     int evaluation = evaluate(position);
 
-    evaluation = adjust_eval_with_corrhist(position, evaluation);
+    evaluation = adjust_eval_with_corrhist(t, evaluation);
 
     score = bestScore = tt_hit ? tt_score : evaluation;
 
@@ -842,7 +842,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         prefetch_hash_entry(position->hashKey, position->fifty);
 
         // score current move
-        score = -quiescence(-beta, -alpha, position, time, ss + 1);
+        score = -quiescence(-beta, -alpha, t, time, ss + 1);
 
         // decrement ply
         position->ply--;
@@ -978,7 +978,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // recursion escapre condition
     if (depth <= 0)
         // run quiescence search
-        return quiescence(alpha, beta, pos, time, ss);        
+        return quiescence(alpha, beta, t, time, ss);        
 
     // is king in check
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
@@ -989,14 +989,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // get static evaluation score
     int raw_eval = evaluate(pos);
 
-    int static_eval = adjust_eval_with_corrhist(pos, raw_eval);
+    int static_eval = adjust_eval_with_corrhist(t, raw_eval);
 
     bool improving = false;
     bool tt_capture = tt_move && getMoveCapture(tt_move);
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
-    int correction_value = get_correction_value(pos);    
+    int correction_value = get_correction_value(t);    
 
     ss->staticEval = static_eval;    
 
@@ -1067,7 +1067,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, depth - R, pos, time, ss + 1, !cutNode);
+        score = -negamax(-beta, -beta + 1, depth - R, t, time, ss + 1, !cutNode);
 
         // decrement ply
         pos->ply--;
@@ -1103,7 +1103,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
                 
             pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
-            int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, ss, false);
+            int verificationScore = -negamax(beta - 1, beta, depth - R, t, time, ss, false);
             pos->nmpPly = 0;
 
             if (verificationScore >= beta) {
@@ -1123,7 +1123,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             if (!isTactical(nmp_ref_move)) {
                 int refutation_bonus = 100 + 50 * nmp_depth;
-                adjust_single_quiet_hist_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
+                adjust_single_quiet_hist_entry(t, pos->side, nmp_ref_move, refutation_bonus);
             }
         }
     }    
@@ -1142,13 +1142,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 (depth <= RAZORING_FULL_D && ttAdjustedEval + margin + RAZORING_FULL_MARGIN <= alpha);
 
                 if (allow_full_razor) {
-                    return quiescence(alpha, beta, pos, time, ss);
+                    return quiescence(alpha, beta, t, time, ss);
                 }
 
                 const int capped_alpha = myMAX(alpha - margin, -mateValue);
                 const int razor_alpha = capped_alpha;
                 const int razor_beta = razor_alpha + 1;
-                int razor_score = quiescence(razor_alpha, razor_beta, pos, time, ss);
+                int razor_score = quiescence(razor_alpha, razor_beta, t, time, ss);
 
                 // We proved a fail low.
                 if (razor_score <= razor_alpha) {                       
@@ -1175,7 +1175,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             noisyGenerator(capture_promos, pos);
 
             int move_scores[256];
-            init_move_scores(capture_promos, move_scores, tt_move, pos);
+            init_move_scores(capture_promos, move_scores, tt_move, t);
             for (int count = 0; count < capture_promos->count; count++) {
                 pick_next_move(count, capture_promos, move_scores);
                 uint16_t move = capture_promos->moves[count];
@@ -1219,7 +1219,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 legal_moves++;
 
 
-                int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time, ss + 1);
+                int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, t, time, ss + 1);
 
                 if (probcut_value >= probcut_beta) {
                     int adjusted_probcut_depth = probcut_depth * 1024;
@@ -1229,7 +1229,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                     adjusted_probcut_depth /= 1024;
 
-                    probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, ss + 1, !cutNode);
+                    probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, t, time, ss + 1, !cutNode);
                 }
 
                 // decrement ply
@@ -1276,7 +1276,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     update_pinned(pos);
 
     int move_scores[256];
-    init_move_scores(moveList, move_scores, tt_move, pos);
+    init_move_scores(moveList, move_scores, tt_move, t);
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -1372,7 +1372,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             takeBack(pos, &copyPosition);            
 
             const int singularScore =
-                    negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, ss, cutNode);
+                    negamax(singularBeta - 1, singularBeta, singularDepth, t, time, ss, cutNode);
             
             ss->singular_move = 0;
 
@@ -1583,7 +1583,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
-            score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, ss + 1, true);
+            score = -negamax(-alpha - 1, -alpha, reduced_depth, t, time, ss + 1, true);
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
@@ -1592,7 +1592,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 new_depth -= doShallower;
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
-                score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, ss + 1, !cutNode);
+                score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !cutNode);
             }
         }
         else if (!pvNode || legal_moves > 1) {
@@ -1601,7 +1601,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 new_depth = myMAX(new_depth, 1);
             }
             
-            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, ss + 1, !cutNode);
+            score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !cutNode);
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
@@ -1615,7 +1615,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
             
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, new_depth, pos, time, ss + 1, false);
+            score = -negamax(-beta, -alpha, new_depth, t, time, ss + 1, false);
         }
 
         // decrement ply
@@ -1667,16 +1667,16 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
-                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
-                        updateContinuationHistory(pos, bestMove, depth, badQuiets, quiet_history_score);
-                        updatePawnHistory(pos, bestMove, depth, badQuiets);                       
+                        updateQuietMoveHistory(t, bestMove, pos->side, depth, badQuiets);
+                        updateContinuationHistory(t, bestMove, depth, badQuiets, quiet_history_score);
+                        updatePawnHistory(t, bestMove, depth, badQuiets);                       
                         
                     } else { // noisy moves
-                        updateCaptureHistory(pos, bestMove, depth);
+                        updateCaptureHistory(t, bestMove, depth);
                     }
 
                     // always penalize bad noisy moves
-                    updateCaptureHistoryMalus(pos, depth, noisyMoves, bestMove);
+                    updateCaptureHistoryMalus(t, depth, noisyMoves, bestMove);
 
                     // node (move) fails high
                     break;
@@ -1711,12 +1711,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
 
             int corrhistBonus = clamp(bestScore - static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
-            update_pawn_correction_hist(pos, depth, corrhistBonus);
-            update_minor_correction_hist(pos, depth, corrhistBonus);
-            update_major_correction_hist(pos, depth, corrhistBonus);
-            update_non_pawn_corrhist(pos, depth, corrhistBonus);
-            update_continuation_corrhist(pos, depth, corrhistBonus);
-            update_king_rook_pawn_corrhist(pos, depth, corrhistBonus);
+            update_pawn_correction_hist(t, depth, corrhistBonus);
+            update_minor_correction_hist(t, depth, corrhistBonus);
+            update_major_correction_hist(t, depth, corrhistBonus);
+            update_non_pawn_corrhist(t, depth, corrhistBonus);
+            update_continuation_corrhist(t, depth, corrhistBonus);
+            update_king_rook_pawn_corrhist(t, depth, corrhistBonus);
         }
 
         // store hash entry with the score equal to alpha
@@ -1727,7 +1727,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 }
 
 // search position for the best move
-void searchPosition(int depth, board* position, bool benchmark, ThreadData *t, my_time* time, SearchStack* ss) {
+void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, my_time* time, SearchStack* ss) {
     // define best score variable
     int score = 0;
 
@@ -1735,15 +1735,15 @@ void searchPosition(int depth, board* position, bool benchmark, ThreadData *t, m
     time->stopped = 0;
 
     // reset nodes counter
-    position->nodes_searched = 0;
+    root_pos->nodes_searched = 0;
 
     // reset follow PV flags
-    position->followPv = 0;
-    position->scorePv = 0;
+    root_pos->followPv = 0;
+    root_pos->scorePv = 0;
     
     memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
-    memset(position->pvTable, 0, sizeof(position->pvTable));
-    memset(position->pvLength, 0, sizeof(position->pvLength));    
+    memset(root_pos->pvTable, 0, sizeof(root_pos->pvTable));
+    memset(root_pos->pvLength, 0, sizeof(root_pos->pvLength));    
 
     // define initial alpha beta bounds
     int alpha = -infinity;
@@ -1751,7 +1751,7 @@ void searchPosition(int depth, board* position, bool benchmark, ThreadData *t, m
 
     int totalTime = 0;
     // set root depth
-    position->rootDepth = 0;
+    root_pos->rootDepth = 0;
 
     int previousBestMove = 0;
     uint8_t bestMoveStability = 0;
@@ -1771,17 +1771,17 @@ void searchPosition(int depth, board* position, bool benchmark, ThreadData *t, m
         for (int i = 0; i < maxPly; ++i) {
             (ss + i)->singular_move = 0;
             (ss + i)->staticEval = noEval;
-            position->piece[i] = 0;
-            position->move[i] = 0;
+            root_pos->piece[i] = 0;
+            root_pos->move[i] = 0;
         }
 
-        position->seldepth = 0;
-        position->rootDepth = current_depth;
+        root_pos->seldepth = 0;
+        root_pos->rootDepth = current_depth;
 
 
         int startTime = getTimeMiliSecond();
 
-        if ((time->timeset && startTime >= time->softLimit && position->pvTable[0][0] != 0) || (time->isNodeLimit && position->nodes_searched >= time->node_limit)) {
+        if ((time->timeset && startTime >= time->softLimit && root_pos->pvTable[0][0] != 0) || (time->isNodeLimit && root_pos->nodes_searched >= time->node_limit)) {
             time->stopped = 1;
         }
 
@@ -1790,7 +1790,7 @@ void searchPosition(int depth, board* position, bool benchmark, ThreadData *t, m
 
         while (true) {
 
-            if ((time->timeset && (startTime >= time->softLimit) && position->pvTable[0][0] != 0) || (time->isNodeLimit && position->nodes_searched >= time->node_limit)) {
+            if ((time->timeset && (startTime >= time->softLimit) && root_pos->pvTable[0][0] != 0) || (time->isNodeLimit && root_pos->nodes_searched >= time->node_limit)) {
                 time->stopped = 1;
             }
 
@@ -1803,14 +1803,14 @@ void searchPosition(int depth, board* position, bool benchmark, ThreadData *t, m
                 beta = myMIN(infinity, score + window);
             }
 
-            position->followPv = 1;
+            root_pos->followPv = 1;
             // find best move within a given position
-            score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), position, time, ss, false);
+            score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), t, time, ss, false);
 
             if (score == infinity) {
                 // Restore the saved best line
-                memset(position->pvTable, 0, sizeof(position->pvTable));
-                memset(position->pvLength, 0, sizeof(position->pvLength));
+                memset(root_pos->pvTable, 0, sizeof(root_pos->pvTable));
+                memset(root_pos->pvLength, 0, sizeof(root_pos->pvLength));
                 // Break out of the loop without printing info about the unfinished
                 // depth
                 break;
@@ -1842,10 +1842,10 @@ void searchPosition(int depth, board* position, bool benchmark, ThreadData *t, m
         averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
 
 
-        if (position->pvTable[0][0] == previousBestMove) {
+        if (root_pos->pvTable[0][0] == previousBestMove) {
             bestMoveStability = myMIN(bestMoveStability + 1, 4);
         } else {
-            previousBestMove = position->pvTable[0][0];
+            previousBestMove = root_pos->pvTable[0][0];
             bestMoveStability = 0;
         }
 
@@ -1862,28 +1862,28 @@ void searchPosition(int depth, board* position, bool benchmark, ThreadData *t, m
         }
 
         if (time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0], complexity, position);
+            scaleTime(time, bestMoveStability, evalStability, root_pos->pvTable[0][0], complexity, root_pos);
         }
         
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
 
-        if (position->pvLength[0] && !benchmark) {
-            unsigned long long nps = (totalTime > 0) ? (position->nodes_searched * 1000) / totalTime : 0;
+        if (root_pos->pvLength[0] && !benchmark) {
+            unsigned long long nps = (totalTime > 0) ? (root_pos->nodes_searched * 1000) / totalTime : 0;
 
-            printf("info depth %d seldepth %d ", current_depth, position->seldepth);
+            printf("info depth %d seldepth %d ", current_depth, root_pos->seldepth);
 
             if (is_mate_score(score))
                 printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
                        (score > 0 ? mateValue - score + 1 : -mateValue - score) / 2,
-                       position->nodes_searched, nps, hash_full(), totalTime);            
+                       root_pos->nodes_searched, nps, hash_full(), totalTime);            
             else
                 printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
-                       score, position->nodes_searched, nps, hash_full(), totalTime);
+                       score, root_pos->nodes_searched, nps, hash_full(), totalTime);
 
             // loop over the moves within a PV line
-            for (int count = 0; count < position->pvLength[0]; count++) {
-                printMove(position->pvTable[0][count]);
+            for (int count = 0; count < root_pos->pvLength[0]; count++) {
+                printMove(root_pos->pvTable[0][count]);
                 printf(" ");
             }
             // print new line
@@ -1894,7 +1894,7 @@ void searchPosition(int depth, board* position, bool benchmark, ThreadData *t, m
     if (!benchmark) {
         // best move placeholder
         printf("bestmove ");
-        printMove(position->pvTable[0][0]);
+        printMove(root_pos->pvTable[0][0]);
         printf("\n");
     }
 }
