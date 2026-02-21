@@ -1739,11 +1739,11 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
 
     // reset nodes counter
     store_rlx(t->search_i.nodes_searched, 0);
-    root_pos->nodes_searched = 0;
+    t->pos.nodes_searched = 0;
 
     // reset follow PV flags
-    root_pos->followPv = 0;
-    root_pos->scorePv = 0;
+    t->pos.followPv = 0;
+    t->pos.scorePv = 0;
     
     memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
     memset(t->pos.pvTable, 0, sizeof(t->pos.pvTable));
@@ -1755,7 +1755,6 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
 
     int totalTime = 0;
     // set root depth
-    root_pos->rootDepth = 0;
     t->pos.rootDepth = 0;
     t->pos.ply = 0;
 
@@ -1777,12 +1776,12 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
         for (int i = 0; i < maxPly; ++i) {
             (ss + i)->singular_move = 0;
             (ss + i)->staticEval = noEval;
-            root_pos->piece[i] = 0;
-            root_pos->move[i] = 0;
+            t->pos.piece[i] = 0;
+            t->pos.move[i] = 0;
         }
 
-        root_pos->seldepth = 0;
-        root_pos->rootDepth = current_depth;
+        t->pos.seldepth = 0;
+        t->pos.rootDepth = current_depth;
 
 
         int startTime = getTimeMiliSecond();
@@ -1868,7 +1867,7 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
         }
 
         if (time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, root_pos);
+            scaleTime(time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, &t->pos);
         }
         
         int endTime = getTimeMiliSecond();
@@ -1877,7 +1876,7 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
         if (t->pos.pvLength[0] && !benchmark) {
             unsigned long long nps = (totalTime > 0) ? (load_rlx(t->search_i.nodes_searched) * 1000) / totalTime : 0;
 
-            printf("info depth %d seldepth %d ", current_depth, root_pos->seldepth);
+            printf("info depth %d seldepth %d ", current_depth, t->pos.seldepth);
 
             if (is_mate_score(score))
                 printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
