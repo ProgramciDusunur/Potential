@@ -378,7 +378,9 @@ void check_node_limit(my_time* time, board *pos) {
 
 
 void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, SearchStack *ss) {
-    ThreadData *threads = init_threads(thread_count);
+    //ThreadData *threads = init_threads(thread_count);
+
+    setup_main_thread(position);
 
     position->ply = 0;
     position->nmpPly = 0;
@@ -412,7 +414,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..\n");
-        benchmark(BENCH_DEPTH, thread_pool.threads[1], time_ctrl, ss);
+        benchmark(BENCH_DEPTH, thread_pool.threads[0], time_ctrl, ss);
         printf("\n");
         fflush(NULL);
         return;
@@ -495,7 +497,9 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
         // parse UCI "position" command
         else if (strncmp(input, "position", 8) == 0) {
             // call parse position function
-            parse_position(input, position);            
+            parse_position(input, position); 
+            
+            setup_main_thread(position);
         }
 
         // parse UCI "ucinewgame" command
@@ -516,7 +520,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
         // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0) {
             // call parse go function
-            goCommand(input, thread_pool.threads[1], position, time_ctrl, ss);
+            goCommand(input, thread_pool.threads[0], position, time_ctrl, ss);
         }
         else if (!strncmp(input, "setoption name Hash value ", 26)) {
             // init MB
@@ -575,7 +579,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
         } 
 
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(BENCH_DEPTH, thread_pool.threads[1], time_ctrl, ss);
+            benchmark(BENCH_DEPTH, thread_pool.threads[0], time_ctrl, ss);
         }
     }    
 }

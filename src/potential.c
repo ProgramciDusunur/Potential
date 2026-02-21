@@ -40,11 +40,18 @@ void initAll(void) {
 
 
 int main(int argc, char* argv[]) {
+    // init main thread
+    init_threads(1);
+
     initAll();
     int debug = 0;
     if (debug) {
-        /*board position;
-        parseFEN(startPosition, &position);*/
+        board position;
+        parseFEN(startPosition, &position);
+
+        setup_main_thread(&position);
+
+        pBoard(&thread_pool.threads[0]->pos);
     
         /*
         perftRoot(7, &position);

@@ -69,6 +69,8 @@ void benchmark(int depth, ThreadData *t, my_time* time, SearchStack* ss) {
     int benchStartTime = getTimeMiliSecond();
     for (int i = 0;i < 52;i++) {
         parseFEN(benchmarkfens[i], position);
+
+        setup_main_thread(&t->pos);
         
         searchPosition(depth, position, true, t, time, ss);
         // clear hash table

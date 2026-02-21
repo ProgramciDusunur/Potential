@@ -10,10 +10,11 @@
 #include "bit_manipulation.h"
 #include "values.h"
 
-// Relaxed atomic helpers, they are from Berserk engine
+// Relaxed atomic helpers
 #define load_rlx(x) atomic_load_explicit(&(x), memory_order_relaxed)
 #define inc_rlx(x)  atomic_fetch_add_explicit(&(x), 1, memory_order_relaxed)
 #define dec_rlx(x)  atomic_fetch_sub_explicit(&(x), 1, memory_order_relaxed)
+#define store_rlx(x, v) atomic_store_explicit(&(x), (v), memory_order_relaxed)
 
 
 bool is_mate_score(int score);

@@ -304,11 +304,11 @@ int get_correction_value(ThreadData *t) {
 void clear_histories(void) {
     int how_many_threads = thread_pool.thread_count;
 
-    for (int i = 1;i < how_many_threads;i++) {
+    for (int i = 0;i < how_many_threads;i++) {
         memset(thread_pool.threads[i]->search_d.quietHistory, 0, sizeof(thread_pool.threads[i]->search_d.quietHistory));
         memset(thread_pool.threads[i]->search_d.captureHistory, 0, sizeof(thread_pool.threads[i]->search_d.captureHistory));
         memset(thread_pool.threads[i]->search_d.pawnHistory, 0, sizeof(thread_pool.threads[i]->search_d.pawnHistory));
-        memset(thread_pool.threads[i]->search_d.continuationHistory, 0, sizeof(thread_pool.threads[i]->search_d.captureHistory));
+        memset(thread_pool.threads[i]->search_d.continuationHistory, 0, sizeof(thread_pool.threads[i]->search_d.continuationHistory));
 
 
         memset(thread_pool.threads[i]->search_d.contCorrhist, 0, sizeof(thread_pool.threads[i]->search_d.contCorrhist));
@@ -323,8 +323,7 @@ void clear_histories(void) {
 void quiet_history_aging(void) {
     int how_many_threads = thread_pool.thread_count;
 
-    // don't touch the main thread [0], age other searcher workers histories
-    for (int i = 1;i < how_many_threads;i++) {
+    for (int i = 0;i < how_many_threads;i++) {
         int16_t *p = (int16_t *)thread_pool.threads[i]->search_d.quietHistory;
 
         for (int i = 0; i < 32768; i++) {

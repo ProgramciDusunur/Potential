@@ -838,6 +838,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
         // increment nodes count
         position->nodes_searched++;
+        inc_rlx(t->search_i.nodes_searched);
 
         prefetch_hash_entry(position->hashKey, position->fifty);
 
@@ -1216,6 +1217,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 prefetch_hash_entry(pos->hashKey, pos->fifty);
                 pos->nodes_searched++;
+                inc_rlx(t->search_i.nodes_searched);
                 legal_moves++;
 
 
@@ -1485,6 +1487,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // increment nodes count
         pos->nodes_searched++;
+        inc_rlx(t->search_i.nodes_searched);
 
         prefetch_hash_entry(pos->hashKey, pos->fifty);
 
@@ -1735,6 +1738,7 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
     time->stopped = 0;
 
     // reset nodes counter
+    store_rlx(t->search_i.nodes_searched, 0);
     root_pos->nodes_searched = 0;
 
     // reset follow PV flags
@@ -1742,8 +1746,8 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
     root_pos->scorePv = 0;
     
     memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
-    memset(root_pos->pvTable, 0, sizeof(root_pos->pvTable));
-    memset(root_pos->pvLength, 0, sizeof(root_pos->pvLength));    
+    memset(t->pos.pvTable, 0, sizeof(t->pos.pvTable));
+    memset(t->pos.pvLength, 0, sizeof(t->pos.pvLength));    
 
     // define initial alpha beta bounds
     int alpha = -infinity;
@@ -1752,6 +1756,8 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
     int totalTime = 0;
     // set root depth
     root_pos->rootDepth = 0;
+    t->pos.rootDepth = 0;
+    t->pos.ply = 0;
 
     int previousBestMove = 0;
     uint8_t bestMoveStability = 0;
@@ -1759,7 +1765,7 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
     uint8_t evalStability = 0;
     int baseSearchScore = -infinity;
 
-    quiet_history_aging();
+    quiet_history_aging();    
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
@@ -1781,7 +1787,7 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
 
         int startTime = getTimeMiliSecond();
 
-        if ((time->timeset && startTime >= time->softLimit && root_pos->pvTable[0][0] != 0) || (time->isNodeLimit && root_pos->nodes_searched >= time->node_limit)) {
+        if ((time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && load_rlx(t->search_i.nodes_searched) >= time->node_limit)) {
             time->stopped = 1;
         }
 
@@ -1790,7 +1796,7 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
 
         while (true) {
 
-            if ((time->timeset && (startTime >= time->softLimit) && root_pos->pvTable[0][0] != 0) || (time->isNodeLimit && root_pos->nodes_searched >= time->node_limit)) {
+            if ((time->timeset && (startTime >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && load_rlx(t->search_i.nodes_searched) >= time->node_limit)) {
                 time->stopped = 1;
             }
 
@@ -1803,14 +1809,14 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
                 beta = myMIN(infinity, score + window);
             }
 
-            root_pos->followPv = 1;
+            t->pos.followPv = 1;
             // find best move within a given position
             score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), t, time, ss, false);
 
             if (score == infinity) {
                 // Restore the saved best line
-                memset(root_pos->pvTable, 0, sizeof(root_pos->pvTable));
-                memset(root_pos->pvLength, 0, sizeof(root_pos->pvLength));
+                memset(t->pos.pvTable, 0, sizeof(t->pos.pvTable));
+                memset(t->pos.pvLength, 0, sizeof(t->pos.pvLength));
                 // Break out of the loop without printing info about the unfinished
                 // depth
                 break;
@@ -1842,10 +1848,10 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
         averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
 
 
-        if (root_pos->pvTable[0][0] == previousBestMove) {
+        if (t->pos.pvTable[0][0] == previousBestMove) {
             bestMoveStability = myMIN(bestMoveStability + 1, 4);
         } else {
-            previousBestMove = root_pos->pvTable[0][0];
+            previousBestMove = t->pos.pvTable[0][0];
             bestMoveStability = 0;
         }
 
@@ -1862,28 +1868,28 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
         }
 
         if (time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability, root_pos->pvTable[0][0], complexity, root_pos);
+            scaleTime(time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, root_pos);
         }
         
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
 
-        if (root_pos->pvLength[0] && !benchmark) {
-            unsigned long long nps = (totalTime > 0) ? (root_pos->nodes_searched * 1000) / totalTime : 0;
+        if (t->pos.pvLength[0] && !benchmark) {
+            unsigned long long nps = (totalTime > 0) ? (load_rlx(t->search_i.nodes_searched) * 1000) / totalTime : 0;
 
             printf("info depth %d seldepth %d ", current_depth, root_pos->seldepth);
 
             if (is_mate_score(score))
                 printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
                        (score > 0 ? mateValue - score + 1 : -mateValue - score) / 2,
-                       root_pos->nodes_searched, nps, hash_full(), totalTime);            
+                       load_rlx(t->search_i.nodes_searched), nps, hash_full(), totalTime);            
             else
                 printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
-                       score, root_pos->nodes_searched, nps, hash_full(), totalTime);
+                       score, load_rlx(t->search_i.nodes_searched), nps, hash_full(), totalTime);
 
             // loop over the moves within a PV line
-            for (int count = 0; count < root_pos->pvLength[0]; count++) {
-                printMove(root_pos->pvTable[0][count]);
+            for (int count = 0; count < t->pos.pvLength[0]; count++) {
+                printMove(t->pos.pvTable[0][count]);
                 printf(" ");
             }
             // print new line
@@ -1894,7 +1900,7 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
     if (!benchmark) {
         // best move placeholder
         printf("bestmove ");
-        printMove(root_pos->pvTable[0][0]);
+        printMove(t->pos.pvTable[0][0]);
         printf("\n");
     }
 }
