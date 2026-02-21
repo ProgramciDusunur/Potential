@@ -321,14 +321,14 @@ void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
     }
 }
 
-void init_move_scores(moves *moveList, int *move_scores, uint16_t tt_move, board* position) {
+void init_move_scores(moves *moveList, int *move_scores, uint16_t tt_move, ThreadData *t) {
     for (int count = 0; count < moveList->count; count++) {
         uint16_t current_move = moveList->moves[count];
         
         if (tt_move == current_move) {
             move_scores[count] = 2000000000;
         } else {
-            move_scores[count] = scoreMove(current_move, position);
+            move_scores[count] = scoreMove(current_move, t);
         }
     }
 }
@@ -364,11 +364,11 @@ void init_quiescence_scores(moves *moveList, int *move_scores, board* position) 
 */
 
 // score moves
-int scoreMove(uint16_t move, board* position) {
+int scoreMove(uint16_t move, ThreadData *t) {
     // make sure we are dealing with PV move
-    if (position->scorePv && position->pvTable[0][position->ply] == move) {
+    if (t->pos.scorePv && t->pos.pvTable[0][t->pos.ply] == move) {
         // disable score PV flag
-        position->scorePv = 0;
+        t->pos.scorePv = 0;
 
         // give PV move the highest score to search it first
         return 1500000000;
@@ -376,7 +376,7 @@ int scoreMove(uint16_t move, board* position) {
 
     // score promotion move
     if (getMovePromote(move)) {
-        switch (getMovePromotedPiece(position->side, move)) {
+        switch (getMovePromotedPiece(t->pos.side, move)) {
             case q:
             case Q:
                 return 1000000000;
@@ -405,26 +405,26 @@ int scoreMove(uint16_t move, board* position) {
         // init target piece
         int target_piece = P;
 
-        uint8_t bb_piece = position->mailbox[getMoveTarget(move)];
+        uint8_t bb_piece = t->pos.mailbox[getMoveTarget(move)];
         // if there's a piece on the target square
         if (bb_piece != NO_PIECE &&
-            getBit(position->bitboards[bb_piece], getMoveTarget(move))) {
+            getBit(t->pos.bitboards[bb_piece], getMoveTarget(move))) {
             target_piece = bb_piece;
         }
 
-        int previous_move_target_square = getMoveTarget(position->move[myMAX(0, position->ply - 1)]);
+        int previous_move_target_square = getMoveTarget(t->pos.move[myMAX(0, t->pos.ply - 1)]);
         int recapture_bonus = getMoveTarget(move) == previous_move_target_square ? 200000 : 0;
 
-        int piece = position->mailbox[getMoveSource(move)];
+        int piece = t->pos.mailbox[getMoveSource(move)];
 
-        int16_t move_history = captureHistory[piece][getMoveTarget(move)][position->mailbox[getMoveTarget(move)]];
+        int16_t move_history = t->search_d.captureHistory[piece][getMoveTarget(move)][t->pos.mailbox[getMoveTarget(move)]];
 
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[piece][target_piece];
 
         captureScore += move_history;
 
-        captureScore += SEE(position, move, SEE_MOVE_ORDERING_THRESHOLD - move_history / 32) ? 1000000000 : -1000000;
+        captureScore += SEE(&t->pos, move, SEE_MOVE_ORDERING_THRESHOLD - move_history / 32) ? 1000000000 : -1000000;
 
         captureScore += recapture_bonus;
         
@@ -439,17 +439,17 @@ int scoreMove(uint16_t move, board* position) {
         int quiet_score = 0;
         quiet_score +=
             // quiet main history 
-            quietHistory[position->side][getMoveSource(move)][getMoveTarget(move)]
-            [is_square_threatened(position, getMoveSource(move))][is_square_threatened(position, getMoveTarget(move))];
+            t->search_d.quietHistory[t->pos.side][getMoveSource(move)][getMoveTarget(move)]
+            [is_square_threatened(&t->pos, getMoveSource(move))][is_square_threatened(&t->pos, getMoveTarget(move))];
 
         // 1 ply continuation history
-        quiet_score += getContinuationHistoryScore(position, 1, move);
+        quiet_score += getContinuationHistoryScore(t, 1, move);
         // 2 ply continuation history
-        quiet_score += getContinuationHistoryScore(position, 2, move);
+        quiet_score += getContinuationHistoryScore(t, 2, move);
         // 4 ply continuation history
-        quiet_score += getContinuationHistoryScore(position, 4, move);
+        quiet_score += getContinuationHistoryScore(t, 4, move);
         // pawn history
-        quiet_score += pawnHistory[position->pawnKey % 2048][position->mailbox[getMoveSource(move)]][getMoveTarget(move)];
+        quiet_score += t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
@@ -715,7 +715,8 @@ int get_draw_score(board *pos) {
 }
 
 // quiescence search
-int quiescence(int alpha, int beta, board* position, my_time* time, SearchStack *ss) {
+int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *ss) {
+    board *position = &t->pos;
     if (time->isNodeLimit) {
         check_node_limit(time, position);
     }
@@ -763,7 +764,7 @@ int quiescence(int alpha, int beta, board* position, my_time* time, SearchStack 
     // evaluate position
     int evaluation = evaluate(position);
 
-    evaluation = adjust_eval_with_corrhist(position, evaluation);
+    evaluation = adjust_eval_with_corrhist(t, evaluation);
 
     score = bestScore = tt_hit ? tt_score : evaluation;
 
@@ -837,11 +838,12 @@ int quiescence(int alpha, int beta, board* position, my_time* time, SearchStack 
 
         // increment nodes count
         position->nodes_searched++;
+        inc_rlx(t->search_i.nodes_searched);
 
         prefetch_hash_entry(position->hashKey, position->fifty);
 
         // score current move
-        score = -quiescence(-beta, -alpha, position, time, ss + 1);
+        score = -quiescence(-beta, -alpha, t, time, ss + 1);
 
         // decrement ply
         position->ply--;
@@ -890,7 +892,9 @@ int quiescence(int alpha, int beta, board* position, my_time* time, SearchStack 
 
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchStack *ss, bool cutNode) {
+int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, SearchStack *ss, bool cutNode) {
+    board *pos = &t->pos;
+
     if (time->isNodeLimit) {
         check_node_limit(time, pos);
     }
@@ -975,7 +979,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     // recursion escapre condition
     if (depth <= 0)
         // run quiescence search
-        return quiescence(alpha, beta, pos, time, ss);        
+        return quiescence(alpha, beta, t, time, ss);        
 
     // is king in check
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
@@ -986,14 +990,14 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     // get static evaluation score
     int raw_eval = evaluate(pos);
 
-    int static_eval = adjust_eval_with_corrhist(pos, raw_eval);
+    int static_eval = adjust_eval_with_corrhist(t, raw_eval);
 
     bool improving = false;
     bool tt_capture = tt_move && getMoveCapture(tt_move);
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
-    int correction_value = get_correction_value(pos);    
+    int correction_value = get_correction_value(t);    
 
     ss->staticEval = static_eval;    
 
@@ -1064,7 +1068,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, depth - R, pos, time, ss + 1, !cutNode);
+        score = -negamax(-beta, -beta + 1, depth - R, t, time, ss + 1, !cutNode);
 
         // decrement ply
         pos->ply--;
@@ -1100,7 +1104,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             }
                 
             pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
-            int verificationScore = -negamax(beta - 1, beta, depth - R, pos, time, ss, false);
+            int verificationScore = -negamax(beta - 1, beta, depth - R, t, time, ss, false);
             pos->nmpPly = 0;
 
             if (verificationScore >= beta) {
@@ -1120,7 +1124,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
             if (!isTactical(nmp_ref_move)) {
                 int refutation_bonus = 100 + 50 * nmp_depth;
-                adjust_single_quiet_hist_entry(pos, pos->side, nmp_ref_move, refutation_bonus);
+                adjust_single_quiet_hist_entry(t, pos->side, nmp_ref_move, refutation_bonus);
             }
         }
     }    
@@ -1139,13 +1143,13 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 (depth <= RAZORING_FULL_D && ttAdjustedEval + margin + RAZORING_FULL_MARGIN <= alpha);
 
                 if (allow_full_razor) {
-                    return quiescence(alpha, beta, pos, time, ss);
+                    return quiescence(alpha, beta, t, time, ss);
                 }
 
                 const int capped_alpha = myMAX(alpha - margin, -mateValue);
                 const int razor_alpha = capped_alpha;
                 const int razor_beta = razor_alpha + 1;
-                int razor_score = quiescence(razor_alpha, razor_beta, pos, time, ss);
+                int razor_score = quiescence(razor_alpha, razor_beta, t, time, ss);
 
                 // We proved a fail low.
                 if (razor_score <= razor_alpha) {                       
@@ -1172,12 +1176,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             noisyGenerator(capture_promos, pos);
 
             int move_scores[256];
-            init_move_scores(capture_promos, move_scores, tt_move, pos);
+            init_move_scores(capture_promos, move_scores, tt_move, t);
             for (int count = 0; count < capture_promos->count; count++) {
                 pick_next_move(count, capture_promos, move_scores);
                 uint16_t move = capture_promos->moves[count];
                 int move_history =
-                captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
+                t->search_d.captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
 
                 if (!SEE(pos, move, PROBCUT_SEE_NOISY_THRESHOLD)) {
                     continue;
@@ -1213,10 +1217,11 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
                 prefetch_hash_entry(pos->hashKey, pos->fifty);
                 pos->nodes_searched++;
+                inc_rlx(t->search_i.nodes_searched);
                 legal_moves++;
 
 
-                int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, pos, time, ss + 1);
+                int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, t, time, ss + 1);
 
                 if (probcut_value >= probcut_beta) {
                     int adjusted_probcut_depth = probcut_depth * 1024;
@@ -1226,7 +1231,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
                     adjusted_probcut_depth /= 1024;
 
-                    probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, pos, time, ss + 1, !cutNode);
+                    probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, t, time, ss + 1, !cutNode);
                 }
 
                 // decrement ply
@@ -1273,7 +1278,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
     update_pinned(pos);
 
     int move_scores[256];
-    init_move_scores(moveList, move_scores, tt_move, pos);
+    init_move_scores(moveList, move_scores, tt_move, t);
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -1305,12 +1310,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
         bool tactical = isCapture || isPromotion;
         bool notTactical = !tactical;
 
-        int pawnHistoryValue = notTactical ? pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
+        int pawnHistoryValue = notTactical ? t->search_d.pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
 
-        int moveHistory = notTactical ? quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
+        int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(pos, 1, currentMove) + getContinuationHistoryScore(pos, 4, currentMove): 
-                captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+                getContinuationHistoryScore(t, 1, currentMove) + getContinuationHistoryScore(t, 4, currentMove): 
+                t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
 
@@ -1369,7 +1374,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             takeBack(pos, &copyPosition);            
 
             const int singularScore =
-                    negamax(singularBeta - 1, singularBeta, singularDepth, pos, time, ss, cutNode);
+                    negamax(singularBeta - 1, singularBeta, singularDepth, t, time, ss, cutNode);
             
             ss->singular_move = 0;
 
@@ -1482,6 +1487,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 
         // increment nodes count
         pos->nodes_searched++;
+        inc_rlx(t->search_i.nodes_searched);
 
         prefetch_hash_entry(pos->hashKey, pos->fifty);
 
@@ -1580,7 +1586,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
-            score = -negamax(-alpha - 1, -alpha, reduced_depth, pos, time, ss + 1, true);
+            score = -negamax(-alpha - 1, -alpha, reduced_depth, t, time, ss + 1, true);
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
@@ -1589,7 +1595,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 new_depth -= doShallower;
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
-                score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, ss + 1, !cutNode);
+                score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !cutNode);
             }
         }
         else if (!pvNode || legal_moves > 1) {
@@ -1598,7 +1604,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 new_depth = myMAX(new_depth, 1);
             }
             
-            score = -negamax(-alpha - 1, -alpha, new_depth, pos, time, ss + 1, !cutNode);
+            score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !cutNode);
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
@@ -1612,7 +1618,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             }
             
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, new_depth, pos, time, ss + 1, false);
+            score = -negamax(-beta, -alpha, new_depth, t, time, ss + 1, false);
         }
 
         // decrement ply
@@ -1661,19 +1667,19 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
                 if (score >= beta) {
                     if (notTactical) {
                         int quiet_history_score = 
-                        quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
+                        t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
-                        updateQuietMoveHistory(bestMove, pos->side, depth, badQuiets, pos);
-                        updateContinuationHistory(pos, bestMove, depth, badQuiets, quiet_history_score);
-                        updatePawnHistory(pos, bestMove, depth, badQuiets);                       
+                        updateQuietMoveHistory(t, bestMove, pos->side, depth, badQuiets);
+                        updateContinuationHistory(t, bestMove, depth, badQuiets, quiet_history_score);
+                        updatePawnHistory(t, bestMove, depth, badQuiets);                       
                         
                     } else { // noisy moves
-                        updateCaptureHistory(pos, bestMove, depth);
+                        updateCaptureHistory(t, bestMove, depth);
                     }
 
                     // always penalize bad noisy moves
-                    updateCaptureHistoryMalus(pos, depth, noisyMoves, bestMove);
+                    updateCaptureHistoryMalus(t, depth, noisyMoves, bestMove);
 
                     // node (move) fails high
                     break;
@@ -1708,12 +1714,12 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
             !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
 
             int corrhistBonus = clamp(bestScore - static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
-            update_pawn_correction_hist(pos, depth, corrhistBonus);
-            update_minor_correction_hist(pos, depth, corrhistBonus);
-            update_major_correction_hist(pos, depth, corrhistBonus);
-            update_non_pawn_corrhist(pos, depth, corrhistBonus);
-            update_continuation_corrhist(pos, depth, corrhistBonus);
-            update_king_rook_pawn_corrhist(pos, depth, corrhistBonus);
+            update_pawn_correction_hist(t, depth, corrhistBonus);
+            update_minor_correction_hist(t, depth, corrhistBonus);
+            update_major_correction_hist(t, depth, corrhistBonus);
+            update_non_pawn_corrhist(t, depth, corrhistBonus);
+            update_continuation_corrhist(t, depth, corrhistBonus);
+            update_king_rook_pawn_corrhist(t, depth, corrhistBonus);
         }
 
         // store hash entry with the score equal to alpha
@@ -1724,7 +1730,7 @@ int negamax(int alpha, int beta, int depth, board* pos, my_time* time, SearchSta
 }
 
 // search position for the best move
-void searchPosition(int depth, board* position, bool benchmark, my_time* time, SearchStack* ss) {
+void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, my_time* time, SearchStack* ss) {
     // define best score variable
     int score = 0;
 
@@ -1732,15 +1738,16 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time, S
     time->stopped = 0;
 
     // reset nodes counter
-    position->nodes_searched = 0;
+    store_rlx(t->search_i.nodes_searched, 0);
+    t->pos.nodes_searched = 0;
 
     // reset follow PV flags
-    position->followPv = 0;
-    position->scorePv = 0;
+    t->pos.followPv = 0;
+    t->pos.scorePv = 0;
     
     memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
-    memset(position->pvTable, 0, sizeof(position->pvTable));
-    memset(position->pvLength, 0, sizeof(position->pvLength));    
+    memset(t->pos.pvTable, 0, sizeof(t->pos.pvTable));
+    memset(t->pos.pvLength, 0, sizeof(t->pos.pvLength));    
 
     // define initial alpha beta bounds
     int alpha = -infinity;
@@ -1748,7 +1755,8 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time, S
 
     int totalTime = 0;
     // set root depth
-    position->rootDepth = 0;
+    t->pos.rootDepth = 0;
+    t->pos.ply = 0;
 
     int previousBestMove = 0;
     uint8_t bestMoveStability = 0;
@@ -1756,7 +1764,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time, S
     uint8_t evalStability = 0;
     int baseSearchScore = -infinity;
 
-    quiet_history_aging();
+    quiet_history_aging();    
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {
@@ -1768,17 +1776,17 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time, S
         for (int i = 0; i < maxPly; ++i) {
             (ss + i)->singular_move = 0;
             (ss + i)->staticEval = noEval;
-            position->piece[i] = 0;
-            position->move[i] = 0;
+            t->pos.piece[i] = 0;
+            t->pos.move[i] = 0;
         }
 
-        position->seldepth = 0;
-        position->rootDepth = current_depth;
+        t->pos.seldepth = 0;
+        t->pos.rootDepth = current_depth;
 
 
         int startTime = getTimeMiliSecond();
 
-        if ((time->timeset && startTime >= time->softLimit && position->pvTable[0][0] != 0) || (time->isNodeLimit && position->nodes_searched >= time->node_limit)) {
+        if ((time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && load_rlx(t->search_i.nodes_searched) >= time->node_limit)) {
             time->stopped = 1;
         }
 
@@ -1787,7 +1795,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time, S
 
         while (true) {
 
-            if ((time->timeset && (startTime >= time->softLimit) && position->pvTable[0][0] != 0) || (time->isNodeLimit && position->nodes_searched >= time->node_limit)) {
+            if ((time->timeset && (startTime >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && load_rlx(t->search_i.nodes_searched) >= time->node_limit)) {
                 time->stopped = 1;
             }
 
@@ -1800,14 +1808,14 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time, S
                 beta = myMIN(infinity, score + window);
             }
 
-            position->followPv = 1;
+            t->pos.followPv = 1;
             // find best move within a given position
-            score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), position, time, ss, false);
+            score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), t, time, ss, false);
 
             if (score == infinity) {
                 // Restore the saved best line
-                memset(position->pvTable, 0, sizeof(position->pvTable));
-                memset(position->pvLength, 0, sizeof(position->pvLength));
+                memset(t->pos.pvTable, 0, sizeof(t->pos.pvTable));
+                memset(t->pos.pvLength, 0, sizeof(t->pos.pvLength));
                 // Break out of the loop without printing info about the unfinished
                 // depth
                 break;
@@ -1839,10 +1847,10 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time, S
         averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
 
 
-        if (position->pvTable[0][0] == previousBestMove) {
+        if (t->pos.pvTable[0][0] == previousBestMove) {
             bestMoveStability = myMIN(bestMoveStability + 1, 4);
         } else {
-            previousBestMove = position->pvTable[0][0];
+            previousBestMove = t->pos.pvTable[0][0];
             bestMoveStability = 0;
         }
 
@@ -1859,28 +1867,28 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time, S
         }
 
         if (time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability, position->pvTable[0][0], complexity, position);
+            scaleTime(time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, &t->pos);
         }
         
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
 
-        if (position->pvLength[0] && !benchmark) {
-            unsigned long long nps = (totalTime > 0) ? (position->nodes_searched * 1000) / totalTime : 0;
+        if (t->pos.pvLength[0] && !benchmark) {
+            unsigned long long nps = (totalTime > 0) ? (load_rlx(t->search_i.nodes_searched) * 1000) / totalTime : 0;
 
-            printf("info depth %d seldepth %d ", current_depth, position->seldepth);
+            printf("info depth %d seldepth %d ", current_depth, t->pos.seldepth);
 
             if (is_mate_score(score))
                 printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
                        (score > 0 ? mateValue - score + 1 : -mateValue - score) / 2,
-                       position->nodes_searched, nps, hash_full(), totalTime);            
+                       load_rlx(t->search_i.nodes_searched), nps, hash_full(), totalTime);            
             else
                 printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
-                       score, position->nodes_searched, nps, hash_full(), totalTime);
+                       score, load_rlx(t->search_i.nodes_searched), nps, hash_full(), totalTime);
 
             // loop over the moves within a PV line
-            for (int count = 0; count < position->pvLength[0]; count++) {
-                printMove(position->pvTable[0][count]);
+            for (int count = 0; count < t->pos.pvLength[0]; count++) {
+                printMove(t->pos.pvTable[0][count]);
                 printf(" ");
             }
             // print new line
@@ -1891,7 +1899,7 @@ void searchPosition(int depth, board* position, bool benchmark, my_time* time, S
     if (!benchmark) {
         // best move placeholder
         printf("bestmove ");
-        printMove(position->pvTable[0][0]);
+        printMove(t->pos.pvTable[0][0]);
         printf("\n");
     }
 }

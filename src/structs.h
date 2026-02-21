@@ -7,13 +7,15 @@
 #define POTENTIAL_STRUCTS_H
 
 #include <stdbool.h>
-#include "stdint.h"
+#include <stdatomic.h>
+#include <stdint.h>
 
 #ifndef U64
 #define U64 unsigned long long
 #endif
 
 #define maxPly 256
+#define MAX_THREADS 512
 
 typedef struct  {
     uint64_t pawnThreats;
@@ -171,5 +173,60 @@ typedef struct {
     uint16_t singular_move;
     uint16_t nmp_refutation_move;    
 } SearchStack;
+
+typedef struct {
+    // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
+    int16_t quietHistory[2][64][64][2][2];
+
+    // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+    int16_t continuationHistory[12][64][12][64];
+
+    // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+    int16_t contCorrhist[12][64][12][64];
+
+    // pawnHistory [pawnKey][piece][to]
+    int16_t pawnHistory[2048][12][64];
+
+    // captureHistory [piece][toSquare][capturedPiece]
+    int16_t captureHistory[12][64][13];
+
+
+    // pawn correction history [side to move][key]
+    int16_t pawn_corrhist[2][16384];
+
+    // minor correction history [side to move][key]
+    int16_t minor_corrhist[2][16384];
+
+    // major correction history [side to move][key]
+    int16_t major_corrhist[2][16384];
+
+    // non pawn correction history [side to move][key]
+    int16_t non_pawn_corrhist[2][2][16384];
+
+    // king rook pawn correction history [side to move][key]
+    int16_t krp_corrhist[2][16384];
+} SearchData;
+
+typedef struct {
+    _Atomic uint64_t nodes_searched;
+    int16_t seldepth;
+    int16_t rootDepth;
+    _Atomic bool stopped;
+} SearchInfo;
+
+typedef struct {
+    int16_t id;
+    SearchInfo search_i;
+    SearchData search_d;
+    board pos;
+} ThreadData;
+
+typedef struct {
+    ThreadData *threads[MAX_THREADS];
+    int thread_count;
+
+    _Atomic bool stop;    
+    board root_pos;
+} ThreadPool;
 
 #endif //POTENTIAL_STRUCTS_H
