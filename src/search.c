@@ -1578,6 +1578,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
         }
         
+        if (!pvNode && (ss - 1)->lmr_reduction > lmrReduction + 512) {
+            lmrReduction += 128;
+        }
 
         lmrReduction /= 1024;
 
@@ -1586,7 +1589,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
+            ss->lmr_reduction = lmrReduction * 1024;
             score = -negamax(-alpha - 1, -alpha, reduced_depth, t, time, ss + 1, true);
+            ss->lmr_reduction = 0;
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
@@ -1778,6 +1783,7 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
             (ss + i)->staticEval = noEval;
             t->pos.piece[i] = 0;
             t->pos.move[i] = 0;
+            (ss + 1)->lmr_reduction = 0;
         }
 
         t->pos.seldepth = 0;
