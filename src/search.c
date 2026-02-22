@@ -1456,11 +1456,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
 
             else if (singularBeta >= beta) {
-                extensions -= 3;
+                extensions -= 1;
             }
 
             else if (singularScore >= beta + 50) {
-                extensions -= 3;
+                extensions -= 1 + (singularScore >= beta + 100) + (singularScore >= beta + 150);
             }
             
             // Cut Node Extension
