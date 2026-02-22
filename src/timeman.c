@@ -20,21 +20,8 @@ void initTimeControl(my_time* time) {
     time->hardLimit = 0;
 }
 
-// reset time control variables
 void resetTimeControl(my_time* time) {
-    // reset timing
-    time->quit = 0;
-    time->isNodeLimit = false;
-    time->movestogo = 20;
-    time->movetime = -1;
-    time->time = -1;
-    time->inc = 0;
-    time->starttime = 0;
-    time->stoptime = 0;
-    time->timeset = 0;
-    time->stopped = 0;
-    time->softLimit = 0;
-    time->hardLimit = 0;
+    initTimeControl(time);
 }
 
 int getTimeMiliSecond(void) {

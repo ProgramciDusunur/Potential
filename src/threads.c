@@ -18,14 +18,13 @@ void init_threads(int requested_count) {
     store_rlx(thread_pool.stop, false);
 
     for (int i = 0; i < requested_count; i++) {
-        thread_pool.threads[i] = (ThreadData *)malloc(sizeof(ThreadData));
+        thread_pool.threads[i] = (ThreadData *)calloc(1, sizeof(ThreadData));
         
         if (thread_pool.threads[i] == NULL) {
             printf("FATAL ERROR: Memory allocation failed for thread %d\n", i);
             exit(1);
         }
 
-        memset(thread_pool.threads[i], 0, sizeof(ThreadData));
         thread_pool.threads[i]->id = i;
 
         if (i > 0) {

@@ -146,7 +146,7 @@ void parse_position(char *command, board* position) {
     }
 
     // print board
-    pBoard(position);
+    print_board(position);
 }
 
 
@@ -262,7 +262,7 @@ void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time, Sea
            time->time, time->starttime, time->stoptime, depth, time->timeset);
 
     // search position
-    searchPosition(depth, root_pos, false, t, time, ss);
+    searchPosition(depth, false, t, time, ss);
 
 }
 
@@ -377,21 +377,10 @@ void check_node_limit(my_time* time, board *pos) {
 }
 
 
-void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, SearchStack *ss) {
-    //ThreadData *threads = init_threads(thread_count);
-
+void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, SearchStack *ss) {    
     setup_main_thread(position);
 
-    position->ply = 0;
-    position->nmpPly = 0;
-
-
-    for (int i = 0; i < 64;i++) {
-        position->mailbox[i] = NO_PIECE;
-    }
-
     clearStaticEvaluationHistory(ss);
-    
 
     // init time control
     initTimeControl(time_ctrl);

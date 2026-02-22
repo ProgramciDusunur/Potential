@@ -23,7 +23,7 @@ int myMIN(int x, int y);
 double my_max_double(double x, double y);
 double my_min_double(double x, double y);
 double clamp_double(const double d, const double min, const double max);
-void pBoard(board* position);
+void print_board(board* position);
 void printMailbox(const board *position);
 int clamp(const int d, const int min, const int max);
 

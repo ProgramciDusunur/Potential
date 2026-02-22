@@ -414,14 +414,7 @@ int evaluate(board* position) {
     const int game_phase_score = position->phase_score;
     Score score = S(0, 0);
     
-    position->pieceThreats.pawnThreats = 0;
-    position->pieceThreats.knightThreats = 0;
-    position->pieceThreats.bishopThreats = 0;
-    position->pieceThreats.rookThreats = 0;
-    position->pieceThreats.queenThreats = 0;
-    position->pieceThreats.kingThreats = 0;
-    position->pieceThreats.stmThreats[white] = 0;
-    position->pieceThreats.stmThreats[black] = 0;
+    memset(&position->pieceThreats, 0, sizeof(position->pieceThreats));
 
     get_threats(position->side, position);
 

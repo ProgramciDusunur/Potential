@@ -112,13 +112,11 @@
     ║ Razoring ║
     ╚══════════╝*/
   int RAZORING_DEPTH = 3;
-  int RAZORING_FULL_MARGIN = 200;    
-  int RAZORING_DEPTH_SCALE = 15;
+  int RAZORING_FULL_MARGIN = 200;
   int RAZORING_VERIFY_MARGIN = 120;
   int RAZORING_TRIM = 1;
   int RAZORING_FULL_D = 2;
-  int RAZORING_VERIFY_D = 3;
-  int RAZORING_MARGIN[] = {0, 100, 200, 300, 400};
+  int RAZORING_VERIFY_D = 3;  
   
   
   /*╔═════════════════════╗
@@ -1130,35 +1128,28 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     }    
 
     // razoring
-    if (!ss->singular_move &&
-        !pvNode && !in_check && depth <= RAZORING_DEPTH) {
-        int max_razor_index = 4;
-        int razor_depth = myMIN(myMIN(depth, RAZORING_DEPTH), max_razor_index);
+    if (!ss->singular_move && !pvNode && !in_check && depth <= RAZORING_DEPTH) {        
+        int margin = 100 * depth;
+        if (ttAdjustedEval + margin <= alpha) {
+            const bool allow_full_razor = depth == 1 ||
+            (depth <= RAZORING_FULL_D && ttAdjustedEval + margin + RAZORING_FULL_MARGIN <= alpha);
 
-        if (razor_depth > 0) {
-            const int margin = RAZORING_MARGIN[razor_depth];
+            if (allow_full_razor) {
+                return quiescence(alpha, beta, t, time, ss);
+            }
 
-            if (ttAdjustedEval + margin <= alpha) {
-                const bool allow_full_razor = depth == 1 ||
-                (depth <= RAZORING_FULL_D && ttAdjustedEval + margin + RAZORING_FULL_MARGIN <= alpha);
+            const int capped_alpha = myMAX(alpha - margin, -mateValue);
+            const int razor_alpha = capped_alpha;
+            const int razor_beta = razor_alpha + 1;
+            int razor_score = quiescence(razor_alpha, razor_beta, t, time, ss);
 
-                if (allow_full_razor) {
-                    return quiescence(alpha, beta, t, time, ss);
-                }
+            // We proved a fail low.
+            if (razor_score <= razor_alpha) {                       
+                return razor_score;
+            }
 
-                const int capped_alpha = myMAX(alpha - margin, -mateValue);
-                const int razor_alpha = capped_alpha;
-                const int razor_beta = razor_alpha + 1;
-                int razor_score = quiescence(razor_alpha, razor_beta, t, time, ss);
-
-                // We proved a fail low.
-                if (razor_score <= razor_alpha) {                       
-                    return razor_score;
-                }
-
-                if (razor_score >= razor_beta + RAZORING_VERIFY_MARGIN && depth <= RAZORING_VERIFY_D) {                    
-                    depth -= myMIN(RAZORING_TRIM, depth - 1);
-                }
+            if (razor_score >= razor_beta + RAZORING_VERIFY_MARGIN && depth <= RAZORING_VERIFY_D) {                    
+                depth -= myMIN(RAZORING_TRIM, depth - 1);
             }
         }
     }
@@ -1730,7 +1721,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 }
 
 // search position for the best move
-void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, my_time* time, SearchStack* ss) {
+void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time, SearchStack* ss) {
     // define best score variable
     int score = 0;
 

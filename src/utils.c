@@ -30,7 +30,7 @@ double clamp_double(const double d, const double min, const double max) {
     return t > max ? max : t;
 }
 
-void pBoard(board* position) {
+void print_board(board* position) {
     printf("\n");
     // loop over board ranks
     for (int rank = 0; rank < 8; rank++) {
@@ -46,11 +46,7 @@ void pBoard(board* position) {
                     piece = bbPiece;
                 }
             }
-#ifdef WIN64
             printf(" %c", (piece == -1) ? '.' : asciiPieces[piece]);
-#else
-            printf(" %c", (piece == -1) ? '.' : asciiPieces[piece]);
-#endif
         }
         printf("\n");
     }
@@ -135,10 +131,7 @@ void printMailbox(const board *position) {
 
 }
 
-double clampDecimalValue(double d, const double min, const double max) {
-    const double t = d < min ? min : d;
-    return t > max ? max : t;
-}
+
 
 bool is_mate_score(int score) {
     return (score >= mateFound && score <= mateValue) || 

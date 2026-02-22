@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
 
         setup_main_thread(&position);
 
-        pBoard(&thread_pool.threads[0]->pos);
+        print_board(&thread_pool.threads[0]->pos);
     
         /*
         perftRoot(7, &position);
@@ -84,13 +84,13 @@ int main(int argc, char* argv[]) {
         int safety_margin = STACK_SAFETY_MARGIN;
         int offset = STACK_OFFSET; // offset for safety margin to allow negative indexing in the search stack
 
-        board *position = (board *)malloc(sizeof(board));
-        my_time *time_ctrl = (my_time *)malloc(sizeof(my_time));
+        board *position = (board *)calloc(1, sizeof(board));
+        my_time *time_ctrl = (my_time *)calloc(1, sizeof(my_time));
 
         // allocate search stack with a safety margin to prevent overflow
         //                             Safety Margin Layot
         //      [-10 ply safety margin ... max ply ... +10 ply safety margin]        
-        SearchStack *ss_base = (SearchStack *)malloc(sizeof(SearchStack) * (maxPly + safety_margin));
+        SearchStack *ss_base = (SearchStack *)calloc(maxPly + safety_margin, sizeof(SearchStack));
 
         if (!ss_base) {
             fprintf(stderr, "Failed to allocate memory for search stack\n");

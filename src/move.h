@@ -58,8 +58,6 @@ enum {
 // extract castling flag
 #define getMoveCastling(move) ((move & 0xF000) == mf_castling)
 
-void copyBoard(board *p, struct copyposition *cp);
-void takeBack(board *p, struct copyposition *cp);
 
 // Pawn attack masks pawnAttacks[side][square]
 extern U64 pawnAttacks[2][64];

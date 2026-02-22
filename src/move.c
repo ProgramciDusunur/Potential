@@ -35,24 +35,11 @@ bool isTactical(uint16_t move) {
 
 
 void copyBoard(board *p, struct copyposition *cp) {
-    cp->bitboardsCopy[0] = p->bitboards[0];
-    cp->bitboardsCopy[1] = p->bitboards[1];
-    cp->bitboardsCopy[2] = p->bitboards[2];
-    cp->bitboardsCopy[3] = p->bitboards[3];
-    cp->bitboardsCopy[4] = p->bitboards[4];
-    cp->bitboardsCopy[5] = p->bitboards[5];
-    cp->bitboardsCopy[6] = p->bitboards[6];
-    cp->bitboardsCopy[7] = p->bitboards[7];
-    cp->bitboardsCopy[8] = p->bitboards[8];
-    cp->bitboardsCopy[9] = p->bitboards[9];
-    cp->bitboardsCopy[10] = p->bitboards[10];
-    cp->bitboardsCopy[11] = p->bitboards[11];
-    cp->occupanciesCopy[0] = p->occupancies[0];
-    cp->occupanciesCopy[1] = p->occupancies[1];
-    cp->occupanciesCopy[2] = p->occupancies[2];
+    memcpy(cp->bitboardsCopy, p->bitboards, sizeof(p->bitboards));
+    memcpy(cp->occupanciesCopy, p->occupancies, sizeof(p->occupancies));
+    memcpy(cp->mailboxCopy, p->mailbox, sizeof(p->mailbox));
     cp->fiftyCopy = p->fifty;
     cp->fullMovesCopy = p->full_moves;
-    memcpy(cp->mailboxCopy, p->mailbox, 64);
     cp->hashKeyCopy = p->hashKey;
     cp->pawnKeyCopy = p->pawnKey;
     cp->minorKeyCopy = p->minorKey;
@@ -60,29 +47,19 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->whiteNonPawnKeyCopy = p->whiteNonPawnKey;
     cp->blackNonPawnKeyCopy = p->blackNonPawnKey;
     cp->krpKeyCopy = p->krpKey;
-    cp->sideCopy = p->side, cp->enpassantCopy = p->enpassant, cp->castleCopy = p->castle;
+    cp->sideCopy = p->side;
+    cp->enpassantCopy = p->enpassant;
+    cp->castleCopy = p->castle;
     cp->phase_scoreCopy = p->phase_score;
 }
 
+
 void takeBack(board *p, struct copyposition *cp) {
-    p->bitboards[0] = cp->bitboardsCopy[0];
-    p->bitboards[1] = cp->bitboardsCopy[1];
-    p->bitboards[2] = cp->bitboardsCopy[2];
-    p->bitboards[3] = cp->bitboardsCopy[3];
-    p->bitboards[4] = cp->bitboardsCopy[4];
-    p->bitboards[5] = cp->bitboardsCopy[5];
-    p->bitboards[6] = cp->bitboardsCopy[6];
-    p->bitboards[7] = cp->bitboardsCopy[7];
-    p->bitboards[8] = cp->bitboardsCopy[8];
-    p->bitboards[9] = cp->bitboardsCopy[9];
-    p->bitboards[10] = cp->bitboardsCopy[10];
-    p->bitboards[11] = cp->bitboardsCopy[11];
-    p->occupancies[0] = cp->occupanciesCopy[0];
-    p->occupancies[1] = cp->occupanciesCopy[1];
-    p->occupancies[2] = cp->occupanciesCopy[2];
+    memcpy(p->bitboards, cp->bitboardsCopy, sizeof(p->bitboards));
+    memcpy(p->occupancies, cp->occupanciesCopy, sizeof(p->occupancies));
+    memcpy(p->mailbox, cp->mailboxCopy, sizeof(p->mailbox));
     p->fifty = cp->fiftyCopy;
     p->full_moves = cp->fullMovesCopy;
-    memcpy(p->mailbox, cp->mailboxCopy, 64);
     p->hashKey = cp->hashKeyCopy;
     p->pawnKey = cp->pawnKeyCopy;
     p->minorKey = cp->minorKeyCopy;
@@ -90,9 +67,12 @@ void takeBack(board *p, struct copyposition *cp) {
     p->whiteNonPawnKey = cp->whiteNonPawnKeyCopy;
     p->blackNonPawnKey = cp->blackNonPawnKeyCopy;
     p->krpKey = cp->krpKeyCopy;
-    p->side = cp->sideCopy, p->enpassant = cp->enpassantCopy, p->castle = cp->castleCopy;
+    p->side = cp->sideCopy;
+    p->enpassant = cp->enpassantCopy;
+    p->castle = cp->castleCopy;
     p->phase_score = cp->phase_scoreCopy;
 }
+
 
 
 // add move to the move list

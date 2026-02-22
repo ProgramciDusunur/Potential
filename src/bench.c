@@ -72,7 +72,7 @@ void benchmark(int depth, ThreadData *t, my_time* time, SearchStack* ss) {
 
         setup_main_thread(&t->pos);
         
-        searchPosition(depth, position, true, t, time, ss);
+        searchPosition(depth, true, t, time, ss);
         // clear hash table
         clearHashTable();
 
