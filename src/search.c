@@ -1581,10 +1581,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (!pvNode && (ss - 1)->lmr_reduction > lmrReduction + 512) {
             lmrReduction += 256;
         }
+        
 
-        lmrReduction /= 1024;
-
-        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth)) + pvNode;
+        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction / 1024, new_depth)) + pvNode;
 
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
@@ -1593,7 +1592,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             score = -negamax(-alpha - 1, -alpha, reduced_depth, t, time, ss + 1, true);
             ss->lmr_reduction = 0;
 
-            if (score > alpha && lmrReduction != 0) {
+            if (score > alpha && lmrReduction / 1024 != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
                 bool historyReduction = notTactical ? moveHistory / 16384 : 0;
                 bool doShallower = score < bestScore + new_depth;
