@@ -1579,7 +1579,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
         
         if (!pvNode && (ss - 1)->lmr_reduction > lmrReduction + 512) {
-            lmrReduction += 128;
+            lmrReduction += 256;
         }
 
         lmrReduction /= 1024;
