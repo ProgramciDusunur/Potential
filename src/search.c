@@ -1355,7 +1355,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !ss->singular_move &&
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateValue) {
-            const int singularBeta = tt_score - (depth * 5 + (tt_pv && !pvNode) * 10) / 8;
+            const int singularBeta = tt_score - (depth * 5 + (tt_pv && !pvNode) * 10) / 4;
             const int singularDepth = (depth - 1) / 2;
 
 
@@ -1453,6 +1453,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             // ~~~~ Recapture Extension ~~~~ //
             else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
                 extensions += 1;
+            }
+
+            else if (singularBeta >= beta) {
+                extensions -= 1;
+            }
+
+            else if (singularScore >= beta + 50) {
+                extensions -= 1 + (singularScore >= beta + 100) + (singularScore >= beta + 150);
             }
             
             // Cut Node Extension
@@ -1570,7 +1578,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // Noisy Moves
         else { 
             // capture history based reduction, same logic as the quiet history
-            lmrReduction -= moveHistory / NOISY_HISTORY_LMR_DIVISOR;
+            lmrReduction -= moveHistory / NOISY_HISTORY_LMR_DIVISOR * 256;
         }
 
         // Reduce Less
@@ -1616,9 +1624,15 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
                 new_depth = myMAX(new_depth, 1);
             }
+
+            int new_alpha = alpha;
+
+            if (legal_moves > 1 && !rootNode) {
+                new_alpha = (score + alpha) / 2;
+            }
             
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, new_depth, t, time, ss + 1, false);
+            score = -negamax(-beta, -new_alpha, new_depth, t, time, ss + 1, false);
         }
 
         // decrement ply
@@ -1699,6 +1713,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         else
             // return stalemate score
             return get_draw_score(pos);
+    }
+
+     if (bestScore >= beta + 30 && !ss->singular_move && abs(bestScore) < mateFound && abs(alpha) < mateFound) {
+        bestScore = (bestScore * (depth + 4) + beta) / (depth + 5);
     }
 
     if (!ss->singular_move) {
