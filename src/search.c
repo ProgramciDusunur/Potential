@@ -321,14 +321,14 @@ void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
     }
 }
 
-void init_move_scores(moves *moveList, int *move_scores, uint16_t tt_move, ThreadData *t) {
+void init_move_scores(moves *moveList, int *move_scores, uint16_t tt_move, ThreadData *t, SearchStack *ss) {
     for (int count = 0; count < moveList->count; count++) {
         uint16_t current_move = moveList->moves[count];
         
         if (tt_move == current_move) {
             move_scores[count] = 2000000000;
         } else {
-            move_scores[count] = scoreMove(current_move, t);
+            move_scores[count] = scoreMove(current_move, t, ss);
         }
     }
 }
@@ -364,7 +364,7 @@ void init_quiescence_scores(moves *moveList, int *move_scores, board* position) 
 */
 
 // score moves
-int scoreMove(uint16_t move, ThreadData *t) {
+int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
     // make sure we are dealing with PV move
     if (t->pos.scorePv && t->pos.pvTable[0][t->pos.ply] == move) {
         // disable score PV flag
@@ -412,7 +412,7 @@ int scoreMove(uint16_t move, ThreadData *t) {
             target_piece = bb_piece;
         }
 
-        int previous_move_target_square = getMoveTarget(t->pos.move[myMAX(0, t->pos.ply - 1)]);
+        int previous_move_target_square = getMoveTarget((ss - 1)->move);
         int recapture_bonus = getMoveTarget(move) == previous_move_target_square ? 200000 : 0;
 
         int piece = t->pos.mailbox[getMoveSource(move)];
@@ -443,11 +443,11 @@ int scoreMove(uint16_t move, ThreadData *t) {
             [is_square_threatened(&t->pos, getMoveSource(move))][is_square_threatened(&t->pos, getMoveTarget(move))];
 
         // 1 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 1, move);
+        quiet_score += getContinuationHistoryScore(t, 1, move, ss);
         // 2 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 2, move);
+        quiet_score += getContinuationHistoryScore(t, 2, move, ss);
         // 4 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 4, move);
+        quiet_score += getContinuationHistoryScore(t, 4, move, ss);
         // pawn history
         quiet_score += t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
@@ -764,7 +764,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     // evaluate position
     int evaluation = evaluate(position);
 
-    evaluation = adjust_eval_with_corrhist(t, evaluation);
+    evaluation = adjust_eval_with_corrhist(t, evaluation, ss);
 
     score = bestScore = tt_hit ? tt_score : evaluation;
 
@@ -990,14 +990,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // get static evaluation score
     int raw_eval = evaluate(pos);
 
-    int static_eval = adjust_eval_with_corrhist(t, raw_eval);
+    int static_eval = adjust_eval_with_corrhist(t, raw_eval, ss);
 
     bool improving = false;
     bool tt_capture = tt_move && getMoveCapture(tt_move);
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
-    int correction_value = get_correction_value(t);    
+    int correction_value = get_correction_value(t, ss);    
 
     ss->staticEval = static_eval;    
 
@@ -1091,15 +1091,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
 
             if (pos->nmpPly || depth < 15) {
-                pos->move[myMIN(pos->ply, maxPly - 1)] = 0;
-                pos->piece[myMIN(pos->ply, maxPly - 1)] = 0;
+                ss->move = 0;
+                ss->piece = 0;
                 return score;
             }
 
-             // Skip verification if null move score is much above beta (scaled by depth)
             if (score >= beta + 30) {
-                pos->move[myMIN(pos->ply, maxPly - 1)] = 0;
-                pos->piece[myMIN(pos->ply, maxPly - 1)] = 0;
+                ss->move = 0;
+                ss->piece = 0;
                 return score;
             }
                 
@@ -1108,8 +1107,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             pos->nmpPly = 0;
 
             if (verificationScore >= beta) {
-                pos->move[myMIN(pos->ply, maxPly - 1)] = 0;
-                pos->piece[myMIN(pos->ply, maxPly - 1)] = 0;
+                ss->move = 0;
+                ss->piece = 0;
                 return score;
             }
         }
@@ -1117,7 +1116,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // Refutation, our opponent has an argument
         if (score < beta) {
             // store null move refutation move
-            ss->nmp_refutation_move = pos->move[myMIN(pos->ply, maxPly - 1)];
+            ss->nmp_refutation_move = ss->move;
 
             uint16_t nmp_ref_move = ss->nmp_refutation_move;
             int nmp_depth = depth - R;
@@ -1176,7 +1175,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             noisyGenerator(capture_promos, pos);
 
             int move_scores[256];
-            init_move_scores(capture_promos, move_scores, tt_move, t);
+            init_move_scores(capture_promos, move_scores, tt_move, t, ss);
             for (int count = 0; count < capture_promos->count; count++) {
                 pick_next_move(count, capture_promos, move_scores);
                 uint16_t move = capture_promos->moves[count];
@@ -1278,7 +1277,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     update_pinned(pos);
 
     int move_scores[256];
-    init_move_scores(moveList, move_scores, tt_move, t);
+    init_move_scores(moveList, move_scores, tt_move, t, ss);
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -1314,7 +1313,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(t, 1, currentMove) + getContinuationHistoryScore(t, 4, currentMove): 
+                getContinuationHistoryScore(t, 1, currentMove, ss) + getContinuationHistoryScore(t, 4, currentMove, ss): 
                 t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
@@ -1348,7 +1347,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
-        int previous_move_target_square = getMoveTarget(pos->move[myMAX(0, pos->ply - 1)]);
+        int previous_move_target_square = getMoveTarget((ss - 1)->move);
         int extensions = 0;
 
         // Singular Extensions
@@ -1495,13 +1494,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         legal_moves++;
 
         if (notTactical) {
-            pos->move[myMIN(pos->ply, maxPly - 1)] = currentMove;
-            pos->piece[myMIN(pos->ply, maxPly - 1)] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
+            (ss + 1)->move = currentMove;
+            (ss + 1)->piece = copyPosition.mailboxCopy[getMoveSource(currentMove)];
             addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
         } else {
-            pos->move[myMIN(pos->ply, maxPly - 1)] = currentMove;
-            pos->piece[myMIN(pos->ply, maxPly - 1)] = copyPosition.mailboxCopy[getMoveSource(currentMove)];
+            (ss + 1)->move = currentMove;
+            (ss + 1)->piece = copyPosition.mailboxCopy[getMoveSource(currentMove)];
             //captureMoves++;
             addMoveToHistoryList(noisyMoves, currentMove);
         }
@@ -1671,7 +1670,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
                         updateQuietMoveHistory(t, bestMove, pos->side, depth, badQuiets);
-                        updateContinuationHistory(t, bestMove, depth, badQuiets, quiet_history_score);
+                        updateContinuationHistory(t, bestMove, depth, badQuiets, quiet_history_score, ss);
                         updatePawnHistory(t, bestMove, depth, badQuiets);                       
                         
                     } else { // noisy moves
@@ -1718,7 +1717,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             update_minor_correction_hist(t, depth, corrhistBonus);
             update_major_correction_hist(t, depth, corrhistBonus);
             update_non_pawn_corrhist(t, depth, corrhistBonus);
-            update_continuation_corrhist(t, depth, corrhistBonus);
+            update_continuation_corrhist(t, depth, corrhistBonus, ss);
             update_king_rook_pawn_corrhist(t, depth, corrhistBonus);
         }
 
@@ -1730,7 +1729,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 }
 
 // search position for the best move
-void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, my_time* time, SearchStack* ss) {
+void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time, SearchStack* ss) {
     // define best score variable
     int score = 0;
 
@@ -1776,8 +1775,8 @@ void searchPosition(int depth, board* root_pos, bool benchmark, ThreadData *t, m
         for (int i = 0; i < maxPly; ++i) {
             (ss + i)->singular_move = 0;
             (ss + i)->staticEval = noEval;
-            t->pos.piece[i] = 0;
-            t->pos.move[i] = 0;
+            (ss + i)->piece = 0;
+            (ss + i)->move = 0;
         }
 
         t->pos.seldepth = 0;

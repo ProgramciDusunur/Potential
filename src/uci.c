@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "timeman.h"
 
-#define VERSION "3.24.49"
+#define VERSION "3.25.49"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -262,7 +262,7 @@ void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time, Sea
            time->time, time->starttime, time->stoptime, depth, time->timeset);
 
     // search position
-    searchPosition(depth, root_pos, false, t, time, ss);
+    searchPosition(depth, false, t, time, ss);
 
 }
 
