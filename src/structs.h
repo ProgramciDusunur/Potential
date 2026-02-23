@@ -30,13 +30,22 @@ typedef struct  {
 typedef struct {
     U64 bitboards[12];
     U64 occupancies[3];
-    U64 pinned[2];
+    U64 hashKey;
+    U64 pawnKey;
+    U64 minorKey;
+    U64 majorKey;
+    U64 whiteNonPawnKey;
+    U64 blackNonPawnKey;
+    U64 krpKey;
     uint8_t mailbox[64];
     int side;
     int castle;
     int enpassant;
+    int fifty;
     int full_moves;
+    int phase_score;
 
+    U64 pinned[2];
     int ply;
     int seldepth;
     uint8_t rootDepth;
@@ -46,11 +55,8 @@ typedef struct {
     int repetitionIndex;
 
     int pvLength[maxPly];
-    int pvTable[maxPly][maxPly];    
+    int pvTable[maxPly][maxPly];
     threats pieceThreats;
-    int phase_score;
-
-    int fifty;        
 
     U64 nodes_searched;
 
@@ -59,18 +65,27 @@ typedef struct {
     int followPv;
     int scorePv;
 
-    //int depth;
-    U64 hashKey;
-    U64 pawnKey;
-    U64 minorKey;
-    U64 majorKey;    
-    U64 whiteNonPawnKey;
-    U64 blackNonPawnKey;
-    U64 krpKey;
-
     int gamePhase;
 } board;
 
+struct copyposition {
+    U64 bitboards[12];
+    U64 occupancies[3];
+    U64 hashKey;
+    U64 pawnKey;
+    U64 minorKey;
+    U64 majorKey;
+    U64 whiteNonPawnKey;
+    U64 blackNonPawnKey;
+    U64 krpKey;
+    uint8_t mailbox[64];
+    int side;
+    int castle;
+    int enpassant;
+    int fifty;
+    int full_moves;
+    int phase_score;
+};
 
 // transposition table data structure
 typedef struct {
@@ -78,8 +93,8 @@ typedef struct {
     uint16_t bestMove;        // best move from the search
     int16_t score;       // score (alpha/beta/PV)
     uint8_t depth;       // current search depth
-    uint8_t flag;        // flag the type of node (fail-high(score >= beta)/fail-low(score < alpha))    
-    bool ttPv;           // tt was pv node or not    
+    uint8_t flag;        // flag the type of node (fail-high(score >= beta)/fail-low(score < alpha))
+    bool ttPv;           // tt was pv node or not
 } tt;                    // transposition table (TT aka hash table)
 
 
@@ -91,28 +106,6 @@ typedef struct {
     // move count
     int count;
 } moves;
-
-struct copyposition {
-    U64 bitboardsCopy[12];
-    U64 occupanciesCopy[3];
-    uint8_t mailboxCopy[64];    
-    int phase_scoreCopy;
-
-    U64 hashKeyCopy;
-    U64 pawnKeyCopy;
-    U64 minorKeyCopy;
-    U64 majorKeyCopy;
-    U64 whiteNonPawnKeyCopy;
-    U64 blackNonPawnKeyCopy;
-    U64 krpKeyCopy;
-
-    int fiftyCopy;
-    int fullMovesCopy;
-
-    int sideCopy;
-    int enpassantCopy;
-    int castleCopy;
-};
 
 typedef struct {
     // exit from engine flag

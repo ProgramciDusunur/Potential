@@ -1495,12 +1495,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         if (notTactical) {
             (ss + 1)->move = currentMove;
-            (ss + 1)->piece = copyPosition.mailboxCopy[getMoveSource(currentMove)];
+            (ss + 1)->piece = copyPosition.mailbox[getMoveSource(currentMove)];
             addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
         } else {
             (ss + 1)->move = currentMove;
-            (ss + 1)->piece = copyPosition.mailboxCopy[getMoveSource(currentMove)];
+            (ss + 1)->piece = copyPosition.mailbox[getMoveSource(currentMove)];
             //captureMoves++;
             addMoveToHistoryList(noisyMoves, currentMove);
         }
