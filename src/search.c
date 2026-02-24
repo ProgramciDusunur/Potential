@@ -1748,6 +1748,7 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     // reset follow PV flags
     t->pos.followPv = 0;
     t->pos.scorePv = 0;
+    t->soft_limit_hit = false;
     
     if (t->id == 0) {
         memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
@@ -1792,7 +1793,21 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         int startTime = getTimeMiliSecond();
 
-        if (t->id == 0 && ((time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
+        bool hit_soft_limit = time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0;
+        bool hit_node_limit = time->isNodeLimit && total_nodes() >= time->node_limit;
+
+        if (hit_soft_limit || hit_node_limit) {
+            t->soft_limit_hit = true;
+        }
+
+        int voted_threads = 0;
+        for (int i = 0; i < thread_pool.thread_count; i++) {
+            if (thread_pool.threads[i]->soft_limit_hit) {
+                voted_threads++;
+            }
+        }
+
+        if (voted_threads * 2 >= thread_pool.thread_count) {
             time->stopped = 1;
             store_rlx(thread_pool.stop, true);
         } else if (load_rlx(thread_pool.stop)) {
@@ -1804,7 +1819,21 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         while (true) {
 
-            if (t->id == 0 && ((time->timeset && (startTime >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
+            bool internal_hit_soft_limit = time->timeset && getTimeMiliSecond() >= time->softLimit && t->pos.pvTable[0][0] != 0;
+            bool internal_hit_node_limit = time->isNodeLimit && total_nodes() >= time->node_limit;
+
+            if (internal_hit_soft_limit || internal_hit_node_limit) {
+                t->soft_limit_hit = true;
+            }
+
+            int internal_voted_threads = 0;
+            for (int i = 0; i < thread_pool.thread_count; i++) {
+                if (thread_pool.threads[i]->soft_limit_hit) {
+                    internal_voted_threads++;
+                }
+            }
+
+            if (internal_voted_threads * 2 >= thread_pool.thread_count) {
                 time->stopped = 1;
                 store_rlx(thread_pool.stop, true);
             } else if (load_rlx(thread_pool.stop)) {
