@@ -40,7 +40,7 @@ ifeq ($(OS), Windows_NT)
     uname_S  := Windows
     SUFFIX   := .exe
     CFLAGS  += -static
-    FLAGS    ?= # Ensure FLAGS is defined for Windows, even if empty
+    FLAGS    = -lpthread # Ensure FLAGS is defined for Windows, even if empty
 else
     FLAGS    = -pthread -lm # Define FLAGS for non-Windows
     SUFFIX  :=

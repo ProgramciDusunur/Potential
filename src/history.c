@@ -325,8 +325,8 @@ void quiet_history_aging(void) {
     for (int i = 0;i < how_many_threads;i++) {
         int16_t *p = (int16_t *)thread_pool.threads[i]->search_d.quietHistory;
 
-        for (int i = 0; i < 32768; i++) {
-            p[i] >>= 1;
+        for (int j = 0; j < 32768; j++) {
+            p[j] >>= 1;
         }
     }            
 }

@@ -79,7 +79,7 @@ void benchmark(int depth, ThreadData *t, my_time* time) {
         //clear history
         clear_histories();        
 
-        totalNodes += position->nodes_searched;        
+        totalNodes += total_nodes();        
     }
     int benchFinishTime = getTimeMiliSecond() - benchStartTime;
     printf("%llu nodes %llu nps", totalNodes, totalNodes / (benchFinishTime +1) * 1000);

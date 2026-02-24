@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "timeman.h"
 
-#define VERSION "3.26.49"
+#define VERSION "3.27.49"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -261,8 +261,14 @@ void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time) {
     printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
            time->time, time->starttime, time->stoptime, depth, time->timeset);
 
+    // start helper threads
+    start_helpers(root_pos, depth, time);
+
     // search position
     searchPosition(depth, false, t, time);
+
+    // wait for helper threads
+    wait_helpers();
 
 }
 
@@ -366,13 +372,15 @@ void communicate(my_time* time, board *pos) {
     if (time->timeset == 1 && (getTimeMiliSecond() > time->hardLimit) && pos->pvTable[0][0] != 0) {
         // tell engine to stop calculating
         time->stopped = 1;
+        store_rlx(thread_pool.stop, true);
     }
     read_input(time, pos);
 }
 
-void check_node_limit(my_time* time, board *pos) {
-    if (pos->nodes_searched >= time->node_limit) {
+void check_node_limit(my_time* time) {
+    if (total_nodes() >= time->node_limit) {
         time->stopped = 1;
+        store_rlx(thread_pool.stop, true);
     }
 }
 
@@ -540,6 +548,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             sscanf(input, "%*s %*s %*s %*s %d", &thread_count);
             if(thread_count < 1) thread_count = 1;
             if(thread_count > MAX_THREADS) thread_count = MAX_THREADS;
+            init_threads(thread_count);
             printf("info string set Threads to value %d\n", thread_count);
         }
         // parse UCI "quit" command

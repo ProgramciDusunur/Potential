@@ -694,12 +694,13 @@ uint8_t isMaterialDraw(board *pos) {
     return 0;
 }
 
-void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, uint16_t move, double complexity, board* pos) {
+void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, uint16_t move, double complexity, ThreadData *t) {
     double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
     double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
     double complexityScale = my_max_double(0.77 + clamp_double(complexity, 0.0, 200.0) / 400.0, 1.0);
-    double not_bm_nodes_fraction = 
-       (double)nodes_spent_table[move & 4095] / (double)pos->nodes_searched;
+    uint64_t total = load_rlx(t->search_i.nodes_searched);
+    double not_bm_nodes_fraction = total > 0 ?
+       (double)nodes_spent_table[move & 4095] / (double)total : 0.5;
     double node_scaling_factor = (1.5f - not_bm_nodes_fraction) * 1.35f;
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
@@ -710,19 +711,23 @@ bool has_enemy_any_threat(board *pos) {
     return (pos->occupancies[pos->side] & pos->pieceThreats.stmThreats[pos->side ^ 1]) != 0;
 }
 
-int get_draw_score(board *pos) {
-    return (pos->nodes_searched & 3) - 2; // Randomize between -2 and +2
+int get_draw_score(ThreadData *t) {
+    return (load_rlx(t->search_i.nodes_searched) & 3) - 2; // Randomize between -2 and +2
 }
 
 // quiescence search
 int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *ss) {
     board *position = &t->pos;
-    if (time->isNodeLimit) {
-        check_node_limit(time, position);
-    }
 
-    if ((position->nodes_searched & 2047) == 0) {
-        communicate(time, position);
+    if (t->id == 0) {
+        if (time->isNodeLimit) {
+            check_node_limit(time);
+        }
+        if ((load_rlx(t->search_i.nodes_searched) & 2047) == 0) {
+            communicate(time, position);
+        }
+    } else if (load_rlx(thread_pool.stop)) {
+        time->stopped = 1;
     }
 
     if (position->ply > maxPly - 1) {
@@ -837,7 +842,6 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         //legal_moves++;
 
         // increment nodes count
-        position->nodes_searched++;
         inc_rlx(t->search_i.nodes_searched);
 
         prefetch_hash_entry(position->hashKey, position->fifty);
@@ -895,13 +899,16 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, SearchStack *ss, bool cutNode) {
     board *pos = &t->pos;
 
-    if (time->isNodeLimit) {
-        check_node_limit(time, pos);
+    if (t->id == 0 && (load_rlx(t->search_i.nodes_searched) & 4095) == 0 && time->isNodeLimit) {
+        check_node_limit(time);
     }
-    
-    if ((pos->nodes_searched & 2047) == 0) {
-        communicate(time, pos);
-    }    
+    if (t->id == 0) {
+        if ((load_rlx(t->search_i.nodes_searched) & 2047) == 0) {
+            communicate(time, pos);
+        }
+    } else if (load_rlx(thread_pool.stop)) {
+        time->stopped = 1;
+    }
 
     if (pos->ply > maxPly - 1) {
         // evaluate position
@@ -941,14 +948,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                                     pos->side ^ 1, pos);
         if (!in_check) {
             // return draw by fifty-move rule
-            return get_draw_score(pos);
+            return get_draw_score(t);
         }       
     }
 
     if (!rootNode) {
 
         if (isRepetition(pos) || isMaterialDraw(pos)) {
-            return get_draw_score(pos);
+            return get_draw_score(t);
         }        
 
 
@@ -1215,7 +1222,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 }
 
                 prefetch_hash_entry(pos->hashKey, pos->fifty);
-                pos->nodes_searched++;
                 inc_rlx(t->search_i.nodes_searched);
                 legal_moves++;
 
@@ -1485,7 +1491,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
 
         // increment nodes count
-        pos->nodes_searched++;
         inc_rlx(t->search_i.nodes_searched);
 
         prefetch_hash_entry(pos->hashKey, pos->fifty);
@@ -1505,7 +1510,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             addMoveToHistoryList(noisyMoves, currentMove);
         }
 
-        uint64_t nodes_before_search = pos->nodes_searched;
+        uint64_t nodes_before_search = (t->id == 0) ? load_rlx(t->search_i.nodes_searched) : 0;
 
         int new_depth = depth - 1 + extensions;
 
@@ -1629,8 +1634,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // take move back
         takeBack(pos, &copyPosition);
 
-        if (rootNode) {
-            nodes_spent_table[currentMove & 4095] += pos->nodes_searched - nodes_before_search;
+        if (rootNode && t->id == 0) {
+            nodes_spent_table[currentMove & 4095] += load_rlx(t->search_i.nodes_searched) - nodes_before_search;
         }
 
         if (time->stopped == 1) return 0;
@@ -1697,7 +1702,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             // king is not in check
         else
             // return stalemate score
-            return get_draw_score(pos);
+            return get_draw_score(t);
     }
 
     if (!ss->singular_move) {
@@ -1739,13 +1744,14 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
     // reset nodes counter
     store_rlx(t->search_i.nodes_searched, 0);
-    t->pos.nodes_searched = 0;
 
     // reset follow PV flags
     t->pos.followPv = 0;
     t->pos.scorePv = 0;
     
-    memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
+    if (t->id == 0) {
+        memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
+    }
     memset(t->pos.pvTable, 0, sizeof(t->pos.pvTable));
     memset(t->pos.pvLength, 0, sizeof(t->pos.pvLength));    
 
@@ -1786,7 +1792,10 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         int startTime = getTimeMiliSecond();
 
-        if ((time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && load_rlx(t->search_i.nodes_searched) >= time->node_limit)) {
+        if (t->id == 0 && ((time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
+            time->stopped = 1;
+            store_rlx(thread_pool.stop, true);
+        } else if (t->id != 0 && load_rlx(thread_pool.stop)) {
             time->stopped = 1;
         }
 
@@ -1795,7 +1804,10 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         while (true) {
 
-            if ((time->timeset && (startTime >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && load_rlx(t->search_i.nodes_searched) >= time->node_limit)) {
+            if (t->id == 0 && ((time->timeset && (startTime >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
+                time->stopped = 1;
+                store_rlx(thread_pool.stop, true);
+            } else if (t->id != 0 && load_rlx(thread_pool.stop)) {
                 time->stopped = 1;
             }
 
@@ -1866,25 +1878,26 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             complexity = 0.6 * abs(baseSearchScore - score) * log(depth);
         }
 
-        if (time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, &t->pos);
+        if (t->id == 0 && time->timeset && current_depth > 6) {
+            scaleTime(time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, t);
         }
         
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
 
-        if (t->pos.pvLength[0] && !benchmark) {
-            unsigned long long nps = (totalTime > 0) ? (load_rlx(t->search_i.nodes_searched) * 1000) / totalTime : 0;
+        if (t->id == 0 && t->pos.pvLength[0] && !benchmark) {
+            uint64_t nodes = total_nodes();
+            unsigned long long nps = (totalTime > 0) ? (nodes * 1000) / totalTime : 0;
 
             printf("info depth %d seldepth %d ", current_depth, t->pos.seldepth);
 
             if (is_mate_score(score))
                 printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
                        (score > 0 ? mateValue - score + 1 : -mateValue - score) / 2,
-                       load_rlx(t->search_i.nodes_searched), nps, hash_full(), totalTime);            
+                       nodes, nps, hash_full(), totalTime);            
             else
                 printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
-                       score, load_rlx(t->search_i.nodes_searched), nps, hash_full(), totalTime);
+                       score, nodes, nps, hash_full(), totalTime);
 
             // loop over the moves within a PV line
             for (int count = 0; count < t->pos.pvLength[0]; count++) {
@@ -1896,7 +1909,7 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         }
 
     }
-    if (!benchmark) {
+    if (t->id == 0 && !benchmark) {
         // best move placeholder
         printf("bestmove ");
         printMove(t->pos.pvTable[0][0]);
