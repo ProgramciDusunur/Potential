@@ -61,7 +61,7 @@ char* benchmarkfens[52] = {
         "7k/8/7P/5B2/5K2/8/8/8 b - - 0 175"
 };
 
-void benchmark(int depth, ThreadData *t, my_time* time, SearchStack* ss) {
+void benchmark(int depth, ThreadData *t, my_time* time) {
     U64 totalNodes = 0;
     board *position = &t->pos;
     position->benchmark = true;
@@ -72,7 +72,7 @@ void benchmark(int depth, ThreadData *t, my_time* time, SearchStack* ss) {
 
         setup_main_thread(&t->pos);
         
-        searchPosition(depth, true, t, time, ss);
+        searchPosition(depth, true, t, time);
         // clear hash table
         clearHashTable();
 

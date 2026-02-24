@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "timeman.h"
 
-#define VERSION "3.25.49"
+#define VERSION "3.26.49"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -151,7 +151,7 @@ void parse_position(char *command, board* position) {
 
 
 
-void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time, SearchStack* ss) {
+void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time) {
 
     // reset time control
     resetTimeControl(time);
@@ -262,7 +262,7 @@ void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time, Sea
            time->time, time->starttime, time->stoptime, depth, time->timeset);
 
     // search position
-    searchPosition(depth, false, t, time, ss);
+    searchPosition(depth, false, t, time);
 
 }
 
@@ -377,7 +377,7 @@ void check_node_limit(my_time* time, board *pos) {
 }
 
 
-void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, SearchStack *ss) {
+void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
     //ThreadData *threads = init_threads(thread_count);
 
     setup_main_thread(position);
@@ -390,7 +390,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
         position->mailbox[i] = NO_PIECE;
     }
 
-    clearStaticEvaluationHistory(ss);
+    clearStaticEvaluationHistory(thread_pool.threads[0]->ss);
     
 
     // init time control
@@ -414,7 +414,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..\n");
-        benchmark(BENCH_DEPTH, thread_pool.threads[0], time_ctrl, ss);
+        benchmark(BENCH_DEPTH, thread_pool.threads[0], time_ctrl);
         printf("\n");
         fflush(NULL);
         return;
@@ -511,7 +511,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
             clearHashTable();
 
             //clear static eval history
-            clearStaticEvaluationHistory(ss);    
+            clearStaticEvaluationHistory(thread_pool.threads[0]->ss);    
             
             // call parse position function
             parse_position("position startpos", position);                    
@@ -520,7 +520,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
         // parse UCI "go" command
         else if (strncmp(input, "go", 2) == 0) {
             // call parse go function
-            goCommand(input, thread_pool.threads[0], position, time_ctrl, ss);
+            goCommand(input, thread_pool.threads[0], position, time_ctrl);
         }
         else if (!strncmp(input, "setoption name Hash value ", 26)) {
             // init MB
@@ -579,7 +579,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl, Se
         } 
 
         else if (strncmp(input, "bench", 5) == 0) {
-            benchmark(BENCH_DEPTH, thread_pool.threads[0], time_ctrl, ss);
+            benchmark(BENCH_DEPTH, thread_pool.threads[0], time_ctrl);
         }
     }    
 }
