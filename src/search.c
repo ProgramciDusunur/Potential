@@ -1729,7 +1729,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 }
 
 // search position for the best move
-void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time, SearchStack* ss) {
+void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
+    SearchStack *ss = t->ss;
     // define best score variable
     int score = 0;
 

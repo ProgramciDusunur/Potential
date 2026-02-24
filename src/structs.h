@@ -212,6 +212,8 @@ typedef struct {
     SearchInfo search_i;
     SearchData search_d;
     board pos;
+    SearchStack ss_base[maxPly + 20]; // 20 = STACK_SAFETY_MARGIN
+    SearchStack *ss;                   // points to ss_base + STACK_OFFSET (10)
 } ThreadData;
 
 typedef struct {

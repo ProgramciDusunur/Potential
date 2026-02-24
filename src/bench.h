@@ -14,6 +14,6 @@
 #include "fen.h"
 
 extern char* benchmarkfens[52];
-void benchmark(int depth, ThreadData *t, my_time* time, SearchStack* ss);
+void benchmark(int depth, ThreadData *t, my_time* time);
 
 #endif //POTENTIAL_BENCH_H
