@@ -1771,6 +1771,9 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     uint8_t evalStability = 0;
     int baseSearchScore = -infinity;
 
+    uint16_t completed_pv[maxPly];
+    memset(completed_pv, 0, sizeof(completed_pv));
+
     quiet_history_aging();    
 
     // iterative deepening
@@ -1798,7 +1801,11 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             store_rlx(thread_pool.stop, true);
         }
 
-        t->soft_limit_hit = time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0;
+        if (time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) {
+            t->soft_limit_hit = true;
+        } else {
+            t->soft_limit_hit = false;
+        }
 
         int voted_threads = 0;
         for (int i = 0; i < thread_pool.thread_count; i++) {
@@ -1826,7 +1833,11 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                 store_rlx(thread_pool.stop, true);
             }
 
-            t->soft_limit_hit = time->timeset && getTimeMiliSecond() >= time->softLimit && t->pos.pvTable[0][0] != 0;
+            if (time->timeset && getTimeMiliSecond() >= time->softLimit && t->pos.pvTable[0][0] != 0) {
+                t->soft_limit_hit = true;
+            } else {
+                t->soft_limit_hit = false;
+            }
 
             int internal_voted_threads = 0;
             for (int i = 0; i < thread_pool.thread_count; i++) {
@@ -1892,6 +1903,8 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             break;
         }
 
+        memcpy(completed_pv, t->pos.pvTable[0], sizeof(completed_pv));
+
         baseSearchScore = current_depth == 1 ? score : baseSearchScore;
         averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
 
@@ -1949,7 +1962,11 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     if (t->id == 0 && !benchmark) {
         // best move placeholder
         printf("bestmove ");
-        printMove(t->pos.pvTable[0][0]);
+        if (completed_pv[0] != 0) {
+            printMove(completed_pv[0]);
+        } else {
+            printMove(t->pos.pvTable[0][0]);
+        }
         printf("\n");
     }
 }
