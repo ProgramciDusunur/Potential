@@ -241,12 +241,7 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
         hashEntry->flag = hashFlag;
         hashEntry->depth = depth;        
         hashEntry->ttPv = ttPv;
-    } else if (hashEntry->depth >= 5 && hashFlag != hashFlagExact) {        
-        hashEntry->depth--;
     }
-        
-
-    
 }
 
 // read hash entry data
