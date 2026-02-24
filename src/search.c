@@ -1798,11 +1798,7 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             store_rlx(thread_pool.stop, true);
         }
 
-        bool hit_soft_limit = time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0;
-
-        if (hit_soft_limit) {
-            t->soft_limit_hit = true;
-        }
+        t->soft_limit_hit = time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0;
 
         int voted_threads = 0;
         for (int i = 0; i < thread_pool.thread_count; i++) {
@@ -1812,8 +1808,10 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         }
 
         if (voted_threads * 2 >= thread_pool.thread_count) {
-            time->stopped = 1;
-            store_rlx(thread_pool.stop, true);
+            if (thread_pool.threads[0]->pos.pvTable[0][0] != 0) {
+                time->stopped = 1;
+                store_rlx(thread_pool.stop, true);
+            }
         } else if (load_rlx(thread_pool.stop)) {
             time->stopped = 1;
         }
@@ -1828,11 +1826,7 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                 store_rlx(thread_pool.stop, true);
             }
 
-            bool internal_hit_soft_limit = time->timeset && getTimeMiliSecond() >= time->softLimit && t->pos.pvTable[0][0] != 0;
-
-            if (internal_hit_soft_limit) {
-                t->soft_limit_hit = true;
-            }
+            t->soft_limit_hit = time->timeset && getTimeMiliSecond() >= time->softLimit && t->pos.pvTable[0][0] != 0;
 
             int internal_voted_threads = 0;
             for (int i = 0; i < thread_pool.thread_count; i++) {
@@ -1842,8 +1836,10 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             }
 
             if (internal_voted_threads * 2 >= thread_pool.thread_count) {
-                time->stopped = 1;
-                store_rlx(thread_pool.stop, true);
+                if (thread_pool.threads[0]->pos.pvTable[0][0] != 0) {
+                    time->stopped = 1;
+                    store_rlx(thread_pool.stop, true);
+                }
             } else if (load_rlx(thread_pool.stop)) {
                 time->stopped = 1;
             }
