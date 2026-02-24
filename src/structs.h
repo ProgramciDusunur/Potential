@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <stdatomic.h>
 #include <stdint.h>
+#include <pthread.h>
 
 #ifndef U64
 #define U64 unsigned long long
@@ -58,8 +59,6 @@ typedef struct {
     int pvTable[maxPly][maxPly];
     threats pieceThreats;
 
-    U64 nodes_searched;
-
     bool benchmark;
 
     int followPv;
@@ -107,7 +106,7 @@ typedef struct {
     int count;
 } moves;
 
-typedef struct {
+typedef struct my_time_tag {
     // exit from engine flag
     int quit;
     // UCI "movestogo" command moves counter
@@ -209,11 +208,14 @@ typedef struct {
 
 typedef struct {
     int16_t id;
+    pthread_t native_handle;
     SearchInfo search_i;
     SearchData search_d;
     board pos;
     SearchStack ss_base[maxPly + 20]; // 20 = STACK_SAFETY_MARGIN
     SearchStack *ss;                   // points to ss_base + STACK_OFFSET (10)
+    int search_depth;                  // depth for this thread's search
+    my_time *time;                     // pointer to shared time control
 } ThreadData;
 
 typedef struct {

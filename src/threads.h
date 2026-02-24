@@ -7,5 +7,6 @@ extern ThreadPool thread_pool;
 
 void setup_main_thread(board *board);
 void init_threads(int requested_count);
-uint64_t total_nodes(ThreadData *threads, int thread_count);
-void stop_threads(ThreadData *threats, int thread_count);
+uint64_t total_nodes(void);
+void start_helpers(board *root_pos, int depth, my_time *time);
+void wait_helpers(void);
