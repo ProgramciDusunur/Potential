@@ -1888,6 +1888,10 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         }
 
+        if (time->stopped) {
+            break;
+        }
+
         baseSearchScore = current_depth == 1 ? score : baseSearchScore;
         averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
 
