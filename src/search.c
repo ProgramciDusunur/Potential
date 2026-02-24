@@ -1748,7 +1748,6 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     // reset follow PV flags
     t->pos.followPv = 0;
     t->pos.scorePv = 0;
-    t->soft_limit_hit = false;
     
     if (t->id == 0) {
         memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
@@ -1770,9 +1769,6 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     int averageScore = noEval;
     uint8_t evalStability = 0;
     int baseSearchScore = -infinity;
-
-    uint16_t completed_pv[maxPly];
-    memset(completed_pv, 0, sizeof(completed_pv));
 
     quiet_history_aging();    
 
@@ -1796,29 +1792,9 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         int startTime = getTimeMiliSecond();
 
-        if (t->id == 0 && time->isNodeLimit && total_nodes() >= time->node_limit) {
+        if (t->id == 0 && ((time->timeset && (startTime >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
             time->stopped = 1;
             store_rlx(thread_pool.stop, true);
-        }
-
-        if (time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) {
-            t->soft_limit_hit = true;
-        } else {
-            t->soft_limit_hit = false;
-        }
-
-        int voted_threads = 0;
-        for (int i = 0; i < thread_pool.thread_count; i++) {
-            if (thread_pool.threads[i]->soft_limit_hit) {
-                voted_threads++;
-            }
-        }
-
-        if (voted_threads * 2 >= thread_pool.thread_count) {
-            if (thread_pool.threads[0]->pos.pvTable[0][0] != 0) {
-                time->stopped = 1;
-                store_rlx(thread_pool.stop, true);
-            }
         } else if (load_rlx(thread_pool.stop)) {
             time->stopped = 1;
         }
@@ -1828,29 +1804,9 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         while (true) {
 
-            if (t->id == 0 && time->isNodeLimit && total_nodes() >= time->node_limit) {
+            if (t->id == 0 && ((time->timeset && (getTimeMiliSecond() >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
                 time->stopped = 1;
                 store_rlx(thread_pool.stop, true);
-            }
-
-            if (time->timeset && getTimeMiliSecond() >= time->softLimit && t->pos.pvTable[0][0] != 0) {
-                t->soft_limit_hit = true;
-            } else {
-                t->soft_limit_hit = false;
-            }
-
-            int internal_voted_threads = 0;
-            for (int i = 0; i < thread_pool.thread_count; i++) {
-                if (thread_pool.threads[i]->soft_limit_hit) {
-                    internal_voted_threads++;
-                }
-            }
-
-            if (internal_voted_threads * 2 >= thread_pool.thread_count) {
-                if (thread_pool.threads[0]->pos.pvTable[0][0] != 0) {
-                    time->stopped = 1;
-                    store_rlx(thread_pool.stop, true);
-                }
             } else if (load_rlx(thread_pool.stop)) {
                 time->stopped = 1;
             }
@@ -1898,12 +1854,6 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             window *= 1.8f;
 
         }
-
-        if (time->stopped) {
-            break;
-        }
-
-        memcpy(completed_pv, t->pos.pvTable[0], sizeof(completed_pv));
 
         baseSearchScore = current_depth == 1 ? score : baseSearchScore;
         averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
@@ -1962,11 +1912,7 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     if (t->id == 0 && !benchmark) {
         // best move placeholder
         printf("bestmove ");
-        if (completed_pv[0] != 0) {
-            printMove(completed_pv[0]);
-        } else {
-            printMove(t->pos.pvTable[0][0]);
-        }
+        printMove(t->pos.pvTable[0][0]);
         printf("\n");
     }
 }

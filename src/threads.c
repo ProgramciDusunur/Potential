@@ -41,7 +41,6 @@ void init_threads(int requested_count) {
 
         memset(thread_pool.threads[i], 0, sizeof(ThreadData));
         thread_pool.threads[i]->id = i;
-        thread_pool.threads[i]->soft_limit_hit = false;
         thread_pool.threads[i]->ss = thread_pool.threads[i]->ss_base + STACK_OFFSET;
         clearStaticEvaluationHistory(thread_pool.threads[i]->ss);
     }
@@ -83,7 +82,6 @@ void start_helpers(board *root_pos, int depth, my_time *time) {
         // Set search parameters
         t->search_depth = depth;
         t->time = time;
-        t->soft_limit_hit = false;
 
         // Launch thread
         pthread_create(&t->native_handle, NULL, thread_entry, t);
