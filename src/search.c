@@ -1793,10 +1793,14 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         int startTime = getTimeMiliSecond();
 
-        bool hit_soft_limit = time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0;
-        bool hit_node_limit = time->isNodeLimit && total_nodes() >= time->node_limit;
+        if (t->id == 0 && time->isNodeLimit && total_nodes() >= time->node_limit) {
+            time->stopped = 1;
+            store_rlx(thread_pool.stop, true);
+        }
 
-        if (hit_soft_limit || hit_node_limit) {
+        bool hit_soft_limit = time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0;
+
+        if (hit_soft_limit) {
             t->soft_limit_hit = true;
         }
 
@@ -1819,10 +1823,14 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         while (true) {
 
-            bool internal_hit_soft_limit = time->timeset && getTimeMiliSecond() >= time->softLimit && t->pos.pvTable[0][0] != 0;
-            bool internal_hit_node_limit = time->isNodeLimit && total_nodes() >= time->node_limit;
+            if (t->id == 0 && time->isNodeLimit && total_nodes() >= time->node_limit) {
+                time->stopped = 1;
+                store_rlx(thread_pool.stop, true);
+            }
 
-            if (internal_hit_soft_limit || internal_hit_node_limit) {
+            bool internal_hit_soft_limit = time->timeset && getTimeMiliSecond() >= time->softLimit && t->pos.pvTable[0][0] != 0;
+
+            if (internal_hit_soft_limit) {
                 t->soft_limit_hit = true;
             }
 
