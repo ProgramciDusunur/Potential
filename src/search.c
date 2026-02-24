@@ -1795,7 +1795,7 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         if (t->id == 0 && ((time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
             time->stopped = 1;
             store_rlx(thread_pool.stop, true);
-        } else if (t->id != 0 && load_rlx(thread_pool.stop)) {
+        } else if (load_rlx(thread_pool.stop)) {
             time->stopped = 1;
         }
 
@@ -1807,7 +1807,7 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             if (t->id == 0 && ((time->timeset && (startTime >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
                 time->stopped = 1;
                 store_rlx(thread_pool.stop, true);
-            } else if (t->id != 0 && load_rlx(thread_pool.stop)) {
+            } else if (load_rlx(thread_pool.stop)) {
                 time->stopped = 1;
             }
 
