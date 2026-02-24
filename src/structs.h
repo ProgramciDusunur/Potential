@@ -173,15 +173,16 @@ typedef struct {
     // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
     int16_t continuationHistory[12][64][12][64];
 
-    // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-    int16_t contCorrhist[12][64][12][64];
-
     // pawnHistory [pawnKey][piece][to]
     int16_t pawnHistory[2048][12][64];
 
     // captureHistory [piece][toSquare][capturedPiece]
     int16_t captureHistory[12][64][13];
+} SearchData;
 
+typedef struct {
+    // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+    int16_t contCorrhist[12][64][12][64];
 
     // pawn correction history [side to move][key]
     int16_t pawn_corrhist[2][16384];
@@ -197,7 +198,7 @@ typedef struct {
 
     // king rook pawn correction history [side to move][key]
     int16_t krp_corrhist[2][16384];
-} SearchData;
+} CorrectionHistory;
 
 typedef struct {
     _Atomic uint64_t nodes_searched;
@@ -224,6 +225,8 @@ typedef struct {
 
     _Atomic bool stop;    
     board root_pos;
+
+    CorrectionHistory corrhist;
 } ThreadPool;
 
 #endif //POTENTIAL_STRUCTS_H
