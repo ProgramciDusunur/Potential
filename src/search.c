@@ -1582,10 +1582,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
         }
         
+        bool lmr_extension = lmrReduction < -3072 && legal_moves <= 3;
 
         lmrReduction /= 1024;
 
-        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth)) + pvNode;
+        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth + lmr_extension)) + pvNode;
 
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
