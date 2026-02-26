@@ -753,11 +753,12 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
     bool tt_pv = pvNode;
+    uint8_t tt_votes = 0;
 
     // read hash entry
     if (position->ply &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, position->fifty)) && !pvNode) {
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, &tt_votes, position->fifty)) && !pvNode) {
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
@@ -940,6 +941,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
     bool tt_pv = pvNode;    
+    uint8_t tt_votes = 0;
 
     // Check for fifty-move rule
     if (pos->fifty >= 100) {
@@ -969,7 +971,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // read hash entry
     if (!ss->singular_move && !rootNode &&
         (tt_hit =
-                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty)) &&
+                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, &tt_votes, pos->fifty)) &&
                 !pvNode) {
         pos_key = pos->hashKey;
         if (tt_depth >= depth) {
@@ -1435,45 +1437,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     extensions++;
                 }
 
-                // ~~~~ Quintuple Extension (Root Vote Based) ~~~~ //
+                // ~~~~ Quintuple Extension (TT Vote Based) ~~~~ //
                 int quintupleMargin = quadrupleMargin + 200; // Adding an extra margin
                 if (thread_pool.thread_count > 1 && singularScore <= singularBeta - quintupleMargin) {
-                    uint16_t root_moves[MAX_THREADS];
-                    int counts[MAX_THREADS] = {0};
-                    int unique_moves = 0;
-                    int max_votes = 0;
-                    uint16_t majority_root_move = 0;
-                    int active_threads = 0;
-
-                    for (int i = 0; i < thread_pool.thread_count; i++) {
-                        uint16_t rm = thread_pool.threads[i]->pos.pvTable[0][0];
-                        if (rm != 0) {
-                            active_threads++;
-                            bool found = false;
-                            for (int j = 0; j < unique_moves; j++) {
-                                if (root_moves[j] == rm) {
-                                    counts[j]++;
-                                    if (counts[j] > max_votes) {
-                                        max_votes = counts[j];
-                                        majority_root_move = rm;
-                                    }
-                                    found = true;
-                                    break;
-                                }
-                            }
-                            if (!found) {
-                                root_moves[unique_moves] = rm;
-                                counts[unique_moves] = 1;
-                                if (1 > max_votes) {
-                                    max_votes = 1;
-                                    majority_root_move = rm;
-                                }
-                                unique_moves++;
-                            }
-                        }
-                    }
-
-                    if (t->pos.pvTable[0][0] == majority_root_move && max_votes > active_threads / 2) {
+                    if (tt_votes > thread_pool.thread_count / 2) {
                         extensions++;
                     }
                 }

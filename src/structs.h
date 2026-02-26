@@ -94,6 +94,7 @@ typedef struct {
     uint8_t depth;       // current search depth
     uint8_t flag;        // flag the type of node (fail-high(score >= beta)/fail-low(score < alpha))
     bool ttPv;           // tt was pv node or not
+    uint8_t votes;       // number of visits/confirmations
 } tt;                    // transposition table (TT aka hash table)
 
 
