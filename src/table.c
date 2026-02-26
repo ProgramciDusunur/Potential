@@ -8,6 +8,7 @@ U64 sideKey;
 U64 FMR[100 / 10];
 U64 hash_entries = 0;
 tt *hashTable = NULL;
+uint8_t tt_age = 0;
 
 __extension__ typedef unsigned __int128 uint128_t;
 
@@ -17,7 +18,7 @@ int hash_full(void) {
   int samples = 1000;
 
   for (int i = 0; i < samples; ++i) {
-    if (hashTable[i].hashKey != 0) {
+    if (hashTable[i].hashKey != 0 && hashTable[i].age == tt_age) {
       used++;
     }
   }
@@ -221,32 +222,30 @@ void prefetch_hash_entry(uint64_t hash_key, uint8_t fmr_key) {
 
 
 void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key) {
-    // create a TT instance pointer to particular hash entry storing
-    // the scoring data for the current board position if available
     tt *hashEntry = &hashTable[get_hash_index(position->hashKey, fmr_key)];
+    uint32_t currentKey = get_hash_low_bits(position->hashKey);
+    bool samePosition = (hashEntry->hashKey == currentKey);
 
-    if (bestMove != 0 || key != position->hashKey) {
+    if (bestMove != 0 || !samePosition) {
         hashEntry->bestMove = bestMove;
     }
 
-    if (hashFlag == hashFlagExact || key != position->hashKey || depth + 2 * ttPv + 4 > hashEntry->depth) {
-        // store score independent from the actual path
-        // from root node (position) to current node (position)
+    uint8_t ageDelta = tt_age - hashEntry->age;
+
+    if (hashFlag == hashFlagExact || !samePosition || depth + 2 * ttPv + 4 + ageDelta * 4 > hashEntry->depth) {
         if (score < -mateFound) score -= position->ply;
         if (score > mateFound) score += position->ply;
 
 
-        hashEntry->hashKey = get_hash_low_bits(position->hashKey);
+        hashEntry->hashKey = currentKey;
         hashEntry->score = score;
         hashEntry->flag = hashFlag;
         hashEntry->depth = depth;        
         hashEntry->ttPv = ttPv;
+        hashEntry->age = tt_age;
     } else if (hashEntry->depth >= 5 && hashFlag != hashFlagExact) {        
         hashEntry->depth--;
     }
-        
-
-    
 }
 
 // read hash entry data
@@ -295,6 +294,7 @@ void clearHashTable(void) {
         hash_entry->score = 0;
         hash_entry->bestMove = 0;
         hash_entry->ttPv = 0;
+        hash_entry->age = 0;
     }
 }
 

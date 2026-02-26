@@ -58,6 +58,7 @@ extern U64 FMR[100 / 10];
 extern U64 sideKey;
 extern U64 hash_entries;
 extern tt *hashTable;
+extern uint8_t tt_age;
 
 int hash_full(void);
 U64 generateHashKey(board* position);
