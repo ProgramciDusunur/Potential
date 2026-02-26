@@ -997,7 +997,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // get static evaluation score
     int raw_eval = evaluate(pos);
 
-    int static_eval = adjust_eval_with_corrhist(t, raw_eval, ss);
+    int static_eval = adjust_eval_with_corrhist(t, raw_eval, ss) + t->optimism[pos->side];
 
     bool improving = false;
     bool tt_capture = tt_move && getMoveCapture(tt_move);
@@ -1133,7 +1133,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 adjust_single_quiet_hist_entry(t, pos->side, nmp_ref_move, refutation_bonus);
             }
         }
-    }    
+    }
 
     // razoring
     if (!ss->singular_move &&
@@ -1290,7 +1290,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     int bestScore = -infinity;    
 
-    // legal moves counter
     legal_moves = 0;
 
     // quiet move counter
@@ -1754,6 +1753,9 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     }
     memset(t->pos.pvTable, 0, sizeof(t->pos.pvTable));
     memset(t->pos.pvLength, 0, sizeof(t->pos.pvLength));    
+    
+    t->optimism[0] = 0;
+    t->optimism[1] = 0;
 
     // define initial alpha beta bounds
     int alpha = -infinity;
@@ -1801,6 +1803,11 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         int window = ASP_WINDOW_BASE;
         int aspirationWindowDepth = current_depth;
+
+        if (averageScore != noEval) {
+            t->optimism[t->pos.side] = 23 * averageScore / (abs(averageScore) + 212);
+            t->optimism[t->pos.side ^ 1] = -t->optimism[t->pos.side];
+        }
 
         while (true) {
 
