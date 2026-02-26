@@ -1805,7 +1805,7 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         int aspirationWindowDepth = current_depth;
 
         if (averageScore != noEval) {
-            t->optimism[t->pos.side] = 23 * averageScore / (abs(averageScore) + 212);
+            t->optimism[t->pos.side] = 169 * averageScore / (abs(averageScore) + 187);
             t->optimism[t->pos.side ^ 1] = -t->optimism[t->pos.side];
         }
 
