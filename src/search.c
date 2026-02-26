@@ -1434,6 +1434,49 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
+
+                // ~~~~ Quintuple Extension (Root Vote Based) ~~~~ //
+                int quintupleMargin = quadrupleMargin + 200; // Adding an extra margin
+                if (thread_pool.thread_count > 1 && singularScore <= singularBeta - quintupleMargin) {
+                    uint16_t root_moves[MAX_THREADS];
+                    int counts[MAX_THREADS] = {0};
+                    int unique_moves = 0;
+                    int max_votes = 0;
+                    uint16_t majority_root_move = 0;
+                    int active_threads = 0;
+
+                    for (int i = 0; i < thread_pool.thread_count; i++) {
+                        uint16_t rm = thread_pool.threads[i]->pos.pvTable[0][0];
+                        if (rm != 0) {
+                            active_threads++;
+                            bool found = false;
+                            for (int j = 0; j < unique_moves; j++) {
+                                if (root_moves[j] == rm) {
+                                    counts[j]++;
+                                    if (counts[j] > max_votes) {
+                                        max_votes = counts[j];
+                                        majority_root_move = rm;
+                                    }
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                root_moves[unique_moves] = rm;
+                                counts[unique_moves] = 1;
+                                if (1 > max_votes) {
+                                    max_votes = 1;
+                                    majority_root_move = rm;
+                                }
+                                unique_moves++;
+                            }
+                        }
+                    }
+
+                    if (t->pos.pvTable[0][0] == majority_root_move && max_votes > active_threads / 2) {
+                        extensions++;
+                    }
+                }
             }            
 
             // Negative Extensions
