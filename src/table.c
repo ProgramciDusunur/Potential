@@ -223,21 +223,19 @@ void prefetch_hash_entry(uint64_t hash_key, uint8_t fmr_key) {
 
 void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key) {
     tt *hashEntry = &hashTable[get_hash_index(position->hashKey, fmr_key)];
-    uint32_t currentKey = get_hash_low_bits(position->hashKey);
-    bool samePosition = (hashEntry->hashKey == currentKey);
 
-    if (bestMove != 0 || !samePosition) {
+    if (bestMove != 0 || key != position->hashKey) {
         hashEntry->bestMove = bestMove;
     }
 
     uint8_t ageDelta = tt_age - hashEntry->age;
 
-    if (hashFlag == hashFlagExact || !samePosition || depth + 2 * ttPv + 4 + ageDelta * 4 > hashEntry->depth) {
+    if (hashFlag == hashFlagExact || key != position->hashKey || depth + 2 * ttPv + 4 + ageDelta * 4 > hashEntry->depth) {
         if (score < -mateFound) score -= position->ply;
         if (score > mateFound) score += position->ply;
 
 
-        hashEntry->hashKey = currentKey;
+        hashEntry->hashKey = get_hash_low_bits(position->hashKey);
         hashEntry->score = score;
         hashEntry->flag = hashFlag;
         hashEntry->depth = depth;        
