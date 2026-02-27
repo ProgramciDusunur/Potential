@@ -106,6 +106,7 @@
   int RFP_MARGIN = 52;
   int RFP_IMPROVING_MARGIN = 45;
   int RFP_DEPTH = 11;
+  int RFP_EVAL_SCALE = 150;
   
   
   /*╔══════════╗
@@ -446,8 +447,6 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         quiet_score += getContinuationHistoryScore(t, 1, move, ss);
         // 2 ply continuation history
         quiet_score += getContinuationHistoryScore(t, 2, move, ss);
-        // 4 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 4, move, ss);
         // pawn history
         quiet_score += t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
@@ -1027,9 +1026,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     improving |= ss->staticEval >= beta + 100;
 
-    uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
+    int rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
     rfpMargin += 6 * depth * depth;
+
+    rfpMargin -= (ss->staticEval - beta) / RFP_EVAL_SCALE;
 
     bool rfp_tt_pv_decision = !tt_pv || (tt_pv && tt_hit && tt_score >= beta + 90 - 15 * ((tt_depth + depth) / 2));    
 
@@ -1071,7 +1072,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) / NMP_REDUCTION_DEPTH_DIVISOR;
 
-        R += myMIN((ttAdjustedEval - beta) / NMP_EVAL_DIVISOR, 3);        
+        R += myMIN((ss->staticEval - beta) / NMP_EVAL_DIVISOR, 4);        
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
@@ -1319,7 +1320,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(t, 1, currentMove, ss) + getContinuationHistoryScore(t, 4, currentMove, ss): 
+                getContinuationHistoryScore(t, 1, currentMove, ss) + getContinuationHistoryScore(t, 2, currentMove, ss): 
                 t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));

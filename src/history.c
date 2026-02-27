@@ -112,30 +112,42 @@ void updateCaptureHistoryMalus(ThreadData *t, int depth, moves *noisyMoves, uint
 
 int getAllCHScore(ThreadData *t, uint16_t move, int quiet_hist_score, SearchStack *ss) {
     return (getContinuationHistoryScore(t, 1, move, ss) + quiet_hist_score) / 2 +
-           getContinuationHistoryScore(t, 2, move, ss) +
-           getContinuationHistoryScore(t, 4, move, ss);
+           getContinuationHistoryScore(t, 2, move, ss);
 }
 
 int getContinuationHistoryScore(ThreadData *t, int offSet, uint16_t move, SearchStack *ss) {
     if (t->pos.ply < offSet) return 0;
+
+    int index;
+    if (offSet == 1) index = 0;
+    else if (offSet == 2) index = 1;
+    else return 0;
+
     SearchStack *prev = ss - offSet;
-    return t->search_d.continuationHistory[prev->piece][getMoveTarget(prev->move)]
+    return t->search_d.continuationHistory[index][prev->piece][getMoveTarget(prev->move)]
                               [t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
 }
 
 void updateSingleCHScore(ThreadData *t, uint16_t move, const int offSet, const int bonus, int quiet_hist_score, SearchStack *ss) {
     if (t->pos.ply < offSet) return;
+
+    int index;
+    if (offSet == 1) index = 0;
+    else if (offSet == 2) index = 1;
+    else return;
+
     int base_conthist_score = getAllCHScore(t, move, quiet_hist_score, ss);
     SearchStack *prev = ss - offSet;
-    const int scaledBonus = bonus - base_conthist_score * abs(bonus) / maxQuietHistory;
-    t->search_d.continuationHistory[prev->piece][getMoveTarget(prev->move)]
-                          [t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
+    const int scaledBonusValue = scaledBonus(t->search_d.continuationHistory[index][prev->piece][getMoveTarget(prev->move)]
+                          [t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)], bonus, maxQuietHistory);
+
+    t->search_d.continuationHistory[index][prev->piece][getMoveTarget(prev->move)]
+                          [t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonusValue;
 }
 
 void updateAllCH(ThreadData *t, uint16_t move, int bonus, int quiet_hist_score, SearchStack *ss) {
     updateSingleCHScore(t, move, 1, bonus, quiet_hist_score, ss);
     updateSingleCHScore(t, move, 2, bonus, quiet_hist_score, ss);
-    updateSingleCHScore(t, move, 4, bonus, quiet_hist_score, ss);
 }
 
 void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int depth, moves *badQuiets, int quiet_hist_score, SearchStack *ss) {

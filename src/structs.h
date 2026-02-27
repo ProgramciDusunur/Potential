@@ -170,8 +170,9 @@ typedef struct {
     // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
     int16_t quietHistory[2][64][64][2][2];
 
-    // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-    int16_t continuationHistory[12][64][12][64];
+    // continuationHistory[index][previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+    // index 0: 1-ply back, index 1: 2-ply back
+    int16_t continuationHistory[2][12][64][12][64];
 
     // pawnHistory [pawnKey][piece][to]
     int16_t pawnHistory[2048][12][64];
