@@ -171,16 +171,20 @@ typedef struct {
     int16_t quietHistory[2][64][64][2][2];
 
     // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-    int16_t continuationHistory[12][64][12][64];
-
-    // pawnHistory [pawnKey][piece][to]
-    int16_t pawnHistory[2048][12][64];
+    int16_t continuationHistory[12][64][12][64];    
 
     // captureHistory [piece][toSquare][capturedPiece]
     int16_t captureHistory[12][64][13];
 } SearchData;
 
 typedef struct {
+    /* History */
+    
+    // pawnHistory [pawnKey][piece][to]
+    int16_t pawnHistory[2048][12][64];
+
+    /* Correction Histories */
+    
     // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
     int16_t contCorrhist[12][64][12][64];
 
@@ -198,7 +202,7 @@ typedef struct {
 
     // king rook pawn correction history [side to move][key]
     int16_t krp_corrhist[2][16384];
-} CorrectionHistory;
+} SharedHistory;
 
 typedef struct {
     _Atomic uint64_t nodes_searched;
@@ -226,7 +230,7 @@ typedef struct {
     _Atomic bool stop;    
     board root_pos;
 
-    CorrectionHistory corrhist;
+    SharedHistory shared_history;
 } ThreadPool;
 
 #endif //POTENTIAL_STRUCTS_H
