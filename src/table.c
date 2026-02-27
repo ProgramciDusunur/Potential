@@ -230,7 +230,7 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
 
     uint8_t ageDelta = tt_age - hashEntry->age;
 
-    if (hashFlag == hashFlagExact || key != position->hashKey || depth + 2 * ttPv + 4 + ageDelta * 4 > hashEntry->depth) {
+    if (hashFlag == hashFlagExact || key != position->hashKey || depth + 2 * ttPv + 4 > hashEntry->depth || hashEntry->age == tt_age) {
         if (score < -mateFound) score -= position->ply;
         if (score > mateFound) score += position->ply;
 
