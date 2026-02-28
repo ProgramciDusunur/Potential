@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "timeman.h"
 
-#define VERSION "3.27.50"
+#define VERSION "3.27.51"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
