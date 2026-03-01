@@ -164,6 +164,7 @@ typedef struct {
     uint16_t nmp_refutation_move;
     uint16_t move;
     uint16_t piece;
+    int lmr_reduction;
 } SearchStack;
 
 typedef struct {

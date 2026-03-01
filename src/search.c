@@ -65,6 +65,7 @@
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
   int IMPROVING_LMR_SCALER = 1024;
+  int OPTIMISM_LMR_SCALER = 512;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -1584,18 +1585,22 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
         }
-        
 
-        lmrReduction /= 1024;
+        if (!pvNode && (ss - 1)->lmr_reduction > lmrReduction + 512) {
+            lmrReduction += OPTIMISM_LMR_SCALER;
+        }
+                
 
-        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth)) + pvNode;
+        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction / 1024, new_depth)) + pvNode;
 
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
+            ss->lmr_reduction = lmrReduction * 1024;
             score = -negamax(-alpha - 1, -alpha, reduced_depth, t, time, ss + 1, true);
+            ss->lmr_reduction = 0;
 
-            if (score > alpha && lmrReduction != 0) {
+            if (score > alpha && lmrReduction / 1024 != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
                 bool historyReduction = notTactical ? moveHistory / 16384 : 0;
                 bool doShallower = score < bestScore + new_depth;
@@ -1787,6 +1792,7 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             (ss + i)->staticEval = noEval;
             (ss + i)->piece = 0;
             (ss + i)->move = 0;
+            (ss + i)->lmr_reduction = 0;
         }
 
         t->pos.seldepth = 0;
