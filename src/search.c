@@ -437,9 +437,11 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
     // score quiet moves
     else {
         int quiet_score = 0;
+        int stm_king_square = (t->pos.side == white) ? getLS1BIndex(t->pos.bitboards[K]) :
+                                    getLS1BIndex(t->pos.bitboards[k]);
         quiet_score +=
             // quiet main history 
-            t->search_d.quietHistory[t->pos.side][getMoveSource(move)][getMoveTarget(move)]
+            t->search_d.quietHistory[t->pos.side][stm_king_square][getMoveSource(move)][getMoveTarget(move)]
             [is_square_threatened(&t->pos, getMoveSource(move))][is_square_threatened(&t->pos, getMoveTarget(move))];
 
         // 1 ply continuation history
@@ -1316,8 +1318,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         bool notTactical = !tactical;
 
         int pawnHistoryValue = notTactical ? thread_pool.shared_history.pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
+        int stm_king_square = (t->pos.side == white) ? getLS1BIndex(t->pos.bitboards[K]) :
+                                    getLS1BIndex(t->pos.bitboards[k]);
 
-        int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
+        int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][stm_king_square][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
                 getContinuationHistoryScore(t, 1, currentMove, ss) + getContinuationHistoryScore(t, 4, currentMove, ss): 
                 t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
@@ -1674,7 +1678,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 if (score >= beta) {
                     if (notTactical) {
                         int quiet_history_score = 
-                        t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
+                        t->search_d.quietHistory[pos->side][stm_king_square][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
                         updateQuietMoveHistory(t, bestMove, pos->side, depth, badQuiets);

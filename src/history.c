@@ -36,21 +36,25 @@ int scaledBonus(int score, int bonus, int gravity) {
 void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int bonus) {
     int from = getMoveSource(move);
     int to = getMoveTarget(move);
+    int stm_king_square = (t->pos.side == white) ? getLS1BIndex(t->pos.bitboards[K]) :
+                                    getLS1BIndex(t->pos.bitboards[k]);
     
     bool threatSource = is_square_threatened(&t->pos, from);
     bool threatTarget = is_square_threatened(&t->pos, to);
     
-    t->search_d.quietHistory[side][from][to][threatSource][threatTarget] += bonus;
+    t->search_d.quietHistory[side][stm_king_square][from][to][threatSource][threatTarget] += bonus;
 }
 
 void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int depth, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
+    int stm_king_square = (t->pos.side == white) ? getLS1BIndex(t->pos.bitboards[K]) :
+                                    getLS1BIndex(t->pos.bitboards[k]);
 
     int bonus = getHistoryBonus(depth);
-    int score = t->search_d.quietHistory[side][from][to][is_square_threatened(&t->pos, from)][is_square_threatened(&t->pos, to)];
+    int score = t->search_d.quietHistory[side][stm_king_square][from][to][is_square_threatened(&t->pos, from)][is_square_threatened(&t->pos, to)];
 
-    t->search_d.quietHistory[side][from][to][is_square_threatened(&t->pos, from)][is_square_threatened(&t->pos, to)] += scaledBonus(score, bonus, maxQuietHistory);
+    t->search_d.quietHistory[side][stm_king_square][from][to][is_square_threatened(&t->pos, from)][is_square_threatened(&t->pos, to)] += scaledBonus(score, bonus, maxQuietHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
@@ -58,10 +62,10 @@ void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int dept
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
-        int badQuietScore = t->search_d.quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(&t->pos, badQuietFrom)][is_square_threatened(&t->pos, badQuietTo)];
+        int badQuietScore = t->search_d.quietHistory[side][stm_king_square][badQuietFrom][badQuietTo][is_square_threatened(&t->pos, badQuietFrom)][is_square_threatened(&t->pos, badQuietTo)];
         int scaled_bonus = bonus + index * 30;
 
-        t->search_d.quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(&t->pos, badQuietFrom)][is_square_threatened(&t->pos, badQuietTo)] +=
+        t->search_d.quietHistory[side][stm_king_square][badQuietFrom][badQuietTo][is_square_threatened(&t->pos, badQuietFrom)][is_square_threatened(&t->pos, badQuietTo)] +=
         scaledBonus(badQuietScore, -scaled_bonus, maxQuietHistory);
     }
 }

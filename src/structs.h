@@ -167,8 +167,8 @@ typedef struct {
 } SearchStack;
 
 typedef struct {
-    // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
-    int16_t quietHistory[2][64][64][2][2];
+    // quietHistory[side to move][stm king square][fromSquare][toSquare][threatSource][threatTarget]
+    int16_t quietHistory[2][64][64][64][2][2];
 
     // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
     int16_t continuationHistory[12][64][12][64];    
