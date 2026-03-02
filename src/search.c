@@ -1437,7 +1437,15 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
-            }            
+            }
+
+            else if (singularBeta >= beta) {
+                extensions -= 3;
+            }
+
+            else if (singularScore >= beta + 50) {
+                extensions -= 3;
+            }
 
             // Negative Extensions
             else if (tt_score >= beta) {
@@ -1461,14 +1469,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             // ~~~~ Recapture Extension ~~~~ //
             else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
                 extensions += 1;
-            }
-
-            else if (singularBeta >= beta) {
-                extensions -= 3;
-            }
-
-            else if (singularScore >= beta + 50) {
-                extensions -= 1 + (singularScore >= beta + 100) + (singularScore >= beta + 150);
             }
             
             // Cut Node Extension
