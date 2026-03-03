@@ -1824,7 +1824,7 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                 alpha = myMAX(-infinity, score - window);
                 beta = myMIN(infinity, score + window);
 
-                t->optimism[t->pos.side] = 128 * averageScore / (abs(averageScore) + 192);
+                t->optimism[t->pos.side] = 128 * averageScore / (abs(averageScore) + 256);
                 t->optimism[t->pos.side ^ 1] = -t->optimism[t->pos.side];
             }
 
