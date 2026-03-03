@@ -24,7 +24,6 @@ static inline void set_thread_affinity(int core_id) {
 }
 
 
-
 ThreadPool thread_pool;
 
 void setup_main_thread(board *board) {
