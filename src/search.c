@@ -1716,7 +1716,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             hashFlag = hashFlagBeta;
         }
 
-        if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove) || !SEE(pos, bestMove, 100)) &&
+        if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove) || !SEE(pos, bestMove, -100)) &&
             !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
             !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
 
