@@ -1,10 +1,11 @@
-#include "threads.h"
-#include "search.h"
-
-#if defined(__linux__)
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
+
+#include "threads.h"
+#include "search.h"
+
+#if defined(__linux__) || defined(__gnu_linux__) || defined(linux)
 #include <sched.h>
 #include <pthread.h>
 #endif
@@ -13,7 +14,7 @@
 static inline void set_thread_affinity(int core_id) {
     if (core_id < 0) return;
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__gnu_linux__) || defined(linux)
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     CPU_SET(core_id, &cpuset);
@@ -21,6 +22,8 @@ static inline void set_thread_affinity(int core_id) {
     pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
 #endif
 }
+
+
 
 ThreadPool thread_pool;
 
