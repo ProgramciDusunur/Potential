@@ -1805,12 +1805,7 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         }
 
         int window = ASP_WINDOW_BASE;
-        int aspirationWindowDepth = current_depth;
-
-        if (averageScore != noEval) {
-            t->optimism[t->pos.side] = (169 * averageScore / (abs(averageScore) + 187)) / 8;
-            t->optimism[t->pos.side ^ 1] = -t->optimism[t->pos.side];
-        }
+        int aspirationWindowDepth = current_depth;                        
 
         while (true) {
 
@@ -1828,6 +1823,9 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             if (current_depth >= ASP_WINDOW_MIN_DEPTH) {
                 alpha = myMAX(-infinity, score - window);
                 beta = myMIN(infinity, score + window);
+
+                t->optimism[t->pos.side] = 128 * averageScore / (abs(averageScore) + 192);
+                t->optimism[t->pos.side ^ 1] = -t->optimism[t->pos.side];
             }
 
             t->pos.followPv = 1;
