@@ -1,6 +1,27 @@
 #include "threads.h"
 #include "search.h"
 
+#if defined(__linux__)
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#include <sched.h>
+#include <pthread.h>
+#endif
+
+// Helper function to pin a thread to a specific core
+static inline void set_thread_affinity(int core_id) {
+    if (core_id < 0) return;
+
+#if defined(__linux__)
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(core_id, &cpuset);
+    pthread_t thread = pthread_self();
+    pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+#endif
+}
+
 ThreadPool thread_pool;
 
 void setup_main_thread(board *board) {
@@ -9,6 +30,9 @@ void setup_main_thread(board *board) {
         exit(1);
     }
     memcpy(&thread_pool.threads[0]->pos, board, sizeof(*board));
+
+    // Pin main thread to core 0 (or thread's assigned ID)
+    set_thread_affinity(thread_pool.threads[0]->id);
 }
 
 static void free_threads(void) {
@@ -57,6 +81,10 @@ uint64_t total_nodes(void) {
 // Thread entry function for helper threads
 static void *thread_entry(void *arg) {
     ThreadData *t = (ThreadData *)arg;
+
+    // Pin helper thread to its designated core
+    set_thread_affinity(t->id);
+
     searchPosition(t->search_depth, false, t, t->time);
     return NULL;
 }
