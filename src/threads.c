@@ -13,6 +13,7 @@
 // Helper function to pin a thread to a specific core
 static inline void set_thread_affinity(int core_id) {
     if (core_id < 0) return;
+    if (thread_pool.thread_count <= 1) return;
 
 #if defined(__linux__) || defined(__gnu_linux__) || defined(linux)
     cpu_set_t cpuset;
