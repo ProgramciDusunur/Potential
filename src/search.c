@@ -1040,9 +1040,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         return ttAdjustedEval;
 
     // Null Move Pruning
-    if (!ss->singular_move && !pvNode &&
-        depth >= NMP_DEPTH && !in_check && !rootNode &&
-            ttAdjustedEval >= beta + 30 &&
+    if (!ss->singular_move && depth >= NMP_DEPTH && !in_check && !rootNode &&
+            ttAdjustedEval >= beta + 60 &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
