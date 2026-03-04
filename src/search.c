@@ -1742,6 +1742,10 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     // define best score variable
     int score = 0;
 
+    my_time local_time = *time;
+    bool soft_stopped = false;
+    uint16_t completed_pv[maxPly] = {0};
+
     // reset "time is up" flag
     time->stopped = 0;
 
@@ -1794,12 +1798,19 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
 
         int startTime = getTimeMiliSecond();
+        int current_time = startTime;
 
-        if (t->id == 0 && ((time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
-            time->stopped = 1;
-            store_rlx(thread_pool.stop, true);
-        } else if (load_rlx(thread_pool.stop)) {
-            time->stopped = 1;
+        if (!soft_stopped && ((local_time.timeset && current_time >= local_time.softLimit && t->pos.pvTable[0][0] != 0) || (local_time.isNodeLimit && total_nodes() >= local_time.node_limit))) {
+            soft_stopped = true;
+            atomic_fetch_add_explicit(&thread_pool.soft_stop_count, 1, memory_order_relaxed);
+        }
+
+        if (load_rlx(thread_pool.stop) || (load_rlx(thread_pool.soft_stop_count) >= thread_pool.thread_count)) {
+            // Sadece thread 0 gecerli PV bulduysa global stop tetiklensin
+            if (thread_pool.threads[0]->pos.pvTable[0][0] != 0) {
+                time->stopped = 1;
+                store_rlx(thread_pool.stop, true);
+            }
         }
 
         int window = ASP_WINDOW_BASE;
@@ -1807,11 +1818,18 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         while (true) {
 
-            if (t->id == 0 && ((time->timeset && (startTime >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
-                time->stopped = 1;
-                store_rlx(thread_pool.stop, true);
-            } else if (load_rlx(thread_pool.stop)) {
-                time->stopped = 1;
+            int inner_time = getTimeMiliSecond();
+
+            if (!soft_stopped && ((local_time.timeset && inner_time >= local_time.softLimit && t->pos.pvTable[0][0] != 0) || (local_time.isNodeLimit && total_nodes() >= local_time.node_limit))) {
+                soft_stopped = true;
+                atomic_fetch_add_explicit(&thread_pool.soft_stop_count, 1, memory_order_relaxed);
+            }
+
+            if (load_rlx(thread_pool.stop) || (load_rlx(thread_pool.soft_stop_count) >= thread_pool.thread_count)) {
+                if (thread_pool.threads[0]->pos.pvTable[0][0] != 0) {
+                    time->stopped = 1;
+                    store_rlx(thread_pool.stop, true);
+                }
             }
 
             if (time->stopped == 1) {
@@ -1858,6 +1876,13 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         }
 
+        if (time->stopped == 1) {
+            break;
+        }
+
+        // Cache the safe PV
+        memcpy(completed_pv, t->pos.pvTable[0], sizeof(completed_pv));
+
         baseSearchScore = current_depth == 1 ? score : baseSearchScore;
         averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
 
@@ -1881,8 +1906,8 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             complexity = 0.6 * abs(baseSearchScore - score) * log(depth);
         }
 
-        if (t->id == 0 && time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, t);
+        if (local_time.timeset && current_depth > 6) {
+            scaleTime(&local_time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, t);
         }
         
         int endTime = getTimeMiliSecond();
@@ -1915,7 +1940,11 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     if (t->id == 0 && !benchmark) {
         // best move placeholder
         printf("bestmove ");
-        printMove(t->pos.pvTable[0][0]);
+        if (completed_pv[0] != 0) {
+            printMove(completed_pv[0]);
+        } else {
+            printMove(t->pos.pvTable[0][0]);
+        }
         printf("\n");
     }
 }

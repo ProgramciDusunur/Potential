@@ -228,6 +228,7 @@ typedef struct {
     int thread_count;
 
     _Atomic bool stop;    
+    _Atomic int soft_stop_count;
     board root_pos;
 
     SharedHistory shared_history;
