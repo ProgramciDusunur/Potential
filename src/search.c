@@ -1172,7 +1172,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int legal_moves = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
-    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !ss->singular_move &&
+    if (!in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !ss->singular_move &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1232,6 +1232,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                     // Capture History based reduction
                     adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
+
+                    adjusted_probcut_depth -= 1024 * cutNode;
 
                     adjusted_probcut_depth /= 1024;
 
@@ -1581,7 +1583,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // Reduce Less
         if (tt_pv) {
-            lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
+            lmrReduction -= TT_PV_LMR_SCALER + (1024 * pvNode) + (256 * improving);
         }
         
 
