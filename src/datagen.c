@@ -6,6 +6,7 @@
 #include "perft.h"
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define MAX_GAME_PLYS 256
 
@@ -170,7 +171,10 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         if (illegal) {
             fprintf(illegal_file, "%s | Illegal Move\n", fen_list[i]);
         } else {
-            fprintf(out_file, "%s | %.1f\n", fen_list[i], result);
+            // Draw Downsampling: Only save 10% of draws to balance the dataset
+            if (result != 0.5 || (rand() % 10 == 0)) {
+                fprintf(out_file, "%s | %.1f\n", fen_list[i], result);
+            }
         }
     }
 
