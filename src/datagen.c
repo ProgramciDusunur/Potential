@@ -4,14 +4,60 @@
 #include "timeman.h"
 #include "threads.h"
 #include "perft.h"
+#include <string.h>
+#include <stdlib.h>
 
 #define MAX_GAME_PLYS 256
 
-int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit) {
+char **book_lines = NULL;
+int book_size = 0;
+int book_capacity = 0;
+int book_loaded = 0;
+
+void load_book(const char* filename) {
+    if (book_loaded) return;
+    book_loaded = 1;
+
+    FILE* f = fopen(filename, "r");
+    if (!f) {
+        printf("info string Could not open book %s, falling back to random plies.\n", filename);
+        return;
+    }
+
+    book_capacity = 10000;
+    book_lines = (char **)malloc(book_capacity * sizeof(char *));
+
+    char line[256];
+    while (fgets(line, sizeof(line), f)) {
+        line[strcspn(line, "\r\n")] = 0;
+        if (strlen(line) > 5) {
+            if (book_size >= book_capacity) {
+                book_capacity *= 2;
+                book_lines = (char **)realloc(book_lines, book_capacity * sizeof(char *));
+            }
+            int len = strlen(line);
+            book_lines[book_size] = (char *)malloc(len + 1);
+            strcpy(book_lines[book_size], line);
+            book_size++;
+        }
+    }
+    fclose(f);
+    printf("info string Loaded %d book positions.\n", book_size);
+}
+
+int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book) {
     board pos;
-    parseFEN(startPosition, &pos);
-    
-    for (int i = 0; i < 8; ++i) {
+    if (use_book && book_size == 0) {
+        load_book("book.epd");
+    }
+
+    if (use_book && book_size > 0) {
+        int random_idx = get_random_uint64_number() % book_size;
+        parseFEN(book_lines[random_idx], &pos);
+    } else {
+        parseFEN(startPosition, &pos);
+        
+        for (int i = 0; i < 8; ++i) {
         moves moveList[1];
         moveGenerator(moveList, &pos);
         
@@ -35,6 +81,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit) {
         struct copyposition cp;
         copyBoard(&pos, &cp);
         makeMove(selected_move, allMoves, &pos);
+    }
     }
     
     pos.repetitionIndex = 0;

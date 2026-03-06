@@ -57,10 +57,20 @@ int parse_entry(const char *line, TunerEntry *entry) {
     if (entry->phase > 24) entry->phase = 24;
 
     const char *pipe = strstr(line, "|");
-    if (!pipe) return 0;
-    entry->result = atof(pipe + 1);
-
-    if (strstr(pipe, "Illegal")) return 0;
+    if (pipe) {
+        entry->result = atof(pipe + 1);
+        if (strstr(pipe, "Illegal")) return 0;
+    } else {
+        const char *bracket_start = strstr(line, "[");
+        const char *bracket_end = strstr(line, "]");
+        if (bracket_start && bracket_end && bracket_start < bracket_end) {
+            char res_str[10] = {0};
+            strncpy(res_str, bracket_start + 1, bracket_end - bracket_start - 1);
+            entry->result = atof(res_str);
+        } else {
+            return 0; // No valid result format found
+        }
+    }
 
     return 1;
 }
@@ -281,12 +291,13 @@ double compute_mse(TunerEntry *data, int count, double sigmoid_k) {
 
 double find_optimal_K(TunerEntry *data, int count) {
     double lo = 0.1, hi = 10.0;
+    int sample_size = count > 100000 ? 100000 : count;
 
-    for (int iter = 0; iter < 100; iter++) {
+    for (int iter = 0; iter < 20; iter++) {
         double mid1 = lo + (hi - lo) / 3.0;
         double mid2 = hi - (hi - lo) / 3.0;
 
-        if (compute_mse(data, count, mid1) < compute_mse(data, count, mid2))
+        if (compute_mse(data, sample_size, mid1) < compute_mse(data, sample_size, mid2))
             hi = mid2;
         else
             lo = mid1;
@@ -420,10 +431,8 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
             }
         }
 
-        if (epoch % 100 == 0 || epoch == 1) {
-            double mse = compute_mse(data, count, sigmoid_k);
-            printf("Epoch %d: MSE = %.10f\n", epoch, mse);
-        }
+        double mse = compute_mse(data, count, sigmoid_k);
+        printf("Epoch %d: MSE = %.10f\n", epoch, mse);
     }
 
     center_psqt();
@@ -461,7 +470,7 @@ int main(int argc, char *argv[]) {
     printf("Initial MSE = %.10f\n\n", mse);
 
     printf("Starting tuning...\n");
-    tune(data, count, sigmoid_k, 1000);
+    tune(data, count, sigmoid_k, 10);
 
     print_psqt();
 
