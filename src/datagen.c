@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define MAX_GAME_PLYS 256
+#define MAX_GAME_PLYS 400
 
 char **book_lines = NULL;
 int book_size = 0;
@@ -49,7 +49,7 @@ void load_book(const char* filename) {
 int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book) {
     board pos;
     if (use_book && book_size == 0) {
-        load_book("fens_1m.epd");
+        load_book("UHO_Lichess_4852_v1.epd");
     }
 
     if (use_book && book_size > 0) {
@@ -57,6 +57,33 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         parseFEN(book_lines[random_idx], &pos);
     } else {
         parseFEN(startPosition, &pos);
+    }
+    
+    // Play 8 random plies to reduce draw rate and increase diversity
+    for (int i = 0; i < 8; ++i) {
+        moves moveList[1];
+        moveGenerator(moveList, &pos);
+        
+        int legal_moves_arr[256];
+        int legal_count = 0;
+
+        for (int j = 0; j < moveList->count; ++j) {
+            struct copyposition cp;
+            copyBoard(&pos, &cp);
+            if (makeMove(moveList->moves[j], allMoves, &pos)) {
+                legal_moves_arr[legal_count++] = moveList->moves[j];
+            }        
+            takeBack(&pos, &cp);
+        }
+        
+        if (legal_count == 0) return 0;
+        
+        int random_idx = get_random_uint64_number() % legal_count;
+        int selected_move = legal_moves_arr[random_idx];
+
+        struct copyposition cp;
+        copyBoard(&pos, &cp);
+        makeMove(selected_move, allMoves, &pos);
     }
     
     pos.repetitionIndex = 0;
@@ -94,7 +121,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         
         if (legal_moves == 0) {
             int in_check = isSquareAttacked((pos.side == white) ? getLS1BIndex(pos.bitboards[K]) :
-                                             getLS1BIndex(pos.bitboards[k]), pos.side, &pos);
+                                             getLS1BIndex(pos.bitboards[k]), pos.side ^ 1, &pos);
             if (in_check) {
                 result = pos.side == white ? 0.0 : 1.0; 
             } else {
@@ -131,23 +158,41 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         time.node_limit = nodes_limit;
         
         setup_main_thread(&pos);
-        thread_pool.threads[0]->pos.ply = 0;    
-        thread_pool.threads[0]->pos.fifty = pos.fifty;
+        ThreadData *main_thread = thread_pool.threads[0];
+        main_thread->pos.ply = 0;    
+        main_thread->pos.fifty = pos.fifty;
         
+        // Reset node count per move so the engine searches properly
+        store_rlx(main_thread->search_i.nodes_searched, 0);
+        main_thread->search_i.stopped = false;
+        
+        // Also ensure thread pool stop flag is not set from a previous wait_helpers()
+        store_rlx(thread_pool.stop, false);
+
         start_helpers(&pos, 0, &time);
-        int score = searchPosition(maxPly, true, thread_pool.threads[0], &time);
+        int score = searchPosition(maxPly, true, main_thread, &time);
         wait_helpers();
 
         uint16_t best_move = thread_pool.threads[0]->pos.pvTable[0][0];
 
-        // Win Adjudication
-        if (abs(score) > 1000) win_adj_count++; else win_adj_count = 0;
-        if (win_adj_count >= 5) {
+        // Win Adjudication (300 cp corresponds to +3 pawns on the tuned P=100 scale)
+        if (abs(score) > 300) win_adj_count++; else win_adj_count = 0;
+        if (win_adj_count >= 4) {
             result = score > 0 ? (pos.side == white ? 1.0 : 0.0) : (pos.side == white ? 0.0 : 1.0);
             game_over = 1;
             break;
         }
 
+        // Draw Adjudication
+        if (abs(score) < 10) draw_adj_count++; else draw_adj_count = 0;
+        if (draw_adj_count >= 8) {
+            result = 0.5;
+            game_over = 1;
+            break;
+        }
+
+        // printf("DEBUG: score=%d, win_adj=%d, draw_adj=%d, fifty=%d, move=%d\n", score, win_adj_count, draw_adj_count, pos.fifty, fen_count);
+        
         if (best_move == 0) {
             illegal = 1;
             break;
@@ -171,10 +216,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         if (illegal) {
             fprintf(illegal_file, "%s | Illegal Move\n", fen_list[i]);
         } else {
-            // Draw Downsampling: Only save 10% of draws to balance the dataset
-            if (result != 0.5 || (rand() % 10 == 0)) {
-                fprintf(out_file, "%s | %.1f\n", fen_list[i], result);
-            }
+            fprintf(out_file, "%s | %.1f\n", fen_list[i], result);
         }
     }
 

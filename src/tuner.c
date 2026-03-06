@@ -110,8 +110,8 @@ TunerEntry *load_data(const char *filename, int *count) {
 }
 
 int material[2][6] = {
-    { 13, 9, -12, 2, 1, 0 },
-    { -12, -40, -10, -20, -69, 0 }
+    { 9, -2, -10, 29, 21, 0},
+    { -10, -35, -13, -34, -89, 0}
 };
 
 const int mirror[64] = {
@@ -470,7 +470,7 @@ int main(int argc, char *argv[]) {
     printf("Initial MSE = %.10f\n\n", mse);
 
     printf("Starting tuning...\n");
-    tune(data, count, sigmoid_k, 10000);
+    tune(data, count, sigmoid_k, 1000);
 
     print_psqt();
 

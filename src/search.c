@@ -1823,7 +1823,13 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
             t->pos.followPv = 1;
             // find best move within a given position
-            score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), t, time, ss, false);
+            int current_score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), t, time, ss, false);
+            
+            if (time->stopped == 1) {
+                break;
+            }
+            
+            score = current_score;
 
             if (score == infinity) {
                 // Restore the saved best line
