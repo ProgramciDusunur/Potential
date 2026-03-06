@@ -1738,9 +1738,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 }
 
 // search position for the best move
-void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
+int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     SearchStack *ss = t->ss;
-    // define best score variable
     int score = 0;
 
     // reset "time is up" flag
@@ -1919,4 +1918,5 @@ void searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         printMove(t->pos.pvTable[0][0]);
         printf("\n");
     }
+    return score;
 }
