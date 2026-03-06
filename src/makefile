@@ -173,7 +173,7 @@ ifneq ($(findstring gcc, $(CC)),)
 endif
 
 
-SOURCES := $(wildcard *.c)
+SOURCES := $(filter-out tuner.c,$(wildcard *.c))
 OBJECTS := $(patsubst %.c,$(TMPDIR)/%.o,$(SOURCES))
 DEPENDS := $(patsubst %.c,$(TMPDIR)/%.d,$(SOURCES))
 
