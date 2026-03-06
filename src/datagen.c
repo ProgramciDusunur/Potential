@@ -123,7 +123,6 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         }
 
         FenString fen_str = get_fen(&pos);
-        snprintf(fen_list[fen_count++], 100, "%s", fen_str.str);
 
         resetTimeControl(&time);
         time.isNodeLimit = 1;
@@ -137,6 +136,8 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         int score = searchPosition(maxPly, true, thread_pool.threads[0], &time);
         wait_helpers();
 
+        uint16_t best_move = thread_pool.threads[0]->pos.pvTable[0][0];
+
         // Win Adjudication
         if (abs(score) > 1000) win_adj_count++; else win_adj_count = 0;
         if (win_adj_count >= 5) {
@@ -145,21 +146,23 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
             break;
         }
 
-        // Draw Adjudication disabled for data quality
-        // if (abs(score) < 10) draw_adj_count++; else draw_adj_count = 0;
-        // if (draw_adj_count >= 20) {
-        //     result = 0.5;
-        //     game_over = 1;
-        //     break;
-        // }
-
-        uint16_t best_move = thread_pool.threads[0]->pos.pvTable[0][0];
-
         if (best_move == 0) {
             illegal = 1;
             break;
         }
+
+        // --- QUIET POSITION FILTER ---
+        int is_in_check = isSquareAttacked((pos.side == white) ? getLS1BIndex(pos.bitboards[K]) :
+                                            getLS1BIndex(pos.bitboards[k]), pos.side, &pos);
+        int is_capture = getMoveCapture(best_move);
+        int is_promotion = getMovePromote(best_move);
+        int is_mate_score = abs(score) >= 49000; // avoid saving mating sequences
         
+        // Only save the FEN if the position is quiet
+        if (!is_in_check && !is_capture && !is_promotion && !is_mate_score) {
+            snprintf(fen_list[fen_count++], 100, "%s", fen_str.str);
+        }
+
         struct copyposition cp;
         copyBoard(&pos, &cp);
         if (!makeMove(best_move, allMoves, &pos)) {
