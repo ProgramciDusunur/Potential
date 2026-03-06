@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #endif
 
-#define VERSION "3.30.52"
+#define VERSION "3.30.53"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -487,12 +487,17 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
     if (argc >= 2 && strncmp(argv[1], "datagen", 7) == 0) {
         uint64_t how_many_games_to_play = 0;
         int nodes_limit = 5000;
+        int use_book = 0; // Default to random
         
         if (argc > 2) {
             how_many_games_to_play = strtoull(argv[2], NULL, 10);
         }
         if (argc > 3) {
             nodes_limit = atoi(argv[3]);
+        }
+        if (argc > 4) {
+            if (strncmp(argv[4], "book", 4) == 0) use_book = 1;
+            else if (strncmp(argv[4], "random", 6) == 0) use_book = 0;
         }
 
         if (how_many_games_to_play > 0) {
@@ -502,7 +507,8 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             mkdir("datagen", 0755);
             #endif
 
-            printf("Playing %" PRIu64 " Selfgen Games with %d nodes/move...\n", how_many_games_to_play, nodes_limit);
+            printf("Playing %" PRIu64 " Selfgen Games with %d nodes/move (Mode: %s)...\n", 
+                   how_many_games_to_play, nodes_limit, use_book ? "Book" : "Random");
             FILE *f = fopen("datagen/datagen.txt", "w");
             if (!f) {
                 fprintf(stderr, "Error opening datagen/datagen.txt\n");
@@ -521,7 +527,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             uint64_t total_fens = 0;
 
             for (uint64_t i = 0; i < how_many_games_to_play; i++) {
-                total_fens += play_selfgen_game(f, illegal_f, nodes_limit);
+                total_fens += play_selfgen_game(f, illegal_f, nodes_limit, use_book);
                 if ((i + 1) % 10 == 0) printf("Played %" PRIu64 " Games... (%" PRIu64 " FENs)\n", i + 1, total_fens);
             }
             
@@ -534,7 +540,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             printf("Selfgen datagen completed in %d ms. Total FENs: %" PRIu64 " (%" PRIu64 " FEN/s)\n", elapsed, total_fens, total_fens * 1000 / elapsed);
             exit(0);
         } else {
-            fprintf(stderr, "ERROR: Usage: datagen <game_count> [nodes_limit_per_move]\n");
+            fprintf(stderr, "ERROR: Usage: datagen <game_count> [nodes_limit_per_move] [book|random]\n");
             exit(1);
         }
     }
