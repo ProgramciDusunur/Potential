@@ -48,7 +48,7 @@ void load_book(const char* filename) {
 int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book) {
     board pos;
     if (use_book && book_size == 0) {
-        load_book("UHO_Lichess_4852_v1.epd");
+        load_book("fens_1m.epd");
     }
 
     if (use_book && book_size > 0) {
@@ -56,32 +56,6 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         parseFEN(book_lines[random_idx], &pos);
     } else {
         parseFEN(startPosition, &pos);
-    }
-
-    for (int i = 0; i < 8; ++i) {
-        moves moveList[1];
-        moveGenerator(moveList, &pos);
-
-        int legal_moves[256];
-        int legal_count = 0;
-
-        for (int j = 0; j < moveList->count; ++j) {
-            struct copyposition cp;
-            copyBoard(&pos, &cp);
-            if (makeMove(moveList->moves[j], allMoves, &pos)) {
-                legal_moves[legal_count++] = moveList->moves[j];
-            }
-            takeBack(&pos, &cp);
-        }
-
-        if (legal_count == 0) return 0;
-
-        int random_idx = get_random_uint64_number() % legal_count;
-        int selected_move = legal_moves[random_idx];
-
-        struct copyposition cp;
-        copyBoard(&pos, &cp);
-        makeMove(selected_move, allMoves, &pos);
     }
     
     pos.repetitionIndex = 0;
