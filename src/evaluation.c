@@ -24,10 +24,10 @@ const int mirrorScore[128] =
 const int material_score[2][12] =
         {
                 // Opening material score
-                {82, 337, 365, 477, 1025, 0, -82, -337, -365, -477, -1025, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 
                 // Endgame material score
-                {94, 281, 297, 512, 936, 0, -94, -281, -297, -512, -936, 0}
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
         };
 // Piece scores for incremental evaluation
 const int piece_scores[13] = {0, 337, 365, 477, 1025, 0, 0, -337, -365, -477, -1025, 0, 0};
