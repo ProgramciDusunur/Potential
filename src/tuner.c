@@ -295,6 +295,28 @@ double find_optimal_K(TunerEntry *data, int count) {
 }
 const char *piece_names[6] = { "Pawn", "Knight", "Bishop", "Rook", "Queen", "King" };
 
+void center_psqt() {
+    for (int ph = 0; ph < 2; ph++) {
+        for (int pc = 0; pc < 6; pc++) {
+            int sum = 0;
+            for (int sq = 0; sq < 64; sq++) {
+                sum += psqt[ph][pc][sq];
+            }
+            int average = sum / 64;
+
+            // Subtract average from all PSQT squares
+            for (int sq = 0; sq < 64; sq++) {
+                psqt[ph][pc][sq] -= average;
+            }
+
+            // Add average back to material (except King)
+            if (pc != K) {
+                material[ph][pc] += average;
+            }
+        }
+    }
+}
+
 void print_psqt() {
     printf("\n// Tuned Material scores — paste into evaluation.c\n");
     printf("const int material_score[2][12] = {\n");
@@ -403,6 +425,8 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
             printf("Epoch %d: MSE = %.10f\n", epoch, mse);
         }
     }
+
+    center_psqt();
 
     double final_mse = compute_mse(data, count, sigmoid_k);
     printf("Tuning complete. Final MSE = %.10f\n", final_mse);
