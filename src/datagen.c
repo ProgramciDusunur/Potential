@@ -48,7 +48,7 @@ void load_book(const char* filename) {
 int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book) {
     board pos;
     if (use_book && book_size == 0) {
-        load_book("book.epd");
+        load_book("UHO_Lichess_4852_v1.epd");
     }
 
     if (use_book && book_size > 0) {
@@ -56,11 +56,12 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         parseFEN(book_lines[random_idx], &pos);
     } else {
         parseFEN(startPosition, &pos);
-        
-        for (int i = 0; i < 8; ++i) {
+    }
+
+    for (int i = 0; i < 8; ++i) {
         moves moveList[1];
         moveGenerator(moveList, &pos);
-        
+
         int legal_moves[256];
         int legal_count = 0;
 
@@ -69,19 +70,18 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
             copyBoard(&pos, &cp);
             if (makeMove(moveList->moves[j], allMoves, &pos)) {
                 legal_moves[legal_count++] = moveList->moves[j];
-            }        
+            }
             takeBack(&pos, &cp);
         }
-        
+
         if (legal_count == 0) return 0;
-        
+
         int random_idx = get_random_uint64_number() % legal_count;
         int selected_move = legal_moves[random_idx];
 
         struct copyposition cp;
         copyBoard(&pos, &cp);
         makeMove(selected_move, allMoves, &pos);
-    }
     }
     
     pos.repetitionIndex = 0;
@@ -171,13 +171,13 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
             break;
         }
 
-        // Draw Adjudication
-        if (abs(score) < 10) draw_adj_count++; else draw_adj_count = 0;
-        if (draw_adj_count >= 20) {
-            result = 0.5;
-            game_over = 1;
-            break;
-        }
+        // Draw Adjudication disabled for data quality
+        // if (abs(score) < 10) draw_adj_count++; else draw_adj_count = 0;
+        // if (draw_adj_count >= 20) {
+        //     result = 0.5;
+        //     game_over = 1;
+        //     break;
+        // }
 
         uint16_t best_move = thread_pool.threads[0]->pos.pvTable[0][0];
 
