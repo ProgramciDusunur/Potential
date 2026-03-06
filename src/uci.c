@@ -13,7 +13,7 @@
 #include <sys/types.h>
 #endif
 
-#define VERSION "3.30.52"
+#define VERSION "3.30.53"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 

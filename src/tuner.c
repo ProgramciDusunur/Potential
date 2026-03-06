@@ -99,7 +99,7 @@ TunerEntry *load_data(const char *filename, int *count) {
     return entries;
 }
 
-const int material[2][6] = {
+int material[2][6] = {
     { 82, 337, 365, 477, 1025, 0 },
     { 94, 281, 297, 512,  936, 0 }
 };
@@ -296,6 +296,18 @@ double find_optimal_K(TunerEntry *data, int count) {
 const char *piece_names[6] = { "Pawn", "Knight", "Bishop", "Rook", "Queen", "King" };
 
 void print_psqt() {
+    printf("\n// Tuned Material scores — paste into evaluation.c\n");
+    printf("const int material_score[2][12] = {\n");
+    for (int phase = 0; phase < 2; phase++) {
+        printf("    { ");
+        for (int piece = 0; piece < 6; piece++) printf("%d, ", material[phase][piece]);
+        for (int piece = 0; piece < 5; piece++) printf("%d, ", -material[phase][piece]);
+        printf("0 }");
+        if (phase == 0) printf(",");
+        printf("\n");
+    }
+    printf("};\n");
+
     printf("\n// Tuned PSQT tables — paste into evaluation.c\n");
     printf("const int positional_score[2][6][64] = {\n");
     for (int phase = 0; phase < 2; phase++) {
@@ -326,8 +338,13 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
     double m[2][6][64] = {{{0}}};
     double v[2][6][64] = {{{0}}};
 
+    double grad_mat[2][6] = {{0}};
+    double m_mat[2][6] = {{0}};
+    double v_mat[2][6] = {{0}};
+
     for (int epoch = 1; epoch <= max_epochs; epoch++) {
         memset(grad, 0, sizeof(grad));
+        memset(grad_mat, 0, sizeof(grad_mat));
 
         for (int i = 0; i < count; i++) {
             TunerEntry *e = &data[i];
@@ -344,11 +361,15 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
                 if (piece == NO_PIECE) continue;
 
                 if (piece <= K) {
+                    grad_mat[0][piece]              += coeff * mg_weight;
+                    grad_mat[1][piece]              += coeff * eg_weight;
                     grad[0][piece][sq]              += coeff * mg_weight;
                     grad[1][piece][sq]              += coeff * eg_weight;
                 } else {
                     int pt = piece - 6;
                     int mirrored = mirror[sq];
+                    grad_mat[0][pt]                 -= coeff * mg_weight;
+                    grad_mat[1][pt]                 -= coeff * eg_weight;
                     grad[0][pt][mirrored]           -= coeff * mg_weight;
                     grad[1][pt][mirrored]           -= coeff * eg_weight;
                 }
@@ -357,6 +378,14 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
 
         for (int ph = 0; ph < 2; ph++) {
             for (int pc = 0; pc < 6; pc++) {
+                // Update Material
+                m_mat[ph][pc] = beta1 * m_mat[ph][pc] + (1.0 - beta1) * grad_mat[ph][pc];
+                v_mat[ph][pc] = beta2 * v_mat[ph][pc] + (1.0 - beta2) * grad_mat[ph][pc] * grad_mat[ph][pc];
+                double m_hat_mat = m_mat[ph][pc] / (1.0 - pow(beta1, epoch));
+                double v_hat_mat = v_mat[ph][pc] / (1.0 - pow(beta2, epoch));
+                material[ph][pc] -= (int)(lr * m_hat_mat / (sqrt(v_hat_mat) + epsilon));
+
+                // Update PSQT
                 for (int sq = 0; sq < 64; sq++) {
                     m[ph][pc][sq] = beta1 * m[ph][pc][sq] + (1.0 - beta1) * grad[ph][pc][sq];
                     v[ph][pc][sq] = beta2 * v[ph][pc][sq] + (1.0 - beta2) * grad[ph][pc][sq] * grad[ph][pc][sq];
