@@ -53,6 +53,9 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit) {
     int game_over = 0;
     int illegal = 0;
 
+    int win_adj_count = 0;
+    int draw_adj_count = 0;
+
     while (fen_count < MAX_GAME_PLYS) {
         moves moveList[1];
         moveGenerator(moveList, &pos);
@@ -110,8 +113,24 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit) {
         thread_pool.threads[0]->pos.fifty = pos.fifty;
         
         start_helpers(&pos, 0, &time);
-        searchPosition(maxPly, true, thread_pool.threads[0], &time);
+        int score = searchPosition(maxPly, true, thread_pool.threads[0], &time);
         wait_helpers();
+
+        // Win Adjudication
+        if (abs(score) > 1000) win_adj_count++; else win_adj_count = 0;
+        if (win_adj_count >= 5) {
+            result = score > 0 ? (pos.side == white ? 1.0 : 0.0) : (pos.side == white ? 0.0 : 1.0);
+            game_over = 1;
+            break;
+        }
+
+        // Draw Adjudication
+        if (abs(score) < 10) draw_adj_count++; else draw_adj_count = 0;
+        if (draw_adj_count >= 20) {
+            result = 0.5;
+            game_over = 1;
+            break;
+        }
 
         uint16_t best_move = thread_pool.threads[0]->pos.pvTable[0][0];
 
