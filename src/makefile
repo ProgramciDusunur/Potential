@@ -181,7 +181,7 @@ EXE	    := $(NAME)$(SUFFIX)
 
 all: $(TARGET)
 clean:
-	@rm -rf $(TMPDIR) *.o *.d $(TARGET)
+	@rm -rf $(TMPDIR) *.o *.d $(TARGET) tuner$(SUFFIX)
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS) $(LDFLAGS)
@@ -191,6 +191,9 @@ $(TMPDIR)/%.o: %.c | $(TMPDIR)
 
 $(TMPDIR):
 	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/Source"
+
+tuner: tuner.c
+	$(CC) -O3 -o tuner$(SUFFIX) tuner.c -lm
 
 # Usual disservin yoink for makefile related stuff
 pgo:

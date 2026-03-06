@@ -4,37 +4,59 @@
 #include "timeman.h"
 #include "threads.h"
 #include "perft.h"
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
 
 #define MAX_GAME_PLYS 256
 
-int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit) {
-    board pos;
-    parseFEN(startPosition, &pos);
-    
-    for (int i = 0; i < 8; ++i) {
-        moves moveList[1];
-        moveGenerator(moveList, &pos);
-        
-        int legal_moves[256];
-        int legal_count = 0;
+char **book_lines = NULL;
+int book_size = 0;
+int book_capacity = 0;
+int book_loaded = 0;
 
-        for (int j = 0; j < moveList->count; ++j) {
-            struct copyposition cp;
-            copyBoard(&pos, &cp);
-            if (makeMove(moveList->moves[j], allMoves, &pos)) {
-                legal_moves[legal_count++] = moveList->moves[j];
-            }        
-            takeBack(&pos, &cp);
+void load_book(const char* filename) {
+    if (book_loaded) return;
+    book_loaded = 1;
+
+    FILE* f = fopen(filename, "r");
+    if (!f) {
+        printf("info string Could not open book %s, falling back to random plies.\n", filename);
+        return;
+    }
+
+    book_capacity = 10000;
+    book_lines = (char **)malloc(book_capacity * sizeof(char *));
+
+    char line[256];
+    while (fgets(line, sizeof(line), f)) {
+        line[strcspn(line, "\r\n")] = 0;
+        if (strlen(line) > 5) {
+            if (book_size >= book_capacity) {
+                book_capacity *= 2;
+                book_lines = (char **)realloc(book_lines, book_capacity * sizeof(char *));
+            }
+            int len = strlen(line);
+            book_lines[book_size] = (char *)malloc(len + 1);
+            strcpy(book_lines[book_size], line);
+            book_size++;
         }
-        
-        if (legal_count == 0) return 0;
-        
-        int random_idx = get_random_uint64_number() % legal_count;
-        int selected_move = legal_moves[random_idx];
+    }
+    fclose(f);
+    printf("info string Loaded %d book positions.\n", book_size);
+}
 
-        struct copyposition cp;
-        copyBoard(&pos, &cp);
-        makeMove(selected_move, allMoves, &pos);
+int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book) {
+    board pos;
+    if (use_book && book_size == 0) {
+        load_book("fens_1m.epd");
+    }
+
+    if (use_book && book_size > 0) {
+        int random_idx = get_random_uint64_number() % book_size;
+        parseFEN(book_lines[random_idx], &pos);
+    } else {
+        parseFEN(startPosition, &pos);
     }
     
     pos.repetitionIndex = 0;
@@ -116,6 +138,8 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit) {
         int score = searchPosition(maxPly, true, thread_pool.threads[0], &time);
         wait_helpers();
 
+        uint16_t best_move = thread_pool.threads[0]->pos.pvTable[0][0];
+
         // Win Adjudication
         if (abs(score) > 1000) win_adj_count++; else win_adj_count = 0;
         if (win_adj_count >= 5) {
@@ -124,21 +148,11 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit) {
             break;
         }
 
-        // Draw Adjudication
-        if (abs(score) < 10) draw_adj_count++; else draw_adj_count = 0;
-        if (draw_adj_count >= 20) {
-            result = 0.5;
-            game_over = 1;
-            break;
-        }
-
-        uint16_t best_move = thread_pool.threads[0]->pos.pvTable[0][0];
-
         if (best_move == 0) {
             illegal = 1;
             break;
         }
-        
+
         struct copyposition cp;
         copyBoard(&pos, &cp);
         if (!makeMove(best_move, allMoves, &pos)) {
@@ -157,7 +171,10 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit) {
         if (illegal) {
             fprintf(illegal_file, "%s | Illegal Move\n", fen_list[i]);
         } else {
-            fprintf(out_file, "%s | %.1f\n", fen_list[i], result);
+            // Draw Downsampling: Only save 10% of draws to balance the dataset
+            if (result != 0.5 || (rand() % 10 == 0)) {
+                fprintf(out_file, "%s | %.1f\n", fen_list[i], result);
+            }
         }
     }
 
