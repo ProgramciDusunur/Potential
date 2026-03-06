@@ -5,8 +5,10 @@
 #include "uci.h"
 #include "perft.h"
 #include "timeman.h"
+#include "datagen.h"
+#include <direct.h>
 
-#define VERSION "3.28.52"
+#define VERSION "3.29.52"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -463,7 +465,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             parseFEN(startPosition, &position);
 
             for (uint64_t i = 0; i < how_many_fens_to_create; i++) {
-                default_fen_generation(&position, 0);
+                default_fen_generation(&position, 0, NULL);
             }
         
             if (items_scanned > 3) {
@@ -473,6 +475,61 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             exit(0);
         } else {
             fprintf(stderr, "ERROR: The Command Can't Extracted!\n");
+            exit(1);
+        }
+    }
+
+    if (argc >= 2 && strncmp(argv[1], "datagen", 7) == 0) {
+        uint64_t how_many_games_to_play = 0;
+        int nodes_limit = 5000;
+        
+        if (argc > 2) {
+            how_many_games_to_play = strtoull(argv[2], NULL, 10);
+        }
+        if (argc > 3) {
+            nodes_limit = atoi(argv[3]);
+        }
+
+        if (how_many_games_to_play > 0) {
+            #ifdef _WIN32
+            _mkdir("datagen");
+            #else
+            mkdir("datagen", 0755);
+            #endif
+
+            printf("Playing %" PRIu64 " Selfgen Games with %d nodes/move...\n", how_many_games_to_play, nodes_limit);
+            FILE *f = fopen("datagen/datagen.txt", "w");
+            if (!f) {
+                fprintf(stderr, "Error opening datagen/datagen.txt\n");
+                exit(1);
+            }
+            FILE *illegal_f = fopen("datagen/illegal.txt", "w");
+            if (!illegal_f) {
+                fprintf(stderr, "Error opening datagen/illegal.txt\n");
+                fclose(f);
+                exit(1);
+            }
+            
+            sm64_state = 12345;
+
+            int start_time = getTimeMiliSecond();
+            uint64_t total_fens = 0;
+
+            for (uint64_t i = 0; i < how_many_games_to_play; i++) {
+                total_fens += play_selfgen_game(f, illegal_f, nodes_limit);
+                if ((i + 1) % 10 == 0) printf("Played %" PRIu64 " Games... (%" PRIu64 " FENs)\n", i + 1, total_fens);
+            }
+            
+            int end_time = getTimeMiliSecond();
+            int elapsed = end_time - start_time;
+            if (elapsed == 0) elapsed = 1;
+
+            fclose(f);
+            fclose(illegal_f);
+            printf("Selfgen datagen completed in %d ms. Total FENs: %" PRIu64 " (%" PRIu64 " FEN/s)\n", elapsed, total_fens, total_fens * 1000 / elapsed);
+            exit(0);
+        } else {
+            fprintf(stderr, "ERROR: Usage: datagen <game_count> [nodes_limit_per_move]\n");
             exit(1);
         }
     }
