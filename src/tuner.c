@@ -254,7 +254,6 @@ int psqt[2][6][64] = {
 
 int evaluate(TunerEntry *e) {
     int mg = 0, eg = 0;
-    int game_phase_score = 0;
 
     for (int sq = 0; sq < 64; sq++) {
         int piece = e->pieces[sq];
@@ -263,22 +262,16 @@ int evaluate(TunerEntry *e) {
         if (piece <= K) {
             mg += material[0][piece] + psqt[0][piece][sq];
             eg += material[1][piece] + psqt[1][piece][sq];
-            if (piece >= N && piece <= Q) game_phase_score += material[0][piece];
         } else {
             int pt = piece - 6;
             int mirrored = mirror[sq];
             mg -= material[0][pt] + psqt[0][pt][mirrored];
             eg -= material[1][pt] + psqt[1][pt][mirrored];
-            if (pt >= N && pt <= Q) game_phase_score += material[0][pt];
         }
     }
 
-    int final_score;
-    if (game_phase_score > 7740) final_score = mg;
-    else if (game_phase_score < 518) final_score = eg;
-    else final_score = (mg * game_phase_score + eg * (7740 - game_phase_score)) / 7740;
-
-    return e->side == 0 ? final_score : -final_score;
+    int eval = (mg * e->phase + eg * (24 - e->phase)) / 24;
+    return e->side == 0 ? eval : -eval;
 }
 
 double sigmoid(double sigmoid_k, int eval) {

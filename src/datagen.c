@@ -123,6 +123,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         }
 
         FenString fen_str = get_fen(&pos);
+        snprintf(fen_list[fen_count++], 100, "%s", fen_str.str);
 
         resetTimeControl(&time);
         time.isNodeLimit = 1;
@@ -149,18 +150,6 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         if (best_move == 0) {
             illegal = 1;
             break;
-        }
-
-        // --- QUIET POSITION FILTER ---
-        int is_in_check = isSquareAttacked((pos.side == white) ? getLS1BIndex(pos.bitboards[K]) :
-                                            getLS1BIndex(pos.bitboards[k]), pos.side, &pos);
-        int is_capture = getMoveCapture(best_move);
-        int is_promotion = getMovePromote(best_move);
-        int is_mate_score = abs(score) >= 49000; // avoid saving mating sequences
-        
-        // Only save the FEN if the position is quiet
-        if (!is_in_check && !is_capture && !is_promotion && !is_mate_score) {
-            snprintf(fen_list[fen_count++], 100, "%s", fen_str.str);
         }
 
         struct copyposition cp;
