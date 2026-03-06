@@ -470,7 +470,7 @@ int main(int argc, char *argv[]) {
     printf("Initial MSE = %.10f\n\n", mse);
 
     printf("Starting tuning...\n");
-    tune(data, count, sigmoid_k, 1000);
+    tune(data, count, sigmoid_k, 2000);
 
     print_psqt();
 
