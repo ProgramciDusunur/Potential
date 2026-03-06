@@ -6,7 +6,12 @@
 #include "perft.h"
 #include "timeman.h"
 #include "datagen.h"
+#ifdef _WIN32
 #include <direct.h>
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#endif
 
 #define VERSION "3.29.52"
 #define BENCH_DEPTH 14
