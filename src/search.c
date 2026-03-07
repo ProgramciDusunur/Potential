@@ -719,11 +719,11 @@ int get_draw_score(ThreadData *t) {
 int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *ss) {
     board *position = &t->pos;
 
-    if (t->id == 0) {
+    if (t->id == 0 || time->is_datagen) {
         if (time->isNodeLimit) {
-            check_node_limit(time);
+            check_node_limit(time, t);
         }
-        if ((load_rlx(t->search_i.nodes_searched) & 2047) == 0) {
+        if ((load_rlx(t->search_i.nodes_searched) & 2047) == 0 && !time->is_datagen) {
             communicate(time, position);
         }
     } else if (load_rlx(thread_pool.stop)) {
@@ -900,7 +900,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     board *pos = &t->pos;
 
     if (t->id == 0 && (load_rlx(t->search_i.nodes_searched) & 4095) == 0 && time->isNodeLimit) {
-        check_node_limit(time);
+        check_node_limit(time, t);
     }
     if (t->id == 0) {
         if ((load_rlx(t->search_i.nodes_searched) & 2047) == 0) {
@@ -1793,11 +1793,15 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         int startTime = getTimeMiliSecond();
 
-        if (t->id == 0 && ((time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
-            time->stopped = 1;
-            store_rlx(thread_pool.stop, true);
-        } else if (load_rlx(thread_pool.stop)) {
-            time->stopped = 1;
+        if (time->is_datagen) {
+            check_node_limit(time, t);
+        } else {
+            if (t->id == 0 && ((time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
+                time->stopped = 1;
+                store_rlx(thread_pool.stop, true);
+            } else if (load_rlx(thread_pool.stop)) {
+                time->stopped = 1;
+            }
         }
 
         int window = ASP_WINDOW_BASE;
@@ -1805,11 +1809,15 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         while (true) {
 
-            if (t->id == 0 && ((time->timeset && (startTime >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
-                time->stopped = 1;
-                store_rlx(thread_pool.stop, true);
-            } else if (load_rlx(thread_pool.stop)) {
-                time->stopped = 1;
+            if (time->is_datagen) {
+                check_node_limit(time, t);
+            } else {
+                if (t->id == 0 && ((time->timeset && (startTime >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
+                    time->stopped = 1;
+                    store_rlx(thread_pool.stop, true);
+                } else if (load_rlx(thread_pool.stop)) {
+                    time->stopped = 1;
+                }
             }
 
             if (time->stopped == 1) {
@@ -1823,7 +1831,13 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
             t->pos.followPv = 1;
             // find best move within a given position
-            score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), t, time, ss, false);
+            int current_score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), t, time, ss, false);
+            
+            if (time->stopped == 1) {
+                break;
+            }
+            
+            score = current_score;
 
             if (score == infinity) {
                 // Restore the saved best line
