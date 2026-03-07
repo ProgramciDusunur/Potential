@@ -26,9 +26,14 @@ char **book_lines = NULL;
 int book_size = 0;
 int book_capacity = 0;
 int book_loaded = 0;
+pthread_mutex_t book_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void load_book(const char* filename) {
-    if (book_loaded) return;
+    pthread_mutex_lock(&book_mutex);
+    if (book_loaded) {
+        pthread_mutex_unlock(&book_mutex);
+        return;
+    }
     book_loaded = 1;
 
     FILE* f = fopen(filename, "r");
@@ -56,6 +61,7 @@ void load_book(const char* filename) {
     }
     fclose(f);
     printf("info string Loaded %d book positions.\n", book_size);
+    pthread_mutex_unlock(&book_mutex);
 }
 
 int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book, ThreadData *t) {

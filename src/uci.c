@@ -553,6 +553,12 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             
             sm64_state = 12345;
             init_threads(datagen_threads);
+            
+            extern char datagen_book_path[1024];
+            if (use_book) {
+                extern void load_book(const char* filename);
+                load_book(datagen_book_path);
+            }
 
             global_start_time = getTimeMiliSecond();
             atomic_store_explicit(&games_played_count, 0, memory_order_relaxed);
