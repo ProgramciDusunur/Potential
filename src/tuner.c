@@ -140,30 +140,40 @@ TunerEntry *load_data(const char *filename, int *count) {
         return NULL;
     }
 
-    int lines = 0;
-    char buf[512];
-    while (fgets(buf, sizeof(buf), f)) lines++;
-    rewind(f);
+    printf("Loading data from %s...\n", filename);
 
-    TunerEntry *entries = malloc(sizeof(TunerEntry) * lines);
-    if (!entries) {
-        fprintf(stderr, "Memory allocation failed!\n");
-        fclose(f);
-        return NULL;
-    }
-
+    int capacity = 100000;
     int loaded = 0, skipped = 0;
+    TunerEntry *entries = malloc(sizeof(TunerEntry) * capacity);
+    
+    char buf[1024];
     while (fgets(buf, sizeof(buf), f)) {
+        if (loaded >= capacity) {
+            capacity = (int)(capacity * 1.5);
+            TunerEntry *new_entries = realloc(entries, sizeof(TunerEntry) * capacity);
+            if (!new_entries) {
+                fprintf(stderr, "Memory allocation failed at %d entries!\n", loaded);
+                free(entries);
+                fclose(f);
+                return NULL;
+            }
+            entries = new_entries;
+        }
+
         if (parse_entry(buf, &entries[loaded])) {
             loaded++;
         } else {
             skipped++;
         }
+
+        if (loaded > 0 && loaded % 500000 == 0) {
+            printf("...loaded %d positions\n", loaded);
+        }
     }
     fclose(f);
 
     *count = loaded;
-    printf("Loaded: %d positions, Skipped: %d lines\n", loaded, skipped);
+    printf("Successfully loaded: %d positions (skipped %d invalid lines)\n", loaded, skipped);
     return entries;
 }
 
