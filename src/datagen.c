@@ -7,8 +7,18 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
+#include <stdatomic.h>
+#include <inttypes.h>
 
-#define MAX_GAME_PLYS 256
+#define MAX_GAME_PLYS 400
+
+_Atomic uint64_t total_fens_generated = 0;
+_Atomic uint64_t games_played_count = 0;
+uint64_t global_start_time = 0;
+
+int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book, ThreadData *t);
+void datagen_worker(int thread_id, uint64_t games_target, int nodes_limit, int use_book);
 
 char **book_lines = NULL;
 int book_size = 0;
@@ -46,10 +56,10 @@ void load_book(const char* filename) {
     printf("info string Loaded %d book positions.\n", book_size);
 }
 
-int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book) {
+int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book, ThreadData *t) {
     board pos;
     if (use_book && book_size == 0) {
-        load_book("fens_1m.epd");
+        load_book("UHO_Lichess_4852_v1.epd");
     }
 
     if (use_book && book_size > 0) {
@@ -57,6 +67,33 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         parseFEN(book_lines[random_idx], &pos);
     } else {
         parseFEN(startPosition, &pos);
+    }
+    
+    // Play 8 random plies to reduce draw rate and increase diversity
+    for (int i = 0; i < 8; ++i) {
+        moves moveList[1];
+        moveGenerator(moveList, &pos);
+        
+        int legal_moves_arr[256];
+        int legal_count = 0;
+
+        for (int j = 0; j < moveList->count; ++j) {
+            struct copyposition cp;
+            copyBoard(&pos, &cp);
+            if (makeMove(moveList->moves[j], allMoves, &pos)) {
+                legal_moves_arr[legal_count++] = moveList->moves[j];
+            }        
+            takeBack(&pos, &cp);
+        }
+        
+        if (legal_count == 0) return 0;
+        
+        int random_idx = get_random_uint64_number() % legal_count;
+        int selected_move = legal_moves_arr[random_idx];
+
+        struct copyposition cp;
+        copyBoard(&pos, &cp);
+        makeMove(selected_move, allMoves, &pos);
     }
     
     pos.repetitionIndex = 0;
@@ -94,7 +131,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         
         if (legal_moves == 0) {
             int in_check = isSquareAttacked((pos.side == white) ? getLS1BIndex(pos.bitboards[K]) :
-                                             getLS1BIndex(pos.bitboards[k]), pos.side, &pos);
+                                             getLS1BIndex(pos.bitboards[k]), pos.side ^ 1, &pos);
             if (in_check) {
                 result = pos.side == white ? 0.0 : 1.0; 
             } else {
@@ -129,25 +166,38 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         resetTimeControl(&time);
         time.isNodeLimit = 1;
         time.node_limit = nodes_limit;
+        time.is_datagen = true;
         
-        setup_main_thread(&pos);
-        thread_pool.threads[0]->pos.ply = 0;    
-        thread_pool.threads[0]->pos.fifty = pos.fifty;
+        memcpy(&t->pos, &pos, sizeof(board));
+        t->pos.ply = 0;    
+        t->pos.fifty = pos.fifty;
         
-        start_helpers(&pos, 0, &time);
-        int score = searchPosition(maxPly, true, thread_pool.threads[0], &time);
-        wait_helpers();
+        // Reset node count per move so the engine searches properly
+        atomic_store_explicit(&t->search_i.nodes_searched, 0, memory_order_relaxed);
+        t->search_i.stopped = false;
+        
+        int score = searchPosition(maxPly, true, t, &time);
 
-        uint16_t best_move = thread_pool.threads[0]->pos.pvTable[0][0];
+        uint16_t best_move = t->pos.pvTable[0][0];
 
-        // Win Adjudication
-        if (abs(score) > 1000) win_adj_count++; else win_adj_count = 0;
-        if (win_adj_count >= 5) {
+        // Win Adjudication (300 cp corresponds to +3 pawns on the tuned P=100 scale)
+        if (abs(score) > 300) win_adj_count++; else win_adj_count = 0;
+        if (win_adj_count >= 4) {
             result = score > 0 ? (pos.side == white ? 1.0 : 0.0) : (pos.side == white ? 0.0 : 1.0);
             game_over = 1;
             break;
         }
 
+        // Draw Adjudication
+        if (abs(score) < 10) draw_adj_count++; else draw_adj_count = 0;
+        if (draw_adj_count >= 8) {
+            result = 0.5;
+            game_over = 1;
+            break;
+        }
+
+        // printf("DEBUG: score=%d, win_adj=%d, draw_adj=%d, fifty=%d, move=%d\n", score, win_adj_count, draw_adj_count, pos.fifty, fen_count);
+        
         if (best_move == 0) {
             illegal = 1;
             break;
@@ -171,12 +221,60 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         if (illegal) {
             fprintf(illegal_file, "%s | Illegal Move\n", fen_list[i]);
         } else {
-            // Draw Downsampling: Only save 10% of draws to balance the dataset
-            if (result != 0.5 || (rand() % 10 == 0)) {
-                fprintf(out_file, "%s | %.1f\n", fen_list[i], result);
-            }
+            fprintf(out_file, "%s | %.1f\n", fen_list[i], result);
         }
     }
 
     return fen_count;
+}
+
+void datagen_worker(int thread_id, uint64_t target_games, int nodes_limit, int use_book) {
+    char out_filename[256];
+    char illegal_filename[256];
+    snprintf(out_filename, sizeof(out_filename), "datagen/datagen_%d.txt", thread_id);
+    snprintf(illegal_filename, sizeof(illegal_filename), "datagen/illegal_%d.txt", thread_id);
+
+    FILE *out_file = fopen(out_filename, "w");
+    FILE *illegal_file = fopen(illegal_filename, "w");
+
+    if (!out_file || !illegal_file) {
+        if (out_file) fclose(out_file);
+        if (illegal_file) fclose(illegal_file);
+        return;
+    }
+
+    ThreadData *t = thread_pool.threads[thread_id];
+
+    while (1) {
+        uint64_t current_game = atomic_fetch_add_explicit(&games_played_count, 1, memory_order_relaxed);
+        if (current_game >= target_games) {
+            break;
+        }
+
+        uint64_t new_fens = play_selfgen_game(out_file, illegal_file, nodes_limit, use_book, t);
+        uint64_t current_total = (uint64_t)atomic_fetch_add_explicit(&total_fens_generated, new_fens, memory_order_relaxed) + new_fens;
+        
+        uint64_t finished_games = current_game + 1;
+        if (finished_games % 100 == 0) {
+            uint64_t elapsed = getTimeMiliSecond() - global_start_time;
+            if (elapsed == 0) elapsed = 1;
+            printf("Played %" PRIu64 " Games... (%" PRIu64 " FENs, %" PRIu64 " FEN/s)\n", finished_games, current_total, current_total * 1000 / elapsed);
+        }
+    }
+
+    fclose(out_file);
+    fclose(illegal_file);
+}
+
+struct datagen_args {
+    int id;
+    uint64_t target;
+    int nodes;
+    int book;
+};
+
+void* datagen_worker_proxy(void* arg) {
+    struct datagen_args *args = (struct datagen_args *)arg;
+    datagen_worker(args->id, args->target, args->nodes, args->book);
+    return NULL;
 }

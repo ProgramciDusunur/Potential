@@ -145,6 +145,9 @@ typedef struct my_time_tag {
 
     // variable to flag when the time is up
     int stopped;
+
+    // flag to indicate search is for datagen instead of engine
+    bool is_datagen;
 } my_time;
 
 typedef struct  {
