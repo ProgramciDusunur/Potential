@@ -668,8 +668,6 @@ int main(int argc, char *argv[]) {
         }
     }
 #endif
-        return 1;
-    }
 
     if (!data || count == 0) {
         printf("No data loaded!\n");
