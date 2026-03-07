@@ -1041,7 +1041,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     // Null Move Pruning
     if (!ss->singular_move && depth >= NMP_DEPTH && !in_check && !rootNode &&
-            ttAdjustedEval >= beta + 60 &&
+            ttAdjustedEval >= beta + 75 &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
@@ -1232,6 +1232,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                     // Capture History based reduction
                     adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
+
+                    adjusted_probcut_depth -= 1024 * cutNode;
 
                     adjusted_probcut_depth /= 1024;
 
