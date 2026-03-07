@@ -7,8 +7,18 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
+#include <stdatomic.h>
+#include <inttypes.h>
 
 #define MAX_GAME_PLYS 400
+
+_Atomic uint64_t total_fens_generated = 0;
+_Atomic uint64_t games_played_count = 0;
+uint64_t global_start_time = 0;
+
+int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book, ThreadData *t);
+void datagen_worker(int thread_id, uint64_t games_target, int nodes_limit, int use_book);
 
 char **book_lines = NULL;
 int book_size = 0;
@@ -46,7 +56,7 @@ void load_book(const char* filename) {
     printf("info string Loaded %d book positions.\n", book_size);
 }
 
-int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book) {
+int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book, ThreadData *t) {
     board pos;
     if (use_book && book_size == 0) {
         load_book("UHO_Lichess_4852_v1.epd");
@@ -156,24 +166,19 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         resetTimeControl(&time);
         time.isNodeLimit = 1;
         time.node_limit = nodes_limit;
+        time.is_datagen = true;
         
-        setup_main_thread(&pos);
-        ThreadData *main_thread = thread_pool.threads[0];
-        main_thread->pos.ply = 0;    
-        main_thread->pos.fifty = pos.fifty;
+        memcpy(&t->pos, &pos, sizeof(board));
+        t->pos.ply = 0;    
+        t->pos.fifty = pos.fifty;
         
         // Reset node count per move so the engine searches properly
-        store_rlx(main_thread->search_i.nodes_searched, 0);
-        main_thread->search_i.stopped = false;
+        atomic_store_explicit(&t->search_i.nodes_searched, 0, memory_order_relaxed);
+        t->search_i.stopped = false;
         
-        // Also ensure thread pool stop flag is not set from a previous wait_helpers()
-        store_rlx(thread_pool.stop, false);
+        int score = searchPosition(maxPly, true, t, &time);
 
-        start_helpers(&pos, 0, &time);
-        int score = searchPosition(maxPly, true, main_thread, &time);
-        wait_helpers();
-
-        uint16_t best_move = thread_pool.threads[0]->pos.pvTable[0][0];
+        uint16_t best_move = t->pos.pvTable[0][0];
 
         // Win Adjudication (300 cp corresponds to +3 pawns on the tuned P=100 scale)
         if (abs(score) > 300) win_adj_count++; else win_adj_count = 0;
@@ -221,4 +226,55 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
     }
 
     return fen_count;
+}
+
+void datagen_worker(int thread_id, uint64_t target_games, int nodes_limit, int use_book) {
+    char out_filename[256];
+    char illegal_filename[256];
+    snprintf(out_filename, sizeof(out_filename), "datagen/datagen_%d.txt", thread_id);
+    snprintf(illegal_filename, sizeof(illegal_filename), "datagen/illegal_%d.txt", thread_id);
+
+    FILE *out_file = fopen(out_filename, "w");
+    FILE *illegal_file = fopen(illegal_filename, "w");
+
+    if (!out_file || !illegal_file) {
+        if (out_file) fclose(out_file);
+        if (illegal_file) fclose(illegal_file);
+        return;
+    }
+
+    ThreadData *t = thread_pool.threads[thread_id];
+
+    while (1) {
+        uint64_t current_game = atomic_fetch_add_explicit(&games_played_count, 1, memory_order_relaxed);
+        if (current_game >= target_games) {
+            break;
+        }
+
+        uint64_t new_fens = play_selfgen_game(out_file, illegal_file, nodes_limit, use_book, t);
+        uint64_t current_total = (uint64_t)atomic_fetch_add_explicit(&total_fens_generated, new_fens, memory_order_relaxed) + new_fens;
+        
+        uint64_t finished_games = current_game + 1;
+        if (finished_games % 100 == 0) {
+            uint64_t elapsed = getTimeMiliSecond() - global_start_time;
+            if (elapsed == 0) elapsed = 1;
+            printf("Played %" PRIu64 " Games... (%" PRIu64 " FENs, %" PRIu64 " FEN/s)\n", finished_games, current_total, current_total * 1000 / elapsed);
+        }
+    }
+
+    fclose(out_file);
+    fclose(illegal_file);
+}
+
+struct datagen_args {
+    int id;
+    uint64_t target;
+    int nodes;
+    int book;
+};
+
+void* datagen_worker_proxy(void* arg) {
+    struct datagen_args *args = (struct datagen_args *)arg;
+    datagen_worker(args->id, args->target, args->nodes, args->book);
+    return NULL;
 }

@@ -6,12 +6,18 @@
 #include "perft.h"
 #include "timeman.h"
 #include "datagen.h"
+#include <stdatomic.h>
+#include <pthread.h>
 #ifdef _WIN32
 #include <direct.h>
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
 #endif
+
+extern _Atomic uint64_t total_fens_generated;
+extern _Atomic uint64_t games_played_count;
+extern uint64_t global_start_time;
 
 #define VERSION "3.30.53"
 #define BENCH_DEPTH 14
@@ -384,10 +390,17 @@ void communicate(my_time* time, board *pos) {
     read_input(time, pos);
 }
 
-void check_node_limit(my_time* time) {
-    if (total_nodes() >= time->node_limit) {
-        time->stopped = 1;
-        store_rlx(thread_pool.stop, true);
+void check_node_limit(my_time* time, ThreadData* t) {
+    if (time->is_datagen) {
+        if (load_rlx(t->search_i.nodes_searched) >= time->node_limit) {
+            time->stopped = 1;
+            store_rlx(t->search_i.stopped, true);
+        }
+    } else {
+        if (total_nodes() >= time->node_limit) {
+            time->stopped = 1;
+            store_rlx(thread_pool.stop, true);
+        }
     }
 }
 
@@ -488,6 +501,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         uint64_t how_many_games_to_play = 0;
         int nodes_limit = 5000;
         int use_book = 0; // Default to random
+        int datagen_threads = 1;
         
         if (argc > 2) {
             how_many_games_to_play = strtoull(argv[2], NULL, 10);
@@ -499,6 +513,11 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             if (strncmp(argv[4], "book", 4) == 0) use_book = 1;
             else if (strncmp(argv[4], "random", 6) == 0) use_book = 0;
         }
+        if (argc > 5) {
+            datagen_threads = atoi(argv[5]);
+            if (datagen_threads < 1) datagen_threads = 1;
+            if (datagen_threads > MAX_THREADS) datagen_threads = MAX_THREADS;
+        }
 
         if (how_many_games_to_play > 0) {
             #ifdef _WIN32
@@ -507,40 +526,50 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             mkdir("datagen", 0755);
             #endif
 
-            printf("Playing %" PRIu64 " Selfgen Games with %d nodes/move (Mode: %s)...\n", 
-                   how_many_games_to_play, nodes_limit, use_book ? "Book" : "Random");
-            FILE *f = fopen("datagen/datagen.txt", "w");
-            if (!f) {
-                fprintf(stderr, "Error opening datagen/datagen.txt\n");
-                exit(1);
-            }
-            FILE *illegal_f = fopen("datagen/illegal.txt", "w");
-            if (!illegal_f) {
-                fprintf(stderr, "Error opening datagen/illegal.txt\n");
-                fclose(f);
-                exit(1);
-            }
+            printf("Playing %" PRIu64 " Selfgen Games with %d threads and %d nodes/move (Mode: %s)...\n", 
+                   how_many_games_to_play, datagen_threads, nodes_limit, use_book ? "Book" : "Random");
             
             sm64_state = 12345;
+            init_threads(datagen_threads);
 
-            int start_time = getTimeMiliSecond();
-            uint64_t total_fens = 0;
+            global_start_time = getTimeMiliSecond();
+            atomic_store_explicit(&games_played_count, 0, memory_order_relaxed);
+            atomic_store_explicit(&total_fens_generated, 0, memory_order_relaxed);
 
-            for (uint64_t i = 0; i < how_many_games_to_play; i++) {
-                total_fens += play_selfgen_game(f, illegal_f, nodes_limit, use_book);
-                if ((i + 1) % 10 == 0) printf("Played %" PRIu64 " Games... (%" PRIu64 " FENs)\n", i + 1, total_fens);
+            // Create thread argument struct to pass to worker
+            struct datagen_args {
+                int id;
+                uint64_t target;
+                int nodes;
+                int book;
+            } args_array[MAX_THREADS];
+
+            pthread_t workers[MAX_THREADS];
+
+            for (int i = 0; i < datagen_threads; i++) {
+                args_array[i].id = i;
+                args_array[i].target = how_many_games_to_play;
+                args_array[i].nodes = nodes_limit;
+                args_array[i].book = use_book;
+                
+                // Assuming we cast args directly in a proxy or just change datagen_worker to take void*
+                // We'll declare an inline void* wrapper right above datagen_worker in datagen.c next
+                extern void* datagen_worker_proxy(void* arg);
+                pthread_create(&workers[i], NULL, datagen_worker_proxy, &args_array[i]);
+            }
+
+            for (int i = 0; i < datagen_threads; i++) {
+                pthread_join(workers[i], NULL);
             }
             
             int end_time = getTimeMiliSecond();
-            int elapsed = end_time - start_time;
+            int elapsed = end_time - global_start_time;
             if (elapsed == 0) elapsed = 1;
 
-            fclose(f);
-            fclose(illegal_f);
-            printf("Selfgen datagen completed in %d ms. Total FENs: %" PRIu64 " (%" PRIu64 " FEN/s)\n", elapsed, total_fens, total_fens * 1000 / elapsed);
+            printf("Selfgen datagen completed in %d ms. Total FENs: %" PRIu64 " (%" PRIu64 " FEN/s)\n", elapsed, (uint64_t)atomic_load_explicit(&total_fens_generated, memory_order_relaxed), (uint64_t)atomic_load_explicit(&total_fens_generated, memory_order_relaxed) * 1000 / elapsed);
             exit(0);
         } else {
-            fprintf(stderr, "ERROR: Usage: datagen <game_count> [nodes_limit_per_move] [book|random]\n");
+            fprintf(stderr, "ERROR: Usage: datagen <game_count> [nodes_limit_per_move] [book|random] [threads]\n");
             exit(1);
         }
     }

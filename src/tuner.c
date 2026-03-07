@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <dirent.h>
 
 enum { P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE };
 
@@ -443,13 +444,44 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        printf("Usage: ./tuner <datagen.txt>\n");
+        printf("Usage: ./tuner <datagen_dir>\n");
         return 1;
     }
 
     int count = 0;
-    TunerEntry *data = load_data(argv[1], &count);
-    if (!data) return 1;
+    TunerEntry *data = NULL;
+    
+    DIR *dir;
+    struct dirent *ent;
+    const char *dir_name = argv[1];
+
+    if ((dir = opendir(dir_name)) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            // Only process .txt files
+            if (strstr(ent->d_name, ".txt")) {
+                char filepath[1024];
+                snprintf(filepath, sizeof(filepath), "%s/%s", dir_name, ent->d_name);
+
+                int file_count = 0;
+                TunerEntry *file_data = load_data(filepath, &file_count);
+                if (file_data && file_count > 0) {
+                    data = realloc(data, (count + file_count) * sizeof(TunerEntry));
+                    memcpy(data + count, file_data, file_count * sizeof(TunerEntry));
+                    free(file_data);
+                    count += file_count;
+                }
+            }
+        }
+        closedir(dir);
+    } else {
+        printf("Failed to open directory: %s\n", dir_name);
+        return 1;
+    }
+
+    if (!data || count == 0) {
+        printf("No data loaded!\n");
+        return 1;
+    }
 
     int wins = 0, draws = 0, losses = 0;
     for (int i = 0; i < count; i++) {
@@ -470,7 +502,7 @@ int main(int argc, char *argv[]) {
     printf("Initial MSE = %.10f\n\n", mse);
 
     printf("Starting tuning...\n");
-    tune(data, count, sigmoid_k, 10000);
+    tune(data, count, sigmoid_k, 1000);
 
     print_psqt();
 
