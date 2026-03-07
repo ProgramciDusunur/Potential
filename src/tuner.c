@@ -589,9 +589,13 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
     printf("Tuning complete. Final MSE = %.10f\n", final_mse);
 }
 
+#ifndef _WIN32
+#include <sys/stat.h>
+#endif
+
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        printf("Usage: ./tuner <datagen_dir> [num_threads]\n");
+        printf("Usage: ./tuner <data_path> [num_threads]\n");
         return 1;
     }
 
@@ -603,18 +607,47 @@ int main(int argc, char *argv[]) {
 
     int count = 0;
     TunerEntry *data = NULL;
-    
+    const char *path = argv[1];
+
+#ifndef _WIN32
+    struct stat st;
+    if (stat(path, &st) == 0 && S_ISREG(st.st_mode)) {
+        // It's a regular file
+        data = load_data(path, &count);
+    } else {
+        // Try as directory
+        DIR *dir;
+        struct dirent *ent;
+        if ((dir = opendir(path)) != NULL) {
+            while ((ent = readdir(dir)) != NULL) {
+                if (strstr(ent->d_name, ".txt")) {
+                    char filepath[1024];
+                    snprintf(filepath, sizeof(filepath), "%s/%s", path, ent->d_name);
+                    int file_count = 0;
+                    TunerEntry *file_data = load_data(filepath, &file_count);
+                    if (file_data && file_count > 0) {
+                        data = realloc(data, (count + file_count) * sizeof(TunerEntry));
+                        memcpy(data + count, file_data, file_count * sizeof(TunerEntry));
+                        free(file_data);
+                        count += file_count;
+                    }
+                }
+            }
+            closedir(dir);
+        } else {
+            printf("Failed to open: %s\n", path);
+            return 1;
+        }
+    }
+#else
+    // Windows logic (simplified or keep as is if it works for user)
     DIR *dir;
     struct dirent *ent;
-    const char *dir_name = argv[1];
-
-    if ((dir = opendir(dir_name)) != NULL) {
+    if ((dir = opendir(path)) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
-            // Only process .txt files
             if (strstr(ent->d_name, ".txt")) {
                 char filepath[1024];
-                snprintf(filepath, sizeof(filepath), "%s/%s", dir_name, ent->d_name);
-
+                snprintf(filepath, sizeof(filepath), "%s/%s", path, ent->d_name);
                 int file_count = 0;
                 TunerEntry *file_data = load_data(filepath, &file_count);
                 if (file_data && file_count > 0) {
@@ -627,7 +660,14 @@ int main(int argc, char *argv[]) {
         }
         closedir(dir);
     } else {
-        printf("Failed to open directory: %s\n", dir_name);
+        // If opendir fails on Windows, try as file
+        data = load_data(path, &count);
+        if (!data) {
+            printf("Failed to open: %s\n", path);
+            return 1;
+        }
+    }
+#endif
         return 1;
     }
 
