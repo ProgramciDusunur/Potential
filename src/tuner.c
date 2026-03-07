@@ -453,6 +453,17 @@ void center_psqt() {
     }
 }
 
+void scale_to_centipawns() {
+    if (material[0][P] == 0) return;
+    double scale = 100.0 / material[0][P];
+    printf("Scaling results by factor: %.4f (Pawn target: 100)\n", scale);
+    for (int ph = 0; ph < 2; ph++) {
+        for (int pc = 0; pc < 6; pc++) {
+            material[ph][pc] = (int)round(material[ph][pc] * scale);
+        }
+    }
+}
+
 void print_psqt() {
     printf("\n// Tuned Material scores — paste into evaluation.c\n");
     printf("const int material_score[2][12] = {\n");
@@ -571,6 +582,7 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
     }
 
     center_psqt();
+    scale_to_centipawns();
 
     double final_mse = compute_mse(data, count, sigmoid_k);
     printf("Tuning complete. Final MSE = %.10f\n", final_mse);
