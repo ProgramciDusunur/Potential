@@ -234,8 +234,8 @@ void datagen_worker(int thread_id, uint64_t target_games, int nodes_limit, int u
     snprintf(out_filename, sizeof(out_filename), "datagen/datagen_%d.txt", thread_id);
     snprintf(illegal_filename, sizeof(illegal_filename), "datagen/illegal_%d.txt", thread_id);
 
-    FILE *out_file = fopen(out_filename, "w");
-    FILE *illegal_file = fopen(illegal_filename, "w");
+    FILE *out_file = fopen(out_filename, "a");
+    FILE *illegal_file = fopen(illegal_filename, "a");
 
     if (!out_file || !illegal_file) {
         if (out_file) fclose(out_file);
