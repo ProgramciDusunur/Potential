@@ -158,8 +158,8 @@ TunerEntry *load_data(const char *filename, int *count) {
 }
 
 int material[2][6] = {
-    { 13, 11, 6, 27, 27, 0},
-    { -6, -33, -12, -20, -79, 0}
+    { 11, 6, 5, 27, 27, 0},
+    { -6, -30, -12, -21, -79, 0}
 };
 
 const int mirror[64] = {
