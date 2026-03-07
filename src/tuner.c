@@ -3,6 +3,11 @@
 #include <string.h>
 #include <math.h>
 #include <dirent.h>
+#include <pthread.h>
+#include <time.h>
+
+#define MAX_THREADS 16
+int num_threads = 4;
 
 enum { P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE };
 
@@ -24,6 +29,48 @@ typedef struct {
     int phase;
     double result;
 } TunerEntry;
+
+typedef enum { WORK_NONE, WORK_MSE, WORK_GRAD, WORK_QUIT } WorkType;
+
+typedef struct {
+    int id;
+    TunerEntry *data;
+    int count;
+    int start_index;
+    int end_index;
+    double sigmoid_k;
+    double total_error;
+    double grad[2][6][64];
+    double grad_mat[2][6];
+} TunerWorker;
+
+TunerWorker workers[MAX_THREADS];
+pthread_t threads[MAX_THREADS];
+
+pthread_mutex_t tuner_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t  tuner_cond_workers = PTHREAD_COND_INITIALIZER;
+pthread_cond_t  tuner_cond_main = PTHREAD_COND_INITIALIZER;
+int active_workers = 0;
+WorkType current_work = WORK_NONE;
+int work_id = 0;
+
+#include <windows.h>
+
+double get_time_ms() {
+    return (double)GetTickCount64();
+}
+
+void run_job(WorkType job) {
+    pthread_mutex_lock(&tuner_mutex);
+    current_work = job;
+    active_workers = num_threads;
+    work_id++;
+    pthread_cond_broadcast(&tuner_cond_workers);
+    while (active_workers > 0) {
+        pthread_cond_wait(&tuner_cond_main, &tuner_mutex);
+    }
+    pthread_mutex_unlock(&tuner_mutex);
+}
 
 int parse_entry(const char *line, TunerEntry *entry) {
     for (int i = 0; i < 64; i++) entry->pieces[i] = NO_PIECE;
@@ -111,8 +158,8 @@ TunerEntry *load_data(const char *filename, int *count) {
 }
 
 int material[2][6] = {
-    { 9, -2, -10, 29, 21, 0},
-    { -10, -35, -13, -34, -89, 0}
+    { 14, 5, 6, 28, 23, 0},
+    { -5, -26, -11, -23, -79, 0}
 };
 
 const int mirror[64] = {
@@ -130,108 +177,108 @@ int psqt[2][6][64] = {
     {   // Opening
         {   // Pawn
             19, 19, 19, 19, 19, 19, 19, 19,
-            65, 153, 56, 54, -6, 137, 48, -45,
-            -38, -40, -75, 32, -6, -24, 22, -72,
-            -33, -27, -18, -16, 11, -20, 5, -11,
-            -12, -27, -32, -20, -23, -28, -21, -36,
-            -12, -26, -33, -38, -32, -26, -19, -26,
-            -20, -29, 9, -8, 0, -14, -13, -30,
+            65, 153, 56, 54, -6, 109, 48, -45,
+            -38, -40, -58, -4, 6, -24, 22, -72,
+            -21, -13, -11, -10, -2, -5, 4, -11,
+            -12, -15, -25, -14, -26, -28, -1, -25,
+            -15, -20, -22, -28, -28, -21, -18, -27,
+            -19, -28, -13, -17, -3, -21, -12, -25,
             19, 19, 19, 19, 19, 19, 19, 19,
         },
         {   // Knight
-            -149, -33, 33, -51, 117, -41, 41, -51,
-            -17, 15, 128, 92, 102, -18, 19, 39,
-            9, 69, -16, 27, -4, 49, 45, 100,
-            25, -7, 8, 10, -21, 52, -18, 30,
-            -43, 60, -15, -20, -15, -28, 10, -50,
-            -19, -10, -33, -16, -13, -26, -18, -44,
-            -9, -26, -42, -35, -41, -18, 9, -28,
-            -49, -12, -29, -11, -39, -4, -22, 13,
+            -148, -32, 34, -50, 118, -40, 42, -50,
+            -16, 16, 129, 93, 18, -17, 20, 40,
+            10, 70, -14, 28, -3, 50, 39, 101,
+            26, -17, 9, -5, -20, 35, -17, 31,
+            -38, 61, -24, -19, -14, -27, 11, -21,
+            -18, -9, -23, -15, -12, -17, -17, -31,
+            -8, -25, -41, -19, -37, -17, 10, -27,
+            -48, -3, -28, -10, -29, -3, -16, 14,
         },
         {   // Bishop
-            -157, 63, 16, 22, 34, 17, 66, -251,
-            33, -2, 41, 46, 37, 40, 18, 12,
-            -41, 96, -40, 18, 94, -27, -35, -29,
-            -34, -15, 34, 10, -38, 34, -39, 51,
-            10, 11, -31, -31, -2, -30, -6, -32,
-            -57, 32, -7, -22, -19, -5, -14, -4,
-            5, -20, 35, -24, -10, 58, -1, 13,
-            21, -2, -22, 3, 0, 5, 38, 13,
+            -158, 62, 15, 21, 33, 16, 65, -195,
+            32, -3, 40, 45, 36, 39, 17, 11,
+            -22, 95, -41, 17, 72, -21, -36, -30,
+            -35, -16, 33, 9, -36, 33, -22, 50,
+            9, 10, -8, -32, -3, -29, -7, -33,
+            -34, 20, -8, -17, -20, -6, -15, -5,
+            4, -21, 34, -13, -14, 57, -3, 12,
+            20, -3, -21, 2, -1, 4, 37, 12,
         },
         {   // Rook
             43, 53, -68, 62, 36, 20, 42, 54,
             -10, 43, 44, 46, -12, 78, 37, 55,
-            6, 30, 20, 47, 16, 25, 72, 27,
+            6, 27, 20, 47, 16, 25, 72, 27,
             -13, 0, 18, 37, 35, 46, -7, -9,
             -25, -42, -1, 55, 14, -34, 19, -70,
             -42, -40, -16, -21, -25, -33, -14, -54,
             -31, -64, -10, -27, -31, -33, -55, -18,
-            -20, -41, -18, -46, -53, -41, -35, -35,
+            -31, -34, -18, -39, -41, -34, -38, -36,
         },
         {   // Queen
-            -149, 192, 254, 210, 177, 133, 84, -174,
-            132, 97, 65, -9, 97, 50, -44, -89,
-            82, 93, 47, 97, 106, -65, -10, 79,
-            -38, -26, 22, -24, -1, 25, -26, -30,
-            2, -49, -12, -52, -9, -34, -55, -63,
-            -82, -8, -38, -44, -57, -30, -59, -104,
-            -32, -42, -20, -40, -35, -18, -85, -77,
-            43, -109, -43, -12, -46, -76, -72, -59,
+            -110, 192, 226, 210, 160, 133, 84, -106,
+            101, 97, 53, -9, 97, 50, -44, -89,
+            82, 93, 47, 73, 102, -65, -10, 79,
+            -38, -26, 22, -24, -22, 23, -26, -30,
+            -18, -49, -12, -39, -21, -34, -37, -59,
+            -82, -13, -38, -34, -33, -30, -59, -104,
+            -32, -42, -20, -33, -38, -18, -85, -77,
+            43, -109, -43, -12, -32, -76, -72, -59,
         },
         {   // King
-            -52, 36, 29, -2, -43, -21, 15, 26,
-            42, 12, -7, 6, 5, 9, -25, -16,
-            4, 37, 15, -3, -7, 19, 35, -9,
-            -4, -7, 1, -14, -17, -12, -1, -23,
-            -36, 12, -14, -26, -33, -31, -20, -38,
-            -1, 50, -20, -33, -27, 2, 15, -14,
-            14, -2, 0, -19, -14, 14, 27, 17,
-            -2, 49, -2, -12, 27, 12, 5, 15,
+            -51, 37, 30, -1, -42, -20, 16, 27,
+            43, 13, -6, 7, 6, 10, -24, -15,
+            5, 38, 16, -2, -6, 20, 36, -8,
+            -3, -6, 2, -13, -16, -11, 0, -22,
+            -35, 13, -13, -25, -32, -30, -19, -37,
+            0, 51, -19, -32, -26, 3, 16, -13,
+            15, -1, 1, -8, -11, 15, 28, 18,
+            -1, 47, -1, 2, 3, 13, 1, 16,
         }
     },
     {   // Endgame
         {   // Pawn
             -18, -18, -18, -18, -18, -18, -18, -18,
-            15, 79, 119, 51, 92, 25, 1, 39,
+            15, 79, 63, 51, 92, -12, 1, 39,
             0, 36, 48, 33, 13, 21, 8, 46,
-            -29, 6, 41, -13, -21, -9, -7, -21,
-            10, -23, 11, -23, 27, 15, -64, 11,
-            2, 20, 25, 40, 15, 5, 1, -8,
-            4, 21, -57, -27, -212, -53, -7, 6,
+            5, 14, 0, -3, -16, 1, -3, -21,
+            8, -7, 11, 2, 5, 15, -20, 15,
+            6, 7, 5, 22, 19, 8, 4, -3,
+            6, 13, -22, -15, -212, -26, -11, 10,
             -18, -18, -18, -18, -18, -18, -18, -18,
         },
         {   // Knight
             -41, -21, 4, -11, -14, -10, -46, -82,
-            -8, 9, -8, 15, 8, -6, -7, -35,
+            -8, 9, -8, 15, -5, -6, -7, -35,
             -7, -31, 27, 26, 16, -44, -2, -24,
             0, 20, 39, 39, 47, 28, 27, -1,
-            -1, -35, 33, 42, 33, 34, 21, -1,
-            -15, 14, 16, 10, 27, 14, -3, -97,
-            -25, -3, 7, 50, 59, -3, -6, -27,
-            -12, -89, 52, 2, 31, -1, 4, -47,
+            -1, -35, 28, 42, 36, 34, 21, -1,
+            -15, 14, 27, 10, 27, 14, -3, -97,
+            -25, -3, 7, 43, 59, -3, -6, -27,
+            -12, -89, 52, 2, 31, -1, 14, -47,
         },
         {   // Bishop
-            -9, -16, 38, -3, -2, -4, -12, -19,
+            -9, -16, 38, -3, -2, -4, -12, 21,
             -3, 1, 12, -7, 2, -8, 1, -9,
             30, -3, 41, -14, 3, 11, 5, 40,
             2, 14, -27, -11, 19, -33, 6, 7,
             -1, 8, 17, 1, 14, 19, 2, -4,
-            10, 3, 13, 18, 8, 8, -2, -10,
-            -9, -3, -2, -27, 16, -4, -1, -22,
-            -18, 20, 31, 0, -4, -175, 0, -12,
+            18, 3, 13, 18, 8, 8, -2, -10,
+            -9, -3, -2, -14, 16, -4, 6, -22,
+            -18, 20, 21, 0, -4, -175, 0, -12,
         },
         {   // Rook
-            18, 13, 2, 20, 17, 17, 13, 10,
-            -3, -1, -11, -42, -38, 2, -3, -4,
-            7, 4, -16, -13, -41, -14, -20, 2,
-            3, -8, 6, -22, -14, -12, -15, 2,
-            8, 10, 13, 9, -41, -11, -3, 6,
-            1, 5, -1, 2, -2, -7, -4, -11,
-            30, -2, -23, -12, -36, -4, -9, 17,
-            -29, 32, -15, 19, 36, 34, 46, 72,
+            19, 7, 3, 21, 18, 18, 14, 11,
+            -2, 0, -10, -41, -37, 3, -2, -3,
+            8, 5, -15, -12, -40, -13, -19, 3,
+            4, -7, 7, -21, -13, -11, -14, 3,
+            9, 11, 14, 10, -40, -10, -2, 7,
+            2, 6, 0, 3, -1, -6, -3, -10,
+            31, -1, -22, -11, -35, -3, -8, 18,
+            -27, 19, -14, 23, 30, 35, 47, 33,
         },
         {   // Queen
-            81, -56, 14, 20, 28, 17, 29, 92,
+            81, -56, 14, 20, 28, 17, 29, 109,
             2, -12, 51, -27, 12, 44, 49, 19,
             -1, -7, 28, -6, -30, 87, 38, 28,
             22, 41, 43, 75, 99, 65, 95, 104,
@@ -246,9 +293,9 @@ int psqt[2][6][64] = {
             1, 8, 14, 6, 11, 36, 35, 4,
             -17, 13, 15, 18, 17, 24, 17, -6,
             -11, -13, 22, 15, 18, 14, 12, -20,
-            -17, -3, 18, 33, 15, 27, -2, -14,
-            -33, -4, 12, 21, 23, 16, 8, -26,
-            -62, -2, 20, 35, -25, -1, 13, -52
+            -17, -3, 18, 33, 17, 22, -2, -14,
+            -33, -4, 12, 21, 22, 11, 8, -26,
+            -62, -2, 20, 18, -5, -1, 15, -52
         }
     }
 };
@@ -279,13 +326,90 @@ double sigmoid(double sigmoid_k, int eval) {
     return 1.0 / (1.0 + pow(10.0, -sigmoid_k * eval / 400.0));
 }
 
+void* tuner_worker_thread(void* arg) {
+    TunerWorker *w = (TunerWorker*)arg;
+    int last_work_id = 0;
+    while (1) {
+        pthread_mutex_lock(&tuner_mutex);
+        while (work_id == last_work_id) {
+            pthread_cond_wait(&tuner_cond_workers, &tuner_mutex);
+        }
+        last_work_id = work_id;
+        WorkType job = current_work;
+        pthread_mutex_unlock(&tuner_mutex);
+
+        if (job == WORK_QUIT) break;
+        
+        if (job == WORK_MSE) {
+            w->total_error = 0.0;
+            for (int i = w->start_index; i < w->end_index; i++) {
+                int eval = evaluate(&w->data[i]);
+                double predicted = sigmoid(w->sigmoid_k, eval);
+                double error = w->data[i].result - predicted;
+                w->total_error += error * error;
+            }
+        } else if (job == WORK_GRAD) {
+            memset(w->grad, 0, sizeof(w->grad));
+            memset(w->grad_mat, 0, sizeof(w->grad_mat));
+            for (int i = w->start_index; i < w->end_index; i++) {
+                TunerEntry *e = &w->data[i];
+                int eval = evaluate(e);
+                double sig = sigmoid(w->sigmoid_k, eval);
+                double coeff = -2.0 * (e->result - sig) * sig * (1.0 - sig) * w->sigmoid_k * log(10.0) / 400.0 / w->count;
+                if (e->side == 1) coeff = -coeff;
+
+                double mg_weight = (double)e->phase / 24.0;
+                double eg_weight = 1.0 - mg_weight;
+
+                for (int sq = 0; sq < 64; sq++) {
+                    int piece = e->pieces[sq];
+                    if (piece == NO_PIECE) continue;
+
+                    if (piece <= K) {
+                        w->grad_mat[0][piece]              += coeff * mg_weight;
+                        w->grad_mat[1][piece]              += coeff * eg_weight;
+                        w->grad[0][piece][sq]              += coeff * mg_weight;
+                        w->grad[1][piece][sq]              += coeff * eg_weight;
+                    } else {
+                        int pt = piece - 6;
+                        int mirrored = mirror[sq];
+                        w->grad_mat[0][pt]                 -= coeff * mg_weight;
+                        w->grad_mat[1][pt]                 -= coeff * eg_weight;
+                        w->grad[0][pt][mirrored]           -= coeff * mg_weight;
+                        w->grad[1][pt][mirrored]           -= coeff * eg_weight;
+                    }
+                }
+            }
+        }
+
+        pthread_mutex_lock(&tuner_mutex);
+        active_workers--;
+        if (active_workers == 0) {
+            pthread_cond_signal(&tuner_cond_main);
+        }
+        pthread_mutex_unlock(&tuner_mutex);
+    }
+    return NULL;
+}
+
 double compute_mse(TunerEntry *data, int count, double sigmoid_k) {
+    if (num_threads == 1) {
+        double total_error = 0.0;
+        for (int i = 0; i < count; i++) {
+            int eval = evaluate(&data[i]);
+            double predicted = sigmoid(sigmoid_k, eval);
+            double error = data[i].result - predicted;
+            total_error += error * error;
+        }
+        return total_error / count;
+    }
+
+    for (int i = 0; i < num_threads; i++) workers[i].sigmoid_k = sigmoid_k;
+    run_job(WORK_MSE);
+
     double total_error = 0.0;
-    for (int i = 0; i < count; i++) {
-        int eval = evaluate(&data[i]);
-        double predicted = sigmoid(sigmoid_k, eval);
-        double error = data[i].result - predicted;
-        total_error += error * error;
+    for (int i = 0; i < num_threads; i++) {
+        total_error += workers[i].total_error;
     }
     return total_error / count;
 }
@@ -364,6 +488,25 @@ void print_psqt() {
     printf("};\n");
 }
 
+void init_tuner_threads(TunerEntry *data, int count) {
+    int chunk_size = count / num_threads;
+    for (int i = 0; i < num_threads; i++) {
+        workers[i].id = i;
+        workers[i].data = data;
+        workers[i].count = count;
+        workers[i].start_index = i * chunk_size;
+        workers[i].end_index = (i == num_threads - 1) ? count : (i + 1) * chunk_size;
+        pthread_create(&threads[i], NULL, tuner_worker_thread, &workers[i]);
+    }
+}
+
+void stop_tuner_threads() {
+    run_job(WORK_QUIT);
+    for (int i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
+    }
+}
+
 void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
     double lr = 2.0;
     double beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8;
@@ -380,32 +523,16 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
         memset(grad, 0, sizeof(grad));
         memset(grad_mat, 0, sizeof(grad_mat));
 
-        for (int i = 0; i < count; i++) {
-            TunerEntry *e = &data[i];
-            int eval = evaluate(e);
-            double sig = sigmoid(sigmoid_k, eval);
-            double coeff = -2.0 * (e->result - sig) * sig * (1.0 - sig) * sigmoid_k * log(10.0) / 400.0 / count;
-            if (e->side == 1) coeff = -coeff;
+        for (int i = 0; i < num_threads; i++) workers[i].sigmoid_k = sigmoid_k;
+        run_job(WORK_GRAD);
 
-            double mg_weight = (double)e->phase / 24.0;
-            double eg_weight = 1.0 - mg_weight;
-
-            for (int sq = 0; sq < 64; sq++) {
-                int piece = e->pieces[sq];
-                if (piece == NO_PIECE) continue;
-
-                if (piece <= K) {
-                    grad_mat[0][piece]              += coeff * mg_weight;
-                    grad_mat[1][piece]              += coeff * eg_weight;
-                    grad[0][piece][sq]              += coeff * mg_weight;
-                    grad[1][piece][sq]              += coeff * eg_weight;
-                } else {
-                    int pt = piece - 6;
-                    int mirrored = mirror[sq];
-                    grad_mat[0][pt]                 -= coeff * mg_weight;
-                    grad_mat[1][pt]                 -= coeff * eg_weight;
-                    grad[0][pt][mirrored]           -= coeff * mg_weight;
-                    grad[1][pt][mirrored]           -= coeff * eg_weight;
+        for (int i = 0; i < num_threads; i++) {
+            for (int ph = 0; ph < 2; ph++) {
+                for (int pc = 0; pc < 6; pc++) {
+                    grad_mat[ph][pc] += workers[i].grad_mat[ph][pc];
+                    for (int sq = 0; sq < 64; sq++) {
+                        grad[ph][pc][sq] += workers[i].grad[ph][pc][sq];
+                    }
                 }
             }
         }
@@ -431,9 +558,16 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
                 }
             }
         }
-
-        double mse = compute_mse(data, count, sigmoid_k);
-        printf("Epoch %d: MSE = %.10f\n", epoch, mse);
+        if (epoch % 100 == 0) {
+            double mse = compute_mse(data, count, sigmoid_k);
+            static double last_time = 0;
+            double current_time = get_time_ms();
+            if (last_time == 0) last_time = current_time;
+            double elapsed_sec = (current_time - last_time) / 1000.0;
+            double eps = (elapsed_sec > 0) ? (100.0 / elapsed_sec) : 0;
+            printf("Epoch %d: MSE = %.10f | Speed: %.1f epochs/s\n", epoch, mse, eps);
+            last_time = current_time;
+        }
     }
 
     center_psqt();
@@ -444,8 +578,14 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        printf("Usage: ./tuner <datagen_dir>\n");
+        printf("Usage: ./tuner <datagen_dir> [num_threads]\n");
         return 1;
+    }
+
+    if (argc >= 3) {
+        num_threads = atoi(argv[2]);
+        if (num_threads < 1) num_threads = 1;
+        if (num_threads > MAX_THREADS) num_threads = MAX_THREADS;
     }
 
     int count = 0;
@@ -495,6 +635,9 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < count; i++) phase_sum += data[i].phase;
     printf("Average Phase: %.1f / 24\n\n", (double)phase_sum / count);
 
+    printf("\nInitializing %d tuner threads...\n", num_threads);
+    init_tuner_threads(data, count);
+
     printf("Finding optimal K...\n");
     double sigmoid_k = find_optimal_K(data, count);
     double mse = compute_mse(data, count, sigmoid_k);
@@ -506,6 +649,7 @@ int main(int argc, char *argv[]) {
 
     print_psqt();
 
+    stop_tuner_threads();
     free(data);
     return 0;
 }
