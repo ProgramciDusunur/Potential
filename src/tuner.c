@@ -477,76 +477,69 @@ void center_psqt() {
 }
 
 void print_psqt() {
+    printf("\n>>> Saving results to tuned_params.txt...\n");
     FILE *f_params = fopen("tuned_params.txt", "w");
     if (!f_params) {
         printf("Warning: Could not open tuned_params.txt for writing.\n");
     }
 
-    const char *header = "\n// Tuned Material scores — paste into evaluation.c\n";
-    printf("%s", header);
-    if (f_params) fprintf(f_params, "%s", header);
-
-    const char *mat_start = "const int material_score[2][12] = {\n";
-    printf("%s", mat_start);
-    if (f_params) fprintf(f_params, "%s", mat_start);
-
-    for (int phase = 0; phase < 2; phase++) {
-        char line[256];
-        snprintf(line, sizeof(line), "    { %d, %d, %d, %d, %d, 0, %d, %d, %d, %d, %d, 0 }", 
-                 material[phase][0], material[phase][1], material[phase][2], material[phase][3], material[phase][4],
-                 -material[phase][0], -material[phase][1], -material[phase][2], -material[phase][3], -material[phase][4]);
-        
-        printf("%s", line);
-        if (f_params) fprintf(f_params, "%s", line);
-
-        if (phase == 0) {
-            printf(",\n");
-            if (f_params) fprintf(f_params, ",\n");
-        } else {
-            printf("\n");
-            if (f_params) fprintf(f_params, "\n");
-        }
+    // Capture everything in a temporary buffer or just do file writing first
+    // To be simple and robust, let's just do two passes or write to file first.
+    
+    #define WRITE_BOTH(fmt, ...) { \
+        if (f_params) fprintf(f_params, fmt, ##__VA_ARGS__); \
     }
-    printf("};\n");
-    if (f_params) fprintf(f_params, "};\n");
 
-    const char *psqt_header = "\n// Tuned PSQT tables — paste into evaluation.c\n";
-    const char *psqt_start = "const int positional_score[2][6][64] = {\n";
-    printf("%s%s", psqt_header, psqt_start);
-    if (f_params) fprintf(f_params, "%s%s", psqt_header, psqt_start);
+    WRITE_BOTH("\n// Tuned Material scores — paste into evaluation.c\n");
+    WRITE_BOTH("const int material_score[2][12] = {\n");
+
     for (int phase = 0; phase < 2; phase++) {
-        if (f_params) fprintf(f_params, "    {   // %s\n", phase == 0 ? "Opening" : "Endgame");
+        WRITE_BOTH("    { %d, %d, %d, %d, %d, 0, %d, %d, %d, %d, %d, 0 }%s\n", 
+                 material[phase][0], material[phase][1], material[phase][2], material[phase][3], material[phase][4],
+                 -material[phase][0], -material[phase][1], -material[phase][2], -material[phase][3], -material[phase][4],
+                 phase == 0 ? "," : "");
+    }
+    WRITE_BOTH("};\n");
+
+    WRITE_BOTH("\n// Tuned PSQT tables — paste into evaluation.c\n");
+    WRITE_BOTH("const int positional_score[2][6][64] = {\n");
+    for (int phase = 0; phase < 2; phase++) {
+        WRITE_BOTH("    {   // %s\n", phase == 0 ? "Opening" : "Endgame");
         for (int piece = 0; piece < 6; piece++) {
-            printf("        {   // %s\n", piece_names[piece]);
-            if (f_params) fprintf(f_params, "        {   // %s\n", piece_names[piece]);
+            WRITE_BOTH("        {   // %s\n", piece_names[piece]);
             for (int rank = 0; rank < 8; rank++) {
-                printf("            ");
-                if (f_params) fprintf(f_params, "            ");
+                WRITE_BOTH("            ");
                 for (int file = 0; file < 8; file++) {
                     int sq = rank * 8 + file;
-                    int val = psqt[phase][piece][sq];
-                    printf("%d", val);
-                    if (f_params) fprintf(f_params, "%d", val);
+                    WRITE_BOTH("%d", psqt[phase][piece][sq]);
                     if (sq < 63 || piece < 5 || phase < 1) {
-                        printf(", ");
-                        if (f_params) fprintf(f_params, ", ");
+                        WRITE_BOTH(", ");
                     }
                 }
-                printf("\n");
-                if (f_params) fprintf(f_params, "\n");
+                WRITE_BOTH("\n");
             }
-            printf("        }%s\n", piece < 5 ? "," : "");
-            if (f_params) fprintf(f_params, "        }%s\n", piece < 5 ? "," : "");
+            WRITE_BOTH("        }%s\n", piece < 5 ? "," : "");
         }
-        printf("    }%s\n", phase == 0 ? "," : "");
-        if (f_params) fprintf(f_params, "    }%s\n", phase == 0 ? "," : "");
+        WRITE_BOTH("    }%s\n", phase == 0 ? "," : "");
     }
-    printf("};\n");
+    WRITE_BOTH("};\n");
+
     if (f_params) {
-        fprintf(f_params, "};\n");
         fclose(f_params);
-        printf("\n>>> Results saved to tuned_params.txt\n");
+        printf(">>> Results saved successfully.\n\n");
     }
+
+    // Now print to console for the user to see immediately
+    printf("// Tuned Material scores — paste into evaluation.c\n");
+    printf("const int material_score[2][12] = {\n");
+    for (int phase = 0; phase < 2; phase++) {
+        printf("    { %d, %d, %d, %d, %d, 0, %d, %d, %d, %d, %d, 0 }%s\n", 
+                 material[phase][0], material[phase][1], material[phase][2], material[phase][3], material[phase][4],
+                 -material[phase][0], -material[phase][1], -material[phase][2], -material[phase][3], -material[phase][4],
+                 phase == 0 ? "," : "");
+    }
+    printf("};\n\n");
+    printf("// Check tuned_params.txt for PSQT tables to save console space.\n");
 }
 
 void init_tuner_threads(TunerEntry *data, int count) {
