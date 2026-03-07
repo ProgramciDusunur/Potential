@@ -54,10 +54,20 @@ int active_workers = 0;
 WorkType current_work = WORK_NONE;
 int work_id = 0;
 
+#ifdef _WIN32
 #include <windows.h>
+#else
+#include <sys/time.h>
+#endif
 
 double get_time_ms() {
+#ifdef _WIN32
     return (double)GetTickCount64();
+#else
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (double)tv.tv_sec * 1000.0 + (double)tv.tv_usec / 1000.0;
+#endif
 }
 
 void run_job(WorkType job) {
