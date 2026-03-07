@@ -15,7 +15,9 @@
 
 _Atomic uint64_t total_fens_generated = 0;
 _Atomic uint64_t games_played_count = 0;
+_Atomic uint64_t target_fens_limit = 0;
 uint64_t global_start_time = 0;
+char datagen_book_path[1024] = "UHO_Lichess_4852_v1.epd"; // Default book
 
 int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book, ThreadData *t);
 void datagen_worker(int thread_id, uint64_t games_target, int nodes_limit, int use_book);
@@ -24,9 +26,14 @@ char **book_lines = NULL;
 int book_size = 0;
 int book_capacity = 0;
 int book_loaded = 0;
+pthread_mutex_t book_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void load_book(const char* filename) {
-    if (book_loaded) return;
+    pthread_mutex_lock(&book_mutex);
+    if (book_loaded) {
+        pthread_mutex_unlock(&book_mutex);
+        return;
+    }
     book_loaded = 1;
 
     FILE* f = fopen(filename, "r");
@@ -54,12 +61,13 @@ void load_book(const char* filename) {
     }
     fclose(f);
     printf("info string Loaded %d book positions.\n", book_size);
+    pthread_mutex_unlock(&book_mutex);
 }
 
 int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book, ThreadData *t) {
     board pos;
     if (use_book && book_size == 0) {
-        load_book("UHO_Lichess_4852_v1.epd");
+        load_book(datagen_book_path);
     }
 
     if (use_book && book_size > 0) {
@@ -246,19 +254,28 @@ void datagen_worker(int thread_id, uint64_t target_games, int nodes_limit, int u
     ThreadData *t = thread_pool.threads[thread_id];
 
     while (1) {
-        uint64_t current_game = atomic_fetch_add_explicit(&games_played_count, 1, memory_order_relaxed);
-        if (current_game >= target_games) {
+        // Check game limit
+        uint64_t current_game = atomic_load_explicit(&games_played_count, memory_order_relaxed);
+        if (target_games > 0 && current_game >= target_games) {
             break;
         }
+
+        // Check FEN limit
+        uint64_t current_fens = atomic_load_explicit(&total_fens_generated, memory_order_relaxed);
+        uint64_t f_limit = atomic_load_explicit(&target_fens_limit, memory_order_relaxed);
+        if (f_limit > 0 && current_fens >= f_limit) {
+            break;
+        }
+
+        atomic_fetch_add_explicit(&games_played_count, 1, memory_order_relaxed);
 
         uint64_t new_fens = play_selfgen_game(out_file, illegal_file, nodes_limit, use_book, t);
         uint64_t current_total = (uint64_t)atomic_fetch_add_explicit(&total_fens_generated, new_fens, memory_order_relaxed) + new_fens;
         
-        uint64_t finished_games = current_game + 1;
-        if (finished_games % 100 == 0) {
+        if ((current_game + 1) % 100 == 0) {
             uint64_t elapsed = getTimeMiliSecond() - global_start_time;
             if (elapsed == 0) elapsed = 1;
-            printf("Played %" PRIu64 " Games... (%" PRIu64 " FENs, %" PRIu64 " FEN/s)\n", finished_games, current_total, current_total * 1000 / elapsed);
+            printf("Played %" PRIu64 " Games... (%" PRIu64 " FENs, %" PRIu64 " FEN/s)\n", current_game + 1, current_total, current_total * 1000 / elapsed);
         }
     }
 
