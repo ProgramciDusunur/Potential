@@ -1235,6 +1235,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                     adjusted_probcut_depth -= 1024 * cutNode;
 
+                    adjusted_probcut_depth -= 1024 * (tt_hit && tt_capture);
+
                     adjusted_probcut_depth /= 1024;
 
                     probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, t, time, ss + 1, !cutNode);
