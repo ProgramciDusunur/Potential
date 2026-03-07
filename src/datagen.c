@@ -17,6 +17,7 @@ _Atomic uint64_t total_fens_generated = 0;
 _Atomic uint64_t games_played_count = 0;
 _Atomic uint64_t target_fens_limit = 0;
 uint64_t global_start_time = 0;
+char datagen_book_path[1024] = "UHO_Lichess_4852_v1.epd"; // Default book
 
 int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book, ThreadData *t);
 void datagen_worker(int thread_id, uint64_t games_target, int nodes_limit, int use_book);
@@ -60,7 +61,7 @@ void load_book(const char* filename) {
 int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book, ThreadData *t) {
     board pos;
     if (use_book && book_size == 0) {
-        load_book("UHO_Lichess_4852_v1.epd");
+        load_book(datagen_book_path);
     }
 
     if (use_book && book_size > 0) {

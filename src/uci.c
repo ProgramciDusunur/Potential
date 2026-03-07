@@ -518,8 +518,16 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             nodes_limit = atoi(argv[arg_idx++]);
         }
         if (argc > arg_idx) {
-            if (strncmp(argv[arg_idx], "book", 4) == 0) use_book = 1;
-            else if (strncmp(argv[arg_idx], "random", 6) == 0) use_book = 0;
+            extern char datagen_book_path[1024];
+            if (strncmp(argv[arg_idx], "random", 6) == 0) {
+                use_book = 0;
+            } else {
+                use_book = 1;
+                if (strncmp(argv[arg_idx], "book", 4) != 0) {
+                    // It's not the literal "book", assume it's a path
+                    strncpy(datagen_book_path, argv[arg_idx], sizeof(datagen_book_path) - 1);
+                }
+            }
             arg_idx++;
         }
         if (argc > arg_idx) {
