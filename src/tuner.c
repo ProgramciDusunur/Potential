@@ -321,7 +321,7 @@ double psqt[2][6][64] = {
 };
 
 int evaluate(TunerEntry *e) {
-    int mg = 0, eg = 0;
+    double mg = 0, eg = 0;
 
     for (int sq = 0; sq < 64; sq++) {
         int piece = e->pieces[sq];
@@ -338,8 +338,9 @@ int evaluate(TunerEntry *e) {
         }
     }
 
-    int eval = (mg * e->phase + eg * (24 - e->phase)) / 24;
-    return e->side == 0 ? eval : -eval;
+    double eval = (mg * e->phase + eg * (24.0 - e->phase)) / 24.0;
+    int final_eval = (int)round(eval);
+    return e->side == 0 ? final_eval : -final_eval;
 }
 
 double sigmoid(double sigmoid_k, int eval) {
@@ -532,7 +533,7 @@ void stop_tuner_threads() {
 }
 
 void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
-    double lr = 2.0;
+    double lr = 1.0;
     double beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8;
 
     double grad[2][6][64] = {{{0}}};
@@ -563,6 +564,11 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
 
         for (int ph = 0; ph < 2; ph++) {
             for (int pc = 0; pc < 6; pc++) {
+                // Update Material
+                m_mat[ph][pc] = beta1 * m_mat[ph][pc] + (1.0 - beta1) * grad_mat[ph][pc];
+                v_mat[ph][pc] = beta2 * v_mat[ph][pc] + (1.0 - beta2) * grad_mat[ph][pc] * grad_mat[ph][pc];
+                double m_hat_mat = m_mat[ph][pc] / (1.0 - pow(beta1, epoch));
+                double v_hat_mat = v_mat[ph][pc] / (1.0 - pow(beta2, epoch));
                 material[ph][pc] -= (lr * m_hat_mat / (sqrt(v_hat_mat) + epsilon));
 
                 // Update PSQT
@@ -577,13 +583,13 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
                 }
             }
         }
-        if (epoch % 100 == 0) {
+        if (epoch % 10 == 0) {
             double mse = compute_mse(data, count, sigmoid_k);
             static double last_time = 0;
             double current_time = get_time_ms();
             if (last_time == 0) last_time = current_time;
             double elapsed_sec = (current_time - last_time) / 1000.0;
-            double eps = (elapsed_sec > 0) ? (100.0 / elapsed_sec) : 0;
+            double eps = (elapsed_sec > 0) ? (10.0 / elapsed_sec) : 0; // Adjusted for 10 epochs
             printf("Epoch %d: MSE = %.10f | Speed: %.1f epochs/s\n", epoch, mse, eps);
             last_time = current_time;
         }
