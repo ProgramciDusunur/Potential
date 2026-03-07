@@ -477,38 +477,76 @@ void center_psqt() {
 }
 
 void print_psqt() {
-    printf("\n// Tuned Material scores — paste into evaluation.c\n");
-    printf("const int material_score[2][12] = {\n");
+    FILE *f_params = fopen("tuned_params.txt", "w");
+    if (!f_params) {
+        printf("Warning: Could not open tuned_params.txt for writing.\n");
+    }
+
+    const char *header = "\n// Tuned Material scores — paste into evaluation.c\n";
+    printf("%s", header);
+    if (f_params) fprintf(f_params, "%s", header);
+
+    const char *mat_start = "const int material_score[2][12] = {\n";
+    printf("%s", mat_start);
+    if (f_params) fprintf(f_params, "%s", mat_start);
+
     for (int phase = 0; phase < 2; phase++) {
-        printf("    { ");
-        for (int piece = 0; piece < 6; piece++) printf("%d, ", material[phase][piece]);
-        for (int piece = 0; piece < 5; piece++) printf("%d, ", -material[phase][piece]);
-        printf("0 }");
-        if (phase == 0) printf(",");
-        printf("\n");
+        char line[256];
+        snprintf(line, sizeof(line), "    { %d, %d, %d, %d, %d, 0, %d, %d, %d, %d, %d, 0 }", 
+                 material[phase][0], material[phase][1], material[phase][2], material[phase][3], material[phase][4],
+                 -material[phase][0], -material[phase][1], -material[phase][2], -material[phase][3], -material[phase][4]);
+        
+        printf("%s", line);
+        if (f_params) fprintf(f_params, "%s", line);
+
+        if (phase == 0) {
+            printf(",\n");
+            if (f_params) fprintf(f_params, ",\n");
+        } else {
+            printf("\n");
+            if (f_params) fprintf(f_params, "\n");
+        }
     }
     printf("};\n");
+    if (f_params) fprintf(f_params, "};\n");
 
-    printf("\n// Tuned PSQT tables — paste into evaluation.c\n");
-    printf("const int positional_score[2][6][64] = {\n");
+    const char *psqt_header = "\n// Tuned PSQT tables — paste into evaluation.c\n";
+    const char *psqt_start = "const int positional_score[2][6][64] = {\n";
+    printf("%s%s", psqt_header, psqt_start);
+    if (f_params) fprintf(f_params, "%s%s", psqt_header, psqt_start);
     for (int phase = 0; phase < 2; phase++) {
-        printf("    {   // %s\n", phase == 0 ? "Opening" : "Endgame");
+        if (f_params) fprintf(f_params, "    {   // %s\n", phase == 0 ? "Opening" : "Endgame");
         for (int piece = 0; piece < 6; piece++) {
             printf("        {   // %s\n", piece_names[piece]);
+            if (f_params) fprintf(f_params, "        {   // %s\n", piece_names[piece]);
             for (int rank = 0; rank < 8; rank++) {
                 printf("            ");
+                if (f_params) fprintf(f_params, "            ");
                 for (int file = 0; file < 8; file++) {
                     int sq = rank * 8 + file;
-                    printf("%d", psqt[phase][piece][sq]);
-                    if (sq < 63 || piece < 5 || phase < 1) printf(", ");
+                    int val = psqt[phase][piece][sq];
+                    printf("%d", val);
+                    if (f_params) fprintf(f_params, "%d", val);
+                    if (sq < 63 || piece < 5 || phase < 1) {
+                        printf(", ");
+                        if (f_params) fprintf(f_params, ", ");
+                    }
                 }
                 printf("\n");
+                if (f_params) fprintf(f_params, "\n");
             }
             printf("        }%s\n", piece < 5 ? "," : "");
+            if (f_params) fprintf(f_params, "        }%s\n", piece < 5 ? "," : "");
         }
         printf("    }%s\n", phase == 0 ? "," : "");
+        if (f_params) fprintf(f_params, "    }%s\n", phase == 0 ? "," : "");
     }
     printf("};\n");
+    if (f_params) {
+        fprintf(f_params, "};\n");
+        fclose(f_params);
+        printf("\n>>> Results saved to tuned_params.txt\n");
+    }
 }
 
 void init_tuner_threads(TunerEntry *data, int count) {
