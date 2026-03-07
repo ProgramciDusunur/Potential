@@ -177,9 +177,9 @@ TunerEntry *load_data(const char *filename, int *count) {
     return entries;
 }
 
-int material[2][6] = {
-    { 300, 991, 1122, 1214, 2687, 0},
-    { 296, 828, 918, 1714, 2835, 0}
+double material[2][6] = {
+    { 100, 300, 325, 500, 950, 0},
+    { 100, 300, 325, 500, 950, 0}
 };
 
 const int mirror[64] = {
@@ -193,7 +193,7 @@ const int mirror[64] = {
      0,  1,  2,  3,  4,  5,  6,  7
 };
 
-int psqt[2][6][64] = {
+double psqt[2][6][64] = {
     {   // Opening
         {   // Pawn
             -65, -65, -65, -65, -65, -65, -65, -65,
@@ -457,18 +457,16 @@ const char *piece_names[6] = { "Pawn", "Knight", "Bishop", "Rook", "Queen", "Kin
 void center_psqt() {
     for (int ph = 0; ph < 2; ph++) {
         for (int pc = 0; pc < 6; pc++) {
-            int sum = 0;
+            double sum = 0;
             for (int sq = 0; sq < 64; sq++) {
                 sum += psqt[ph][pc][sq];
             }
-            int average = sum / 64;
+            double average = sum / 64.0;
 
-            // Subtract average from all PSQT squares
             for (int sq = 0; sq < 64; sq++) {
                 psqt[ph][pc][sq] -= average;
             }
 
-            // Add average back to material (except King)
             if (pc != K) {
                 material[ph][pc] += average;
             }
@@ -477,69 +475,41 @@ void center_psqt() {
 }
 
 void print_psqt() {
-    printf("\n>>> Saving results to tuned_params.txt...\n");
-    FILE *f_params = fopen("tuned_params.txt", "w");
-    if (!f_params) {
-        printf("Warning: Could not open tuned_params.txt for writing.\n");
-    }
-
-    // Capture everything in a temporary buffer or just do file writing first
-    // To be simple and robust, let's just do two passes or write to file first.
-    
-    #define WRITE_BOTH(fmt, ...) { \
-        if (f_params) fprintf(f_params, fmt, ##__VA_ARGS__); \
-    }
-
-    WRITE_BOTH("\n// Tuned Material scores — paste into evaluation.c\n");
-    WRITE_BOTH("const int material_score[2][12] = {\n");
-
-    for (int phase = 0; phase < 2; phase++) {
-        WRITE_BOTH("    { %d, %d, %d, %d, %d, 0, %d, %d, %d, %d, %d, 0 }%s\n", 
-                 material[phase][0], material[phase][1], material[phase][2], material[phase][3], material[phase][4],
-                 -material[phase][0], -material[phase][1], -material[phase][2], -material[phase][3], -material[phase][4],
-                 phase == 0 ? "," : "");
-    }
-    WRITE_BOTH("};\n");
-
-    WRITE_BOTH("\n// Tuned PSQT tables — paste into evaluation.c\n");
-    WRITE_BOTH("const int positional_score[2][6][64] = {\n");
-    for (int phase = 0; phase < 2; phase++) {
-        WRITE_BOTH("    {   // %s\n", phase == 0 ? "Opening" : "Endgame");
-        for (int piece = 0; piece < 6; piece++) {
-            WRITE_BOTH("        {   // %s\n", piece_names[piece]);
-            for (int rank = 0; rank < 8; rank++) {
-                WRITE_BOTH("            ");
-                for (int file = 0; file < 8; file++) {
-                    int sq = rank * 8 + file;
-                    WRITE_BOTH("%d", psqt[phase][piece][sq]);
-                    if (sq < 63 || piece < 5 || phase < 1) {
-                        WRITE_BOTH(", ");
-                    }
-                }
-                WRITE_BOTH("\n");
-            }
-            WRITE_BOTH("        }%s\n", piece < 5 ? "," : "");
-        }
-        WRITE_BOTH("    }%s\n", phase == 0 ? "," : "");
-    }
-    WRITE_BOTH("};\n");
-
-    if (f_params) {
-        fclose(f_params);
-        printf(">>> Results saved successfully.\n\n");
-    }
-
-    // Now print to console for the user to see immediately
-    printf("// Tuned Material scores — paste into evaluation.c\n");
+    printf("\n// Tuned Material scores — paste into evaluation.c\n");
     printf("const int material_score[2][12] = {\n");
+
     for (int phase = 0; phase < 2; phase++) {
         printf("    { %d, %d, %d, %d, %d, 0, %d, %d, %d, %d, %d, 0 }%s\n", 
-                 material[phase][0], material[phase][1], material[phase][2], material[phase][3], material[phase][4],
-                 -material[phase][0], -material[phase][1], -material[phase][2], -material[phase][3], -material[phase][4],
+                 (int)round(material[phase][0]), (int)round(material[phase][1]), (int)round(material[phase][2]), 
+                 (int)round(material[phase][3]), (int)round(material[phase][4]),
+                 -(int)round(material[phase][0]), -(int)round(material[phase][1]), -(int)round(material[phase][2]), 
+                 -(int)round(material[phase][3]), -(int)round(material[phase][4]),
                  phase == 0 ? "," : "");
     }
     printf("};\n\n");
-    printf("// Check tuned_params.txt for PSQT tables to save console space.\n");
+
+    printf("// Tuned PSQT tables — paste into evaluation.c\n");
+    printf("const int positional_score[2][6][64] = {\n");
+    for (int phase = 0; phase < 2; phase++) {
+        printf("    {   // %s\n", phase == 0 ? "Opening" : "Endgame");
+        for (int piece = 0; piece < 6; piece++) {
+            printf("        {   // %s\n", piece_names[piece]);
+            for (int rank = 0; rank < 8; rank++) {
+                printf("            ");
+                for (int file = 0; file < 8; file++) {
+                    int sq = rank * 8 + file;
+                    printf("%d", (int)round(psqt[phase][piece][sq]));
+                    if (sq < 63 || piece < 5 || phase < 1) {
+                        printf(", ");
+                    }
+                }
+                printf("\n");
+            }
+            printf("        }%s\n", piece < 5 ? "," : "");
+        }
+        printf("    }%s\n", phase == 0 ? "," : "");
+    }
+    printf("};\n");
 }
 
 void init_tuner_threads(TunerEntry *data, int count) {
@@ -593,12 +563,7 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
 
         for (int ph = 0; ph < 2; ph++) {
             for (int pc = 0; pc < 6; pc++) {
-                // Update Material
-                m_mat[ph][pc] = beta1 * m_mat[ph][pc] + (1.0 - beta1) * grad_mat[ph][pc];
-                v_mat[ph][pc] = beta2 * v_mat[ph][pc] + (1.0 - beta2) * grad_mat[ph][pc] * grad_mat[ph][pc];
-                double m_hat_mat = m_mat[ph][pc] / (1.0 - pow(beta1, epoch));
-                double v_hat_mat = v_mat[ph][pc] / (1.0 - pow(beta2, epoch));
-                material[ph][pc] -= (int)(lr * m_hat_mat / (sqrt(v_hat_mat) + epsilon));
+                material[ph][pc] -= (lr * m_hat_mat / (sqrt(v_hat_mat) + epsilon));
 
                 // Update PSQT
                 for (int sq = 0; sq < 64; sq++) {
@@ -608,7 +573,7 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
                     double m_hat = m[ph][pc][sq] / (1.0 - pow(beta1, epoch));
                     double v_hat = v[ph][pc][sq] / (1.0 - pow(beta2, epoch));
 
-                    psqt[ph][pc][sq] -= (int)(lr * m_hat / (sqrt(v_hat) + epsilon));
+                    psqt[ph][pc][sq] -= (lr * m_hat / (sqrt(v_hat) + epsilon));
                 }
             }
         }
@@ -730,14 +695,8 @@ int main(int argc, char *argv[]) {
     printf("\nInitializing %d tuner threads...\n", num_threads);
     init_tuner_threads(data, count);
 
-    printf("Finding optimal K...\n");
-    double sigmoid_k = find_optimal_K(data, count);
-    double mse = compute_mse(data, count, sigmoid_k);
-    printf("Optimal K = %.6f\n", sigmoid_k);
-    printf("Initial MSE = %.10f\n\n", mse);
-
-    printf("Starting tuning...\n");
-    tune(data, count, sigmoid_k, 1000);
+    printf("Tuning with Fixed K = 1.13 for stability...\n");
+    tune(data, count, 1.13, 1000);
 
     print_psqt();
 
