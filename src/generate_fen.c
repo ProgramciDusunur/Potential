@@ -1,7 +1,7 @@
 #include "generate_fen.h"
 
 // Default FEN generation settings
-const int how_many_ply = 2;
+const int how_many_ply = 8;
 
 FenString get_fen(board *pos) {
     const char* pieces = "PNBRQKpnbrqk";
@@ -70,9 +70,13 @@ FenString get_fen(board *pos) {
     return result;
 }
 
-void default_fen_generation(board *pos, int current_ply) {    
+void default_fen_generation(board *pos, int current_ply, FILE *out_file) {    
     if (current_ply == how_many_ply) {
-        printf("info string genfens %s\n", get_fen(pos).str);
+        if (out_file) {
+            fprintf(out_file, "%s\n", get_fen(pos).str);
+        } else {
+            printf("info string genfens %s\n", get_fen(pos).str);
+        }
         return;
     }
 
@@ -101,7 +105,7 @@ void default_fen_generation(board *pos, int current_ply) {
     copyBoard(pos, &cp_step);
     
     if (makeMove(selected_move, allMoves, pos)) {
-        default_fen_generation(pos, current_ply + 1);
+        default_fen_generation(pos, current_ply + 1, out_file);
     }
         
     takeBack(pos, &cp_step);
