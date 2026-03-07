@@ -158,8 +158,8 @@ TunerEntry *load_data(const char *filename, int *count) {
 }
 
 int material[2][6] = {
-    { 13, 11, 6, 27, 27, 0},
-    { -6, -33, -12, -20, -79, 0}
+    { 11, 6, 5, 27, 27, 0},
+    { -6, -30, -12, -21, -79, 0}
 };
 
 const int mirror[64] = {
@@ -344,8 +344,9 @@ void* tuner_worker_thread(void* arg) {
             w->total_error = 0.0;
             for (int i = w->start_index; i < w->end_index; i++) {
                 int eval = evaluate(&w->data[i]);
+                double target = (w->data[i].side == 0) ? w->data[i].result : (1.0 - w->data[i].result);
                 double predicted = sigmoid(w->sigmoid_k, eval);
-                double error = w->data[i].result - predicted;
+                double error = target - predicted;
                 w->total_error += error * error;
             }
         } else if (job == WORK_GRAD) {
@@ -354,8 +355,9 @@ void* tuner_worker_thread(void* arg) {
             for (int i = w->start_index; i < w->end_index; i++) {
                 TunerEntry *e = &w->data[i];
                 int eval = evaluate(e);
+                double target = (e->side == 0) ? e->result : (1.0 - e->result);
                 double sig = sigmoid(w->sigmoid_k, eval);
-                double coeff = -2.0 * (e->result - sig) * sig * (1.0 - sig) * w->sigmoid_k * log(10.0) / 400.0 / w->count;
+                double coeff = -2.0 * (target - sig) * sig * (1.0 - sig) * w->sigmoid_k * log(10.0) / 400.0 / w->count;
                 if (e->side == 1) coeff = -coeff;
 
                 double mg_weight = (double)e->phase / 24.0;
@@ -397,8 +399,9 @@ double compute_mse(TunerEntry *data, int count, double sigmoid_k) {
         double total_error = 0.0;
         for (int i = 0; i < count; i++) {
             int eval = evaluate(&data[i]);
+            double target = (data[i].side == 0) ? data[i].result : (1.0 - data[i].result);
             double predicted = sigmoid(sigmoid_k, eval);
-            double error = data[i].result - predicted;
+            double error = target - predicted;
             total_error += error * error;
         }
         return total_error / count;
