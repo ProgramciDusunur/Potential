@@ -169,7 +169,6 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         }
 
         FenString fen_str = get_fen(&pos);
-        snprintf(fen_list[fen_count++], 100, "%s", fen_str.str);
 
         resetTimeControl(&time);
         time.isNodeLimit = 1;
@@ -185,8 +184,27 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         t->search_i.stopped = false;
         
         int score = searchPosition(maxPly, true, t, &time);
-
         uint16_t best_move = t->pos.pvTable[0][0];
+
+        // --- FILTERING START ---
+        bool skip_save = false;
+
+        // 1. Filter positions with mate scores
+        if (abs(score) >= mateFound) skip_save = true;
+
+        // 2. Filter positions in check
+        int in_check = isSquareAttacked((pos.side == white) ? getLS1BIndex(pos.bitboards[K]) :
+                                             getLS1BIndex(pos.bitboards[k]), pos.side ^ 1, &pos);
+        if (in_check) skip_save = true;
+
+        // 3. Filter positions where the best move is noisy (captures or promotions)
+        if (best_move != 0 && isTactical(best_move)) skip_save = true;
+
+        // Save if not filtered
+        if (!skip_save && fen_count < MAX_GAME_PLYS) {
+            snprintf(fen_list[fen_count++], 100, "%s", fen_str.str);
+        }
+        // --- FILTERING END ---
 
         // Win Adjudication (300 cp corresponds to +3 pawns on the tuned P=100 scale)
         if (abs(score) > 300) win_adj_count++; else win_adj_count = 0;
@@ -204,8 +222,6 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
             break;
         }
 
-        // printf("DEBUG: score=%d, win_adj=%d, draw_adj=%d, fifty=%d, move=%d\n", score, win_adj_count, draw_adj_count, pos.fifty, fen_count);
-        
         if (best_move == 0) {
             illegal = 1;
             break;
