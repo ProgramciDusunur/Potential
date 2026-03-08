@@ -1,15 +1,4 @@
 #include "datagen.h"
-#include "generate_fen.h"
-#include "search.h"
-#include "timeman.h"
-#include "threads.h"
-#include "perft.h"
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <pthread.h>
-#include <stdatomic.h>
-#include <inttypes.h>
 
 #define MAX_GAME_PLYS 400
 
@@ -62,6 +51,23 @@ void load_book(const char* filename) {
     fclose(f);
     printf("info string Loaded %d book positions.\n", book_size);
     pthread_mutex_unlock(&book_mutex);
+}
+
+bool filtering(board *pos, int score, uint16_t best_move) {
+    bool should_filter = false;
+
+    // 1. Filter positions with mate scores
+    if (abs(score) >= mateFound) should_filter = true;
+
+    // 2. Filter positions in check
+    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
+                                             getLS1BIndex(pos->bitboards[k]), pos->side ^ 1, pos);
+    if (in_check) should_filter = true;
+
+    // 3. Filter positions where the best move is noisy (captures or promotions)
+    if (best_move != 0 && isTactical(best_move)) should_filter = true;
+
+    return should_filter;
 }
 
 int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int use_book, ThreadData *t) {
@@ -186,19 +192,8 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         int score = searchPosition(maxPly, true, t, &time);
         uint16_t best_move = t->pos.pvTable[0][0];
 
-        // --- FILTERING START ---
-        bool skip_save = false;
-
-        // 1. Filter positions with mate scores
-        if (abs(score) >= mateFound) skip_save = true;
-
-        // 2. Filter positions in check
-        int in_check = isSquareAttacked((pos.side == white) ? getLS1BIndex(pos.bitboards[K]) :
-                                             getLS1BIndex(pos.bitboards[k]), pos.side ^ 1, &pos);
-        if (in_check) skip_save = true;
-
-        // 3. Filter positions where the best move is noisy (captures or promotions)
-        if (best_move != 0 && isTactical(best_move)) skip_save = true;
+        // --- FILTERING ---
+        bool skip_save = filtering(&pos, score, best_move);
 
         // Save if not filtered
         if (!skip_save && fen_count < MAX_GAME_PLYS) {
@@ -298,13 +293,6 @@ void datagen_worker(int thread_id, uint64_t target_games, int nodes_limit, int u
     fclose(out_file);
     fclose(illegal_file);
 }
-
-struct datagen_args {
-    int id;
-    uint64_t target;
-    int nodes;
-    int book;
-};
 
 void* datagen_worker_proxy(void* arg) {
     struct datagen_args *args = (struct datagen_args *)arg;

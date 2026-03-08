@@ -236,4 +236,13 @@ typedef struct {
     SharedHistory shared_history;
 } ThreadPool;
 
+/* DATAGEN */
+
+struct datagen_args {
+    int id;
+    uint64_t target;
+    int nodes;
+    int book;
+};
+
 #endif //POTENTIAL_STRUCTS_H
