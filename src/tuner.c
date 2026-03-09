@@ -590,8 +590,12 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
             if (last_time == 0) last_time = current_time;
             double elapsed_sec = (current_time - last_time) / 1000.0;
             double eps = (elapsed_sec > 0) ? (10.0 / elapsed_sec) : 0; // Adjusted for 10 epochs
-            printf("Epoch %d: MSE = %.10f | Speed: %.1f epochs/s\n", epoch, mse, eps);
+            printf("Epoch %d: MSE = %.10f | K = %.4f | Speed: %.1f epochs/s\n", epoch, mse, sigmoid_k, eps);
             last_time = current_time;
+        }
+
+        if (epoch % 100 == 0) {
+            sigmoid_k = find_optimal_K(data, count);
         }
     }
 
@@ -701,8 +705,10 @@ int main(int argc, char *argv[]) {
     printf("\nInitializing %d tuner threads...\n", num_threads);
     init_tuner_threads(data, count);
 
-    printf("Tuning with Fixed K = 1.13 for stability...\n");
-    tune(data, count, 1.13, 1000);
+    double initial_k = find_optimal_K(data, count);
+    printf("Initial optimal K = %.4f\n", initial_k);
+
+    tune(data, count, initial_k, 1000);
 
     print_psqt();
 
