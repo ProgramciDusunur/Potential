@@ -6,5 +6,6 @@
 #include "utils.h"
 
 
-extern void default_fen_generation(board *pos, int current_ply);
+#include <stdio.h>
+extern void default_fen_generation(board *pos, int current_ply, FILE *out_file);
 extern FenString get_fen(board *pos);

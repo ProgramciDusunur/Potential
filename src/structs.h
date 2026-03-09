@@ -145,6 +145,9 @@ typedef struct my_time_tag {
 
     // variable to flag when the time is up
     int stopped;
+
+    // flag to indicate search is for datagen instead of engine
+    bool is_datagen;
 } my_time;
 
 typedef struct  {
@@ -232,5 +235,14 @@ typedef struct {
 
     SharedHistory shared_history;
 } ThreadPool;
+
+/* DATAGEN */
+
+struct datagen_args {
+    int id;
+    uint64_t target;
+    int nodes;
+    int book;
+};
 
 #endif //POTENTIAL_STRUCTS_H
