@@ -183,15 +183,6 @@ const int king_distance_bonus = 2;
 const int opening_phase_score = 7740;
 const int endgame_phase_score = 518;
 
-// Passed Can Move Bonus
-const int passedCanMoveBonus = 5;
-
-// Bishop Pair Bonus
-const int bishop_pair_bonus_midgame = 8;
-const int bishop_pair_bonus_endgame = 48;
-
-const int bishop_pair_bonus[] = {0, 8, 15, 23, 30, 38};
-
 #include <stdint.h>
 
 typedef int64_t Score;
@@ -401,10 +392,7 @@ int evaluate(board* position) {
     if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0) score -= S(king_semi_open_file_score, king_semi_open_file_score);
     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[whiteKingSquare]) == 0) score -= S(king_open_file_score, king_open_file_score);
     if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) score += S(king_semi_open_file_score, king_semi_open_file_score);
-    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[blackKingSquare]) == 0) score += S(king_open_file_score, king_open_file_score);
-    
-    if (countBits(position->bitboards[B]) == 2) score += S(bishop_pair_bonus_midgame, bishop_pair_bonus_endgame);
-    if (countBits(position->bitboards[b]) == 2) score -= S(bishop_pair_bonus_midgame, bishop_pair_bonus_endgame);    
+    if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[blackKingSquare]) == 0) score += S(king_open_file_score, king_open_file_score);            
 
     // Unpack ve Final Interpolation
     int mg = mg_of(score);
