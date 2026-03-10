@@ -343,12 +343,10 @@ int evaluate(board* position) {
             score += packed_table[piece][square];
 
             switch (piece) {
-                case R:
-                    if ((position->bitboards[P] & fileMasks[square]) == 0) score += S(semi_open_file_score, semi_open_file_score);
+                case R:                    
                     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) score += S(rook_open_file, rook_open_file);
                     break;
-                case r:
-                    if ((position->bitboards[p] & fileMasks[square]) == 0) score -= S(semi_open_file_score, semi_open_file_score);
+                case r:                    
                     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) score -= S(rook_open_file, rook_open_file);
                     break;
             }
