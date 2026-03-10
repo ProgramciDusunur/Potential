@@ -62,14 +62,6 @@ extern const int open_file_score;
 extern const int king_semi_open_file_score;
 extern const int king_open_file_score;
 extern const int rook_file_score;
-extern const int bishop_unit;
-extern const int queen_unit;
-
-// Mobility Bonuses
-extern const int bishop_mobility_middlegame;
-extern const int bishop_mobility_endgame;
-extern const int queen_mobility_middlegame;
-extern const int queen_mobility_endgame;
 
 // King's Bonuses
 extern const int king_shield_bonus_middlegame ;
@@ -79,21 +71,6 @@ extern const int king_distance_bonus;
 // Game Phase Scores
 extern const int opening_phase_score;
 extern const int endgame_phase_score;
-
-// Knight Outpost Bonus
-extern const int knightOutpost[2][64];
-
-// Pawn Hole Bonus
-extern const int pawnHoleBonus[64];
-extern const bool pawnHoleSquareCheck[64];
-
-// Passed Can Move Bonus
-extern const int passedCanMoveBonus;
-
-// Bishop Pair Bonus
-extern const int bishop_pair_bonus_midgame;
-extern const int bishop_pair_bonus_endgame;
-extern const int bishop_pair_bonus[];
 
 extern int mg_table[12][64]; // [piece][square] -> midgame score
 extern int eg_table[12][64]; // [piece][square] -> endgame score

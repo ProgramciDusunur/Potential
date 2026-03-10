@@ -168,12 +168,6 @@ const int king_semi_open_file_score = 10;
 const int king_open_file_score = 20;
 const int rook_open_file = 10;
 
-// Mobility Bonuses
-const int bishop_mobility_middlegame = 5;
-const int bishop_mobility_endgame = 10;
-const int queen_mobility_middlegame = 1;
-const int queen_mobility_endgame = 2;
-
 // King's Bonuses
 const int king_shield_bonus_middlegame = 6;
 const int king_shield_bonus_endgame = 2;
@@ -348,9 +342,7 @@ int evaluate(board* position) {
             const int square = getLS1BIndex(bitboard);
             score += packed_table[piece][square];
 
-            switch (piece) {                
-                case B: score += S(countBits(getBishopAttacks(square, position->occupancies[both])), countBits(getBishopAttacks(square, position->occupancies[both]))); break;
-                case b: score -= S(countBits(getBishopAttacks(square, position->occupancies[both])), countBits(getBishopAttacks(square, position->occupancies[both]))); break;
+            switch (piece) {
                 case R:
                     if ((position->bitboards[P] & fileMasks[square]) == 0) score += S(semi_open_file_score, semi_open_file_score);
                     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[square]) == 0) score += S(rook_open_file, rook_open_file);
