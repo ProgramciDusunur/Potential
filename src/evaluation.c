@@ -429,8 +429,7 @@ int evaluate(board* position) {
     get_threats(position->side, position);
 
     const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
-    const int blackKingSquare = getLS1BIndex(position->bitboards[k]);
-    int passed_pawn_count = 0;
+    const int blackKingSquare = getLS1BIndex(position->bitboards[k]);    
     
     for (int piece = P; piece <= k; piece++) {
         U64 bitboard = position->bitboards[piece];
@@ -438,17 +437,7 @@ int evaluate(board* position) {
             const int square = getLS1BIndex(bitboard);
             score += packed_table[piece][square];
 
-            switch (piece) {
-                case P:
-                    if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
-                        passed_pawn_count++;                        
-                    }
-                    break;
-                case p:
-                    if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
-                        passed_pawn_count--;                       
-                    }
-                    break;
+            switch (piece) {                
                 case B: score += S(countBits(getBishopAttacks(square, position->occupancies[both])), countBits(getBishopAttacks(square, position->occupancies[both]))); break;
                 case b: score -= S(countBits(getBishopAttacks(square, position->occupancies[both])), countBits(getBishopAttacks(square, position->occupancies[both]))); break;
                 case R:
@@ -498,7 +487,7 @@ int evaluate(board* position) {
     if (countBits(position->bitboards[b]) == 2) score -= S(bishop_pair_bonus_midgame, bishop_pair_bonus_endgame);
 
     // Winnable Score
-    int winnable = 6 * passed_pawn_count + 8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]));
+    int winnable = 8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]));
     score += S(winnable, winnable);
 
     // Unpack ve Final Interpolation
