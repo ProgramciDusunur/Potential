@@ -441,16 +441,12 @@ int evaluate(board* position) {
             switch (piece) {
                 case P:
                     if ((whitePassedMasks[square] & position->bitboards[p]) == 0) {
-                        passed_pawn_count++;
-                        if (!(getBit(position->occupancies[both], (square - 8))))
-                            score += S(passedCanMoveBonus, passedCanMoveBonus);
+                        passed_pawn_count++;                        
                     }
                     break;
                 case p:
                     if ((blackPassedMasks[square] & position->bitboards[P]) == 0) {
-                        passed_pawn_count--;
-                        if (!(getBit(position->occupancies[both], (square + 8))))
-                            score -= S(passedCanMoveBonus, passedCanMoveBonus);
+                        passed_pawn_count--;                       
                     }
                     break;
                 case B: score += S(countBits(getBishopAttacks(square, position->occupancies[both])), countBits(getBishopAttacks(square, position->occupancies[both]))); break;
