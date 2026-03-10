@@ -161,92 +161,12 @@ const int positional_score[2][6][64] = {
     }
 };
 
-
-
-
-
-
-
-// Pawn Penalties and Bonuses
-const int double_pawn_penalty_opening = -5;
-const int double_pawn_penalty_endgame = -10;
-const int isolated_pawn_penalty_opening = -5;
-const int isolated_pawn_penalty_endgame = -10;
-
-// passed pawn bonus
-const int passed_pawn_bonus_middle[64] = { 0, 0, 0, 0, 0, 0, 0, 0,
-                                                  36, 42, 42, 42, 42, 42, 42, 36,
-                                                  14, 17, 17, 17, 17, 17, 17, 14,
-                                                  5, 7, 7, 7, 7, 7, 7, 5,
-                                                  0, 0, 0, 0, 0, 0, 0, 0,
-                                                  0, 0, 0, 0, 0, 0, 0, 0,
-                                                  0, 0, 0, 0, 0, 0, 0, 0,
-                                                  0, 0, 0, 0, 0, 0, 0, 0,};
-
-const int passed_pawn_bonus_endgame[64] = {0, 0, 0, 0, 0, 0, 0, 0,
-                                                  80, 85, 90, 103, 103, 90, 85, 80,
-                                                  20, 27, 30, 34, 34, 30, 27, 20,
-                                                  10, 12, 15, 20, 20, 15, 12, 10,
-                                                  0, 10, 10, 10, 10, 10, 10, 0,
-                                                  -3, 0, 0, 0, 0, 0, 0, 0,
-                                                  -2, 0, 0, 0, 0, 0, -1, -2,
-                                                  0, 0, 0, 0, 0, 0, 0, 0};
-
-// Pawn Hole Bonus [square]
-const int pawnHoleBonus[64] = {
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 1, 1, 1, 1, 0, 0,
-        0, 0, 1, 2, 2, 1, 0, 0,
-        0, 0, 1, 1, 1, 1, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-};
-
-// Pawn hole knight check [square]
-const bool pawnHoleSquareCheck[64] = {
-        0, 0, 0, 0, 0, 0, 0, 0,
-        0, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 0,
-        0, 0, 0, 0, 0, 0, 0, 0,
-};
-
-
-// Knight Evaluation
-const int knightOutpost[2][64] = {
-        {   0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 1, 1, 1, 1, 0, 0,
-                0, 1, 3, 3, 3, 3, 1, 0,
-                0, 2, 1, 6, 3, 4, 2, 0,
-                0, 0, 3, 0, 3, 3, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-        },
-        {   0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 1, 0, 3, 0, 0, 0, 0,
-                0, 2, 2, 3, 6, 1, 2, 0,
-                0, 1, 0, 3, 2, 0, 1, 0,
-                0, 0, 1, 0, 1, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0,
-        },
-};
-
 // File and Mobility Scores
 const int semi_open_file_score = 10;
 const int open_file_score = 15;
 const int king_semi_open_file_score = 10;
 const int king_open_file_score = 20;
 const int rook_open_file = 10;
-const int bishop_unit = 4;
-const int queen_unit = 9;
 
 // Mobility Bonuses
 const int bishop_mobility_middlegame = 5;
@@ -484,11 +404,7 @@ int evaluate(board* position) {
     if (((position->bitboards[P] | position->bitboards[p]) & fileMasks[blackKingSquare]) == 0) score += S(king_open_file_score, king_open_file_score);
     
     if (countBits(position->bitboards[B]) == 2) score += S(bishop_pair_bonus_midgame, bishop_pair_bonus_endgame);
-    if (countBits(position->bitboards[b]) == 2) score -= S(bishop_pair_bonus_midgame, bishop_pair_bonus_endgame);
-
-    // Winnable Score
-    int winnable = 8 * (countBits(position->bitboards[P]) - countBits(position->bitboards[p]));
-    score += S(winnable, winnable);
+    if (countBits(position->bitboards[b]) == 2) score -= S(bishop_pair_bonus_midgame, bishop_pair_bonus_endgame);    
 
     // Unpack ve Final Interpolation
     int mg = mg_of(score);
