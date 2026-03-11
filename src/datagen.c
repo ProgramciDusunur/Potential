@@ -53,6 +53,16 @@ void load_book(const char* filename) {
     pthread_mutex_unlock(&book_mutex);
 }
 
+const int phase_value[12] = { 0, 1, 1, 2, 4, 0, 0, 1, 1, 2, 4, 0 };
+
+inline int get_phase(board *pos) {
+    int phase = 0;
+    for (int p = N; p <= Q; p++) phase += countBits(pos->bitboards[p]) * phase_value[p];
+    for (int p = n; p <= q; p++) phase += countBits(pos->bitboards[p]) * phase_value[p];
+    if (phase > 24) phase = 24;
+    return phase;
+}
+
 bool filtering(board *pos, int score, uint16_t best_move) {
     bool should_filter = false;
 
@@ -66,6 +76,18 @@ bool filtering(board *pos, int score, uint16_t best_move) {
 
     // 3. Filter positions where the best move is noisy (captures or promotions)
     if (best_move != 0 && isTactical(best_move)) should_filter = true;
+
+    // 4. Phase Distribution Resampling
+    if (!should_filter) {
+        int phase = get_phase(pos);
+        // Phase 24 -> 100% keep. Phase 0 -> ~15% keep.
+        double keep_prob = 0.15 + (0.85 * (double)phase / 24.0); 
+        double rand_val = (get_random_uint64_number() % 1000) / 1000.0;
+        
+        if (rand_val > keep_prob) {
+            should_filter = true;
+        }
+    }
 
     return should_filter;
 }
@@ -244,7 +266,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         }
     }
 
-    return fen_count;
+    return illegal ? 0 : fen_count;
 }
 
 void datagen_worker(int thread_id, uint64_t target_games, int nodes_limit, int use_book) {
