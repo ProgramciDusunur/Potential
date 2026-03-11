@@ -701,8 +701,12 @@ int main(int argc, char *argv[]) {
     printf("\nInitializing %d tuner threads...\n", num_threads);
     init_tuner_threads(data, count);
 
-    printf("Tuning with Fixed K = 1.13 for stability...\n");
-    tune(data, count, 1.13, 1000);
+    printf("Calculating optimal K based on %.1f Avg Phase data...\n", (double)phase_sum / count);
+    double optimal_k = find_optimal_K(data, count);
+    printf("Optimal K for this dataset is %.5f\n", optimal_k);
+
+    printf("Tuning with Dynamic K = %.5f...\n", optimal_k);
+    tune(data, count, optimal_k, 1000);
 
     print_psqt();
 
