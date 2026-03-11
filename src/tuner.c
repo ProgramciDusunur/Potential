@@ -28,6 +28,7 @@ typedef struct {
     int side;
     int phase;
     double result;
+    int score;
 } TunerEntry;
 
 typedef enum { WORK_NONE, WORK_MSE, WORK_GRAD, WORK_QUIT } WorkType;
@@ -114,10 +115,18 @@ int parse_entry(const char *line, TunerEntry *entry) {
     }
     if (entry->phase > 24) entry->phase = 24;
 
-    const char *pipe = strstr(line, "|");
-    if (pipe) {
-        entry->result = atof(pipe + 1);
-        if (strstr(pipe, "Illegal")) return 0;
+    const char *first_pipe = strstr(line, "|");
+    if (first_pipe) {
+        const char *second_pipe = strstr(first_pipe + 1, "|");
+        if (second_pipe) {
+            entry->score = atoi(first_pipe + 1);
+            entry->result = atof(second_pipe + 1);
+            if (strstr(second_pipe, "Illegal")) return 0;
+        } else {
+            entry->result = atof(first_pipe + 1);
+            entry->score = 0;
+            if (strstr(first_pipe, "Illegal")) return 0;
+        }
     } else {
         const char *bracket_start = strstr(line, "[");
         const char *bracket_end = strstr(line, "]");
@@ -365,7 +374,8 @@ void* tuner_worker_thread(void* arg) {
             w->total_error = 0.0;
             for (int i = w->start_index; i < w->end_index; i++) {
                 int eval = evaluate(&w->data[i]);
-                double target = (w->data[i].side == 0) ? w->data[i].result : (1.0 - w->data[i].result);
+                double wdl_target = (w->data[i].side == 0) ? w->data[i].result : (1.0 - w->data[i].result);
+                double target = 0.75 * wdl_target + 0.25 * sigmoid(w->sigmoid_k, w->data[i].score);
                 double predicted = sigmoid(w->sigmoid_k, eval);
                 double error = target - predicted;
                 w->total_error += error * error;
@@ -376,7 +386,8 @@ void* tuner_worker_thread(void* arg) {
             for (int i = w->start_index; i < w->end_index; i++) {
                 TunerEntry *e = &w->data[i];
                 int eval = evaluate(e);
-                double target = (e->side == 0) ? e->result : (1.0 - e->result);
+                double wdl_target = (e->side == 0) ? e->result : (1.0 - e->result);
+                double target = 0.75 * wdl_target + 0.25 * sigmoid(w->sigmoid_k, e->score);
                 double sig = sigmoid(w->sigmoid_k, eval);
                 double coeff = -2.0 * (target - sig) * sig * (1.0 - sig) * w->sigmoid_k * log(10.0) / 400.0 / w->count;
                 if (e->side == 1) coeff = -coeff;
@@ -420,7 +431,8 @@ double compute_mse(TunerEntry *data, int count, double sigmoid_k) {
         double total_error = 0.0;
         for (int i = 0; i < count; i++) {
             int eval = evaluate(&data[i]);
-            double target = (data[i].side == 0) ? data[i].result : (1.0 - data[i].result);
+            double wdl_target = (data[i].side == 0) ? data[i].result : (1.0 - data[i].result);
+            double target = 0.75 * wdl_target + 0.25 * sigmoid(sigmoid_k, data[i].score);
             double predicted = sigmoid(sigmoid_k, eval);
             double error = target - predicted;
             total_error += error * error;

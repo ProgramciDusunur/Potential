@@ -75,19 +75,7 @@ bool filtering(board *pos, int score, uint16_t best_move) {
     if (in_check) should_filter = true;
 
     // 3. Filter positions where the best move is noisy (captures or promotions)
-    if (best_move != 0 && isTactical(best_move)) should_filter = true;
-
-    // 4. Phase Distribution Resampling
-    if (!should_filter) {
-        int phase = get_phase(pos);
-        // Phase 24 -> 100% keep. Phase 0 -> ~15% keep.
-        double keep_prob = 0.15 + (0.85 * (double)phase / 24.0); 
-        double rand_val = (get_random_uint64_number() % 1000) / 1000.0;
-        
-        if (rand_val > keep_prob) {
-            should_filter = true;
-        }
-    }
+    if (best_move != 0 && isTactical(best_move)) should_filter = true;    
 
     return should_filter;
 }
@@ -137,6 +125,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
     pos.repetitionTable[pos.repetitionIndex++] = pos.hashKey;
 
     char fen_list[MAX_GAME_PLYS][100];
+    int score_list[MAX_GAME_PLYS];
     int fen_count = 0;
     
     my_time time;
@@ -219,13 +208,15 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
 
         // Save if not filtered
         if (!skip_save && fen_count < MAX_GAME_PLYS) {
-            snprintf(fen_list[fen_count++], 100, "%s", fen_str.str);
+            snprintf(fen_list[fen_count], 100, "%s", fen_str.str);
+            score_list[fen_count] = score;
+            fen_count++;
         }
         // --- FILTERING END ---
 
-        // Win Adjudication (2000 cp strictly to avoid false positives in complex middlegames)
-        if (abs(score) >= 2000) win_adj_count++; else win_adj_count = 0;
-        if (win_adj_count >= 5) {
+        // Win Adjudication (300 cp corresponds to +3 pawns on the tuned P=100 scale)
+        if (abs(score) > 300) win_adj_count++; else win_adj_count = 0;
+        if (win_adj_count >= 4) {
             result = score > 0 ? (pos.side == white ? 1.0 : 0.0) : (pos.side == white ? 0.0 : 1.0);
             game_over = 1;
             break;
@@ -262,7 +253,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         if (illegal) {
             fprintf(illegal_file, "%s | Illegal Move\n", fen_list[i]);
         } else {
-            fprintf(out_file, "%s | %.1f\n", fen_list[i], result);
+            fprintf(out_file, "%s | %d | %.1f\n", fen_list[i], score_list[i], result);
         }
     }
 
