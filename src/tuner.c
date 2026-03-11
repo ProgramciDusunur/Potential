@@ -375,7 +375,7 @@ void* tuner_worker_thread(void* arg) {
             for (int i = w->start_index; i < w->end_index; i++) {
                 int eval = evaluate(&w->data[i]);
                 double wdl_target = (w->data[i].side == 0) ? w->data[i].result : (1.0 - w->data[i].result);
-                double target = 0.75 * wdl_target + 0.25 * sigmoid(w->sigmoid_k, w->data[i].score);
+                double target = 0.5 * wdl_target + 0.5 * sigmoid(1.13, w->data[i].score);
                 double predicted = sigmoid(w->sigmoid_k, eval);
                 double error = target - predicted;
                 w->total_error += error * error;
@@ -387,7 +387,7 @@ void* tuner_worker_thread(void* arg) {
                 TunerEntry *e = &w->data[i];
                 int eval = evaluate(e);
                 double wdl_target = (e->side == 0) ? e->result : (1.0 - e->result);
-                double target = 0.75 * wdl_target + 0.25 * sigmoid(w->sigmoid_k, e->score);
+                double target = 0.5 * wdl_target + 0.5 * sigmoid(1.13, e->score);
                 double sig = sigmoid(w->sigmoid_k, eval);
                 double coeff = -2.0 * (target - sig) * sig * (1.0 - sig) * w->sigmoid_k * log(10.0) / 400.0 / w->count;
                 if (e->side == 1) coeff = -coeff;
@@ -432,7 +432,7 @@ double compute_mse(TunerEntry *data, int count, double sigmoid_k) {
         for (int i = 0; i < count; i++) {
             int eval = evaluate(&data[i]);
             double wdl_target = (data[i].side == 0) ? data[i].result : (1.0 - data[i].result);
-            double target = 0.75 * wdl_target + 0.25 * sigmoid(sigmoid_k, data[i].score);
+            double target = 0.5 * wdl_target + 0.5 * sigmoid(1.13, data[i].score);
             double predicted = sigmoid(sigmoid_k, eval);
             double error = target - predicted;
             total_error += error * error;
