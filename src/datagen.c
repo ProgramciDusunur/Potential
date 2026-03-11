@@ -1,4 +1,5 @@
 #include "datagen.h"
+#include "evaluation.h"
 
 #define MAX_GAME_PLYS 400
 
@@ -53,11 +54,11 @@ void load_book(const char* filename) {
     pthread_mutex_unlock(&book_mutex);
 }
 
-bool filtering(board *pos, int score, uint16_t best_move) {
+bool filtering(board *pos, int search_score, uint16_t best_move) {
     bool should_filter = false;
 
     // 1. Filter positions with mate scores
-    if (abs(score) >= mateFound) should_filter = true;
+    if (abs(search_score) >= mateFound) should_filter = true;
 
     // 2. Filter positions in check
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
@@ -66,6 +67,10 @@ bool filtering(board *pos, int score, uint16_t best_move) {
 
     // 3. Filter positions where the best move is noisy (captures or promotions)
     if (best_move != 0 && isTactical(best_move)) should_filter = true;
+
+    // 4. Quiet Position Threshold (Filter FENs where Static Eval differs from Search Eval by > 100cp)
+    int static_eval = evaluate(pos);
+    if (abs(static_eval - search_score) > 100) should_filter = true;    
 
     return should_filter;
 }
@@ -244,7 +249,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         }
     }
 
-    return fen_count;
+    return illegal ? 0 : fen_count;
 }
 
 void datagen_worker(int thread_id, uint64_t target_games, int nodes_limit, int use_book) {
