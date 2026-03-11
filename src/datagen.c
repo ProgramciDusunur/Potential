@@ -223,9 +223,9 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         }
         // --- FILTERING END ---
 
-        // Win Adjudication (300 cp corresponds to +3 pawns on the tuned P=100 scale)
-        if (abs(score) > 300) win_adj_count++; else win_adj_count = 0;
-        if (win_adj_count >= 4) {
+        // Win Adjudication (2000 cp strictly to avoid false positives in complex middlegames)
+        if (abs(score) >= 2000) win_adj_count++; else win_adj_count = 0;
+        if (win_adj_count >= 5) {
             result = score > 0 ? (pos.side == white ? 1.0 : 0.0) : (pos.side == white ? 0.0 : 1.0);
             game_over = 1;
             break;
