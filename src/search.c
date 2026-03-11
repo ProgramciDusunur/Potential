@@ -1136,7 +1136,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     // razoring
     if (!ss->singular_move &&
-        !pvNode && !in_check && depth <= RAZORING_DEPTH) {
+        !pvNode && !in_check && depth <= RAZORING_DEPTH && tt_capture) {
         int max_razor_index = 4;
         int razor_depth = myMIN(myMIN(depth, RAZORING_DEPTH), max_razor_index);
 
