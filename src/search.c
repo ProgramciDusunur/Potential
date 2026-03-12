@@ -786,16 +786,23 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         alpha = evaluation;
     }
 
+    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
+                                    getLS1BIndex(position->bitboards[k]),
+                                    position->side ^ 1, position);
+
     // create move list instance
     moves moveList[1];
 
-    // generate moves
-    noisyGenerator(moveList, position);
+    if (in_check) {
+        moveGenerator(moveList, position);
+    } else {
+        noisyGenerator(moveList, position);
+    }    
 
     int futilityValue = bestScore + 100;
 
     // legal moves counter
-    //int legal_moves = 0;
+    int legal_moves = 0;
 
     int move_scores[256];
     init_quiescence_scores(moveList, move_scores, position);
@@ -828,7 +835,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
         // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], onlyCaptures, position) == 0) {
+        if (makeMove(moveList->moves[count], in_check ? allMoves : onlyCaptures, position) == 0) {
             // decrement ply
             position->ply--;
 
@@ -839,7 +846,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
             continue;
         }
 
-        //legal_moves++;
+        legal_moves++;
 
         // increment nodes count
         inc_rlx(t->search_i.nodes_searched);
@@ -877,6 +884,14 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
                 break;
             }
         }
+    }
+
+    // we don't have any legal moves to make in the current postion
+    if (legal_moves == 0) {
+        // king is in check
+        if (in_check)
+            // return mating score (assuming closest distance to mating pos)
+            return -mateValue + position->ply;     
     }
 
     uint8_t hashFlag = hashFlagNone;
