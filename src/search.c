@@ -1335,6 +1335,15 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             history_adj = clamp(history_adj, -6, 6);
             lmpThreshold += history_adj;
 
+            // adaptive LMP adjustments
+            int adaptive = clamp(ttAdjustedEval - beta - 20, -200, 200);
+            int factor0 = 150 * adaptive / 32 + 2048;
+            int factor1 = 64 * adaptive / 32 + 660;
+
+            int final_adaptive_threshold = (factor0 + factor1) / 1024;
+            lmpThreshold += final_adaptive_threshold;
+            
+
             // Late Move Pruning
             if (legal_moves>= lmpThreshold) {
                 continue;
