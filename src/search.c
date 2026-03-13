@@ -773,17 +773,27 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
     score = bestScore = tt_hit ? tt_score : evaluation;
 
+    int ttAdjustedEval = evaluation;
+
+    if (tt_move &&
+        (tt_flag == hashFlagExact ||
+         (tt_flag == hashFlagAlpha && tt_score >= evaluation) ||
+         (tt_flag == hashFlagBeta && tt_score <= evaluation))) {
+
+        ttAdjustedEval = tt_score;
+    }
+
     // fail-hard beta cutoff
-    if (evaluation >= beta) {
+    if (ttAdjustedEval >= beta) {
         // node (move) fails high
-        return evaluation;
+        return ttAdjustedEval;
     }
 
 
     // found a better move
-    if (evaluation > alpha) {
+    if (ttAdjustedEval > alpha) {
         // PV node (move)
-        alpha = evaluation;
+        alpha = ttAdjustedEval;
     }
 
     // create move list instance
