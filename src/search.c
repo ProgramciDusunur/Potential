@@ -813,6 +813,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         uint16_t move = moveList->moves[count];
 
         if (bestScore > -mateFound && !in_check) {
+            // QS SEE Pruning
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
             }
