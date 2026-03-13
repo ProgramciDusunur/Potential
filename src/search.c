@@ -1027,6 +1027,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     improving |= ss->staticEval >= beta + 100;
 
+    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
+
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
     rfpMargin += 6 * depth * depth;
@@ -1036,7 +1038,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // Reverse Futility Pruning
     if (!ss->singular_move && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
-        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
+        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20 - 16 * enemy_has_no_threats)
         return ttAdjustedEval;
 
     // Null Move Pruning
@@ -1262,10 +1264,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     if (!ss->singular_move && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
         tt_score >= small_probcut_beta && abs(tt_score) < mateValue && abs(beta) < mateValue) {
             return small_probcut_beta;            
-    }
-
-    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
-
+    }    
 
     // create move list instance
     moves moveList[1], badQuiets[1], noisyMoves[1];
