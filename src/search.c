@@ -966,6 +966,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             return alpha;
     }
 
+    int prior_reduction = (ss - 1)->lmr_reduction;
+    (ss - 1)->lmr_reduction = 0;
+
+    // Hindsight reduction
+    if (prior_reduction >= 2 && depth >= 2 && ss->staticEval + (ss - 1)->staticEval > 200) {
+        depth--;
+    }
+
     // read hash entry
     if (!ss->singular_move && !rootNode &&
         (tt_hit =
@@ -1000,7 +1008,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int static_eval = adjust_eval_with_corrhist(t, raw_eval, ss);
 
     bool improving = false;
-    bool tt_capture = tt_move && getMoveCapture(tt_move);
+    bool tt_capture = tt_move && getMoveCapture(tt_move);    
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
@@ -1594,7 +1602,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
+            ss->lmr_reduction = reduced_depth;
             score = -negamax(-alpha - 1, -alpha, reduced_depth, t, time, ss + 1, true);
+            ss->lmr_reduction = 0;
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
