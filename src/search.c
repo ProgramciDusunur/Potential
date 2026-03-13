@@ -773,6 +773,15 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
     score = bestScore = tt_hit ? tt_score : evaluation;
 
+    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
+                                    getLS1BIndex(position->bitboards[k]),
+                                    position->side ^ 1, position);
+
+    if (in_check) {
+        evaluation = -mateValue;
+    }
+
+
     // fail-hard beta cutoff
     if (evaluation >= beta) {
         // node (move) fails high
@@ -786,9 +795,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         alpha = evaluation;
     }
 
-    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
-                                    getLS1BIndex(position->bitboards[k]),
-                                    position->side ^ 1, position);
+    
 
     // create move list instance
     moves moveList[1];
@@ -812,7 +819,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         pick_next_move(count, moveList, move_scores);
         uint16_t move = moveList->moves[count];
 
-        if (bestScore > -mateFound && !in_check) {
+        if (bestScore > -mateFound) {
             // QS SEE Pruning
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
