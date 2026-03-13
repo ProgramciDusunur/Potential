@@ -1251,7 +1251,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 if (probcut_value >= probcut_beta) {
                     writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos, pos->fifty);
-                    return probcut_value;
+                    return (probcut_value * 3 + beta) / 4;
                 }
             }
     }
