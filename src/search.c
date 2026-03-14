@@ -1616,17 +1616,26 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
+            int full_depth_reduction = new_depth * 1024;
+
+            if (notTactical) {
+                int moveHistoryReduction = moveHistory / 32768;
+                full_depth_reduction -= clamp(moveHistoryReduction, -1024, 1024);
+            }            
+
             if (!rootNode && currentMove == tt_move && tt_score < alpha && tt_flag == hashFlagBeta) {
-                new_depth -= 1;
+                full_depth_reduction -= 1024;
             }
 
             // if we have chance about to dive into quiescence search then extend
             if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
-                new_depth = myMAX(new_depth, 1);
+                full_depth_reduction = myMAX(full_depth_reduction, 1024);
             }
+
+            full_depth_reduction /= 1024;
             
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, new_depth, t, time, ss + 1, false);
+            score = -negamax(-beta, -alpha, full_depth_reduction, t, time, ss + 1, false);
         }
 
         // decrement ply
