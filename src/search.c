@@ -1618,8 +1618,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (pvNode && (legal_moves == 1 || score > alpha)) {
             int full_depth_reduction = new_depth * 1024;
 
-            if (notTactical) {
-                int moveHistoryReduction = moveHistory / 32768;
+            if (notTactical && legal_moves >= 3) {                
+                int moveHistoryReduction = moveHistory / 24576;
                 full_depth_reduction -= clamp(moveHistoryReduction, -1024, 1024);
             }            
 
