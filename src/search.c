@@ -1678,9 +1678,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
-                        int history_depth = depth;
+                        int history_depth = depth * 1024;
 
-                        history_depth += (!in_check && ttAdjustedEval <= alpha);
+                        history_depth += (!in_check && ttAdjustedEval <= alpha) * 1024;
+
+                        history_depth /= 1024;
 
                         updateQuietMoveHistory(t, bestMove, pos->side, history_depth, badQuiets);
                         updateContinuationHistory(t, bestMove, history_depth, badQuiets, quiet_history_score, ss);
