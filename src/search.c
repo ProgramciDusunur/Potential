@@ -970,7 +970,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     (ss - 1)->lmr_reduction = 0;
 
     // Hindsight reduction
-    if (prior_reduction >= 2 && depth >= 2 && ss->staticEval + (ss - 1)->staticEval > 200) {
+    if (prior_reduction >= 2 && depth >= 4 && ss->staticEval + (ss - 1)->staticEval > 200) {
         depth--;
     }
 
