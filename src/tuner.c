@@ -5,6 +5,8 @@
 #include <dirent.h>
 #include <pthread.h>
 #include <time.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #define MAX_THREADS 16
 int num_threads = 4;
@@ -24,8 +26,8 @@ int char_to_piece(char c) {
 }
 
 typedef struct {
-    int pieces[64];
-    int side;
+    uint8_t pieces[64];
+    bool side;
     int phase;
     double result;
 } TunerEntry;
