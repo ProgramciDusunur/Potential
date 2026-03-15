@@ -55,6 +55,7 @@ void load_book(const char* filename) {
 
 bool filtering(board *pos, int score, uint16_t best_move) {
     bool should_filter = false;
+    bool quiet_move = !isTactical(best_move);
 
     // 1. Filter positions with mate scores
     if (abs(score) >= mateFound) should_filter = true;
@@ -65,10 +66,10 @@ bool filtering(board *pos, int score, uint16_t best_move) {
     if (in_check) should_filter = true;
 
     // 3. Filter positions where the best move is noisy (captures or promotions)
-    if (best_move != 0 && isTactical(best_move)) should_filter = true;
+    if (best_move != 0 && !quiet_move) should_filter = true;
 
     // 4. Filter uncertain "quiet" positions with high search score
-    if (best_move == 0 && abs(score) > 300) should_filter = true;
+    if (best_move != 0 && quiet_move && abs(score) > 300) should_filter = true;
 
     return should_filter;
 }
