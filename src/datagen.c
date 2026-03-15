@@ -67,6 +67,9 @@ bool filtering(board *pos, int score, uint16_t best_move) {
     // 3. Filter positions where the best move is noisy (captures or promotions)
     if (best_move != 0 && isTactical(best_move)) should_filter = true;
 
+    // 4. Filter uncertain "quiet" positions with high search score
+    if (best_move == 0 && abs(score) > 300) should_filter = true;
+
     return should_filter;
 }
 
@@ -244,7 +247,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         }
     }
 
-    return fen_count;
+    return illegal ? 0 : fen_count;
 }
 
 void datagen_worker(int thread_id, uint64_t target_games, int nodes_limit, int use_book) {
