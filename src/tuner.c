@@ -534,6 +534,10 @@ void stop_tuner_threads() {
 
 void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
     double lr = 1.0;
+    double min_lr = 0.01;
+    double decay_rate = 0.5;
+    int drop_every = 200; // Halve the learning rate every 200 epochs
+
     double beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8;
 
     double grad[2][6][64] = {{{0}}};
@@ -545,6 +549,10 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
     double v_mat[2][6] = {{0}};
 
     for (int epoch = 1; epoch <= max_epochs; epoch++) {
+        // Step decay for learning rate
+        double current_lr = lr * pow(decay_rate, floor((epoch - 1) / (double)drop_every));
+        if (current_lr < min_lr) current_lr = min_lr;
+
         memset(grad, 0, sizeof(grad));
         memset(grad_mat, 0, sizeof(grad_mat));
 
@@ -569,7 +577,7 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
                 v_mat[ph][pc] = beta2 * v_mat[ph][pc] + (1.0 - beta2) * grad_mat[ph][pc] * grad_mat[ph][pc];
                 double m_hat_mat = m_mat[ph][pc] / (1.0 - pow(beta1, epoch));
                 double v_hat_mat = v_mat[ph][pc] / (1.0 - pow(beta2, epoch));
-                material[ph][pc] -= (lr * m_hat_mat / (sqrt(v_hat_mat) + epsilon));
+                material[ph][pc] -= (current_lr * m_hat_mat / (sqrt(v_hat_mat) + epsilon));
 
                 // Update PSQT
                 for (int sq = 0; sq < 64; sq++) {
@@ -579,7 +587,7 @@ void tune(TunerEntry *data, int count, double sigmoid_k, int max_epochs) {
                     double m_hat = m[ph][pc][sq] / (1.0 - pow(beta1, epoch));
                     double v_hat = v[ph][pc][sq] / (1.0 - pow(beta2, epoch));
 
-                    psqt[ph][pc][sq] -= (lr * m_hat / (sqrt(v_hat) + epsilon));
+                    psqt[ph][pc][sq] -= (current_lr * m_hat / (sqrt(v_hat) + epsilon));
                 }
             }
         }
