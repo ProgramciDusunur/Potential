@@ -1615,27 +1615,27 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !cutNode);
         }
 
-        if (pvNode && (legal_moves == 1 || score > alpha)) {
-            int full_depth_reduction = new_depth * 1024;
+        if (pvNode && (legal_moves == 1 || score > alpha)) {                   
+            int full_depth_reduction = 0;
 
-            if (notTactical && legal_moves >= 3) {                
-                int moveHistoryReduction = moveHistory / 8192;                
-                full_depth_reduction += clamp(moveHistoryReduction * 1024, -2048, 2048);
-            }            
+            if (notTactical && legal_moves >= 2) {
+                int moveHistoryReduction = moveHistory * 1024 / 8192;                
+                full_depth_reduction -= clamp(moveHistoryReduction, -2048, 2048);
+            }
 
             if (!rootNode && currentMove == tt_move && tt_score < alpha && tt_flag == hashFlagBeta) {
-                full_depth_reduction -= 1024;
+                full_depth_reduction += 1024;
             }
+            
+            int reduced_depth = new_depth - full_depth_reduction / 1024;
 
             // if we have chance about to dive into quiescence search then extend
             if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
-                full_depth_reduction = myMAX(full_depth_reduction, 1024);
+                reduced_depth = myMAX(reduced_depth, 1);
             }
 
-            full_depth_reduction /= 1024;
-            
             // do normal alpha beta search
-            score = -negamax(-beta, -alpha, full_depth_reduction, t, time, ss + 1, false);
+            score = -negamax(-beta, -alpha, reduced_depth, t, time, ss + 1, false);        
         }
 
         // decrement ply
