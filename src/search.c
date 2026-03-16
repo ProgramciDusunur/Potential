@@ -1619,8 +1619,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             int full_depth_reduction = 0;
 
             if (notTactical && legal_moves >= 2) {
-                int moveHistoryReduction = moveHistory * 1024 / 8192;                
-                full_depth_reduction -= clamp(moveHistoryReduction, -2048, 2048);
+                int moveHistoryReduction = moveHistory * 1024 / 16384;                
+                full_depth_reduction -= clamp(moveHistoryReduction, -3072, 3072);
             }
 
             if (!rootNode && currentMove == tt_move && tt_score < alpha && tt_flag == hashFlagBeta) {
