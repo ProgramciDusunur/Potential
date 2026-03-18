@@ -1734,6 +1734,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             update_non_pawn_corrhist(t, depth, corrhistBonus);
             update_continuation_corrhist(t, depth, corrhistBonus, ss);
             update_king_rook_pawn_corrhist(t, depth, corrhistBonus);
+            update_king_bishop_pawn_corrhist(t, depth, corrhistBonus);
         }
 
         // store hash entry with the score equal to alpha

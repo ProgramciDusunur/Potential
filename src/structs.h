@@ -38,6 +38,7 @@ typedef struct {
     U64 whiteNonPawnKey;
     U64 blackNonPawnKey;
     U64 krpKey;
+    U64 kbpKey;
     uint8_t mailbox[64];
     int side;
     int castle;
@@ -77,6 +78,7 @@ struct copyposition {
     U64 whiteNonPawnKey;
     U64 blackNonPawnKey;
     U64 krpKey;
+    U64 kbpKey;
     uint8_t mailbox[64];
     int side;
     int castle;
@@ -205,6 +207,9 @@ typedef struct {
 
     // king rook pawn correction history [side to move][key]
     int16_t krp_corrhist[2][16384];
+
+    // king bishop pawn correction history [side to move][key]
+    int16_t kbp_corrhist[2][16384];
 } SharedHistory;
 
 typedef struct {
