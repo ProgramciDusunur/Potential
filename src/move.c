@@ -95,7 +95,7 @@ bool isKRP(int piece) {
 }
 
 bool isKBP(int piece) {
-    return piece == K || piece == k || piece == B || piece == b;
+    return piece == K || piece == k || piece == B || piece == b || piece == P || piece == p;
 }
 
 inline static void toggleHashesForPiece(board* position, int piece, int square) {
