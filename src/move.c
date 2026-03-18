@@ -94,6 +94,10 @@ bool isKRP(int piece) {
     return piece == K || piece == k || piece == R || piece == r;
 }
 
+bool isKKP(int piece) {
+    return piece == K || piece == k || piece == N || piece == n;
+}
+
 inline static void toggleHashesForPiece(board* position, int piece, int square) {
     position->hashKey ^= pieceKeys[piece][square];
     if (piece == P || piece == p) {
@@ -114,6 +118,9 @@ inline static void toggleHashesForPiece(board* position, int piece, int square) 
     }
     if (isKRP(piece)) {
         position->krpKey ^= pieceKeys[piece][square];
+    }
+    if (isKKP(piece)) {
+        position->kkpKey ^= pieceKeys[piece][square];
     }
 }
 

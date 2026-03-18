@@ -207,6 +207,14 @@ void update_king_rook_pawn_corrhist(ThreadData *t, const int depth, const int di
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
+void update_king_knight_pawn_corrhist(ThreadData *t, const int depth, const int diff) {
+    const int scaledDiff = diff * CORRHIST_GRAIN;
+    const int newWeight = 4 * myMIN(depth + 1, 16);
+    
+    int16_t *entry = &thread_pool.shared_history.kkp_corrhist[t->pos.side][t->pos.kkpKey & (CORRHIST_SIZE - 1)];
+    apply_corrhist_update(entry, scaledDiff, newWeight);
+}
+
 void update_single_cont_corrhist_entry(ThreadData *t, const int pliesBack, const int scaledDiff, const int newWeight, SearchStack *ss) {
     if (t->pos.ply < pliesBack) return;
     SearchStack *prev = ss - pliesBack;
@@ -264,11 +272,12 @@ int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss) {
                + thread_pool.shared_history.minor_corrhist[side][t->pos.minorKey & mask]
                + thread_pool.shared_history.major_corrhist[side][t->pos.majorKey & mask]
                + thread_pool.shared_history.krp_corrhist[side][t->pos.krpKey & mask]
+               + thread_pool.shared_history.kkp_corrhist[side][t->pos.kkpKey & mask]
                + thread_pool.shared_history.non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask]
                + thread_pool.shared_history.non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask]
                + adjust_single_cont_corrhist_entry(t, 1, ss)
                + adjust_single_cont_corrhist_entry(t, 2, ss)
-               + adjust_single_cont_corrhist_entry(t, 3, ss)               
+               + adjust_single_cont_corrhist_entry(t, 3, ss)
                + adjust_single_cont_corrhist_entry(t, 4, ss)
                + adjust_single_cont_corrhist_entry(t, 5, ss);
 
