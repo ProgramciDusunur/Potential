@@ -1681,6 +1681,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         int history_depth = depth * 1024;
 
                         history_depth += (!in_check && ttAdjustedEval <= alpha) * 1024;
+                        history_depth += (depth > 5) * 1024;
 
                         history_depth /= 1024;
 
