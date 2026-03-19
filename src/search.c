@@ -1619,7 +1619,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             int full_depth_reduction = 0;
 
             if (notTactical && legal_moves >= 3) {
-                int moveHistoryReduction = moveHistory * 1024 / 20480;
+                int moveHistoryReduction = moveHistory * 1024 / 18432;
                 full_depth_reduction -= clamp(moveHistoryReduction, -3072, 3072);
             }
 
