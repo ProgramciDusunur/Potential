@@ -1004,7 +1004,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
-    int correction_value = get_correction_value(t, ss);    
+    int correction_value = get_correction_value(t, ss);
+    ss->move_count = 0;
 
     ss->staticEval = static_eval;    
 
@@ -1501,6 +1502,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // increment legal moves
         legal_moves++;
+        ss->move_count = legal_moves;
 
         if (notTactical) {
             (ss + 1)->move = currentMove;
@@ -1683,6 +1685,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                         // if the move is failed low then give it bonus
                         history_bonus += 200 * (!in_check && ttAdjustedEval <= alpha);
+                        history_bonus += 200 * ((ss - 1)->move_count > 8);
 
                         // clamp history bonus
                         history_bonus = myMIN(history_bonus, 4096);

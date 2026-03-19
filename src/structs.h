@@ -163,6 +163,7 @@ typedef struct {
 typedef struct {
     int cutoff_count;
     int staticEval;
+    int move_count;
     uint16_t singular_move;
     uint16_t nmp_refutation_move;
     uint16_t move;
