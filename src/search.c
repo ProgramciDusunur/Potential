@@ -1685,7 +1685,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                         // if the move is failed low then give it bonus
                         history_bonus += 200 * (!in_check && ttAdjustedEval <= alpha);
-                        history_bonus += 250 * ((ss - 1)->move_count > 8);
+                        history_bonus += 350 * ((ss - 1)->move_count > 8);
 
                         // clamp history bonus
                         history_bonus = myMIN(history_bonus, 4096);
