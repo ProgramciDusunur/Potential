@@ -1677,16 +1677,19 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         int quiet_history_score = 
                         t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
+                        
+                        // initial history bonus based on depth
+                        int history_bonus = 10 + 200 * depth;
 
-                        int history_depth = depth * 1024;
+                        // if the move is failed low then give it bonus
+                        history_bonus += 200 * (!in_check && ttAdjustedEval <= alpha);
 
-                        history_depth += (!in_check && ttAdjustedEval <= alpha) * 1024;
+                        // clamp history bonus
+                        history_bonus = myMIN(history_bonus, 4096);
 
-                        history_depth /= 1024;
-
-                        updateQuietMoveHistory(t, bestMove, pos->side, history_depth, badQuiets);
-                        updateContinuationHistory(t, bestMove, history_depth, badQuiets, quiet_history_score, ss);
-                        updatePawnHistory(t, bestMove, history_depth, badQuiets);
+                        updateQuietMoveHistory(t, bestMove, pos->side, history_bonus, badQuiets);
+                        updateContinuationHistory(t, bestMove, history_bonus, badQuiets, quiet_history_score, ss);
+                        updatePawnHistory(t, bestMove, history_bonus, badQuiets);
                         
                     } else { // noisy moves
                         updateCaptureHistory(t, bestMove, depth);

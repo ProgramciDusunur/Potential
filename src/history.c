@@ -43,11 +43,10 @@ void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int 
     t->search_d.quietHistory[side][from][to][threatSource][threatTarget] += bonus;
 }
 
-void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int depth, moves *badQuiets) {
+void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int bonus, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int bonus = getHistoryBonus(depth);
     int score = t->search_d.quietHistory[side][from][to][is_square_threatened(&t->pos, from)][is_square_threatened(&t->pos, to)];
 
     t->search_d.quietHistory[side][from][to][is_square_threatened(&t->pos, from)][is_square_threatened(&t->pos, to)] += scaledBonus(score, bonus, maxQuietHistory);
@@ -66,11 +65,10 @@ void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int dept
     }
 }
 
-void updatePawnHistory(ThreadData *t, uint16_t bestMove, int depth, moves *badQuiets) {
+void updatePawnHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int bonus = getHistoryBonus(depth);
     int score = thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[from]][to];
 
     thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
@@ -138,9 +136,7 @@ void updateAllCH(ThreadData *t, uint16_t move, int bonus, int quiet_hist_score, 
     updateSingleCHScore(t, move, 4, bonus, quiet_hist_score, ss);
 }
 
-void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int depth, moves *badQuiets, int quiet_hist_score, SearchStack *ss) {
-    int bonus = getHistoryBonus(depth);
-
+void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQuiets, int quiet_hist_score, SearchStack *ss) {
     updateAllCH(t, bestMove, bonus, quiet_hist_score, ss);
 
     for (int index = 0; index < badQuiets->count; index++) {
