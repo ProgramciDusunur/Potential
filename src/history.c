@@ -83,18 +83,17 @@ void updatePawnHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQu
     }
 }
 
-void updateCaptureHistory(ThreadData *t, uint16_t bestMove, int depth) {
+void updateCaptureHistory(ThreadData *t, uint16_t bestMove, int bonus) {
     int piece = t->pos.mailbox[getMoveSource(bestMove)];
     int to = getMoveTarget(bestMove);
     int capturedPiece = t->pos.mailbox[getMoveTarget(bestMove)];
 
-    int bonus = getHistoryBonus(depth);
     int score = t->search_d.captureHistory[piece][to][capturedPiece];
 
     t->search_d.captureHistory[piece][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);
 }
 
-void updateCaptureHistoryMalus(ThreadData *t, int depth, moves *noisyMoves, uint16_t bestMove) {
+void updateCaptureHistoryMalus(ThreadData *t, int bonus, moves *noisyMoves, uint16_t bestMove) {
     for (int index = 0; index < noisyMoves->count; index++) {
         int noisyPiece = t->pos.mailbox[getMoveSource(noisyMoves->moves[index])];
         int noisyTo = getMoveTarget(noisyMoves->moves[index]);
@@ -104,7 +103,7 @@ void updateCaptureHistoryMalus(ThreadData *t, int depth, moves *noisyMoves, uint
 
         int noisyMoveScore = t->search_d.captureHistory[noisyPiece][noisyTo][noisyCapturedPiece];        
 
-        t->search_d.captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] += scaledBonus(noisyMoveScore, -getHistoryBonus(depth), maxCaptureHistory);
+        t->search_d.captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] += scaledBonus(noisyMoveScore, -bonus, maxCaptureHistory);
     }
 }
 

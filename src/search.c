@@ -1699,11 +1699,22 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         updatePawnHistory(t, bestMove, pawnhist_bonus, badQuiets);
                         
                     } else { // noisy moves
-                        updateCaptureHistory(t, bestMove, depth);
+                        // initial history bonus based on depth
+                        int capthist_bonus = 10 + 200 * depth;                        
+
+                        // clamp history bonus
+                        capthist_bonus = myMIN(capthist_bonus, 4096);
+
+                        updateCaptureHistory(t, bestMove, capthist_bonus);
                     }
+                    // initial history bonus based on depth
+                    int capthist_malus_bonus = 10 + 200 * depth;
+                    
+                    // clamp history bonus
+                    capthist_malus_bonus = myMIN(capthist_malus_bonus, 4096);
 
                     // always penalize bad noisy moves
-                    updateCaptureHistoryMalus(t, depth, noisyMoves, bestMove);
+                    updateCaptureHistoryMalus(t, capthist_malus_bonus, noisyMoves, bestMove);
 
                     // node (move) fails high
                     break;

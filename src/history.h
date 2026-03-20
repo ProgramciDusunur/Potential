@@ -38,8 +38,8 @@ void updateAllCH(ThreadData *t, uint16_t move, int bonus, int quiet_hist_score, 
 int getHistoryBonus(int depth);
 void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQuiets, int quiet_hist_score, SearchStack *ss);
 int getContinuationHistoryScore(ThreadData *t, int offSet, uint16_t move, SearchStack *ss);
-void updateCaptureHistory(ThreadData *t, uint16_t bestMove, int depth);
-void updateCaptureHistoryMalus(ThreadData *t, int depth, moves *noisyMoves, uint16_t bestMove);
+void updateCaptureHistory(ThreadData *t, uint16_t bestMove, int bonus);
+void updateCaptureHistoryMalus(ThreadData *t, int bonus, moves *noisyMoves, uint16_t bestMove);
 void update_pawn_correction_hist(ThreadData *t, const int depth, const int diff);
 void update_minor_correction_hist(ThreadData *t, const int depth, const int diff);
 void update_major_correction_hist(ThreadData *t, const int depth, const int diff);
