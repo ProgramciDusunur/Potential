@@ -1434,6 +1434,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 // ~~~~ Quadruple Extension ~~~~ //
                 int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + 170 * !notTactical;
+                quadrupleMargin -= correction_adj;
 
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
