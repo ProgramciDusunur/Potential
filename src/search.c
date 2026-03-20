@@ -127,7 +127,7 @@
   int SE_DEPTH = 5;
   int SE_TT_DEPTH_SUBTRACTOR = 3;
   // Positive Extensions
-  int DOUBLE_EXTENSION_MARGIN = -55;
+  int DOUBLE_EXTENSION_MARGIN = 0;
   int TRIPLE_EXTENSION_MARGIN = -60;
   int QUADRUPLE_EXTENSION_MARGIN = 85;
   // Negative Extensions
@@ -1401,12 +1401,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 doubleMargin += tactical * 40;
                 doubleMargin -= ss->singular_ply * 25;*/
 
-                if (!pvNode) {
+                int doubleMargin = DOUBLE_EXTENSION_MARGIN;
+                if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
-
-                    // Low Depth Extension
-                    depth += depth < 10;
                 }
+
+                // Low Depth Extension
+                depth += depth < 10 && !pvNode;
 
                 // Triple Extension
                 int tripleMargin = TRIPLE_EXTENSION_MARGIN - (moveHistory / 512 * notTactical);
