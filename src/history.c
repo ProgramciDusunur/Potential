@@ -83,12 +83,11 @@ void updatePawnHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQu
     }
 }
 
-void updateCaptureHistory(ThreadData *t, uint16_t bestMove, int depth) {
+void updateCaptureHistory(ThreadData *t, uint16_t bestMove, int bonus) {
     int piece = t->pos.mailbox[getMoveSource(bestMove)];
     int to = getMoveTarget(bestMove);
     int capturedPiece = t->pos.mailbox[getMoveTarget(bestMove)];
-
-    int bonus = getHistoryBonus(depth);
+    
     int score = t->search_d.captureHistory[piece][to][capturedPiece];
 
     t->search_d.captureHistory[piece][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);

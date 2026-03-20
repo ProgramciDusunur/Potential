@@ -1673,33 +1673,42 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
+                    bool failed_low = !in_check && ttAdjustedEval <= alpha;
                     if (notTactical) {
                         int quiet_history_score = 
                         t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
                         // initial history bonus based on depth
-                        int quiethist_bonus = 10 + 200 * depth;                        
+                        int quiethist_bonus = 10 + 200 * depth;
                         int conthist_bonus  = 10 + 200 * depth;
                         int pawnhist_bonus  = 10 + 200 * depth;
 
-                        // if the move is failed low then give it bonus
-                        bool failed_low = !in_check && ttAdjustedEval <= alpha;
+                        // if the move is failed low then give it bonus                        
                         quiethist_bonus += 200 * failed_low;
                         conthist_bonus  += 200 * failed_low;
                         pawnhist_bonus  += 200 * failed_low;
                                                 
                         // clamp history bonus
                         quiethist_bonus = myMIN(quiethist_bonus, 4096);
-                        conthist_bonus = myMIN(conthist_bonus, 4096);
-                        pawnhist_bonus = myMIN(pawnhist_bonus, 4096);
+                        conthist_bonus  = myMIN(conthist_bonus, 4096);
+                        pawnhist_bonus  = myMIN(pawnhist_bonus, 4096);
 
                         updateQuietMoveHistory(t, bestMove, pos->side, quiethist_bonus, badQuiets);
                         updateContinuationHistory(t, bestMove, conthist_bonus, badQuiets, quiet_history_score, ss);
                         updatePawnHistory(t, bestMove, pawnhist_bonus, badQuiets);
                         
                     } else { // noisy moves
-                        updateCaptureHistory(t, bestMove, depth);
+                        // initial history bonus based on depth
+                        int capthist_bonus = 10 + 200 * depth;
+
+                        // if the move is failed low then give it bonus
+                        capthist_bonus += 200 * failed_low;
+
+                        // clamp history bonus
+                        capthist_bonus = myMIN(capthist_bonus, 4096);
+
+                        updateCaptureHistory(t, bestMove, capthist_bonus);
                     }
 
                     // always penalize bad noisy moves
