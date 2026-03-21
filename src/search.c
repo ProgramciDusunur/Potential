@@ -1390,7 +1390,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             // Singular Extension
             if (singularScore < singularBeta) {
                 extensions++;
-
+                
                 int correction_adj = abs(correction_value) / 2875;                
 
                 // Double Extension                
@@ -1407,7 +1407,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 }
 
                 // Low Depth Extension
-                depth += depth < 10 && !pvNode;
+                int low_depth_margin = 10 * 1024;
+                int low_depth_history_adj = clamp(moveHistory - 9500, -5120, 5120);
+
+                low_depth_margin += low_depth_history_adj;
+                
+                low_depth_margin /= 1024;
+
+                depth += depth < low_depth_margin && !pvNode;
 
                 // Triple Extension
                 int tripleMargin = TRIPLE_EXTENSION_MARGIN - (moveHistory / 512 * notTactical);
