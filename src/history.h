@@ -34,9 +34,9 @@ void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int bonu
 void updatePawnHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQuiets);
 void updateSingleCHScore(ThreadData *t, uint16_t move, const int offSet, const int bonus, int quiet_hist_score, SearchStack *ss);
 int getAllCHScore(ThreadData *t, uint16_t move, int quiet_hist_score, SearchStack *ss);
-void updateAllCH(ThreadData *t, uint16_t move, int bonus, int quiet_hist_score, SearchStack *ss);
+void updateAllCH(ThreadData *t, uint16_t move, bool in_check, int bonus, int quiet_hist_score, SearchStack *ss);
 int getHistoryBonus(int depth);
-void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQuiets, int quiet_hist_score, SearchStack *ss);
+void updateContinuationHistory(ThreadData *t, uint16_t bestMove, bool in_check, int bonus, moves *badQuiets, int quiet_hist_score, SearchStack *ss);
 int getContinuationHistoryScore(ThreadData *t, int offSet, uint16_t move, SearchStack *ss);
 void updateCaptureHistory(ThreadData *t, uint16_t bestMove, int bonus);
 void updateCaptureHistoryMalus(ThreadData *t, int bonus, moves *noisyMoves, uint16_t bestMove);

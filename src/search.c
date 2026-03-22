@@ -1701,7 +1701,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         pawnhist_bonus = myMIN(pawnhist_bonus, 4096);
 
                         updateQuietMoveHistory(t, bestMove, pos->side, quiethist_bonus, badQuiets);
-                        updateContinuationHistory(t, bestMove, conthist_bonus, badQuiets, quiet_history_score, ss);
+                        updateContinuationHistory(t, bestMove, in_check, conthist_bonus, badQuiets, quiet_history_score, ss);
                         updatePawnHistory(t, bestMove, pawnhist_bonus, badQuiets);
                         
                     } else { // noisy moves

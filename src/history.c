@@ -129,18 +129,21 @@ void updateSingleCHScore(ThreadData *t, uint16_t move, const int offSet, const i
                           [t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
 }
 
-void updateAllCH(ThreadData *t, uint16_t move, int bonus, int quiet_hist_score, SearchStack *ss) {
+void updateAllCH(ThreadData *t, uint16_t move, bool in_check, int bonus, int quiet_hist_score, SearchStack *ss) {
     updateSingleCHScore(t, move, 1, bonus, quiet_hist_score, ss);
     updateSingleCHScore(t, move, 2, bonus, quiet_hist_score, ss);
-    updateSingleCHScore(t, move, 4, bonus, quiet_hist_score, ss);
+    if (!in_check) {
+        updateSingleCHScore(t, move, 4, bonus, quiet_hist_score, ss);
+    }
+    
 }
 
-void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQuiets, int quiet_hist_score, SearchStack *ss) {
-    updateAllCH(t, bestMove, bonus, quiet_hist_score, ss);
+void updateContinuationHistory(ThreadData *t, uint16_t bestMove, bool in_check, int bonus, moves *badQuiets, int quiet_hist_score, SearchStack *ss) {
+    updateAllCH(t, bestMove, in_check, bonus, quiet_hist_score, ss);
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
-        updateAllCH(t, badQuiets->moves[index], -bonus, quiet_hist_score, ss);
+        updateAllCH(t, badQuiets->moves[index], in_check, -bonus, quiet_hist_score, ss);
     }
 }
 
