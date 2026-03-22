@@ -1224,6 +1224,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 prefetch_hash_entry(pos->hashKey, pos->fifty);                
                 prefetch_corrhist(pos);
+                
                 inc_rlx(t->search_i.nodes_searched);
                 legal_moves++;
 
