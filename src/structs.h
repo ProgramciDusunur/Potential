@@ -163,7 +163,7 @@ typedef struct {
 typedef struct {
     int cutoff_count;
     int staticEval;
-    bool in_check;
+    int in_check;
     uint16_t singular_move;
     uint16_t nmp_refutation_move;
     uint16_t move;
