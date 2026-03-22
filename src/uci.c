@@ -282,7 +282,10 @@ void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time) {
 
     // wait for helper threads
     wait_helpers();
-
+    
+    if (time->quit) {        
+        exit(0);
+    }
 }
 
 
@@ -345,13 +348,10 @@ void read_input(my_time* time, board* pos) {
 
     // "listen" to STDIN
     if (input_waiting() && !pos->benchmark) {
-        // tell engine to stop calculating
-        time->stopped = 1;
-
         // loop to read bytes from STDIN
         do {
             // read bytes from STDIN
-            bytes = read(fileno(stdin), input, 256);                            
+            bytes = read(fileno(stdin), input, 256);
         }
 
             // until bytes available
@@ -371,10 +371,10 @@ void read_input(my_time* time, board* pos) {
                 time->quit = 1;
             }
 
-                // // match UCI "stop" command
+            // match UCI "stop" command
             else if (!strncmp(input, "stop", 4)) {
-                // tell engine to terminate exacution
-                time->quit = 1;
+                // tell engine to stop
+                time->stopped = 1;
             }
         }
     }
