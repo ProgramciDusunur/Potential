@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "history.h"
 
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -76,6 +77,7 @@ U64 generate_krp_key(board *position);
 void clearHashTable(void);
 void init_hash_table(int mb);
 void initRandomKeys(void);
+void prefetch_corrhist(board *pos);
 
 
 
