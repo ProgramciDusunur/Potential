@@ -1172,7 +1172,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int legal_moves = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
-    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !ss->singular_move &&
+    if (!in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !ss->singular_move &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1259,9 +1259,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int small_probcut_beta = beta + SPROBCUT_BETA_MARGIN;
     
     // Small Probcut
-    if (!ss->singular_move && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
+    if (!ss->singular_move && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
         tt_score >= small_probcut_beta && abs(tt_score) < mateValue && abs(beta) < mateValue) {
-            return small_probcut_beta;            
+            return small_probcut_beta;
     }
 
     bool enemy_has_no_threats = !has_enemy_any_threat(pos);
