@@ -5,6 +5,7 @@
 #include "search.h"
 #include <ctype.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #if defined(__AVX2__) || defined(__SSE4_1__)
 #include <immintrin.h>
@@ -1804,9 +1805,8 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     quiet_history_aging();    
 
     // iterative deepening
-    for (int current_depth = 1; current_depth <= depth; current_depth++) {
-        //printf("Node limit: %llu\n", time->isNodeLimit ? time->node_limit : 0);
-        if (time->stopped == 1) {
+    for (int current_depth = 1; current_depth <= depth; current_depth++) {        
+        if (time->stopped || time->quit) {
             break;
         }
 
@@ -1958,7 +1958,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         // best move placeholder
         printf("bestmove ");
         printMove(t->pos.pvTable[0][0]);
-        printf("\n");
+        printf("\n");        
     }
     return score;
 }
