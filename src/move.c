@@ -82,6 +82,24 @@ int isSquareAttacked(int square, int whichSide, board* position) {
     return 0;
 }
 
+bool gives_check(uint16_t move, board* pos) {
+    uint8_t sourceSquare = getMoveSource(move);
+    uint8_t targetSquare = getMoveTarget(move);
+    uint8_t piece_type = pos->mailbox[sourceSquare];
+
+    switch (piece_type) {
+        case K:
+        case k:
+            return false; // King moves cannot give check
+        break;        
+    }
+    
+
+
+    
+    return false;
+}
+
 bool isMinor(int piece) {
     return piece == K || piece == k || piece == B || piece == b || piece == N || piece == n;
 }
