@@ -975,8 +975,19 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
                 ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
-                return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
-                                          tt_score;
+                    // bonus for quiet moves that fails high
+                    if (tt_move && tt_score >= beta && !isTactical(tt_move)) {
+                        int quiet_history_score = 
+                        t->search_d.quietHistory[pos->side][getMoveSource(tt_move)][getMoveTarget(tt_move)]
+                        [is_square_threatened(pos, getMoveSource(tt_move))][is_square_threatened(pos, getMoveTarget(tt_move))];
+
+                        int bonus = myMIN(100 * depth - 50, 1024);
+                        adjust_single_quiet_hist_entry(t, pos->side, tt_move, bonus);
+                        adjust_single_pawn_hist_entry(t, tt_move, bonus);
+                        updateAllCH(t, tt_move, bonus, quiet_history_score, ss);
+                    }
+                    return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
+                                          tt_score;                
             }
         }
     }
