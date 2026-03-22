@@ -981,7 +981,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         t->search_d.quietHistory[pos->side][getMoveSource(tt_move)][getMoveTarget(tt_move)]
                         [is_square_threatened(pos, getMoveSource(tt_move))][is_square_threatened(pos, getMoveTarget(tt_move))];
 
-                        int bonus = myMIN(100 * depth - 50, 1024);
+                        int bonus = myMIN(108 * depth - 66, 768);
                         adjust_single_quiet_hist_entry(t, pos->side, tt_move, bonus);
                         adjust_single_pawn_hist_entry(t, tt_move, bonus);
                         updateAllCH(t, tt_move, bonus, quiet_history_score, ss);
