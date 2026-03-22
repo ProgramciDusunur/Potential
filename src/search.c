@@ -939,10 +939,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     bool tt_hit = false;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
-    bool tt_pv = pvNode;
-
-    // probe hash entry
-    //tt_hit = readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty)
+    bool tt_pv = pvNode;    
 
     // Check for fifty-move rule
     if (pos->fifty >= 100) {
@@ -956,7 +953,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     }
 
     if (!rootNode) {
-
         if (isRepetition(pos) || isMaterialDraw(pos)) {
             return get_draw_score(t);
         }        
