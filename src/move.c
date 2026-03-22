@@ -260,10 +260,7 @@ int makeMove(uint16_t move, int moveFlag, board* position) {
     position->side ^= 1;
 
     // hash side
-    position->hashKey ^= sideKey;
-
-    // prefetch correction histories
-    prefetch_corrhist(position);
+    position->hashKey ^= sideKey;    
 
     // make sure that king has not been exposed into a check
     if (isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[k]) : getLS1BIndex(position->bitboards[K]), position->side, position)) {        

@@ -845,7 +845,8 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         // increment nodes count
         inc_rlx(t->search_i.nodes_searched);
 
-        prefetch_hash_entry(position->hashKey, position->fifty);
+        prefetch_hash_entry(position->hashKey, position->fifty);        
+        prefetch_corrhist(position);
 
         // score current move
         score = -quiescence(-beta, -alpha, t, time, ss + 1);
@@ -1066,7 +1067,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // hash the side
         pos->hashKey ^= sideKey;
 
-        prefetch_hash_entry(pos->hashKey, pos->fifty);
+        prefetch_hash_entry(pos->hashKey, pos->fifty);        
+        prefetch_corrhist(pos);
 
         int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) / NMP_REDUCTION_DEPTH_DIVISOR;
 
@@ -1220,7 +1222,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     continue;
                 }
 
-                prefetch_hash_entry(pos->hashKey, pos->fifty);
+                prefetch_hash_entry(pos->hashKey, pos->fifty);                
+                prefetch_corrhist(pos);
                 inc_rlx(t->search_i.nodes_searched);
                 legal_moves++;
 
@@ -1498,7 +1501,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // increment nodes count
         inc_rlx(t->search_i.nodes_searched);
 
-        prefetch_hash_entry(pos->hashKey, pos->fifty);
+        prefetch_hash_entry(pos->hashKey, pos->fifty);    
+        prefetch_corrhist(pos);
 
         // increment legal moves
         legal_moves++;

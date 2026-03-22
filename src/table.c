@@ -223,7 +223,6 @@ void prefetch_corrhist(board *pos) {
     const int mask = CORRHIST_SIZE - 1;
     const int side = pos->side;
 
-    // Her bir dizinin başına & (adres) operatörü ekledik
     __builtin_prefetch(&thread_pool.shared_history.pawn_corrhist[side][pos->pawnKey & mask]);
     __builtin_prefetch(&thread_pool.shared_history.minor_corrhist[side][pos->minorKey & mask]);
     __builtin_prefetch(&thread_pool.shared_history.major_corrhist[side][pos->majorKey & mask]);
