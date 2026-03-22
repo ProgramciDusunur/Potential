@@ -993,7 +993,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
-    
+    ss->in_check = in_check;
 
     // get static evaluation score
     int raw_eval = evaluate(pos);

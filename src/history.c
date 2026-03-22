@@ -132,7 +132,9 @@ void updateSingleCHScore(ThreadData *t, uint16_t move, const int offSet, const i
 void updateAllCH(ThreadData *t, uint16_t move, int bonus, int quiet_hist_score, SearchStack *ss) {
     updateSingleCHScore(t, move, 1, bonus, quiet_hist_score, ss);
     updateSingleCHScore(t, move, 2, bonus, quiet_hist_score, ss);
-    updateSingleCHScore(t, move, 4, bonus, quiet_hist_score, ss);
+    if (!ss->in_check) {
+        updateSingleCHScore(t, move, 4, bonus, quiet_hist_score, ss);
+    }    
 }
 
 void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQuiets, int quiet_hist_score, SearchStack *ss) {
