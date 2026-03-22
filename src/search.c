@@ -936,7 +936,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     uint64_t pos_key = 0;
     uint16_t tt_move = 0;
     int16_t tt_score = 0;
-    uint8_t tt_hit = 0;
+    bool tt_hit = false;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
     bool tt_pv = pvNode;    
@@ -953,7 +953,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     }
 
     if (!rootNode) {
-
         if (isRepetition(pos) || isMaterialDraw(pos)) {
             return get_draw_score(t);
         }        
@@ -967,10 +966,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     }
 
     // read hash entry
-    if (!ss->singular_move && !rootNode &&
-        (tt_hit =
-                readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty)) &&
-                !pvNode) {
+    tt_hit = !ss->singular_move && !rootNode && readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty);
+
+    // read hash entry
+    if (tt_hit && !pvNode) {
         pos_key = pos->hashKey;
         if (tt_depth >= depth) {
             if ((tt_flag == hashFlagExact) ||
