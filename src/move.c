@@ -63,42 +63,72 @@ U64 getKingAttacks(int square) {
     return kingAttacks[square];
 }
 
-int isSquareAttacked(int square, int whichSide, board* position) {
-    if (pawnAttacks[whichSide == white ? black : white][square] & position->bitboards[whichSide == white ? P : p]) {
+int isSquareAttacked(int square, int whichSide, board* pos) {
+    if (pawnAttacks[whichSide == white ? black : white][square] & pos->bitboards[whichSide == white ? P : p]) {
         return 1;
     }
-    if (knightAttacks[square] & position->bitboards[whichSide == white ? N : n]) {
+    if (knightAttacks[square] & pos->bitboards[whichSide == white ? N : n]) {
         return 1;
     }
-    if (getRookAttacks(square, position->occupancies[both]) & (position->bitboards[whichSide == white ? R : r] | position->bitboards[whichSide == white ? Q : q])) {
+    if (getRookAttacks(square, pos->occupancies[both]) & (pos->bitboards[whichSide == white ? R : r] | pos->bitboards[whichSide == white ? Q : q])) {
         return 1;
     }
-    if (getBishopAttacks(square, position->occupancies[both]) & (position->bitboards[whichSide == white ? B : b] | position->bitboards[whichSide == white ? Q : q])) {
+    if (getBishopAttacks(square, pos->occupancies[both]) & (pos->bitboards[whichSide == white ? B : b] | pos->bitboards[whichSide == white ? Q : q])) {
         return 1;
     }
-    if (kingAttacks[square] & position->bitboards[whichSide == white ? K : k]) {
+    if (kingAttacks[square] & pos->bitboards[whichSide == white ? K : k]) {
         return 1;
     }
     return 0;
 }
 
-bool gives_check(uint16_t move, board* pos) {
+bool move_gives_check(uint16_t move, board* pos) {
+    // attacker piece source square
     uint8_t sourceSquare = getMoveSource(move);
+    // attacker piece target square
     uint8_t targetSquare = getMoveTarget(move);
+    // attacker piece type
     uint8_t piece_type = pos->mailbox[sourceSquare];
+    // opponent king square
+    uint8_t opponent_king_square = getLS1BIndex(pos->bitboards[pos->side == white ? k : K]);
+
+    if (piece_type == K || piece_type == k) return false; // King moves cannot give check
 
     switch (piece_type) {
-        case K:
-        case k:
-            return false; // King moves cannot give check
-        break;        
+        case P:
+        case p:
+            return pawnAttacks[pos->side][targetSquare] & (1ULL << opponent_king_square);
+            break;
+        case N:
+        case n:
+            return knightAttacks[targetSquare] & (1ULL << opponent_king_square);
+            break;
+        case B:
+        case b:
+            return getBishopAttacks(targetSquare, pos->occupancies[both]) & (1ULL << opponent_king_square);
+            break;
+        case R:
+        case r:
+            return getRookAttacks(targetSquare, pos->occupancies[both]) & (1ULL << opponent_king_square);
+            break;
+        case Q:
+        case q:
+            return (getBishopAttacks(targetSquare, pos->occupancies[both]) | getRookAttacks(targetSquare, pos->occupancies[both])) & (1ULL << opponent_king_square);
+            break;
     }
-    
-
-
-    
+        
     return false;
 }
+
+/*void update_check_squares(board* pos) {
+    // Check for checks against the opponent's king
+    int opponent_side = pos->side == white ? black : white;
+    int king_square = getLS1BIndex(pos->bitboards[opponent_side == white ? K : k]);
+    
+    if (is_square_checked(king_square, pos->side, pos)) {
+        pos->check_squares[0] |= (1ULL << king_square);
+    }
+}*/
 
 bool isMinor(int piece) {
     return piece == K || piece == k || piece == B || piece == b || piece == N || piece == n;

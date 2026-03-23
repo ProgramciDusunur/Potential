@@ -95,6 +95,7 @@ void initLeaperAttacks();
 void addMoveToHistoryList(moves* list, uint16_t move);
 U64 pawn_threats(U64 pawnBitboard, int side);
 U64 knight_threats (U64 knightBB);
+bool move_gives_check(uint16_t move, board* pos);
 
 // BISHOP ATTACKS
 static inline U64 getBishopAttacks(int square, U64 occupancy) {

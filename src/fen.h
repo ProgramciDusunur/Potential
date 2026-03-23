@@ -11,6 +11,7 @@
 #include "table.h"
 #include <string.h>
 #include "evaluation.h"
+#include "utils.h"
 
 #pragma once
 
