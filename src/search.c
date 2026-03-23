@@ -1345,8 +1345,15 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 continue;
             }
 
+            int futility_margin = 
+                static_eval + 
+                FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
+                FP_MARGIN * lmrDepth + 
+                moveHistory / 32 +
+                gives_check * 50;
+
             // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !in_check && !gives_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
+            if (lmrDepth <= FP_DEPTH && !in_check && futility_margin <= alpha) {
                 continue;
             }
             // Quiet History Pruning
