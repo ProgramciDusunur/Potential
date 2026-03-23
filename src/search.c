@@ -1344,13 +1344,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if (legal_moves>= lmpThreshold) {
                 continue;
             }
-
+            int gives_check_margin = (gives_check * 10) * depth;
             int futility_margin = 
                 static_eval + 
                 FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
                 FP_MARGIN * lmrDepth + 
-                moveHistory / 32 +
-                gives_check * 100;
+                moveHistory / 32 + gives_check_margin;
+            
 
             // Futility Pruning
             if (lmrDepth <= FP_DEPTH && !in_check && futility_margin <= alpha) {
