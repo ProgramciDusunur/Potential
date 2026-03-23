@@ -66,6 +66,7 @@
   int TT_CAPTURE_LMR_SCALER = 1024;
   int GOOD_EVAL_LMR_SCALER = 1024;
   int IMPROVING_LMR_SCALER = 1024;
+  int GIVES_CHECK_LMR_SCALER = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -1346,7 +1347,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
 
             // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !in_check && !gives_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
+            if (lmrDepth <= FP_DEPTH && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
                 continue;
             }
             // Quiet History Pruning
@@ -1591,6 +1592,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // Reduce Less
         if (tt_pv) {
             lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
+        }
+
+        if (gives_check) {
+            lmrReduction -= GIVES_CHECK_LMR_SCALER;
         }
         
 

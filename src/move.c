@@ -104,7 +104,7 @@ bool move_gives_check(uint16_t move, board* pos) {
             return knightAttacks[targetSquare] & (1ULL << opponent_king_square);
             break;
         case B:
-        case b:
+        case b:            
             return getBishopAttacks(targetSquare, pos->occupancies[both]) & (1ULL << opponent_king_square);
             break;
         case R:
