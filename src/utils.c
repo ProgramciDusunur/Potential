@@ -30,7 +30,7 @@ double clamp_double(const double d, const double min, const double max) {
     return t > max ? max : t;
 }
 
-void pBoard(board* position) {
+void printBoard(board* position) {
     printf("\n");
     // loop over board ranks
     for (int rank = 0; rank < 8; rank++) {
