@@ -92,6 +92,32 @@ bool move_gives_check(uint16_t move, board* pos) {
     // opponent king square
     uint8_t opponent_king_square = getLS1BIndex(pos->bitboards[pos->side == white ? k : K]);
 
+    // TO:DO: ENPASSANT
+
+    if (getMoveCastling(move)) {
+        switch (targetSquare) {
+            // white castles king side
+            case (g1):
+                return getRookAttacks(f1, pos->occupancies[both]) & (1ULL << opponent_king_square);
+                break;
+
+            // white castles queen side
+            case (c1):                
+                return getRookAttacks(d1, pos->occupancies[both]) & (1ULL << opponent_king_square);
+                break;
+
+            // black castles king side
+            case (g8):                
+                return getRookAttacks(f8, pos->occupancies[both]) & (1ULL << opponent_king_square);
+                break;
+
+            // black castles queen side
+            case (c8):                
+                return getRookAttacks(d8, pos->occupancies[both]) & (1ULL << opponent_king_square);
+                break;
+        }        
+    }
+
     if (piece_type == K || piece_type == k) return false; // King moves cannot give check
 
     switch (piece_type) {
