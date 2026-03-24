@@ -179,6 +179,9 @@ typedef struct {
 
     // captureHistory [piece][toSquare][capturedPiece]
     int16_t captureHistory[12][64][13];
+
+    // low ply history [ply][toSquare]
+    int16_t lowPlyHistory[maxPly][64];
 } SearchData;
 
 typedef struct {

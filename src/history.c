@@ -33,6 +33,24 @@ int scaledBonus(int score, int bonus, int gravity) {
     return bonus - score * myAbs(bonus) / gravity;
 }
 
+void updateLowPlyHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQuiets) {
+    int to = getMoveTarget(bestMove);
+    if (t->pos.ply < 4) {
+        t->search_d.lowPlyHistory[t->pos.ply][to] += bonus;
+
+        for (int index = 0; index < badQuiets->count; index++) {
+            if (badQuiets->moves[index] == bestMove) continue;
+                    
+            int badQuietTo = getMoveTarget(badQuiets->moves[index]);
+
+            int badQuietScore = t->search_d.lowPlyHistory[t->pos.ply][badQuietTo];            
+
+            t->search_d.lowPlyHistory[t->pos.ply][badQuietTo] +=
+            scaledBonus(badQuietScore, -bonus, maxLowPlyHistory);
+        }
+    }
+}
+
 void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int bonus) {
     int from = getMoveSource(move);
     int to = getMoveTarget(move);
@@ -303,6 +321,7 @@ void clear_histories(void) {
         memset(thread_pool.threads[i]->search_d.quietHistory, 0, sizeof(thread_pool.threads[i]->search_d.quietHistory));
         memset(thread_pool.threads[i]->search_d.captureHistory, 0, sizeof(thread_pool.threads[i]->search_d.captureHistory));        
         memset(thread_pool.threads[i]->search_d.continuationHistory, 0, sizeof(thread_pool.threads[i]->search_d.continuationHistory));
+        memset(thread_pool.threads[i]->search_d.lowPlyHistory, 0, sizeof(thread_pool.threads[i]->search_d.lowPlyHistory));
     }                        
 
     memset(&thread_pool.shared_history, 0, sizeof(SharedHistory));

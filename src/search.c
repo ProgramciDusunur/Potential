@@ -453,7 +453,10 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         quiet_score += thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
-
+        // low ply history
+        if (t->pos.ply < 4) {
+            quiet_score += 8 * t->search_d.lowPlyHistory[t->pos.ply][getMoveTarget(move)] / (1 + t->pos.ply);
+        }
         return quiet_score;
     }
     return 0;
@@ -1692,9 +1695,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
                         // initial history bonus based on depth
-                        int quiethist_bonus = 10 + 200 * depth;                        
-                        int conthist_bonus  = 10 + 200 * depth;
-                        int pawnhist_bonus  = 10 + 200 * depth;
+                        int quiethist_bonus  = 10 + 200 * depth;                        
+                        int conthist_bonus   = 10 + 200 * depth;
+                        int pawnhist_bonus   = 10 + 200 * depth;
+                        int lowplyhist_bonus = 10 + 200 * depth;
 
                         // if the move is failed low then give it bonus
                         bool failed_low = !in_check && ttAdjustedEval <= alpha;
@@ -1703,13 +1707,15 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         pawnhist_bonus  += 200 * failed_low;
                                                 
                         // clamp history bonus
-                        quiethist_bonus = myMIN(quiethist_bonus, 4096);
-                        conthist_bonus = myMIN(conthist_bonus, 4096);
-                        pawnhist_bonus = myMIN(pawnhist_bonus, 4096);
+                        quiethist_bonus  = myMIN(quiethist_bonus, 4096);
+                        conthist_bonus   = myMIN(conthist_bonus, 4096);
+                        pawnhist_bonus   = myMIN(pawnhist_bonus, 4096);
+                        lowplyhist_bonus = myMIN(lowplyhist_bonus, 4096);
 
                         updateQuietMoveHistory(t, bestMove, pos->side, quiethist_bonus, badQuiets);
                         updateContinuationHistory(t, bestMove, conthist_bonus, badQuiets, quiet_history_score, ss);
                         updatePawnHistory(t, bestMove, pawnhist_bonus, badQuiets);
+                        updateLowPlyHistory(t, bestMove, lowplyhist_bonus, badQuiets);
                         
                     } else { // noisy moves
                         // initial history bonus based on depth

@@ -19,7 +19,8 @@
 enum {
     maxQuietHistory = 16384,
     maxPawnHistory = 16384,
-    maxCaptureHistory = 16384
+    maxCaptureHistory = 16384,
+    maxLowPlyHistory = 16384
 };
 
 extern int CORRHIST_WEIGHT_SCALE;
@@ -51,6 +52,7 @@ int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss);
 int get_correction_value(ThreadData *t, SearchStack *ss);
 void clear_histories(void);
 void quiet_history_aging(void);
+void updateLowPlyHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQuiets);
 
 
 #endif //POTENTIAL_HISTORY_H
