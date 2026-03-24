@@ -664,7 +664,6 @@ int SEE(board *pos, uint16_t move, int threshold) {
     return pos->side != colour;
 }
 
-
 uint8_t isMaterialDraw(board *pos) {
     // early exit: pawns, rooks or queens on the board
     if (pos->bitboards[P] | pos->bitboards[p] |
