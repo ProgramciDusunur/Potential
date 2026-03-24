@@ -666,34 +666,49 @@ int SEE(board *pos, uint16_t move, int threshold) {
 
 
 uint8_t isMaterialDraw(board *pos) {
+    // early exit: pawns, rooks or queens on the board
+    if (pos->bitboards[P] | pos->bitboards[p] |
+        pos->bitboards[R] | pos->bitboards[r] |
+        pos->bitboards[Q] | pos->bitboards[q]) {
+        return 0;
+    }
+
+    // only kings, knights and bishops remain
     uint8_t piece_count = countBits(pos->occupancies[both]);
 
-    // K v K
-    if (piece_count == 2) {
+    // KvK, KNvK, KBvK
+    if (piece_count < 4) {
         return 1;
     }
-    // Initialize knight and bishop count only after we check that piece count is
-    // higher then 2 as there cannot be a knight or bishop with 2 pieces on the
-    // board
-    uint8_t knight_count =
-            countBits(pos->bitboards[n] | pos->bitboards[N]);
-    // KN v K || KB v K
-    if (piece_count == 3 &&
-        (knight_count == 1 ||
-                countBits(pos->bitboards[b] | pos->bitboards[B]) == 1)) {
-        return 1;
-    } else if (piece_count == 4) {
-        // KNN v K || KN v KN
-        if (knight_count == 2) {
-            return 1;
-        }
-            // KB v KB
-        else if (countBits(pos->bitboards[b]) == 1 &&
-                countBits(pos->bitboards[B]) == 1) {
-            return 1;
-        }
+
+    if (piece_count != 4) {
+        return 0;
     }
-    return 0;
+
+    // piece_count == 4: side to move has only 1 minor piece -> draw
+    // covers KNvKN, KBvKB, KBvKN, KNvKB
+    U64 our_minor = pos->side == white
+        ? (pos->bitboards[N] | pos->bitboards[B])
+        : (pos->bitboards[n] | pos->bitboards[b]);
+    if (countBits(our_minor) == 1) {
+        return 1;
+    }
+
+    U64 all_bishops = pos->bitboards[B] | pos->bitboards[b];
+    U64 all_knights = pos->bitboards[N] | pos->bitboards[n];
+
+    // KNNvK
+    if (!all_bishops) {
+        return 1;
+    }
+
+    // KBNvK: checkmate is possible
+    if (all_knights) {
+        return 0;
+    }
+
+    // KBBvK: draw only if both bishops are on the same color
+    return !(all_bishops & LIGHT_SQUARES) || !(all_bishops & ~LIGHT_SQUARES);
 }
 
 void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, uint16_t move, double complexity, ThreadData *t) {
