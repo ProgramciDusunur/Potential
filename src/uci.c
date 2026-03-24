@@ -19,7 +19,7 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "3.31.66"
+#define VERSION "3.33.65"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -159,7 +159,7 @@ void parse_position(char *command, board* position) {
     }
 
     // print board
-    pBoard(position);
+    printBoard(position);
 }
 
 

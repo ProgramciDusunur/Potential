@@ -1319,6 +1319,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         bool isPromotion = getMovePromote(currentMove) != 0;
         bool tactical = isCapture || isPromotion;
         bool notTactical = !tactical;
+        bool gives_check = move_gives_check(currentMove, pos);
 
         int pawnHistoryValue = notTactical ? thread_pool.shared_history.pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
 
@@ -1332,7 +1333,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         bool isNotMated = bestScore > -mateFound;
 
-        if (!rootNode && notTactical && isNotMated) {
+        if (!rootNode && notTactical && isNotMated && !gives_check) {
 
             int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
             int history_adj = moveHistory / 64;
@@ -1342,10 +1343,16 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             // Late Move Pruning
             if (legal_moves>= lmpThreshold) {
                 continue;
-            }
+            }            
+            int futility_margin = 
+                static_eval + 
+                FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
+                FP_MARGIN * lmrDepth + 
+                moveHistory / 32;
+            
 
             // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !in_check && (static_eval + FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)]) + FP_MARGIN * lmrDepth + moveHistory / 32 <= alpha) {
+            if (lmrDepth <= FP_DEPTH && !in_check && futility_margin <= alpha) {
                 continue;
             }
             // Quiet History Pruning
