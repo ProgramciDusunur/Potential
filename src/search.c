@@ -53,20 +53,20 @@
   int LMR_REDUCTION_LIMIT = 3;
   int DEEPER_LMR_MARGIN = 35;  
   int QUIET_HISTORY_LMR_DIVISOR = 4096;
-  int QUIET_HISTORY_LMR_MINIMUM_SCALER = 3072;
-  int QUIET_HISTORY_LMR_MAXIMUM_SCALER = 3072;
+  int QUIET_HISTORY_LMR_MINIMUM_SCALAR = 3072;
+  int QUIET_HISTORY_LMR_MAXIMUM_SCALAR = 3072;
   int PAWN_HISTORY_LMR_DIVISOR = 4096;
-  int PAWN_HISTORY_LMR_MINIMUM_SCALER = 3072;
-  int PAWN_HISTORY_LMR_MAXIMUM_SCALER = 3072;
+  int PAWN_HISTORY_LMR_MINIMUM_SCALAR = 3072;
+  int PAWN_HISTORY_LMR_MAXIMUM_SCALAR = 3072;
   int NOISY_HISTORY_LMR_DIVISOR = 10240;  
-  int QUIET_NON_PV_LMR_SCALER = 1024;
-  int CUT_NODE_LMR_SCALER = 2048;
-  int TT_PV_LMR_SCALER = 1024;
-  int TT_PV_FAIL_LOW_LMR_SCALER = 1024;
-  int TT_CAPTURE_LMR_SCALER = 1024;
-  int GOOD_EVAL_LMR_SCALER = 1024;
-  int IMPROVING_LMR_SCALER = 1024;
-  int GIVES_CHECK_LMR_SCALER = 1024;
+  int QUIET_NON_PV_LMR_SCALAR = 1024;
+  int CUT_NODE_LMR_SCALAR = 2048;
+  int TT_PV_LMR_SCALAR = 1024;
+  int TT_PV_FAIL_LOW_LMR_SCALAR = 1024;
+  int TT_CAPTURE_LMR_SCALAR = 1024;
+  int GOOD_EVAL_LMR_SCALAR = 1024;
+  int IMPROVING_LMR_SCALAR = 1024;
+  int GIVES_CHECK_LMR_SCALAR = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -1538,19 +1538,19 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // Reduce More
         if (cutNode) {
-            lmrReduction += CUT_NODE_LMR_SCALER + !tt_move * 1024;
+            lmrReduction += CUT_NODE_LMR_SCALAR + !tt_move * 1024;
         }
 
         if (tt_pv && tt_hit && tt_score <= alpha) {
-            lmrReduction += TT_PV_FAIL_LOW_LMR_SCALER;
+            lmrReduction += TT_PV_FAIL_LOW_LMR_SCALAR;
         }
 
         if (tt_hit && tt_capture) {
-            lmrReduction += TT_CAPTURE_LMR_SCALER;
+            lmrReduction += TT_CAPTURE_LMR_SCALAR;
         }
 
         if (enemy_has_no_threats && !in_check && static_eval - 365 > beta) {
-            lmrReduction += GOOD_EVAL_LMR_SCALER;
+            lmrReduction += GOOD_EVAL_LMR_SCALAR;
         }
 
         // ╔══════════════════════════════╗
@@ -1568,13 +1568,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // ╚══════════════════════════════╝
 
         if (!improving && !in_check) {
-            lmrReduction += IMPROVING_LMR_SCALER;
+            lmrReduction += IMPROVING_LMR_SCALAR;
         }
 
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
-                lmrReduction += QUIET_NON_PV_LMR_SCALER;
+                lmrReduction += QUIET_NON_PV_LMR_SCALAR;
             }
 
             // Futility LMR
@@ -1583,11 +1583,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
             int moveHistoryReduction = moveHistory / QUIET_HISTORY_LMR_DIVISOR;
-            lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALER, QUIET_HISTORY_LMR_MAXIMUM_SCALER);
+            lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALAR, QUIET_HISTORY_LMR_MAXIMUM_SCALAR);
 
             // pawn history based reduction, same logic as the quiet history
             int pawnHistoryReduction = pawnHistoryValue / PAWN_HISTORY_LMR_DIVISOR;            
-            lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALER, PAWN_HISTORY_LMR_MAXIMUM_SCALER);
+            lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALAR, PAWN_HISTORY_LMR_MAXIMUM_SCALAR);
         }
         // Noisy Moves
         else { 
@@ -1597,11 +1597,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // Reduce Less
         if (tt_pv) {
-            lmrReduction -= TT_PV_LMR_SCALER + (512 * pvNode) + (256 * improving);
+            lmrReduction -= TT_PV_LMR_SCALAR + (512 * pvNode) + (256 * improving);
         }
 
         if (gives_check) {
-            lmrReduction -= GIVES_CHECK_LMR_SCALER;
+            lmrReduction -= GIVES_CHECK_LMR_SCALAR;
         }
         
 
