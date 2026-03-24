@@ -96,6 +96,9 @@ void addMoveToHistoryList(moves* list, uint16_t move);
 U64 pawn_threats(U64 pawnBitboard, int side);
 U64 knight_threats (U64 knightBB);
 bool move_gives_check(uint16_t move, board* pos);
+void update_check_squares(board* pos);
+U64 get_all_check_squares(board* pos);
+U64 get_piece_check_squares(uint8_t piece_type, board *pos);
 
 // BISHOP ATTACKS
 static inline U64 getBishopAttacks(int square, U64 occupancy) {

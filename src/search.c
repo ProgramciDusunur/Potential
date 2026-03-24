@@ -437,11 +437,16 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
     }
     // score quiet moves
     else {
+        uint8_t source_square = getMoveSource(move);
+        uint8_t target_square = getMoveTarget(move);
+        uint8_t piece = t->pos.mailbox[source_square];
+        uint8_t opponent_king_square = getLS1BIndex(t->pos.bitboards[t->pos.side == white ? k : K]);
+
         int quiet_score = 0;
         quiet_score +=
             // quiet main history 
-            t->search_d.quietHistory[t->pos.side][getMoveSource(move)][getMoveTarget(move)]
-            [is_square_threatened(&t->pos, getMoveSource(move))][is_square_threatened(&t->pos, getMoveTarget(move))];
+            t->search_d.quietHistory[t->pos.side][source_square][target_square]
+            [is_square_threatened(&t->pos, source_square)][is_square_threatened(&t->pos, target_square)];
 
         // 1 ply continuation history
         quiet_score += getContinuationHistoryScore(t, 1, move, ss);
@@ -450,9 +455,17 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         // 4 ply continuation history
         quiet_score += getContinuationHistoryScore(t, 4, move, ss);
         // pawn history
-        quiet_score += thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
+        quiet_score += thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[source_square]][target_square];
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+        // moves that give check
+        U64 move_check_squares = (get_piece_check_squares(piece, &t->pos) & (1ULL << target_square)) == (1ULL << opponent_king_square);
+        if (move_check_squares) {
+            printBitboard(move_check_squares);
+            printBoard(&t->pos);
+            printMove(move);
+            printf("\n");
+        }
 
         return quiet_score;
     }

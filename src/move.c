@@ -146,15 +146,46 @@ bool move_gives_check(uint16_t move, board* pos) {
     return false;
 }
 
-/*void update_check_squares(board* pos) {
-    // Check for checks against the opponent's king
-    int opponent_side = pos->side == white ? black : white;
-    int king_square = getLS1BIndex(pos->bitboards[opponent_side == white ? K : k]);
-    
-    if (is_square_checked(king_square, pos->side, pos)) {
-        pos->check_squares[0] |= (1ULL << king_square);
-    }
-}*/
+void update_check_squares(board* pos) {
+    uint8_t opponent_king_square = getLS1BIndex(pos->bitboards[pos->side == white ? k : K]);
+
+    pos->check_squares[PAWN] = pawnAttacks[!pos->side][opponent_king_square];
+    pos->check_squares[KNIGHT] = knightAttacks[opponent_king_square];
+    pos->check_squares[BISHOP] = getBishopAttacks(opponent_king_square, pos->occupancies[both]);
+    pos->check_squares[ROOK] = getRookAttacks(opponent_king_square, pos->occupancies[both]);
+}
+
+U64 get_piece_check_squares(uint8_t piece_type, board *pos) {
+    switch (piece_type) {
+        case P:
+        case p:
+            return pos->check_squares[PAWN];
+            break;
+        case N:
+        case n:
+            return pos->check_squares[KNIGHT];
+            break;
+        case B:
+        case b:
+            return pos->check_squares[BISHOP];
+            break;
+        case R:
+        case r:
+            return pos->check_squares[ROOK];
+            break;
+        case Q:
+        case q:
+            return pos->check_squares[BISHOP] | pos->check_squares[ROOK];
+            break;
+        default: // King or NO_PIECE moves cannot give check
+            assert(piece_type == NO_PIECE);
+            return 0;
+    }    
+}
+
+U64 get_all_check_squares(board* pos) {
+    return pos->check_squares[PAWN] | pos->check_squares[KNIGHT] | pos->check_squares[BISHOP] | pos->check_squares[ROOK];
+}
 
 bool isMinor(int piece) {
     return piece == K || piece == k || piece == B || piece == b || piece == N || piece == n;
@@ -346,6 +377,7 @@ int makeMove(uint16_t move, int moveFlag, board* position) {
 
     // increment full moves counter
     position->full_moves += position->side == black;
+    update_check_squares(position);
 
     return 1;
 }

@@ -39,11 +39,6 @@ enum {
     opening, endgame, middlegame
 };
 
-// piece types
-enum {
-    PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
-};
-
 // Mirror Score Array
 extern const int mirrorScore[128];
 

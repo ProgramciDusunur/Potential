@@ -32,6 +32,10 @@ enum {
     P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
 };
 
+enum {
+    PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
+};
+
 // white and black castling
 enum {
     wk = 1, wq = 2, bk = 4, bq = 8

@@ -47,7 +47,7 @@ typedef struct {
     int phase_score;
 
     U64 pinned[2];
-    //U64 check_squares[4];
+    U64 check_squares[4];
     int ply;
     int seldepth;
     uint8_t rootDepth;
