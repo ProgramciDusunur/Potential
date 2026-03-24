@@ -455,7 +455,7 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
         // low ply history
         if (t->pos.ply < 4) {
-            quiet_score += 8 * t->search_d.lowPlyHistory[t->pos.ply][getMoveTarget(move)] / (1 + t->pos.ply);
+            quiet_score += 8 * t->search_d.lowPlyHistory[t->pos.ply][getMoveTarget(move)] / (1 + 2 * t->pos.ply);
         }
         return quiet_score;
     }
