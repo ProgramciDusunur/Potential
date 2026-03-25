@@ -111,3 +111,4 @@ int get_rank[64] = {
         0, 0, 0, 0, 0, 0, 0, 0
 };
 
+const U64 LIGHT_SQUARES = 0xAA55AA55AA55AA55ULL;
