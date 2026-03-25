@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "cuckoo.h"
 
 #if defined(__AVX2__) || defined(__SSE4_1__)
 #include <immintrin.h>
@@ -974,6 +975,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             return get_draw_score(t);
         }        
 
+        if (alpha < 0 && has_game_cycle(pos, pos->ply)) {
+            alpha = 0;
+            if (alpha >= beta) {
+                return alpha;
+            }
+        }
 
         // Mate distance pruning
         alpha = myMAX(alpha, -mateValue + (int)pos->ply);

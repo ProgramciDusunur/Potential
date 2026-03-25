@@ -14,7 +14,7 @@
 #include "perft.h"
 #include "see.h"
 #include "generate_fen.h"
-
+#include "cuckoo.h"
 
 
 
@@ -36,6 +36,7 @@ void initAll(void) {
     init_hash_table(64);
     init_tables();
     init_helper_bb();
+    cuckoo_init();
 }
 
 
