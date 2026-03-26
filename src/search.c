@@ -1563,6 +1563,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction += TT_CAPTURE_LMR_SCALAR;
         }
 
+        if (tt_hit && tt_score < alpha) {
+            lmrReduction += 600;
+        }
+
+        if (tt_hit && tt_depth < depth) {
+            lmrReduction += 300;
+        }
+
         if (enemy_has_no_threats && !in_check && static_eval - 365 > beta) {
             lmrReduction += GOOD_EVAL_LMR_SCALAR;
         }
