@@ -1630,10 +1630,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
+                bool doEvenDeeper = score > bestScore + 768;
                 bool historyReduction = notTactical ? moveHistory / 16384 : 0;
                 bool doShallower = score < bestScore + new_depth;
                 new_depth -= doShallower;
                 new_depth += doDeeper;
+                new_depth += doEvenDeeper;
                 new_depth -= historyReduction;
                 score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !cutNode);
             }
