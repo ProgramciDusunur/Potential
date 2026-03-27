@@ -165,7 +165,7 @@ bool isMajor(int piece) {
 }
 
 bool isKRP(int piece) {
-    return piece == K || piece == k || piece == R || piece == r;
+    return piece == K || piece == k || piece == R || piece == r || piece == P || piece == p;
 }
 
 inline static void toggleHashesForPiece(board* position, int piece, int square) {
