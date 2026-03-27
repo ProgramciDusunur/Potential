@@ -883,6 +883,112 @@ void initSlidersAttacks(int bishop) {
     }
 }
 
+void quietGenerator(moves *moveList, board* position) {
+    // init move count
+    moveList->count = 0;
+
+    int piece;
+    U64 bitboard;
+
+    U64 blockers = position->occupancies[both];
+    U64 empty = ~blockers;
+
+    // Pawn moves
+    if (position->side == white) {
+        bitboard = position->bitboards[P];
+
+        U64 emptyAhead = bitboard & (empty << 8);
+        U64 singlePush = emptyAhead & 0x00FFFFFFFFFF0000;
+        U64 doublePush = emptyAhead & 0x00FF000000000000 & (empty << 16);
+
+        splatPawnSingleMoves(moveList, singlePush, -8, 0);
+        splatPawnDoubleMoves(moveList, doublePush, -16, white);
+    } else {
+        bitboard = position->bitboards[p];
+
+        U64 emptyAhead = bitboard & (empty >> 8);
+        U64 singlePush = emptyAhead & 0x0000FFFFFFFFFF00;
+        U64 doublePush = emptyAhead & 0x000000000000FF00 & (empty >> 16);
+
+        splatPawnSingleMoves(moveList, singlePush, +8, 0);
+        splatPawnDoubleMoves(moveList, doublePush, +16, black);
+    }
+
+    // Knight moves
+    piece = position->side == white ? N : n;
+    bitboard = position->bitboards[piece];
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);
+
+        U64 targetBitboard = knightAttacks[sourceSquare];
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
+
+        popBit(bitboard, sourceSquare);
+    }
+
+    // Bishop moves
+    piece = position->side == white ? B : b;
+    bitboard = position->bitboards[piece];
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);
+
+        U64 targetBitboard = getBishopAttacks(sourceSquare, blockers);
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);        
+
+        popBit(bitboard, sourceSquare);
+    }
+
+    // Rook moves
+    piece = position->side == white ? R : r;
+    bitboard = position->bitboards[piece];
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);
+
+        U64 targetBitboard = getRookAttacks(sourceSquare, blockers);
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);        
+
+        popBit(bitboard, sourceSquare);
+    }
+
+    // Queen moves
+    piece = position->side == white ? Q : q;
+    bitboard = position->bitboards[piece];
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);
+
+        U64 targetBitboard = getQueenAttacks(sourceSquare, blockers);
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);        
+
+        popBit(bitboard, sourceSquare);
+    }
+
+    // King moves
+    piece = position->side == white ? K : k;
+    bitboard = position->bitboards[piece];
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);
+
+        U64 targetBitboard = kingAttacks[sourceSquare];
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);        
+
+        popBit(bitboard, sourceSquare);
+    }
+
+     // Castling moves
+    if (position->side == white) {
+        generate_white_king_side_castling(position, moveList);
+        generate_white_queen_side_castling(position, moveList);
+    } else {
+        generate_black_king_side_castling(position, moveList);
+        generate_black_queen_side_castling(position, moveList);
+    }
+}
+
 void initLeaperAttacks(void) {
     for (int square = 0; square < 64; square++) {
         // init pawn attacks
