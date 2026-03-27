@@ -90,6 +90,7 @@ int isSquareAttacked(int square, int whichSide, board* position);
 int makeMove(uint16_t move, int moveFlag, board* position);
 void moveGenerator(moves *moveList, board* position);
 void noisyGenerator(moves *moveList, board* position);
+void quietGenerator(moves *moveList, board* position);
 void initSlidersAttacks(int bishop);
 void initLeaperAttacks();
 void addMoveToHistoryList(moves* list, uint16_t move);
