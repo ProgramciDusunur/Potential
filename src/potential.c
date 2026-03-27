@@ -47,11 +47,18 @@ int main(int argc, char* argv[]) {
     int debug = 0;
     if (debug) {
         board position;
-        parseFEN(startPosition, &position);
+        parseFEN("rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2", &position);
 
-        setup_main_thread(&position);
+        moves moveList[1];
+        moveList->count = 0;
 
-        printBoard(&thread_pool.threads[0]->pos);
+        quietGenerator(moveList, &position);
+
+        for (int i = 0; i < moveList->count; i++) {
+            printf("Move: ");
+            printMove(moveList->moves[i]);
+            printf("\n");
+        }
     
         /*
         perftRoot(7, &position);
