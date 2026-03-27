@@ -42,7 +42,6 @@ void takeBack(board *p, struct copyposition *cp) {
     memcpy(p, cp, sizeof(struct copyposition));
 }
 
-
 // add move to the move list
 void addMove(moves *moveList, uint16_t move) {
     // store move
