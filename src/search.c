@@ -1348,7 +1348,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         bool isNotMated = bestScore > -mateFound;
 
-        if (!rootNode && notTactical && isNotMated && !gives_check) {
+        if (!rootNode && notTactical && isNotMated) {
 
             int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
             int history_adj = moveHistory / 64;
@@ -1356,7 +1356,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmpThreshold += history_adj;
 
             // Late Move Pruning
-            if (legal_moves>= lmpThreshold) {
+            if (legal_moves>= lmpThreshold && !gives_check) {
                 continue;
             }            
             int futility_margin = 
@@ -1371,7 +1371,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 continue;
             }
             // Quiet History Pruning
-            if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
+            if (lmrDepth <= 4 && !gives_check && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
                 break;
             }
 
