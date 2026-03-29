@@ -42,7 +42,6 @@ void takeBack(board *p, struct copyposition *cp) {
     memcpy(p, cp, sizeof(struct copyposition));
 }
 
-
 // add move to the move list
 void addMove(moves *moveList, uint16_t move) {
     // store move
@@ -165,7 +164,7 @@ bool isMajor(int piece) {
 }
 
 bool isKRP(int piece) {
-    return piece == K || piece == k || piece == R || piece == r;
+    return piece == K || piece == k || piece == R || piece == r || piece == P || piece == p;
 }
 
 inline static void toggleHashesForPiece(board* position, int piece, int square) {
