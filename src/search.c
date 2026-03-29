@@ -67,6 +67,7 @@
   int GOOD_EVAL_LMR_SCALAR = 1024;
   int IMPROVING_LMR_SCALAR = 1024;
   int GIVES_CHECK_LMR_SCALAR = 1024;
+  int RULE50_LMR_SCALAR = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -992,8 +993,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
                 ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
-                return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
-                                          tt_score;
+                    // For high rule50 counts don't produce transposition table cutoffs
+                    if (pos->fifty <= 90) {
+                        return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
+                                          tt_score;        
+                    }                
             }
         }
     }
@@ -1087,7 +1091,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) / NMP_REDUCTION_DEPTH_DIVISOR;
 
-        R += myMIN((ttAdjustedEval - beta) / NMP_EVAL_DIVISOR, 3);        
+        R += myMIN((ttAdjustedEval - beta) / NMP_EVAL_DIVISOR, 3);
+        // For high rule50 counts reduce less
+        R -= pos->fifty >= 90;
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
@@ -1616,6 +1622,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         if (gives_check) {
             lmrReduction -= GIVES_CHECK_LMR_SCALAR;
+        }
+
+        if (pos->fifty >= 90) {
+            lmrReduction -= RULE50_LMR_SCALAR;
         }
         
 
