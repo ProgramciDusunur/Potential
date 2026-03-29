@@ -378,11 +378,11 @@ int threat_score(board *pos, uint16_t move) {
             break;
         case R:
         case r:
-            score -= source_threatened ? 500 : 0;
+            score -= source_threatened ? 1500 : 0;
             break;
         case Q:
         case q:
-            score -= source_threatened ? 1000 : 0;
+            score -= source_threatened ? 3000 : 0;
             break;                    
     }
     return score;
