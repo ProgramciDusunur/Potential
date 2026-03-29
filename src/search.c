@@ -1392,7 +1392,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             abs(tt_score) < mateValue) {
             int singularMargin = depth * 5;            
             singularMargin += (tt_pv && !pvNode) * 10;
-            singularMargin += (tt_flag == hashFlagExact ? depth * 5 / 3 : depth * 5);
+            singularMargin += (tt_flag == hashFlagExact ? depth * 5 / 10 : depth * 5);
             const int singularBeta = tt_score - singularMargin / 8;
             const int singularDepth = (depth - 1) / 2;
 
