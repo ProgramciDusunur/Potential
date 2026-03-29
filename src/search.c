@@ -1620,8 +1620,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         
 
         lmrReduction /= 1024;
-
-        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth)) + pvNode;
+        int lmr_extension = legal_moves <= 3;
+        int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth + lmr_extension)) + pvNode;
 
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
