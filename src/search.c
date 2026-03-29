@@ -455,7 +455,7 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
         // give bonus that move gives direct check
-        quiet_score += gives_direct_check(&t->pos, move) * 5000;
+        quiet_score += gives_direct_check(&t->pos, move) * 1024;
 
         return quiet_score;
     }
