@@ -366,15 +366,15 @@ int threat_score(board *pos, uint16_t move) {
     switch (piece) {
         case P:
         case p:
-            score -= source_threatened ? 100 : 0;
+            //score -= source_threatened ? 100 : 0;
             break;
         case N:
         case n:
-            score -= source_threatened ? 300 : 0;
+            //score -= source_threatened ? 300 : 0;
             break;
         case B:
         case b:
-            score -= source_threatened ? 300 : 0;
+            //score -= source_threatened ? 300 : 0;
             break;
         case R:
         case r:
