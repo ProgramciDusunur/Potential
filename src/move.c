@@ -145,15 +145,23 @@ bool move_gives_check(uint16_t move, board* pos) {
     return false;
 }
 
-/*void update_check_squares(board* pos) {
-    // Check for checks against the opponent's king
-    int opponent_side = pos->side == white ? black : white;
-    int king_square = getLS1BIndex(pos->bitboards[opponent_side == white ? K : k]);
-    
-    if (is_square_checked(king_square, pos->side, pos)) {
-        pos->check_squares[0] |= (1ULL << king_square);
-    }
-}*/
+void update_check_squares(board* pos) {
+    uint8_t opponent_king_square = getLS1BIndex(pos->bitboards[pos->side == white ? k : K]);
+
+    pos->check_squares[0] = pawnAttacks[!pos->side][opponent_king_square];
+    pos->check_squares[1] = knightAttacks[opponent_king_square];
+    pos->check_squares[2] = getBishopAttacks(opponent_king_square, pos->occupancies[both]);
+    pos->check_squares[3] = getRookAttacks(opponent_king_square, pos->occupancies[both]);
+}
+
+bool gives_direct_check(board *pos, uint16_t move) {
+    uint8_t targetSquare = getMoveTarget(move);
+    return (pos->check_squares[0] & (1ULL << targetSquare)) ||
+           (pos->check_squares[1] & (1ULL << targetSquare)) ||
+           (pos->check_squares[2] & (1ULL << targetSquare)) ||
+           (pos->check_squares[3] & (1ULL << targetSquare));
+
+}
 
 bool isMinor(int piece) {
     return piece == K || piece == k || piece == B || piece == b || piece == N || piece == n;
@@ -345,6 +353,8 @@ int makeMove(uint16_t move, int moveFlag, board* position) {
 
     // increment full moves counter
     position->full_moves += position->side == black;
+
+    update_check_squares(position);
 
     return 1;
 }

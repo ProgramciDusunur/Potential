@@ -454,6 +454,8 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         quiet_score += thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+        // give bonus that move gives direct check
+        quiet_score += gives_direct_check(&t->pos, move) * 5000;
 
         return quiet_score;
     }
