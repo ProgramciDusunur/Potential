@@ -354,6 +354,40 @@ void init_quiescence_scores(moves *moveList, int *move_scores, board* position) 
     }
 }
 
+int threat_score(board *pos, uint16_t move) {
+    int score = 0;
+
+    uint8_t sourceSquare = getMoveSource(move);
+    uint8_t targetSquare = getMoveTarget(move);
+    uint8_t piece = pos->mailbox[sourceSquare];
+    uint8_t target_piece = pos->mailbox[targetSquare];
+    bool source_threatened = is_square_threatened(pos, sourceSquare);
+
+    switch (piece) {
+        case P:
+        case p:
+            score -= source_threatened ? 100 : 0;
+            break;
+        case N:
+        case n:
+            score -= source_threatened ? 300 : 0;
+            break;
+        case B:
+        case b:
+            score -= source_threatened ? 300 : 0;
+            break;
+        case R:
+        case r:
+            score -= source_threatened ? 500 : 0;
+            break;
+        case Q:
+        case q:
+            score -= source_threatened ? 1000 : 0;
+            break;                    
+    }
+    return score;
+}
+
 /*  =======================
          Move ordering
     =======================
@@ -454,6 +488,8 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         quiet_score += thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+        // threat score
+        quiet_score += threat_score(&t->pos, move);
 
         return quiet_score;
     }
