@@ -1390,7 +1390,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !ss->singular_move &&
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateValue) {
-            const int singularBeta = tt_score - (depth * 5 + (tt_pv && !pvNode) * 10) / 8;
+            int singularMargin = depth * 5;            
+            singularMargin += (tt_pv && !pvNode) * 10;
+            singularMargin += (tt_flag == hashFlagExact ? depth * 5 / 3 : depth * 5);
+            const int singularBeta = tt_score - singularMargin / 8;
             const int singularDepth = (depth - 1) / 2;
 
 
