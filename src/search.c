@@ -783,12 +783,13 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     }
 
     // Reverse Qsearch: if TT move is quiet, re-enter negamax at tt_depth
-        if (!t->reverse_qsearch && tt_move && !getMoveCapture(tt_move) && !getMovePromote(tt_move)) {
-            t->reverse_qsearch = true;
-            int rqs_score = negamax(alpha, beta, tt_depth, t, time, ss, true);
-            t->reverse_qsearch = false;
-            return rqs_score;
-        }
+    if (!t->reverse_qsearch && tt_move && !getMoveCapture(tt_move) && !getMovePromote(tt_move)) {
+        t->reverse_qsearch = true;
+        int adjusted_tt_depth = myMAX(1, tt_depth / 5);
+        int rqs_score = negamax(alpha, beta, adjusted_tt_depth, t, time, ss, true);
+        t->reverse_qsearch = false;
+        return rqs_score;
+    }
 
     // evaluate position
     int evaluation = evaluate(position);
