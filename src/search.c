@@ -3,6 +3,7 @@
 //
 
 #include "search.h"
+#include "movepicker.h"
 #include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -1281,19 +1282,16 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     badQuiets->count = 0;
     noisyMoves->count = 0;
 
+    MovePicker mp;
+    init_mp(&mp, tt_move);
+
     // generate moves
-    moveGenerator(moveList, pos);
-
-    // if we are now following PV line
-    if (pos->followPv)
-        // enable PV move scoring
-        enable_pv_scoring(moveList, pos);
-
+    //moveGenerator(moveList, pos);
     
     update_pinned(pos);
 
     int move_scores[256];
-    init_move_scores(moveList, move_scores, tt_move, t, ss);
+    //init_move_scores(moveList, move_scores, tt_move, t, ss);
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -1311,10 +1309,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     const int originalAlpha = alpha;
 
+    uint16_t currentMove = 0;
     // loop over moves within a movelist
-    for (int count = 0; count < moveList->count; count++) {
-        pick_next_move(count, moveList, move_scores);
-        uint16_t currentMove = moveList->moves[count];
+    while ((currentMove = get_next_move(&mp, moveList, move_scores, pos, t, ss)) != 0) {
+        //pick_next_move(count, moveList, move_scores);
+        
 
         if (currentMove == ss->singular_move) {
             continue;
@@ -1392,7 +1391,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             copyBoard(pos, &copyPosition);
 
             // make sure to make only legal moves
-            if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
+            if (makeMove(currentMove, allMoves, pos) == 0) {
                 continue;
             }
 
@@ -1502,7 +1501,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
         // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
+        if (makeMove(currentMove, allMoves, pos) == 0) {
             // decrement ply
             pos->ply--;
 

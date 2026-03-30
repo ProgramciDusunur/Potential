@@ -394,7 +394,7 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
     if (double_push) {
         if (target_piece != NO_PIECE || (pos->side == white ? piece != P : piece != p)) return false;
 
-        uint16_t behind_target_square = target_square + (pos->side == white ? -8 : 8);
+        uint16_t behind_target_square = target_square + (pos->side == white ? 8 : -8);
 
         if (pos->mailbox[behind_target_square] != NO_PIECE) {
             return false;
