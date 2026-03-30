@@ -437,6 +437,8 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
                 }
                 break;
         }
+        // if all checks pass, move is legal
+        return true;
     }
     
     switch (piece) {
