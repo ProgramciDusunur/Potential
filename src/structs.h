@@ -251,6 +251,7 @@ struct datagen_args {
 typedef struct {
     uint8_t CURRENT_STAGE;
     uint16_t tt_move;
+    int index;
 } MovePicker;
 
 #endif //POTENTIAL_STRUCTS_H
