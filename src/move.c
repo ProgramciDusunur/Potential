@@ -4,6 +4,8 @@
 
 #include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 #include "move.h"
 #include "fen.h"
 
@@ -379,7 +381,7 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
     }
 
     // 4) if the move is enpassant, there must be an enpassant square available
-    if (enpassant && pos->enpassant == no_sq) {        
+    if (enpassant && (pos->enpassant == no_sq || target_square != pos->enpassant)) {
         return false;
     }
 
@@ -390,11 +392,16 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
 
     // 6) if the move is double pawn push, there must be no piece on the target square and the square behind it
     if (double_push) {
-        if (target_piece != NO_PIECE || pos->side == white ? piece != P : piece != p) return false;
+        if (target_piece != NO_PIECE || (pos->side == white ? piece != P : piece != p)) return false;
 
         uint16_t behind_target_square = target_square + (pos->side == white ? -8 : 8);
 
         if (pos->mailbox[behind_target_square] != NO_PIECE) {
+            return false;
+        }
+
+        uint16_t really_double_push = (pos->side == white ? target_square == source_square - 16 : target_square == source_square + 16);
+        if (!really_double_push) {
             return false;
         }
 
@@ -408,7 +415,16 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
         return false;
     }
 
-    // 8) handle castling moves
+    // 8) handle promotions
+    if (promote) {
+        if (pos->side == white ? piece != P : piece != p) return false;  // the piece must be a pawn
+        // the source square must be on the 2nd or 7th rank
+        if (pos->side == white ? get_rank[source_square] != 6 : get_rank[source_square] != 1) {            
+            return false;
+        }
+    }
+
+    // 9) handle castling moves
     if (castling) {
         switch (target_square) {
             // white castles king side
@@ -452,11 +468,22 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
     
     switch (piece) {
         case P:
-        case p:
-            int push_dir = (pos->side == white) ? -8 : 8;
-            if (!double_push && target_square != source_square + push_dir) {
+        case p:            
+            if (!promote && (pos->side == white ? get_rank[target_square] == 7 : get_rank[target_square] == 0)) {
                 return false;
             }
+            if (capture) {                
+                if (target_square != source_square + (pos->side == white ? -7 : 9) && target_square != source_square + (pos->side == white ? -9 : 7)) {
+                    return false;
+                }
+            } 
+            else {
+                int push_dir = (pos->side == white) ? -8 : 8;
+                if (!double_push && target_square != source_square + push_dir) {
+                    return false;
+                }
+            }
+            
             break;
         case N:
         case n:
