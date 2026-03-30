@@ -24,5 +24,11 @@ enum {
    STACK_SAFETY_MARGIN = 20
 };
 
+enum {
+   STAGE_TT,
+   STAGE_ALL_REMAINING,
+   CURRENT_STAGE
+};
+
 
 #endif //POTENTIAL_VALUES_H

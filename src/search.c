@@ -479,18 +479,6 @@ void enable_pv_scoring(moves *moveList, board* position) {
     }
 }
 
-// print move
-void printMove(uint16_t move) {
-    if (getMovePromote(move)) {
-        printf("%s%s%c", squareToCoordinates[getMoveSource(move)],
-               squareToCoordinates[getMoveTarget(move)],
-               promotedPieces[getMovePromotedPiece(black, move)]);
-    } else {
-        printf("%s%s", squareToCoordinates[getMoveSource(move)],
-               squareToCoordinates[getMoveTarget(move)]);
-    }
-}
-
 int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
     return LMR_TABLE[isQuiet][myMIN(63, myMAX(depth, 0))][myMIN(63, moveNumber)];
 }
@@ -1285,6 +1273,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     bool enemy_has_no_threats = !has_enemy_any_threat(pos);
 
+    is_pseudo_legal(tt_hit ? tt_move : 0, pos);
+
 
     // create move list instance
     moves moveList[1], badQuiets[1], noisyMoves[1];
@@ -1390,7 +1380,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !ss->singular_move &&
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateValue) {
-            const int singularBeta = tt_score - (depth * 5 + (tt_pv && !pvNode) * 10) / 8;
+            int singularMargin = depth * 5;            
+            singularMargin += (tt_pv && !pvNode) * 10;
+            singularMargin += (tt_flag == hashFlagExact ? depth * 5 / 10 : depth * 5);
+            const int singularBeta = tt_score - singularMargin / 8;
             const int singularDepth = (depth - 1) / 2;
 
 
