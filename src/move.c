@@ -390,11 +390,15 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
 
     // 6) if the move is double pawn push, there must be no piece on the target square and the square behind it
     if (double_push) {
-        if (target_piece != NO_PIECE) return false;
+        if (target_piece != NO_PIECE || pos->side == white ? piece != P : piece != p) return false;
 
         uint16_t behind_target_square = target_square + (pos->side == white ? -8 : 8);
 
         if (pos->mailbox[behind_target_square] != NO_PIECE) {
+            return false;
+        }
+
+        if (pos->side == black ? get_rank[source_square] != 6 : get_rank[source_square] != 1) {
             return false;
         }
     }
