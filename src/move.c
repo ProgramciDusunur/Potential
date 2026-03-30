@@ -516,8 +516,7 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
             }
             break;
     }
-
-    // can go to target destination?
+    
     /*if (capture && target_piece != NO_PIECE && piece_color == target_piece_color) {
         printBoard(pos);
         printf("the move is capture and target capture is friendly piece! ");
