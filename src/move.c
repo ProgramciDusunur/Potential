@@ -399,7 +399,12 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
         }
     }
 
-    // 7) handle castling moves
+    // 7) handle quiet moves
+    if (quiet && target_piece != NO_PIECE) {
+        return false;
+    }
+
+    // 8) handle castling moves
     if (castling) {
         switch (target_square) {
             // white castles king side
