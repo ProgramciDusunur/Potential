@@ -1272,10 +1272,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             return small_probcut_beta;            
     }
 
-    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
-
-    is_pseudo_legal(tt_hit ? tt_move : 0, pos);
-
+    bool enemy_has_no_threats = !has_enemy_any_threat(pos);    
 
     // create move list instance
     moves moveList[1], badQuiets[1], noisyMoves[1];
@@ -1284,14 +1281,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     MovePicker mp;
     init_mp(&mp, tt_move);
-
-    // generate moves
-    //moveGenerator(moveList, pos);
-    
+        
     update_pinned(pos);
 
-    int move_scores[256];
-    //init_move_scores(moveList, move_scores, tt_move, t, ss);
+    int move_scores[256];    
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -1312,8 +1305,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     uint16_t currentMove = 0;
     // loop over moves within a movelist
     while ((currentMove = get_next_move(&mp, moveList, move_scores, pos, t, ss)) != 0) {
-        //pick_next_move(count, moveList, move_scores);
-        
 
         if (currentMove == ss->singular_move) {
             continue;
