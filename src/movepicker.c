@@ -77,3 +77,79 @@ uint16_t get_next_move(MovePicker *mp, int *move_scores, board *pos, ThreadData 
     }
     return 0;
 }
+
+void init_qs_mp(QSPicker *mp, uint16_t tt_move) {
+    mp->tt_move = tt_move;
+    mp->CURRENT_STAGE = STAGE_QS_TT;
+    mp->index = 0;
+    mp->noisy_moves.count = 0;
+}
+
+uint16_t get_next_qs_move(QSPicker *mp, int *move_scores, board *pos) {
+    switch (mp->CURRENT_STAGE) {
+        case STAGE_QS_TT:
+            mp->CURRENT_STAGE = STAGE_QS_GEN_NOISY;
+            if (mp->tt_move != 0 && is_pseudo_legal(mp->tt_move, pos) && (getMoveCapture(mp->tt_move) || getMovePromote(mp->tt_move))) {
+                return mp->tt_move;
+            }
+        // fallthrough
+        case STAGE_QS_GEN_NOISY:
+            mp->CURRENT_STAGE = STAGE_QS_NOISY;
+            noisyGenerator(&mp->noisy_moves, pos);
+            init_quiescence_scores(&mp->noisy_moves, move_scores, pos);
+            mp->index = 0;
+        // fallthrough
+        case STAGE_QS_NOISY:
+            while (mp->index < mp->noisy_moves.count) {
+                pick_next_move(mp->index, &mp->noisy_moves, move_scores);
+                uint16_t candidate_move = mp->noisy_moves.moves[mp->index];
+                mp->index++;
+                
+                if (candidate_move == mp->tt_move) {
+                    continue;
+                }
+                
+                return candidate_move;
+            }
+            return 0;
+    }
+    return 0;
+}
+
+void init_probcut_mp(ProbcutPicker *mp, uint16_t tt_move) {
+    mp->tt_move = tt_move;
+    mp->CURRENT_STAGE = STAGE_PROBCUT_TT;
+    mp->index = 0;
+    mp->noisy_moves.count = 0;
+}
+
+uint16_t get_next_probcut_move(ProbcutPicker *mp, int *move_scores, board *pos, ThreadData *t, SearchStack *ss) {
+    switch (mp->CURRENT_STAGE) {
+        case STAGE_PROBCUT_TT:
+            mp->CURRENT_STAGE = STAGE_PROBCUT_GEN_NOISY;
+            if (mp->tt_move != 0 && is_pseudo_legal(mp->tt_move, pos) && (getMoveCapture(mp->tt_move) || getMovePromote(mp->tt_move))) {
+                return mp->tt_move;
+            }
+        // fallthrough
+        case STAGE_PROBCUT_GEN_NOISY:
+            mp->CURRENT_STAGE = STAGE_PROBCUT_NOISY;
+            noisyGenerator(&mp->noisy_moves, pos);
+            init_move_scores(&mp->noisy_moves, move_scores, mp->tt_move, t, ss);
+            mp->index = 0;
+        // fallthrough
+        case STAGE_PROBCUT_NOISY:
+            while (mp->index < mp->noisy_moves.count) {
+                pick_next_move(mp->index, &mp->noisy_moves, move_scores);
+                uint16_t candidate_move = mp->noisy_moves.moves[mp->index];
+                mp->index++;
+                
+                if (candidate_move == mp->tt_move) {
+                    continue;
+                }
+                
+                return candidate_move;
+            }
+            return 0;
+    }
+    return 0;
+}

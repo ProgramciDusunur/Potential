@@ -260,4 +260,18 @@ typedef struct {
     moves quiet;
 } MovePicker;
 
+typedef struct {
+    uint8_t CURRENT_STAGE;
+    uint16_t tt_move;
+    int index;
+    moves noisy_moves;
+} QSPicker;
+
+typedef struct {
+    uint8_t CURRENT_STAGE;
+    uint16_t tt_move;
+    int index;
+    moves noisy_moves;
+} ProbcutPicker;
+
 #endif //POTENTIAL_STRUCTS_H

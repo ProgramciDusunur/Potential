@@ -791,24 +791,18 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         alpha = evaluation;
     }
 
-    // create move list instance
-    moves moveList[1];
-
-    // generate moves
-    noisyGenerator(moveList, position);
-
     int futilityValue = bestScore + 100;
 
     // legal moves counter
     //int legal_moves = 0;
 
     int move_scores[256];
-    init_quiescence_scores(moveList, move_scores, position);
+    QSPicker qmp;
+    init_qs_mp(&qmp, tt_move);
 
     // loop over moves within a movelist
-    for (int count = 0; count < moveList->count; count++) {
-        pick_next_move(count, moveList, move_scores);
-        uint16_t move = moveList->moves[count];
+    uint16_t move = 0;
+    while ((move = get_next_qs_move(&qmp, move_scores, position)) != 0) {
 
         if (bestScore > -mateFound) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
@@ -833,7 +827,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
         // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], onlyCaptures, position) == 0) {
+        if (makeMove(move, onlyCaptures, position) == 0) {
             // decrement ply
             position->ply--;
 
@@ -1180,17 +1174,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
     if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !ss->singular_move &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
-            moves capture_promos[1];
-            capture_promos->count = 0;
             int probcut_depth = depth - PROBCUT_DEPTH_SUBTRACTOR;
 
-            noisyGenerator(capture_promos, pos);
-
             int move_scores[256];
-            init_move_scores(capture_promos, move_scores, tt_move, t, ss);
-            for (int count = 0; count < capture_promos->count; count++) {
-                pick_next_move(count, capture_promos, move_scores);
-                uint16_t move = capture_promos->moves[count];
+            ProbcutPicker pmp;
+            init_probcut_mp(&pmp, tt_move);
+            
+            uint16_t move = 0;
+            while ((move = get_next_probcut_move(&pmp, move_scores, pos, t, ss)) != 0) {
                 int move_history =
                 t->search_d.captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
 
@@ -1215,7 +1206,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
                 // make sure to make only legal moves
-                if (makeMove(capture_promos->moves[count], allMoves, pos) == 0) {
+                if (makeMove(move, allMoves, pos) == 0) {
                     // decrement ply
                     pos->ply--;
 

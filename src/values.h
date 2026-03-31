@@ -34,5 +34,17 @@ enum {
    CURRENT_STAGE
 };
 
+enum {
+   STAGE_QS_TT,
+   STAGE_QS_GEN_NOISY,
+   STAGE_QS_NOISY
+};
+
+enum {
+   STAGE_PROBCUT_TT,
+   STAGE_PROBCUT_GEN_NOISY,
+   STAGE_PROBCUT_NOISY
+};
+
 
 #endif //POTENTIAL_VALUES_H
