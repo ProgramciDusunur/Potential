@@ -1304,7 +1304,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     uint16_t currentMove = 0;
     // loop over moves within a movelist
-    while ((currentMove = get_next_move(&mp, moveList, move_scores, pos, t, ss)) != 0) {
+    while ((currentMove = get_next_move(&mp, move_scores, pos, t, ss)) != 0) {
 
         if (currentMove == ss->singular_move) {
             continue;
