@@ -4,21 +4,52 @@ void init_mp(MovePicker *mp, uint16_t tt_move) {
     mp->tt_move = tt_move;
     mp->CURRENT_STAGE = STAGE_TT;
     mp->index = 0;
+    mp->good_noisy_index = 0;
+    mp->quiet_index = 0;
 }
 
 uint16_t get_next_move(MovePicker *mp, moves *moveList, int *move_scores, board *pos, ThreadData *t, SearchStack *ss) {
     while (true) {
         switch (mp->CURRENT_STAGE) {
-            
             case STAGE_TT:
-                mp->CURRENT_STAGE = STAGE_ALL_REMAINING;
-                
-                
+                mp->CURRENT_STAGE = STAGE_GEN_NOISY;                                
                 if (mp->tt_move != 0 && is_pseudo_legal(mp->tt_move, pos)) {
                     return mp->tt_move;
                 }
-                break;
-            case STAGE_ALL_REMAINING:                
+            // fallthrough
+            case STAGE_GEN_NOISY:
+                mp->CURRENT_STAGE = STAGE_GOOD_NOISY;
+                noisyGenerator(&mp->good_noisy, pos);
+                if (pos->followPv) enable_pv_scoring(&mp->good_noisy, pos);
+                score_noisy_moves(&mp->good_noisy, move_scores, t, ss, mp->tt_move);
+                mp->good_noisy_index = 0;
+            // fallthrough
+            case STAGE_GOOD_NOISY:
+                while (mp->good_noisy_index < mp->good_noisy.count) {
+                    pick_next_move(mp->good_noisy_index, &mp->good_noisy, move_scores);
+                    
+                    uint16_t candidate_move = mp->good_noisy.moves[mp->good_noisy_index];
+                    mp->good_noisy_index++;
+                    
+                    if (candidate_move == mp->tt_move) {
+                        continue;
+                    }
+                    
+                    // TODO: SEE test to separate into good/bad.                    
+                    return candidate_move;
+                }
+                mp->CURRENT_STAGE = STAGE_ALL_REMAINING;
+                mp->index = 0; // reset index for STAGE_ALL_REMAINING
+                
+            // fallthrough
+            /*case STAGE_GEN_QUIET: // TODO: should test separately
+                mp->CURRENT_STAGE = STAGE_QUIET;
+                quietGenerator(&mp->generate_quiet, pos);
+            // fallthrough
+            case STAGE_QUIET:
+                mp->CURRENT_STAGE = STAGE_ALL_REMAINING;*/
+            // fallthrough
+            case STAGE_ALL_REMAINING:
                 if (mp->index == 0) {
                     moveGenerator(moveList, pos);
 
@@ -37,6 +68,11 @@ uint16_t get_next_move(MovePicker *mp, moves *moveList, int *move_scores, board 
                     if (candidate_move == mp->tt_move) {
                         continue;
                     }
+                    
+                    if (getMoveCapture(candidate_move) || getMovePromote(candidate_move)) {
+                        continue;
+                    }
+
                     return candidate_move;
                 }
                 return 0;

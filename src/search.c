@@ -461,6 +461,17 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
     return 0;
 }
 
+void score_noisy_moves(moves *noisy_list, int *move_scores, ThreadData *t, SearchStack *ss, uint16_t tt_move) {
+    for (int count = 0; count < noisy_list->count; count++) {
+        uint16_t move = noisy_list->moves[count];
+        if (move == tt_move) {
+            move_scores[count] = 2000000000;
+        } else {
+            move_scores[count] = scoreMove(move, t, ss);
+        }
+    }
+}
+
 
 // enable PV move scoring
 void enable_pv_scoring(moves *moveList, board* position) {
