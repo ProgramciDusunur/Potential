@@ -399,8 +399,6 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         }
     }
 
-
-
     // score capture move
     if (getMoveCapture(move)) {
         int captureScore = 0;
@@ -461,13 +459,52 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
     return 0;
 }
 
-void score_noisy_moves(moves *noisy_list, int *move_scores, ThreadData *t, SearchStack *ss, uint16_t tt_move) {
+void score_noisy_moves(moves *noisy_list, int *move_scores, ThreadData *t, SearchStack *ss) {
     for (int count = 0; count < noisy_list->count; count++) {
         uint16_t move = noisy_list->moves[count];
-        if (move == tt_move) {
-            move_scores[count] = 2000000000;
+        
+        // PV Check
+        if (t->pos.scorePv && t->pos.pvTable[0][t->pos.ply] == move) {
+            t->pos.scorePv = 0;
+            move_scores[count] = 1500000000;
+            continue;
+        }
+
+        // score promotion move
+        if (getMovePromote(move)) {
+            switch (getMovePromotedPiece(t->pos.side, move)) {
+                case q: case Q: move_scores[count] = 1000000000; break;
+                case n: case N: move_scores[count] = 800000000; break;
+                case r: case R: move_scores[count] = -500000000; break;
+                case b: case B: move_scores[count] = -800000000; break;
+                default: move_scores[count] = 0; break;
+            }
+            continue;
+        }
+
+        // score capture move
+        if (getMoveCapture(move)) {
+            int captureScore = 0;
+            int target_piece = P;
+            uint8_t bb_piece = t->pos.mailbox[getMoveTarget(move)];
+            
+            if (bb_piece != NO_PIECE && getBit(t->pos.bitboards[bb_piece], getMoveTarget(move))) {
+                target_piece = bb_piece;
+            }
+
+            int previous_move_target_square = getMoveTarget((ss - 1)->move);
+            int recapture_bonus = getMoveTarget(move) == previous_move_target_square ? 200000 : 0;
+            int piece = t->pos.mailbox[getMoveSource(move)];
+            int16_t move_history = t->search_d.captureHistory[piece][getMoveTarget(move)][t->pos.mailbox[getMoveTarget(move)]];
+
+            captureScore += mvvLva[piece][target_piece];
+            captureScore += move_history;
+            captureScore += SEE(&t->pos, move, SEE_MOVE_ORDERING_THRESHOLD - move_history / 32) ? 1000000000 : -1000000;
+            captureScore += recapture_bonus;
+
+            move_scores[count] = captureScore;
         } else {
-            move_scores[count] = scoreMove(move, t, ss);
+            move_scores[count] = 0;
         }
     }
 }

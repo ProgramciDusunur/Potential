@@ -254,8 +254,10 @@ typedef struct {
     int index;
     int good_noisy_index;
     int quiet_index;
+    int bad_noisy_index;
     moves good_noisy;
     moves quiet;
+    moves bad_noisy;
 } MovePicker;
 
 #endif //POTENTIAL_STRUCTS_H

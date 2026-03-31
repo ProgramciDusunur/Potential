@@ -40,6 +40,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time);
 void init_move_scores(moves *moveList, int *move_scores, uint16_t tt_move, ThreadData *t, SearchStack *ss);
 void pick_next_move(int index, moves *moveList, int *move_scores);
-void score_noisy_moves(moves *noisy_list, int *move_scores, ThreadData *t, SearchStack *ss, uint16_t tt_move);
+void score_noisy_moves(moves *noisy_list, int *move_scores, ThreadData *t, SearchStack *ss);
 
 #endif //POTENTIAL_SEARCH_H

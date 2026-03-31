@@ -6,6 +6,8 @@ void init_mp(MovePicker *mp, uint16_t tt_move) {
     mp->index = 0;
     mp->good_noisy_index = 0;
     mp->quiet_index = 0;
+    mp->bad_noisy_index = 0;
+    mp->bad_noisy.count = 0;
 }
 
 uint16_t get_next_move(MovePicker *mp, moves *moveList, int *move_scores, board *pos, ThreadData *t, SearchStack *ss) {
@@ -21,7 +23,7 @@ uint16_t get_next_move(MovePicker *mp, moves *moveList, int *move_scores, board 
                 mp->CURRENT_STAGE = STAGE_GOOD_NOISY;
                 noisyGenerator(&mp->good_noisy, pos);
                 if (pos->followPv) enable_pv_scoring(&mp->good_noisy, pos);
-                score_noisy_moves(&mp->good_noisy, move_scores, t, ss, mp->tt_move);
+                score_noisy_moves(&mp->good_noisy, move_scores, t, ss);
                 mp->good_noisy_index = 0;
             // fallthrough
             case STAGE_GOOD_NOISY:
@@ -34,9 +36,13 @@ uint16_t get_next_move(MovePicker *mp, moves *moveList, int *move_scores, board 
                     if (candidate_move == mp->tt_move) {
                         continue;
                     }
-                    
-                    // TODO: SEE test to separate into good/bad.                    
-                    return candidate_move;
+                                        
+                    if (move_scores[mp->good_noisy_index - 1] >= 0) {
+                        return candidate_move;
+                    } else {
+                        mp->bad_noisy.moves[mp->bad_noisy.count++] = candidate_move;
+                        continue;
+                    }
                 }
                 mp->CURRENT_STAGE = STAGE_ALL_REMAINING;
                 mp->index = 0; // reset index for STAGE_ALL_REMAINING
@@ -73,6 +79,15 @@ uint16_t get_next_move(MovePicker *mp, moves *moveList, int *move_scores, board 
                         continue;
                     }
 
+                    return candidate_move;
+                }
+                mp->CURRENT_STAGE = STAGE_BAD_NOISY;
+                
+            // fallthrough
+            case STAGE_BAD_NOISY:
+                if (mp->bad_noisy_index < mp->bad_noisy.count) {
+                    uint16_t candidate_move = mp->bad_noisy.moves[mp->bad_noisy_index];
+                    mp->bad_noisy_index++;
                     return candidate_move;
                 }
                 return 0;
