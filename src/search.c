@@ -798,7 +798,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
     int move_scores[256];
     QSPicker qmp;
-    init_qs_mp(&qmp, tt_move);
+    init_qs_mp(&qmp);
 
     // loop over moves within a movelist
     uint16_t move = 0;

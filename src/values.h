@@ -35,7 +35,6 @@ enum {
 };
 
 enum {
-   STAGE_QS_TT,
    STAGE_QS_GEN_NOISY,
    STAGE_QS_NOISY
 };
