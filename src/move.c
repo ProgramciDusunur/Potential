@@ -381,8 +381,10 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
     }
 
     // 4) if the move is enpassant, there must be an enpassant square available
-    if (enpassant && (pos->enpassant == no_sq || target_square != pos->enpassant)) {
-        return false;
+    if (enpassant) {
+        if (pos->enpassant == no_sq || target_square != pos->enpassant) return false;
+        // enpassant can only be performed by pawns!
+        if (pos->side == white ? piece != P : piece != p) return false;
     }
 
     // 5) if the move is capture then target piece must be available
@@ -420,6 +422,10 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
         if (pos->side == white ? piece != P : piece != p) return false;  // the piece must be a pawn
         // the source square must be on the 2nd or 7th rank
         if (pos->side == white ? get_rank[source_square] != 6 : get_rank[source_square] != 1) {            
+            return false;
+        }
+        // a quiet promotion must land on an empty square
+        if (!capture && target_piece != NO_PIECE) {
             return false;
         }
     }
