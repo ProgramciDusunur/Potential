@@ -19,7 +19,7 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "3.33.68"
+#define VERSION "3.34.70"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -88,7 +88,6 @@ uint16_t parse_move(char *move_string, board* position) {
     // return illegal move
     return 0;
 }
-
 
 // parse UCI "position" command
 void parse_position(char *command, board* position) {

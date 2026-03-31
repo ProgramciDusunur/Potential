@@ -90,12 +90,15 @@ int isSquareAttacked(int square, int whichSide, board* position);
 int makeMove(uint16_t move, int moveFlag, board* position);
 void moveGenerator(moves *moveList, board* position);
 void noisyGenerator(moves *moveList, board* position);
+void quietGenerator(moves *moveList, board* position);
 void initSlidersAttacks(int bishop);
 void initLeaperAttacks();
 void addMoveToHistoryList(moves* list, uint16_t move);
 U64 pawn_threats(U64 pawnBitboard, int side);
 U64 knight_threats (U64 knightBB);
 bool move_gives_check(uint16_t move, board* pos);
+bool is_pseudo_legal(uint16_t move, board *pos);
+void printMove(uint16_t move);
 
 // BISHOP ATTACKS
 static inline U64 getBishopAttacks(int square, U64 occupancy) {

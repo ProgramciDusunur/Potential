@@ -15,6 +15,8 @@
 #define U64 unsigned long long
 #endif
 
+#define Move uint16_t
+
 #define maxPly 256
 #define MAX_THREADS 512
 
@@ -245,5 +247,17 @@ struct datagen_args {
     int nodes;
     int book;
 };
+
+typedef struct {
+    uint8_t CURRENT_STAGE;
+    uint16_t tt_move;
+    int index;
+    int good_noisy_index;
+    int bad_noisy_index;
+    int quiet_index;
+    moves good_noisy;
+    moves bad_noisy;
+    moves quiet;
+} MovePicker;
 
 #endif //POTENTIAL_STRUCTS_H

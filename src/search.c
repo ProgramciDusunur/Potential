@@ -3,6 +3,7 @@
 //
 
 #include "search.h"
+#include "movepicker.h"
 #include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -476,18 +477,6 @@ void enable_pv_scoring(moves *moveList, board* position) {
             // enable following PV
             position->followPv = 1;
         }
-    }
-}
-
-// print move
-void printMove(uint16_t move) {
-    if (getMovePromote(move)) {
-        printf("%s%s%c", squareToCoordinates[getMoveSource(move)],
-               squareToCoordinates[getMoveTarget(move)],
-               promotedPieces[getMovePromotedPiece(black, move)]);
-    } else {
-        printf("%s%s", squareToCoordinates[getMoveSource(move)],
-               squareToCoordinates[getMoveTarget(move)]);
     }
 }
 
@@ -1283,27 +1272,19 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             return small_probcut_beta;            
     }
 
-    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
-
+    bool enemy_has_no_threats = !has_enemy_any_threat(pos);    
 
     // create move list instance
     moves moveList[1], badQuiets[1], noisyMoves[1];
     badQuiets->count = 0;
     noisyMoves->count = 0;
 
-    // generate moves
-    moveGenerator(moveList, pos);
-
-    // if we are now following PV line
-    if (pos->followPv)
-        // enable PV move scoring
-        enable_pv_scoring(moveList, pos);
-
-    
+    MovePicker mp;
+    init_mp(&mp, tt_move);
+        
     update_pinned(pos);
 
-    int move_scores[256];
-    init_move_scores(moveList, move_scores, tt_move, t, ss);
+    int move_scores[256];    
 
     // number of moves searched in a move list
     int moves_searched = 0;
@@ -1321,10 +1302,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     const int originalAlpha = alpha;
 
+    uint16_t currentMove = 0;
     // loop over moves within a movelist
-    for (int count = 0; count < moveList->count; count++) {
-        pick_next_move(count, moveList, move_scores);
-        uint16_t currentMove = moveList->moves[count];
+    while ((currentMove = get_next_move(&mp, move_scores, pos, t, ss)) != 0) {
 
         if (currentMove == ss->singular_move) {
             continue;
@@ -1390,7 +1370,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !ss->singular_move &&
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateValue) {
-            const int singularBeta = tt_score - (depth * 5 + (tt_pv && !pvNode) * 10) / 8;
+            int singularMargin = depth * 5;            
+            singularMargin += (tt_pv && !pvNode) * 10;
+            singularMargin += (tt_flag == hashFlagExact ? depth * 5 / 10 : depth * 5);
+            const int singularBeta = tt_score - singularMargin / 8;
             const int singularDepth = (depth - 1) / 2;
 
 
@@ -1399,7 +1382,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             copyBoard(pos, &copyPosition);
 
             // make sure to make only legal moves
-            if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
+            if (makeMove(currentMove, allMoves, pos) == 0) {
                 continue;
             }
 
@@ -1509,7 +1492,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
         // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], allMoves, pos) == 0) {
+        if (makeMove(currentMove, allMoves, pos) == 0) {
             // decrement ply
             pos->ply--;
 
