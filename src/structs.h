@@ -262,12 +262,6 @@ typedef struct {
 
 typedef struct {
     uint8_t CURRENT_STAGE;
-    int index;
-    moves noisy_moves;
-} QSPicker;
-
-typedef struct {
-    uint8_t CURRENT_STAGE;
     uint16_t tt_move;
     int index;
     moves noisy_moves;

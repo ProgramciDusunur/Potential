@@ -78,34 +78,7 @@ uint16_t get_next_move(MovePicker *mp, int *move_scores, board *pos, ThreadData 
     return 0;
 }
 
-void init_qs_mp(QSPicker *mp) {
-    mp->CURRENT_STAGE = STAGE_QS_GEN_NOISY;
-    mp->index = 0;
-    mp->noisy_moves.count = 0;
-}
-
-uint16_t get_next_qs_move(QSPicker *mp, int *move_scores, board *pos) {
-    switch (mp->CURRENT_STAGE) {
-        case STAGE_QS_GEN_NOISY:
-            mp->CURRENT_STAGE = STAGE_QS_NOISY;
-            noisyGenerator(&mp->noisy_moves, pos);
-            init_quiescence_scores(&mp->noisy_moves, move_scores, pos);
-            mp->index = 0;
-        // fallthrough
-        case STAGE_QS_NOISY:
-            while (mp->index < mp->noisy_moves.count) {
-                pick_next_move(mp->index, &mp->noisy_moves, move_scores);
-                uint16_t candidate_move = mp->noisy_moves.moves[mp->index];
-                mp->index++;
-                
-                return candidate_move;
-            }
-            return 0;
-    }
-    return 0;
-}
-
-void init_probcut_mp(ProbcutPicker *mp, uint16_t tt_move) {
+ void init_probcut_mp(ProbcutPicker *mp, uint16_t tt_move) {
     mp->tt_move = tt_move;
     mp->CURRENT_STAGE = STAGE_PROBCUT_TT;
     mp->index = 0;

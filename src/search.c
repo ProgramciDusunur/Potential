@@ -791,18 +791,24 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         alpha = evaluation;
     }
 
+    // create move list instance
+    moves moveList[1];
+
+    // generate moves
+    noisyGenerator(moveList, position);
+
     int futilityValue = bestScore + 100;
 
     // legal moves counter
     //int legal_moves = 0;
 
     int move_scores[256];
-    QSPicker qmp;
-    init_qs_mp(&qmp);
+    init_quiescence_scores(moveList, move_scores, position);
 
     // loop over moves within a movelist
-    uint16_t move = 0;
-    while ((move = get_next_qs_move(&qmp, move_scores, position)) != 0) {
+    for (int count = 0; count < moveList->count; count++) {
+        pick_next_move(count, moveList, move_scores);
+        uint16_t move = moveList->moves[count];
 
         if (bestScore > -mateFound) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
@@ -827,7 +833,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
         // make sure to make only legal moves
-        if (makeMove(move, onlyCaptures, position) == 0) {
+        if (makeMove(moveList->moves[count], onlyCaptures, position) == 0) {
             // decrement ply
             position->ply--;
 
