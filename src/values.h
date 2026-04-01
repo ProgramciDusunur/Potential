@@ -26,6 +26,7 @@ enum {
 
 enum {
    STAGE_TT,
+   STAGE_KILLER,
    STAGE_GEN_NOISY,
    STAGE_GOOD_NOISY,
    STAGE_GEN_QUIET,

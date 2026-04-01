@@ -13,9 +13,15 @@ void init_mp(MovePicker *mp, uint16_t tt_move) {
 uint16_t get_next_move(MovePicker *mp, int *move_scores, board *pos, ThreadData *t, SearchStack *ss) {
     switch (mp->CURRENT_STAGE) {
         case STAGE_TT:
-            mp->CURRENT_STAGE = STAGE_GEN_NOISY;
+            mp->CURRENT_STAGE = STAGE_KILLER;
             if (mp->tt_move != 0 && is_pseudo_legal(mp->tt_move, pos)) {
                 return mp->tt_move;
+            }
+        // fallthrough
+        case STAGE_KILLER:
+            mp->CURRENT_STAGE = STAGE_GEN_NOISY;
+            if (t->search_d.killerMoves[pos->ply][0] != 0 && is_pseudo_legal(t->search_d.killerMoves[pos->ply][0], pos)) {
+                return t->search_d.killerMoves[pos->ply][0];
             }
         // fallthrough
         case STAGE_GEN_NOISY:

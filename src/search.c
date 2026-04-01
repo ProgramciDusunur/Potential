@@ -1693,6 +1693,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 // fail-hard beta cutoff
                 if (score >= beta) {
                     if (notTactical) {
+                        // store killer moves
+                        t->search_d.killerMoves[pos->ply][0] = bestMove;
+
                         int quiet_history_score = 
                         t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];

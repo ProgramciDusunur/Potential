@@ -303,6 +303,7 @@ void clear_histories(void) {
         memset(thread_pool.threads[i]->search_d.quietHistory, 0, sizeof(thread_pool.threads[i]->search_d.quietHistory));
         memset(thread_pool.threads[i]->search_d.captureHistory, 0, sizeof(thread_pool.threads[i]->search_d.captureHistory));        
         memset(thread_pool.threads[i]->search_d.continuationHistory, 0, sizeof(thread_pool.threads[i]->search_d.continuationHistory));
+        memset(thread_pool.threads[i]->search_d.killerMoves, 0, sizeof(thread_pool.threads[i]->search_d.killerMoves));
     }                        
 
     memset(&thread_pool.shared_history, 0, sizeof(SharedHistory));

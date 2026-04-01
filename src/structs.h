@@ -181,6 +181,9 @@ typedef struct {
 
     // captureHistory [piece][toSquare][capturedPiece]
     int16_t captureHistory[12][64][13];
+
+    // killerMoves[ply][killerIndex]
+    int16_t killerMoves[maxPly][2];
 } SearchData;
 
 typedef struct {
