@@ -18,6 +18,7 @@ void initTimeControl(my_time* time) {
     time->stopped = 0;
     time->softLimit = 0;
     time->hardLimit = 0;
+    time->is_datagen = false;
 }
 
 // reset time control variables
@@ -35,6 +36,7 @@ void resetTimeControl(my_time* time) {
     time->stopped = 0;
     time->softLimit = 0;
     time->hardLimit = 0;
+    time->is_datagen = false;
 }
 
 int getTimeMiliSecond(void) {

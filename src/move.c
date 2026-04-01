@@ -375,24 +375,29 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
         return false;
     }
 
-    // 3) we can't capture our own pieces
+    // 3) we can't capture our own pieces 
     if (target_piece != NO_PIECE && piece_color == target_piece_color) {
         return false;
     }
 
-    // 4) if the move is enpassant, there must be an enpassant square available
+    // 4) we can't capture the king
+    if (target_piece == K || target_piece == k) {
+        return false;
+    }
+
+    // 5) if the move is enpassant, there must be an enpassant square available
     if (enpassant) {
         if (pos->enpassant == no_sq || target_square != pos->enpassant) return false;
         // enpassant can only be performed by pawns!
         if (pos->side == white ? piece != P : piece != p) return false;
     }
 
-    // 5) if the move is capture then target piece must be available
+    // 6) if the move is capture then target piece must be available
     if (capture && !enpassant && target_piece == NO_PIECE) {
         return false;
     }
 
-    // 6) if the move is double pawn push, there must be no piece on the target square and the square behind it
+    // 7) if the move is double pawn push, there must be no piece on the target square and the square behind it
     if (double_push) {
         if (target_piece != NO_PIECE || (pos->side == white ? piece != P : piece != p)) return false;
 
@@ -412,12 +417,12 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
         }
     }
 
-    // 7) handle quiet moves
+    // 8) handle quiet moves
     if (quiet && target_piece != NO_PIECE) {
         return false;
     }
 
-    // 8) handle promotions
+    // 9) handle promotions
     if (promote) {
         if (pos->side == white ? piece != P : piece != p) return false;  // the piece must be a pawn
         // the source square must be on the 2nd or 7th rank
@@ -430,7 +435,7 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
         }
     }
 
-    // 9) handle castling moves
+    // 10) handle castling moves
     if (castling) {
         switch (target_square) {
             // white castles king side
