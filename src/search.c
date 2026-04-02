@@ -833,7 +833,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
             int lmpThreshold = (4 + 3 * tt_depth * tt_depth);
             // Evasions LMP
-            if (!rootNode && quiet_move && should_do_evasions && legal_moves >= lmpThreshold) {                
+            if (quiet_move && should_do_evasions && legal_moves >= lmpThreshold) {
                 continue;
             }
         }
