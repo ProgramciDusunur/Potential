@@ -799,26 +799,17 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     const bool should_do_evasions =
         !pvNode && tt_move && tt_flag != hashFlagBeta && !isTactical(tt_move);
 
-    // generate moves
-    if (should_do_evasions) {
-        moveGenerator(moveList, position);
-        init_move_scores(moveList, move_scores, 0, t, ss);
-    } else {
-        noisyGenerator(moveList, position);
-        init_quiescence_scores(moveList, move_scores, position);
-    }
+    QSearchPicker mp;
+    init_qs_mp(&mp, tt_move);    
 
     int futilityValue = bestScore + 100;
 
     // legal moves counter
     int legal_moves = 0;
     
-
+    uint16_t move = 0;
     // loop over moves within a movelist
-    for (int count = 0; count < moveList->count; count++) {
-        pick_next_move(count, moveList, move_scores);
-        uint16_t move = moveList->moves[count];
-
+    while ((move = qs_get_next_move(&mp, move_scores, position, t, ss, should_do_evasions)) != 0) {
         if (bestScore > -mateFound) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
@@ -842,7 +833,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
         // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], allMoves, position) == 0) {
+        if (makeMove(move, allMoves, position) == 0) {
             // decrement ply
             position->ply--;
 
