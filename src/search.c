@@ -800,8 +800,11 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
     int move_scores[256];
 
+    const bool should_do_evasions =
+        !pvNode && tt_move && tt_flag != hashFlagBeta && !isTactical(tt_move);
+
     // generate moves
-    if (in_check) {
+    if (in_check || should_do_evasions) {
         moveGenerator(moveList, position);
         init_move_scores(moveList, move_scores, 0, t, ss);
     } else {
