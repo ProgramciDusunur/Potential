@@ -336,9 +336,14 @@ void init_move_scores(moves *moveList, int *move_scores, uint16_t tt_move, Threa
     }
 }
 
-void init_quiescence_scores(moves *moveList, int *move_scores, board* position) {
+void init_quiescence_scores(moves *moveList, int *move_scores, board* position, uint16_t tt_move) {
     for (int count = 0; count < moveList->count; count++) {
         uint16_t move = moveList->moves[count];
+
+        if (move == tt_move) {
+            move_scores[count] = 2000000000;
+            continue;
+        }
         
         if (getMoveCapture(move)) {
             int target_piece = P;
@@ -805,7 +810,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         init_move_scores(moveList, move_scores, 0, t, ss);
     } else {
         noisyGenerator(moveList, position);
-        init_quiescence_scores(moveList, move_scores, position);
+        init_quiescence_scores(moveList, move_scores, position, tt_move);
     }
 
     int futilityValue = bestScore + 100;
@@ -880,14 +885,12 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
             bestScore = score;
             // found a better move
             if (score > alpha) {
-                //bestMove = moveList->moves[count];
-
-                //hashFlag = hashFlagExact;
+                bestMove = moveList->moves[count];
+                
                 alpha = score;
             }
 
-            if (score >= beta) {
-                //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
+            if (score >= beta) {                
                 // node (move) fails high
                 break;
             }
