@@ -744,7 +744,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
     int pvNode = beta - alpha > 1;
 
-    //int rootNode = position->ply == 0;
+    bool rootNode = position->ply == 0;
 
     if (position->ply > position->seldepth) {
         position->seldepth = position->ply;
@@ -819,6 +819,8 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         pick_next_move(count, moveList, move_scores);
         uint16_t move = moveList->moves[count];
 
+        bool quiet_move = !isTactical(move);
+
         if (bestScore > -mateFound) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
@@ -831,7 +833,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
             int lmpThreshold = (4 + 3 * tt_depth * tt_depth);
             // Evasions LMP
-            if (should_do_evasions && legal_moves >= lmpThreshold) {
+            if (!rootNode && quiet_move && should_do_evasions && legal_moves >= lmpThreshold) {                
                 continue;
             }
         }
