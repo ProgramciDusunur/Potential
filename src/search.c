@@ -822,6 +822,12 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         bool quiet_move = !isTactical(move);
 
         if (bestScore > -mateFound) {
+             int lmpThreshold = (4 + 3 * tt_depth * tt_depth);
+            // Evasions LMP
+            if (quiet_move && should_do_evasions && legal_moves >= lmpThreshold) {
+                continue;
+            }
+            
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
             }
@@ -829,13 +835,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
             if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
                 bestScore = myMAX(bestScore, futilityValue);
                 continue;
-            }
-
-            int lmpThreshold = (4 + 3 * tt_depth * tt_depth);
-            // Evasions LMP
-            if (quiet_move && should_do_evasions && legal_moves >= lmpThreshold) {
-                continue;
-            }
+            }           
         }
         
         struct copyposition copyPosition;
