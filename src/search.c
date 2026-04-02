@@ -828,6 +828,12 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
                 bestScore = myMAX(bestScore, futilityValue);
                 continue;
             }
+
+            int lmpThreshold = (4 + 3 * tt_depth * tt_depth);
+            // Evasions LMP
+            if (should_do_evasions && legal_moves >= lmpThreshold) {
+                continue;
+            }
         }
         
         struct copyposition copyPosition;
@@ -1345,7 +1351,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmpThreshold += history_adj;
 
             // Late Move Pruning
-            if (legal_moves>= lmpThreshold) {
+            if (legal_moves >= lmpThreshold) {
                 continue;
             }            
             int futility_margin = 
