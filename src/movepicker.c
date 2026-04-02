@@ -92,7 +92,7 @@ uint16_t qs_get_next_move(QSearchPicker *mp, int *move_scores, board *pos, Threa
     switch (mp->CURRENT_STAGE) {
         case STAGE_QS_EVASIONS_TT:
             mp->CURRENT_STAGE = STAGE_QS_EVASIONS_GEN_NOISY;
-            if (mp->tt_move != 0 && (evasions_available || isTactical(mp->tt_move)) && is_pseudo_legal(mp->tt_move, pos)) {
+            if (mp->tt_move != 0 && evasions_available && is_pseudo_legal(mp->tt_move, pos)) {
                 return mp->tt_move;
             }
         // fallthrough
