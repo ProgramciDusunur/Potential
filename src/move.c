@@ -92,8 +92,12 @@ bool move_gives_check(uint16_t move, board* pos) {
     uint8_t piece_type = getMovePromote(move) ? getMovePromotedPiece(pos->side, move) : pos->mailbox[sourceSquare];
     // opponent king square
     uint8_t opponent_king_square = getLS1BIndex(pos->bitboards[pos->side == white ? k : K]);
-
-    // TO:DO: ENPASSANT
+    
+    if (getMoveEnpassant(move)) {        
+        if (pawnAttacks[pos->side][targetSquare] & (1ULL << opponent_king_square)) {            
+            return true;
+        }
+    }
 
     if (getMoveCastling(move)) {
         switch (targetSquare) {
