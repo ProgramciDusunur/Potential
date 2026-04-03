@@ -818,8 +818,15 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     for (int count = 0; count < moveList->count; count++) {
         pick_next_move(count, moveList, move_scores);
         uint16_t move = moveList->moves[count];
+        bool gives_check = move_gives_check(move, position);
 
         if (bestScore > -mateFound) {
+            // QS LMP
+            if (legal_moves >= 3 && !gives_check) {
+                continue;
+            }
+
+
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
             }
