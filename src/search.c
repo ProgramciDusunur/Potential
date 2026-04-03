@@ -792,7 +792,8 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     }    
 
     // create move list instance
-    moves moveList[1];
+    moves moveList[1], badQuiets[1];
+    badQuiets->count = 0;
 
     int move_scores[256];
 
@@ -818,6 +819,8 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     for (int count = 0; count < moveList->count; count++) {
         pick_next_move(count, moveList, move_scores);
         uint16_t move = moveList->moves[count];
+
+        bool quiet_move = !isTactical(move);
 
         if (bestScore > -mateFound) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
@@ -861,6 +864,10 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         prefetch_hash_entry(position->hashKey, position->fifty);        
         prefetch_corrhist(position);
 
+        if (quiet_move) {
+            addMoveToHistoryList(badQuiets, move);
+        }
+
         // score current move
         score = -quiescence(-beta, -alpha, t, time, ss + 1);
 
@@ -880,14 +887,19 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
             bestScore = score;
             // found a better move
             if (score > alpha) {
-                //bestMove = moveList->moves[count];
+                bestMove = moveList->moves[count];
 
                 //hashFlag = hashFlagExact;
                 alpha = score;
             }
 
             if (score >= beta) {
-                //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
+                if (quiet_move) {
+                    // initial history bonus based on depth                    
+                    int quiethist_bonus = 5 + 100;
+
+                    updateQuietMoveHistory(t, bestMove, position->side, quiethist_bonus, badQuiets);
+                }
                 // node (move) fails high
                 break;
             }
