@@ -1491,6 +1491,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // Low Depth Singular Extensions
         else if (depth <= 7 && !in_check && ttAdjustedEval <= alpha - 25 && cutNode) {
             extensions++;
+
+            // Double Low Depth Extension
+            if (ttAdjustedEval <= alpha - 500) {
+                extensions++;    
+            }
         }
 
         struct copyposition copyPosition;
