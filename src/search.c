@@ -809,6 +809,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     }
 
     int futilityValue = bestScore + 100;
+    int previous_move_target_square = getMoveTarget((ss - 1)->move);
 
     // legal moves counter
     int legal_moves = 0;
@@ -820,6 +821,11 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         uint16_t move = moveList->moves[count];
 
         if (bestScore > -mateFound) {
+            // QS Late Move Pruning
+            if (getMoveTarget(move) != previous_move_target_square && legal_moves >= 3) {
+                continue;
+            }
+
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
             }
