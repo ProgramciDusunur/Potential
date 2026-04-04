@@ -983,8 +983,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // read hash entry
     tt_hit = !ss->singular_move && !rootNode && readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty);
 
+    bool is_tt_move_valid = tt_hit && tt_move && is_pseudo_legal(tt_move, pos);
+
     // read hash entry
-    if (tt_hit && !pvNode) {
+    if (tt_hit && !pvNode && is_tt_move_valid) {
         pos_key = pos->hashKey;
         if (tt_depth >= depth) {
             if ((tt_flag == hashFlagExact) ||
