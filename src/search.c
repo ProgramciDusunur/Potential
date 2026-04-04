@@ -861,6 +861,15 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         prefetch_hash_entry(position->hashKey, position->fifty);        
         prefetch_corrhist(position);
 
+        if (!pvNode || legal_moves > 1) {
+            // score current move
+            score = -quiescence(-alpha - 1, -alpha, t, time, ss + 1);
+        }
+
+        if (pvNode && (legal_moves == 1 || score > alpha)) {
+            score = -quiescence(-beta, -alpha, t, time, ss + 1);    
+        }
+
         // score current move
         score = -quiescence(-beta, -alpha, t, time, ss + 1);
 
