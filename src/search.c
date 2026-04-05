@@ -1493,7 +1493,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             extensions++;
 
             // Double Low Depth Extension
-            if (ttAdjustedEval <= alpha - 500) {
+            if (ttAdjustedEval <= alpha - 250) {
                 extensions++;    
             }
         }
