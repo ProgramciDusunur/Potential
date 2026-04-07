@@ -15,7 +15,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "utils.h"
-#include "see.h"
 
 #if defined(__x86_64__) || defined(_M_X64)
     // Only x86 (Intel/AMD)

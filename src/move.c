@@ -363,7 +363,9 @@ int makeMove(uint16_t move, int moveFlag, board* position) {
     position->side ^= 1;
 
     // hash side
-    position->hashKey ^= sideKey;    
+    position->hashKey ^= sideKey;
+
+    legal_move_generator(NULL, position);
 
     // make sure that king has not been exposed into a check
     if (isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[k]) : getLS1BIndex(position->bitboards[K]), position->side, position)) {        
@@ -785,6 +787,7 @@ inline static void splatNormalMoves(moves *moveList, int sourceSquare, U64 targe
 
 #endif
 
+<<<<<<< HEAD
 void legal_make_move(uint16_t move, board* position) {    
 
     // parse move
@@ -906,6 +909,10 @@ void legal_make_move(uint16_t move, board* position) {
     position->full_moves += position->side == black;
 
     init_threats(position);
+=======
+void legal_make_move(uint16_t move, board* pos) {
+    init_threats(pos);    
+>>>>>>> 664bef4f (init stuff)
 }
 
 void legal_move_generator(moves *moveList, board* pos) {
@@ -914,9 +921,14 @@ void legal_move_generator(moves *moveList, board* pos) {
 
     U64 piece, bitboard;
     U64 enemy = pos->occupancies[pos->side == white ? black : white];
+<<<<<<< HEAD
     U64 threats = pos->pieceThreats.stmThreats[!pos->side];    
     U64 blockers = pos->occupancies[both];
     U64 friendly = pos->occupancies[pos->side];
+=======
+    U64 threats = pos->pieceThreats.stmThreats[!pos->side];
+    U64 blockers = pos->occupancies[both];
+>>>>>>> 664bef4f (init stuff)
     U64 empty = ~blockers;
 
     uint8_t stm_king_square = getLS1BIndex(pos->bitboards[pos->side == white ? K : k]);    
@@ -941,6 +953,7 @@ void legal_move_generator(moves *moveList, board* pos) {
         return;
     }
 
+<<<<<<< HEAD
     U64 evasion_mask = checker_count == 1 ? (1ULL << checker_square) | lineBB[stm_king_square][checker_square] | rayBB[stm_king_square][checker_square] : ~0ULL;
     update_pinned(pos);
     U64 pinned = pos->pinned[pos->side];
@@ -1080,11 +1093,21 @@ void legal_move_generator(moves *moveList, board* pos) {
 
      // King moves
     piece = pos->side == white ? K : k;
+=======
+    U64 evasion_mask = checker_count == 1 ? (1ULL << checker_square) | lineBB[stm_king_square][checker_square] | rayBB[stm_king_square][checker_square] : 0ULL;
+
+    // Knight moves
+    piece = pos->side == white ? N : n;
+>>>>>>> 664bef4f (init stuff)
     bitboard = pos->bitboards[piece];
     while (bitboard) {
         int sourceSquare = getLS1BIndex(bitboard);
 
+<<<<<<< HEAD
         U64 targetBitboard = kingAttacks[sourceSquare] & ~threats;
+=======
+        U64 targetBitboard = knightAttacks[sourceSquare];
+>>>>>>> 664bef4f (init stuff)
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
@@ -1092,6 +1115,7 @@ void legal_move_generator(moves *moveList, board* pos) {
         popBit(bitboard, sourceSquare);
     }
 
+<<<<<<< HEAD
     /* PINNED PIECE MOVEMENTS */
 
     // Pinned Bishop Moves
@@ -1198,6 +1222,15 @@ void legal_move_generator(moves *moveList, board* pos) {
             generate_black_queen_side_castling(pos, moveList);
         }
     }
+=======
+    if (pos->side == white) {
+
+    }
+
+    else {
+
+    }    
+>>>>>>> 664bef4f (init stuff)
 }
 
 // generate all moves

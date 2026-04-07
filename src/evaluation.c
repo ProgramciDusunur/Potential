@@ -295,6 +295,63 @@ U64 get_threats_bb(int side, board* pos) {
     uint64_t kingBB;
 
     // init piece bitboards
+    knightBB = pos->bitboards[side == white ? n : N];
+    bishopBB = pos->bitboards[side == white ? b : B];
+    rookBB = pos->bitboards[side == white ? r : R];
+    queenBB = pos->bitboards[side == white ? q : Q];     
+    pawnBB = pos->bitboards[side == white ? p : P];
+    kingBB = pos->bitboards[side == white ? k : K];
+
+    // Calculate Knight attacks
+    pos->pieceThreats.knightThreats |= knight_threats(knightBB);
+    pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.knightThreats;
+
+    // Calculate Bishop attacks
+    while (bishopBB) {
+        int bishopSquare = getLS1BIndex(bishopBB);
+        pos->pieceThreats.bishopThreats |= getBishopAttacks(bishopSquare, pos->occupancies[both]);
+        pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.bishopThreats;
+        popBit(bishopBB, bishopSquare);
+    }
+
+    // Calculate Rook attacks
+    while (rookBB) {    
+        int rookSquare = getLS1BIndex(rookBB);
+        pos->pieceThreats.rookThreats |= getRookAttacks(rookSquare, pos->occupancies[both]);
+        pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.rookThreats;
+        popBit(rookBB, rookSquare);
+    }
+
+    // Calculate Pawn attacks
+    pos->pieceThreats.pawnThreats |= pawn_threats(pawnBB, side);
+    pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.pawnThreats;
+    
+    // Calculate Queen attacks
+    while (queenBB) {
+        int queenSquare = getLS1BIndex(queenBB);
+        pos->pieceThreats.queenThreats |= getQueenAttacks(queenSquare, pos->occupancies[both]);
+        pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.queenThreats;
+        popBit(queenBB, queenSquare);
+    }
+    
+    // Calculate King attacks
+    pos->pieceThreats.kingThreats |= getKingAttacks(getLS1BIndex(kingBB));
+    pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.kingThreats;
+
+}
+
+U64 get_threats_bb(int side, board* pos) {
+    uint64_t threats = 0;
+    uint64_t bb;
+
+    uint64_t knightBB;
+    uint64_t bishopBB;
+    uint64_t rookBB;
+    uint64_t queenBB;
+    uint64_t pawnBB;
+    uint64_t kingBB;
+
+    // init piece bitboards
     knightBB = pos->bitboards[side == white ? N : n];
     bishopBB = pos->bitboards[side == white ? B : b];
     rookBB = pos->bitboards[side == white ? R : r];

@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     init_threads(1);
 
     initAll();
-    int debug = 0;
+    int debug = 1;
     if (debug) {
         board position;
         parseFEN("4k3/8/8/8/8/8/8/4K2R b K - 0 1", &position);
