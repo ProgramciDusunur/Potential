@@ -232,6 +232,63 @@ void get_threats(int side, board* pos) {
     uint64_t kingBB;
 
     // init piece bitboards
+    knightBB = pos->bitboards[side == white ? n : N];
+    bishopBB = pos->bitboards[side == white ? b : B];
+    rookBB = pos->bitboards[side == white ? r : R];
+    queenBB = pos->bitboards[side == white ? q : Q];     
+    pawnBB = pos->bitboards[side == white ? p : P];
+    kingBB = pos->bitboards[side == white ? k : K];
+
+    // Calculate Knight attacks
+    pos->pieceThreats.knightThreats |= knight_threats(knightBB);
+    pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.knightThreats;
+
+    // Calculate Bishop attacks
+    while (bishopBB) {
+        int bishopSquare = getLS1BIndex(bishopBB);
+        pos->pieceThreats.bishopThreats |= getBishopAttacks(bishopSquare, pos->occupancies[both]);
+        pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.bishopThreats;
+        popBit(bishopBB, bishopSquare);
+    }
+
+    // Calculate Rook attacks
+    while (rookBB) {    
+        int rookSquare = getLS1BIndex(rookBB);
+        pos->pieceThreats.rookThreats |= getRookAttacks(rookSquare, pos->occupancies[both]);
+        pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.rookThreats;
+        popBit(rookBB, rookSquare);
+    }
+
+    // Calculate Pawn attacks
+    pos->pieceThreats.pawnThreats |= pawn_threats(pawnBB, side);
+    pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.pawnThreats;
+    
+    // Calculate Queen attacks
+    while (queenBB) {
+        int queenSquare = getLS1BIndex(queenBB);
+        pos->pieceThreats.queenThreats |= getQueenAttacks(queenSquare, pos->occupancies[both]);
+        pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.queenThreats;
+        popBit(queenBB, queenSquare);
+    }
+    
+    // Calculate King attacks
+    pos->pieceThreats.kingThreats |= getKingAttacks(getLS1BIndex(kingBB));
+    pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.kingThreats;
+
+}
+
+U64 get_threats_bb(int side, board* pos) {
+    uint64_t threats = 0;
+    uint64_t bb;
+
+    uint64_t knightBB;
+    uint64_t bishopBB;
+    uint64_t rookBB;
+    uint64_t queenBB;
+    uint64_t pawnBB;
+    uint64_t kingBB;
+
+    // init piece bitboards
     knightBB = pos->bitboards[side == white ? N : n];
     bishopBB = pos->bitboards[side == white ? B : b];
     rookBB = pos->bitboards[side == white ? R : r];
@@ -240,41 +297,49 @@ void get_threats(int side, board* pos) {
     kingBB = pos->bitboards[side == white ? K : k];
 
     // Calculate Knight attacks
-    pos->pieceThreats.knightThreats |= knight_threats(knightBB);
-    pos->pieceThreats.stmThreats[pos->side] |= pos->pieceThreats.knightThreats;
+    threats |= knight_threats(knightBB);    
 
     // Calculate Bishop attacks
     while (bishopBB) {
         int bishopSquare = getLS1BIndex(bishopBB);
-        pos->pieceThreats.bishopThreats |= getBishopAttacks(bishopSquare, pos->occupancies[both]);
-        pos->pieceThreats.stmThreats[pos->side] |= pos->pieceThreats.bishopThreats;
+        threats |= getBishopAttacks(bishopSquare, pos->occupancies[both]);        
         popBit(bishopBB, bishopSquare);
     }
 
     // Calculate Rook attacks
     while (rookBB) {    
         int rookSquare = getLS1BIndex(rookBB);
-        pos->pieceThreats.rookThreats |= getRookAttacks(rookSquare, pos->occupancies[both]);
-        pos->pieceThreats.stmThreats[pos->side] |= pos->pieceThreats.rookThreats;
+        threats |= getRookAttacks(rookSquare, pos->occupancies[both]);        
         popBit(rookBB, rookSquare);
     }
 
     // Calculate Pawn attacks
-    pos->pieceThreats.pawnThreats |= pawn_threats(pawnBB, side);
-    pos->pieceThreats.stmThreats[pos->side] |= pos->pieceThreats.pawnThreats;
+    threats |= pawn_threats(pawnBB, side);    
     
     // Calculate Queen attacks
     while (queenBB) {
         int queenSquare = getLS1BIndex(queenBB);
-        pos->pieceThreats.queenThreats |= getQueenAttacks(queenSquare, pos->occupancies[both]);
-        pos->pieceThreats.stmThreats[pos->side] |= pos->pieceThreats.queenThreats;
+        threats |= getQueenAttacks(queenSquare, pos->occupancies[both]);        
         popBit(queenBB, queenSquare);
     }
     
     // Calculate King attacks
-    pos->pieceThreats.kingThreats |= getKingAttacks(getLS1BIndex(kingBB));
-    pos->pieceThreats.stmThreats[pos->side] |= pos->pieceThreats.kingThreats;
+    threats |= getKingAttacks(getLS1BIndex(kingBB));    
 
+    return threats;
+}
+
+void init_threats(board *pos) {
+    pos->pieceThreats.pawnThreats = 0;
+    pos->pieceThreats.knightThreats = 0;
+    pos->pieceThreats.bishopThreats = 0;
+    pos->pieceThreats.rookThreats = 0;
+    pos->pieceThreats.queenThreats = 0;
+    pos->pieceThreats.kingThreats = 0;
+    pos->pieceThreats.stmThreats[white] = 0;
+    pos->pieceThreats.stmThreats[black] = 0;
+
+    get_threats(pos->side, pos);
 }
 
 bool is_square_threatened(board *pos, int square) {
@@ -320,18 +385,7 @@ int get_piece_phase_score(uint8_t piece) {
 
 int evaluate(board* position) {
     const int game_phase_score = position->phase_score;
-    Score score = S(0, 0);
-    
-    position->pieceThreats.pawnThreats = 0;
-    position->pieceThreats.knightThreats = 0;
-    position->pieceThreats.bishopThreats = 0;
-    position->pieceThreats.rookThreats = 0;
-    position->pieceThreats.queenThreats = 0;
-    position->pieceThreats.kingThreats = 0;
-    position->pieceThreats.stmThreats[white] = 0;
-    position->pieceThreats.stmThreats[black] = 0;
-
-    get_threats(position->side, position);
+    Score score = S(0, 0);        
 
     const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
     const int blackKingSquare = getLS1BIndex(position->bitboards[k]);    

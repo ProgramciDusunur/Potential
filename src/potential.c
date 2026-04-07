@@ -44,26 +44,39 @@ int main(int argc, char* argv[]) {
     init_threads(1);
 
     initAll();
-    int debug = 0;
+    int debug = 1;
     if (debug) {
         board position;
-        parseFEN("rnbqkbnr/pppp1ppp/8/4p3/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2", &position);
+        parseFEN("rnbk1b1r/pp3ppp/2p5/4q1B1/4n3/8/PPP2PPP/2KR1BNR b - - 1 10", &position);
 
-        moves moveList[1];
-        moveList->count = 0;
+        // Double checkers position
+        /*U64 checkers = get_checkers(&position);
+        printBitboard(checkers);*/
 
-        quietGenerator(moveList, &position);
+        moves moveList;
 
-        for (int i = 0; i < moveList->count; i++) {
-            printf("Move: ");
-            printMove(moveList->moves[i]);
-            printf("\n");
-        }
-    
-        /*
-        perftRoot(7, &position);
-        printf("Nodes: %llu", perftNodes);*/
+        legal_make_move(0, &position);
+
+        // Attacked bitboard
+        legal_move_generator(&moveList, &position);
+
+        printMoveList(&moveList);
+
+        board position2;
+        parseFEN(startPosition, &position2);
+
+        board position3;
+        parseFEN(startPosition, &position3);
+          
+
         
+        /*int depth = 6;
+        perftNodes = 0;
+        int startTime = getTimeMiliSecond();
+        perftRoot(depth, &position);
+        int duration = getTimeMiliSecond() - startTime;
+        printf("total: %llu\n", perftNodes);
+        printf("nps: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration));*/
 
         //perftRoot(7, &position);
         //printf("Nodes: %llu", perftNodes);
