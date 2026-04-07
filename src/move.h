@@ -14,6 +14,8 @@
 #include "table.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include "utils.h"
+
 #if defined(__x86_64__) || defined(_M_X64)
     // Only x86 (Intel/AMD)
     #include <immintrin.h>
@@ -99,6 +101,10 @@ U64 knight_threats (U64 knightBB);
 bool move_gives_check(uint16_t move, board* pos);
 bool is_pseudo_legal(uint16_t move, board *pos);
 void printMove(uint16_t move);
+U64 get_checkers(board* pos, uint8_t stm_king_square);
+U64 attacked_bb(board *pos);
+void legal_move_generator(moves *moveList, board* pos);
+void legal_make_move(uint16_t move, board* pos);
 
 // BISHOP ATTACKS
 static inline U64 getBishopAttacks(int square, U64 occupancy) {
