@@ -361,9 +361,7 @@ int makeMove(uint16_t move, int moveFlag, board* position) {
     position->side ^= 1;
 
     // hash side
-    position->hashKey ^= sideKey;
-
-    legal_move_generator(NULL, position);
+    position->hashKey ^= sideKey;    
 
     // make sure that king has not been exposed into a check
     if (isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[k]) : getLS1BIndex(position->bitboards[K]), position->side, position)) {        
@@ -821,15 +819,89 @@ void legal_move_generator(moves *moveList, board* pos) {
         return;
     }
 
-    U64 evasion_mask = checker_count == 1 ? (1ULL << checker_square) | lineBB[stm_king_square][checker_square] | rayBB[stm_king_square][checker_square] : 0ULL;
+    U64 evasion_mask = checker_count == 1 ? (1ULL << checker_square) | lineBB[stm_king_square][checker_square] | rayBB[stm_king_square][checker_square] : ~0ULL;    
+
+    // Pawn moves
+    if (pos->side == white) {
+        bitboard = pos->bitboards[P];
+
+        U64 emptyAhead = bitboard & (empty << 8);
+        // evasion_mask is in target-square space; shift to source-square space
+        U64 singlePush = emptyAhead & 0x00FFFFFFFFFF0000 & (evasion_mask << 8);
+        U64 doublePush = emptyAhead & 0x00FF000000000000 & (empty << 16) & (evasion_mask << 16);
+        U64 promotions = emptyAhead & 0x000000000000FF00 & (evasion_mask << 8);
+
+        splatPawnSingleMoves(moveList, singlePush, -8, 0);
+        splatPawnDoubleMoves(moveList, doublePush, -16, white);
+        splatPawnPromoMoves(moveList, promotions, -8, white, 0);
+
+        U64 lEnemy = bitboard & not_a_file & (enemy << 9);
+        U64 rEnemy = bitboard & not_h_file & (enemy << 7);
+        U64 lSingleCapt = lEnemy & 0x00FFFFFFFFFF0000 & (evasion_mask << 9);
+        U64 rSingleCapt = rEnemy & 0x00FFFFFFFFFF0000 & (evasion_mask << 7);
+        U64 lPromotions = lEnemy & 0x000000000000FF00 & (evasion_mask << 9);
+        U64 rPromotions = rEnemy & 0x000000000000FF00 & (evasion_mask << 7);
+
+        splatPawnSingleMoves(moveList, lSingleCapt, -9, 1);
+        splatPawnSingleMoves(moveList, rSingleCapt, -7, 1);
+        splatPawnPromoMoves(moveList, lPromotions, -9, white, 1);
+        splatPawnPromoMoves(moveList, rPromotions, -7, white, 1);
+
+        if (pos->enpassant != no_sq) {
+            U64 attackers = bitboard & pawnAttacks[black][pos->enpassant];
+            // In check: ep is legal if the ep target square is in evasion_mask,
+            // OR if the captured pawn IS the checker (checker_square = ep_target ± 8)
+            if (checker_count == 1) {
+                int capturedPawnSq = pos->enpassant + 8; // the pawn being captured
+                if (!((1ULL << pos->enpassant) & evasion_mask) && capturedPawnSq != checker_square)
+                    attackers = 0;
+            }
+            splatEnpassant(moveList, attackers, pos->enpassant);
+        }
+    } else {
+        bitboard = pos->bitboards[p];
+
+        U64 emptyAhead = bitboard & (empty >> 8);
+        U64 singlePush = emptyAhead & 0x0000FFFFFFFFFF00 & (evasion_mask >> 8);
+        U64 doublePush = emptyAhead & 0x000000000000FF00 & (empty >> 16) & (evasion_mask >> 16);
+        U64 promotions = emptyAhead & 0x00FF000000000000 & (evasion_mask >> 8);
+
+        splatPawnSingleMoves(moveList, singlePush, +8, 0);
+        splatPawnDoubleMoves(moveList, doublePush, +16, black);
+        splatPawnPromoMoves(moveList, promotions, +8, black, 0);
+
+        U64 lEnemy = bitboard & not_a_file & (enemy >> 7);
+        U64 rEnemy = bitboard & not_h_file & (enemy >> 9);
+        U64 lSingleCapt = lEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 7);
+        U64 rSingleCapt = rEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 9);
+        U64 lPromotions = lEnemy & 0x00FF000000000000 & (evasion_mask >> 7);
+        U64 rPromotions = rEnemy & 0x00FF000000000000 & (evasion_mask >> 9);
+
+        splatPawnSingleMoves(moveList, lSingleCapt, +7, 1);
+        splatPawnSingleMoves(moveList, rSingleCapt, +9, 1);
+        splatPawnPromoMoves(moveList, lPromotions, +7, black, 1);
+        splatPawnPromoMoves(moveList, rPromotions, +9, black, 1);
+
+        if (pos->enpassant != no_sq) {
+            U64 attackers = bitboard & pawnAttacks[white][pos->enpassant];
+            // In check: ep is legal if the ep target square is in evasion_mask,
+            // OR if the captured pawn IS the checker (checker_square = ep_target - 8)
+            if (checker_count == 1) {
+                int capturedPawnSq = pos->enpassant - 8; // the pawn being captured
+                if (!((1ULL << pos->enpassant) & evasion_mask) && capturedPawnSq != checker_square)
+                    attackers = 0;
+            }
+            splatEnpassant(moveList, attackers, pos->enpassant);
+        }
+    }
 
     // Knight moves
     piece = pos->side == white ? N : n;
-    bitboard = pos->bitboards[piece];
+    bitboard = pos->bitboards[piece];    
     while (bitboard) {
         int sourceSquare = getLS1BIndex(bitboard);
 
-        U64 targetBitboard = knightAttacks[sourceSquare];
+        U64 targetBitboard = knightAttacks[sourceSquare] & evasion_mask;
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
@@ -837,13 +909,58 @@ void legal_move_generator(moves *moveList, board* pos) {
         popBit(bitboard, sourceSquare);
     }
 
-    if (pos->side == white) {
+    // Bishop moves
+    piece = pos->side == white ? B : b;
+    bitboard = pos->bitboards[piece];
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);
 
+        U64 targetBitboard = getBishopAttacks(sourceSquare, blockers) & evasion_mask;
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
+
+        popBit(bitboard, sourceSquare);
     }
 
-    else {
+    // Rook moves
+    piece = pos->side == white ? R : r;
+    bitboard = pos->bitboards[piece];
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);
 
-    }    
+        U64 targetBitboard = getRookAttacks(sourceSquare, blockers) & evasion_mask;
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
+
+        popBit(bitboard, sourceSquare);
+    }
+
+    // Queen moves
+    piece = pos->side == white ? Q : q;
+    bitboard = pos->bitboards[piece];
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);
+
+        U64 targetBitboard = getQueenAttacks(sourceSquare, blockers) & evasion_mask;
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
+
+        popBit(bitboard, sourceSquare);
+    }
+
+    // Castling moves
+    if (checker_count == 0) { 
+        if (pos->side == white) {
+            generate_white_king_side_castling(pos, moveList);
+            generate_white_queen_side_castling(pos, moveList);
+        } else {
+            generate_black_king_side_castling(pos, moveList);
+            generate_black_queen_side_castling(pos, moveList);
+        }
+    }
 }
 
 // generate all moves
