@@ -1684,11 +1684,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 bestMove = currentMove;
 
                 // PV node (move)
-                alpha = score;
-
-                if (thread_pool.thread_count > 1 && !rootNode && currentMove != tt_move) {                    
-                    writeHashEntry(pos_key, bestScore, bestMove, depth, hashFlagAlpha, tt_pv, pos, pos->fifty);
-                }
+                alpha = score;                
 
                 if (pvNode) {
                     // write PV move
@@ -1750,6 +1746,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                     // node (move) fails high
                     break;
+                }
+
+                if ((!rootNode || t->id == 0) && currentMove != tt_move) {
+                    writeHashEntry(pos_key, bestScore, bestMove, depth, hashFlagAlpha, tt_pv, pos, pos->fifty);
                 }
             }
         }
