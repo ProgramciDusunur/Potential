@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     int debug = 1;
     if (debug) {
         board position;
-        parseFEN("rnb1kbnr/ppp2ppp/8/3pp3/4P2q/5P2/PPPPQ1PP/RNB1KBNR w KQkq - 1 4", &position);
+        parseFEN("8/2kp3Q/8/8/8/2K5/8/8 b - - 0 1", &position);
 
         // Double checkers position
         /*U64 checkers = get_checkers(&position);
