@@ -32,6 +32,18 @@ enum {
     P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
 };
 
+// encode directions
+enum {
+    NORTH = -8,
+    NORTH_EAST = -7,
+    EAST = 1, 
+    SOUTH_EAST = 9, 
+    SOUTH = 8, 
+    SOUTH_WEST = 7, 
+    WEST = -1, 
+    NORTH_WEST = -9
+};
+
 // white and black castling
 enum {
     wk = 1, wq = 2, bk = 4, bq = 8
