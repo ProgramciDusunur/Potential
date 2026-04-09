@@ -926,7 +926,11 @@ void legal_move_generator(moves *moveList, board* pos) {
 =======
     U64 threats = pos->pieceThreats.stmThreats[!pos->side];
     U64 blockers = pos->occupancies[both];
+<<<<<<< HEAD
 >>>>>>> 664bef4f (init stuff)
+=======
+    U64 friendly = pos->occupancies[pos->side];
+>>>>>>> 52eae319 (just more stuff :peepocute:)
     U64 empty = ~blockers;
 
     uint8_t stm_king_square = getLS1BIndex(pos->bitboards[pos->side == white ? K : k]);    
@@ -953,10 +957,14 @@ void legal_move_generator(moves *moveList, board* pos) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52eae319 (just more stuff :peepocute:)
     U64 evasion_mask = checker_count == 1 ? (1ULL << checker_square) | lineBB[stm_king_square][checker_square] | rayBB[stm_king_square][checker_square] : ~0ULL;
     update_pinned(pos);
     U64 pinned = pos->pinned[pos->side];
 
+<<<<<<< HEAD
 
     // Pawn moves
     if (pos->side == white) {
@@ -968,6 +976,12 @@ void legal_move_generator(moves *moveList, board* pos) {
     if (pos->side == white) {
         bitboard = pos->bitboards[P];
 >>>>>>> 60876a76 (moooore stuff)
+=======
+
+    // Pawn moves
+    if (pos->side == white) {
+        bitboard = pos->bitboards[P] & ~pinned;
+>>>>>>> 52eae319 (just more stuff :peepocute:)
 
         U64 emptyAhead = bitboard & (empty << 8);
         // evasion_mask is in target-square space; shift to source-square space
@@ -1004,10 +1018,14 @@ void legal_move_generator(moves *moveList, board* pos) {
         }
     } else {
 <<<<<<< HEAD
+<<<<<<< HEAD
         bitboard = pos->bitboards[p] & ~pinned;
 =======
         bitboard = pos->bitboards[p];
 >>>>>>> 60876a76 (moooore stuff)
+=======
+        bitboard = pos->bitboards[p] & ~pinned;
+>>>>>>> 52eae319 (just more stuff :peepocute:)
 
         U64 emptyAhead = bitboard & (empty >> 8);
         U64 singlePush = emptyAhead & 0x0000FFFFFFFFFF00 & (evasion_mask >> 8);
@@ -1042,6 +1060,7 @@ void legal_move_generator(moves *moveList, board* pos) {
             splatEnpassant(moveList, attackers, pos->enpassant);
         }
 <<<<<<< HEAD
+<<<<<<< HEAD
     }    
 
     /* UNPINNED PIECE MOVEMENTS */
@@ -1056,6 +1075,15 @@ void legal_move_generator(moves *moveList, board* pos) {
     piece = pos->side == white ? N : n;
     bitboard = pos->bitboards[piece];    
 >>>>>>> 60876a76 (moooore stuff)
+=======
+    }    
+
+    /* UNPINNED PIECE MOVEMENTS */
+
+    // Knight moves
+    piece = pos->side == white ? N : n;
+    bitboard = pos->bitboards[piece] & ~pinned;
+>>>>>>> 52eae319 (just more stuff :peepocute:)
     while (bitboard) {
         int sourceSquare = getLS1BIndex(bitboard);
 
@@ -1069,6 +1097,7 @@ void legal_move_generator(moves *moveList, board* pos) {
 
     // Bishop moves
     piece = pos->side == white ? B : b;
+<<<<<<< HEAD
 <<<<<<< HEAD
     bitboard = pos->bitboards[piece] & ~pinned;
     while (bitboard) {
@@ -1119,6 +1148,9 @@ void legal_move_generator(moves *moveList, board* pos) {
     piece = pos->side == white ? N : n;
 >>>>>>> 664bef4f (init stuff)
     bitboard = pos->bitboards[piece];
+=======
+    bitboard = pos->bitboards[piece] & ~pinned;
+>>>>>>> 52eae319 (just more stuff :peepocute:)
     while (bitboard) {
         int sourceSquare = getLS1BIndex(bitboard);
 
@@ -1259,7 +1291,7 @@ void legal_move_generator(moves *moveList, board* pos) {
 
     // Rook moves
     piece = pos->side == white ? R : r;
-    bitboard = pos->bitboards[piece];
+    bitboard = pos->bitboards[piece] & ~pinned;
     while (bitboard) {
         int sourceSquare = getLS1BIndex(bitboard);
 
@@ -1277,11 +1309,55 @@ void legal_move_generator(moves *moveList, board* pos) {
 
     // Queen moves
     piece = pos->side == white ? Q : q;
-    bitboard = pos->bitboards[piece];
+    bitboard = pos->bitboards[piece] & ~pinned;
     while (bitboard) {
         int sourceSquare = getLS1BIndex(bitboard);
 
         U64 targetBitboard = getQueenAttacks(sourceSquare, blockers) & evasion_mask;
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
+
+        popBit(bitboard, sourceSquare);
+    }
+
+    /* PINNED PIECE MOVEMENTS */
+
+    // Pinned Bishop Moves
+    piece = pos->side == white ? B : b;
+    bitboard = pos->bitboards[piece] & pinned;
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);        
+        U64 pinLine = ray_pass[stm_king_square][sourceSquare];
+        U64 targetBitboard = getBishopAttacks(sourceSquare, blockers) & pinLine & ~friendly & evasion_mask;
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
+
+        popBit(bitboard, sourceSquare);
+    }
+
+    // Pinned Rook Moves
+    piece = pos->side == white ? R : r;
+    bitboard = pos->bitboards[piece] & pinned;
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);        
+        U64 pinLine = ray_pass[stm_king_square][sourceSquare];
+        U64 targetBitboard = getRookAttacks(sourceSquare, blockers) & pinLine & ~friendly & evasion_mask;
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
+
+        popBit(bitboard, sourceSquare);
+    }
+
+    // Pinned Queen Moves
+    piece = pos->side == white ? Q : q;
+    bitboard = pos->bitboards[piece] & pinned;
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);        
+        U64 pinLine = ray_pass[stm_king_square][sourceSquare];
+        U64 targetBitboard = getQueenAttacks(sourceSquare, blockers) & pinLine & ~friendly & evasion_mask;
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
