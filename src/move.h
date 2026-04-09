@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "utils.h"
+#include "see.h"
 
 #if defined(__x86_64__) || defined(_M_X64)
     // Only x86 (Intel/AMD)
@@ -79,6 +80,8 @@ extern U64 rookAttacksPEXT[64][4096];
 // Helper bitboards for pinned pieces
 extern uint64_t lineBB[64][64];
 extern uint64_t rayBB[64][64];
+extern uint64_t ray_pass[64][64];
+extern uint64_t line_pass[64][64];
 
 
 void copyBoard(board *p, struct copyposition *cp);
