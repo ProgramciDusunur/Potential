@@ -1365,6 +1365,32 @@ void legal_move_generator(moves *moveList, board* pos) {
         popBit(bitboard, sourceSquare);
     }
 
+
+    // Pinned Pawn Moves
+    U64 kingFileBB = 0x0101010101010101ULL << (stm_king_square % 8);
+    if (pos->side == white) {
+        bitboard = pos->bitboards[P] & pinned;
+        U64 single_push = bitboard & (empty << 8) & kingFileBB;
+
+        splatPawnSingleMoves(moveList, single_push, NORTH, 0);
+
+        
+    } 
+    else {
+        bitboard = pos->bitboards[p] & pinned;
+        U64 single_push = bitboard & (empty >> 8) & kingFileBB;        
+
+        splatPawnSingleMoves(moveList, single_push, SOUTH, 0);
+
+        U64 lEnemy = bitboard & not_a_file & (enemy >> 7);
+        U64 rEnemy = bitboard & not_h_file & (enemy >> 9);
+        U64 lSingleCapt = lEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 7);
+        U64 rSingleCapt = rEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 9);
+
+        splatPawnSingleMoves(moveList, lSingleCapt, +7, 1);
+        splatPawnSingleMoves(moveList, rSingleCapt, +9, 1);
+    }
+
     // Castling moves
     if (checker_count == 0) { 
         if (pos->side == white) {
