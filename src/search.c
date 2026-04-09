@@ -99,6 +99,7 @@
     ║ Futility Pruning   ║
     ╚════════════════════╝*/
   int FUTILITY_PRUNING_OFFSET[] = {0, 82, 41, 20, 10, 5};
+  int FUTILITY_PIECE_VALUES[] = {100, 300, 330, 500, 1200, 0, -100, -300, -330, -500, -1200, 0, 0};
   int FP_DEPTH = 5;
   int FP_MARGIN = 82;
   
@@ -1362,6 +1363,16 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             // Quiet History Pruning
             if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
                 break;
+            }
+
+        }
+        // Noisy Moves
+        else { 
+            int captured_piece = pos->mailbox[getMoveTarget(currentMove)];
+            int noisy_futility_margin = static_eval + 230 + 200 * lmrDepth +
+                FUTILITY_PIECE_VALUES[captured_piece];
+            if (noisy_futility_margin <= alpha) {
+                continue;
             }
 
         }
