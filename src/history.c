@@ -23,6 +23,13 @@ int CORRHIST_LIMIT = 1024;
 int CORRHIST_SIZE = 16384;
 int CORRHIST_MAX = 16384;
 
+int PAWN_WEIGHT = 2048;
+int MINOR_WEIGHT = 1024;
+int MAJOR_WEIGHT = 1024;
+int KRP_WEIGHT = 1024;
+int NON_PAWN_WEIGHT = 1024;
+int CONTINUATION_WEIGHT = 1024;
+
 /* Update History */
 
 int getHistoryBonus(int depth) {
@@ -289,9 +296,9 @@ int get_correction_value(ThreadData *t, SearchStack *ss) {
     const int black_non_pawn_correction = thread_pool.shared_history.non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask];
     const int continuation_correction = adjust_single_cont_corrhist_entry(t, 2, ss);
     
-    int correction = pawn_correction + minor_correction + major_correction +
-                    krp_correction + white_non_pawn_correction + black_non_pawn_correction +
-                    continuation_correction;
+    int correction = ((pawn_correction * PAWN_WEIGHT) + (minor_correction * MINOR_WEIGHT) + (major_correction * MAJOR_WEIGHT) +
+                    (krp_correction * KRP_WEIGHT) + (white_non_pawn_correction * NON_PAWN_WEIGHT) + (black_non_pawn_correction * NON_PAWN_WEIGHT) +
+                    (continuation_correction * CONTINUATION_WEIGHT)) / 1024;
 
     return correction;
 }
