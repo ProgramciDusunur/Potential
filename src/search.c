@@ -1367,7 +1367,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
         // Noisy Moves
         else {             
-            int noisy_futility_margin = static_eval + 230 + 200 * lmrDepth;
+            int noisy_futility_margin = static_eval + 200 + 150 * depth;
             if (noisy_futility_margin <= alpha) {
                 bestScore = myMAX(bestScore, noisy_futility_margin);
                 continue;
