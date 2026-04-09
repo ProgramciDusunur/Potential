@@ -98,7 +98,8 @@
   /*╔════════════════════╗
     ║ Futility Pruning   ║
     ╚════════════════════╝*/
-  int FUTILITY_PRUNING_OFFSET[] = {0, 82, 41, 20, 10, 5};  
+  int FUTILITY_PRUNING_OFFSET[] = {0, 82, 41, 20, 10, 5};
+  int FUTILITY_PIECE_VALUES[] = {100, 300, 330, 500, 1200, 0, -100, -300, -330, -500, -1200, 0, 0};
   int FP_DEPTH = 5;
   int FP_MARGIN = 82;
   
@@ -1337,43 +1338,46 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         bool isNotMated = bestScore > -mateFound;
 
-        if (!rootNode && notTactical && isNotMated && !gives_check) {
+        if (!rootNode && isNotMated && !gives_check) {
 
-            int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
-            int history_adj = moveHistory / 64;
-            history_adj = clamp(history_adj, -6, 6);
-            lmpThreshold += history_adj;
+            if (notTactical) {
+                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
+                int history_adj = moveHistory / 64;
+                history_adj = clamp(history_adj, -6, 6);
+                lmpThreshold += history_adj;
 
-            // Late Move Pruning
-            if (legal_moves>= lmpThreshold) {
-                continue;
-            }            
-            int futility_margin = 
-                static_eval + 
-                FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
-                FP_MARGIN * lmrDepth + 
-                moveHistory / 32;
+                // Late Move Pruning
+                if (legal_moves>= lmpThreshold) {
+                    continue;
+                }            
+                int futility_margin = 
+                    static_eval + 
+                    FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
+                    FP_MARGIN * lmrDepth + 
+                    moveHistory / 32;
             
 
-            // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !in_check && futility_margin <= alpha) {
-                continue;
+                // Futility Pruning
+                if (lmrDepth <= FP_DEPTH && !in_check && futility_margin <= alpha) {
+                    continue;
+                }
+                // Quiet History Pruning
+                if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
+                    break;
+                }
             }
-            // Quiet History Pruning
-            if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
-                break;
-            }
+            // Noisy Moves
+            else {
+                int captured_piece = pos->mailbox[getMoveTarget(currentMove)];
+                int noisy_futility_margin = static_eval + 230 + 200 * lmrDepth +
+                FUTILITY_PIECE_VALUES[captured_piece];
+                if (noisy_futility_margin <= alpha) {
+                    bestScore = myMAX(bestScore, noisy_futility_margin);
+                    continue;
+                }
+            }            
 
-        }
-        // Noisy Moves
-        else {             
-            int noisy_futility_margin = static_eval + 200 + 150 * depth;
-            if (noisy_futility_margin <= alpha) {
-                bestScore = myMAX(bestScore, noisy_futility_margin);
-                continue;
-            }
-
-        }
+        }        
 
         // SEE PVS Pruning
         int seeThreshold =
