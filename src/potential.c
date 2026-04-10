@@ -36,6 +36,7 @@ void initAll(void) {
     init_hash_table(64);
     init_tables();
     init_helper_bb();
+    init_king_anti_diag_mask();
 }
 
 
@@ -47,13 +48,13 @@ int main(int argc, char* argv[]) {
     int debug = 1;
     if (debug) {
         board position;
-        parseFEN("8/4B3/3p4/2k1N3/8/8/8/8 b - - 0 1", &position);
+        parseFEN(startPosition, &position);
 
         // Double checkers position
         /*U64 checkers = get_checkers(&position);
         printBitboard(checkers);*/
 
-        moves moveList;
+        /*moves moveList;
 
         legal_make_move(0, &position);
 
@@ -66,17 +67,25 @@ int main(int argc, char* argv[]) {
         parseFEN(startPosition, &position2);
 
         board position3;
-        parseFEN(startPosition, &position3);
+        parseFEN(startPosition, &position3);*/
           
 
         
-        /*int depth = 6;
+        int depth = 6;
         perftNodes = 0;
         int startTime = getTimeMiliSecond();
-        perftRoot(depth, &position);
+        perft_root_legal(depth, &position);
         int duration = getTimeMiliSecond() - startTime;
         printf("total: %llu\n", perftNodes);
-        printf("nps: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration));*/
+        printf("Legal Move Generator NPS: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration));
+
+        
+        perftNodes = 0;
+        int startTime2 = getTimeMiliSecond();
+        perftRoot(depth, &position);
+        int duration2 = getTimeMiliSecond() - startTime2;
+        printf("total: %llu\n", perftNodes);
+        printf("Pseudo Legal Move Generator NPS: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration2));
 
         //perftRoot(7, &position);
         //printf("Nodes: %llu", perftNodes);
