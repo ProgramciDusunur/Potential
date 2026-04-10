@@ -3,6 +3,7 @@
 //
 
 #include "mask.h"
+#include <stdio.h>
 
 // file masks [square]
 U64 fileMasks[64];
@@ -19,11 +20,13 @@ U64 whitePassedMasks[64];
 // black passed pawn masks [square]
 U64 blackPassedMasks[64];
 
-
 // Rook attack masks rookMask[square]
 U64 rookMask[64];
 // BishopMask[square]
 U64 bishopMask[64];
+
+// king anti diagonal mask[mask direction][square]
+U64 king_anti_diag_mask[2][64];
 
 
 U64 maskPawnAttacks(int isWhite, int square) {
@@ -338,3 +341,27 @@ void initEvaluationMasks() {
     }
 }
 
+void init_king_anti_diag_mask() {
+    for (int rank = 0; rank < 8; rank++) {
+        for (int file = 0; file < 8; file++) {
+            int square = rank * 8 + file;  
+
+           // [0] NE-SW
+            U64 ne_sw = 0ULL;
+            for (int r = rank - 1, f = file + 1; r >= 0 && f < 8; r--, f++) 
+                ne_sw |= (1ULL << (r * 8 + f));
+            for (int r = rank + 1, f = file - 1; r < 8 && f >= 0; r++, f--)  
+                ne_sw |= (1ULL << (r * 8 + f));            
+            ne_sw |= (1ULL << square);
+            king_anti_diag_mask[0][square] = ne_sw;
+            // [1] NW-SE
+            U64 nw_se = 0ULL;
+            for (int r = rank - 1, f = file - 1; r >= 0 && f >= 0; r--, f--) 
+                nw_se |= (1ULL << (r * 8 + f));
+            for (int r = rank + 1, f = file + 1; r < 8 && f < 8; r++, f++)   
+                nw_se |= (1ULL << (r * 8 + f));            
+            nw_se |= (1ULL << square);
+            king_anti_diag_mask[1][square] = nw_se;
+        }
+    }    
+}

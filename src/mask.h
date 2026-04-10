@@ -10,6 +10,7 @@
 #include "bit_manipulation.h"
 #include "board_constants.h"
 #include "structs.h"
+#include "move.h"
 
 // file masks [square]
 extern U64 fileMasks[64];
@@ -33,6 +34,9 @@ extern U64 rookMask[64];
 extern U64 bishopMask[64];
 
 
+// king anti diagonal mask[capture direction][square]
+extern U64 king_anti_diag_mask[2][64];
+
 
 U64 maskPawnAttacks(int isWhite, int square);
 U64 maskKnightAttacks(int square);
@@ -44,6 +48,7 @@ U64 rookAttack(int square, U64 block);
 U64 get_attackers(const board *pos, int square, int side);
 U64 setFileRankMask(int file_number, int rank_number);
 void initEvaluationMasks();
+void init_king_anti_diag_mask();
 
 
 #endif //POTENTIAL_MASK_H

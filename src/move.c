@@ -785,8 +785,127 @@ inline static void splatNormalMoves(moves *moveList, int sourceSquare, U64 targe
 
 #endif
 
-void legal_make_move(uint16_t move, board* pos) {
-    init_threats(pos);    
+void legal_make_move(uint16_t move, board* position) {    
+
+    // parse move
+    int sourceSquare = getMoveSource(move);
+    int targetSquare = getMoveTarget(move);
+    int promote = getMovePromote(move);
+    int promotedPiece = getMovePromotedPiece(position->side, move);
+    int capture = getMoveCapture(move);
+    int doublePush = getMoveDouble(move);
+    int enpass = getMoveEnpassant(move);
+    int castling = getMoveCastling(move);
+    int piece = position->mailbox[sourceSquare];
+    int capturedPiece = position->mailbox[targetSquare];
+
+    // increment fifty move rule counter
+    position->fifty++;
+
+    if (piece == P || piece == p) {
+        position->fifty = 0; // reset fifty move rule counter
+    }
+
+    // handling capture moves
+    if (capture && !enpass) {
+        assert(capturedPiece != NO_PIECE);
+
+        // reset fifty move rule counter
+        position->fifty = 0;
+
+        removePiece(position, capturedPiece, targetSquare);
+    }
+
+    // move piece
+    removePiece(position, piece, sourceSquare);
+    addPiece(position, piece, targetSquare);
+
+    // handle enpassant captures
+    if (enpass) {
+        // reset fifty move rule counter
+        position->fifty = 0;
+
+        if (position->side == white) {
+            removePiece(position, p, targetSquare + 8);
+        } else {
+            removePiece(position, P, targetSquare - 8);
+        }
+    }
+
+    // handle pawn promotions
+    if (promote) {
+        if (position->side == white) {
+            removePiece(position, P, targetSquare);
+        } else {
+            removePiece(position, p, targetSquare);
+        }
+        addPiece(position, promotedPiece, targetSquare);
+    }
+
+    // hash enpassant if available (remove enpassant square from hash key )
+    if (position->enpassant != no_sq) position->hashKey ^= enpassantKeys[position->enpassant];
+
+    // reset enpassant square
+    position->enpassant = no_sq;
+
+    // handle double pawn push
+    if (doublePush) {
+        // set enpassant square
+        position->enpassant = targetSquare + enPassantSquares[position->side];
+
+        // hash enpassant
+        position->hashKey ^= enpassantKeys[position->enpassant];
+    }
+
+    // handle castling moves
+    if (castling) {
+        switch (targetSquare) {
+            // white castles king side
+            case (g1):
+                removePiece(position, R, h1);
+                addPiece(position, R, f1);
+                break;
+
+            // white castles queen side
+            case (c1):
+                removePiece(position, R, a1);
+                addPiece(position, R, d1);
+                break;
+
+            // black castles king side
+            case (g8):
+                removePiece(position, r, h8);
+                addPiece(position, r, f8);
+                break;
+
+            // black castles queen side
+            case (c8):
+                removePiece(position, r, a8);
+                addPiece(position, r, d8);
+                break;
+        }
+    }
+
+    // hash castling
+    position->hashKey ^= castleKeys[position->castle];
+
+    // update castling rights
+    position->castle &= castlingRights[sourceSquare];
+    position->castle &= castlingRights[targetSquare];
+
+    // hash castling
+    position->hashKey ^= castleKeys[position->castle];    
+
+    // change side
+    position->side ^= 1;
+
+    // hash side
+    position->hashKey ^= sideKey;
+
+    // increment full moves counter
+    position->full_moves += position->side == black;
+
+    init_threats(position);
 }
 
 void legal_move_generator(moves *moveList, board* pos) {
@@ -1012,6 +1131,14 @@ void legal_move_generator(moves *moveList, board* pos) {
 
         splatPawnSingleMoves(moveList, single_push, NORTH, 0);
 
+        U64 lEnemy = bitboard & not_a_file & (enemy << 9);
+        U64 rEnemy = bitboard & not_h_file & (enemy << 7);
+        U64 lSingleCapt = lEnemy & 0x00FFFFFFFFFF0000 & (evasion_mask << 9) & king_anti_diag_mask[1][stm_king_square];
+        U64 rSingleCapt = rEnemy & 0x00FFFFFFFFFF0000 & (evasion_mask << 7) & king_anti_diag_mask[0][stm_king_square];
+
+        splatPawnSingleMoves(moveList, lSingleCapt, -9, 1);
+        splatPawnSingleMoves(moveList, rSingleCapt, -7, 1);
+
         
     } 
     else {
@@ -1022,8 +1149,8 @@ void legal_move_generator(moves *moveList, board* pos) {
 
         U64 lEnemy = bitboard & not_a_file & (enemy >> 7);
         U64 rEnemy = bitboard & not_h_file & (enemy >> 9);
-        U64 lSingleCapt = lEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 7);
-        U64 rSingleCapt = rEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 9);
+        U64 lSingleCapt = lEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 7) & king_anti_diag_mask[0][stm_king_square];
+        U64 rSingleCapt = rEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 9) & king_anti_diag_mask[1][stm_king_square];
 
         splatPawnSingleMoves(moveList, lSingleCapt, +7, 1);
         splatPawnSingleMoves(moveList, rSingleCapt, +9, 1);
