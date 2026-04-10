@@ -786,6 +786,9 @@ inline static void splatNormalMoves(moves *moveList, int sourceSquare, U64 targe
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 78e202dd (init king anti diagonal mask, add small NPS test for pseudo legal movegen vs legal movegen and more)
 void legal_make_move(uint16_t move, board* position) {    
 
     // parse move
@@ -907,10 +910,13 @@ void legal_make_move(uint16_t move, board* position) {
     position->full_moves += position->side == black;
 
     init_threats(position);
+<<<<<<< HEAD
 =======
 void legal_make_move(uint16_t move, board* pos) {
     init_threats(pos);    
 >>>>>>> 664bef4f (init stuff)
+=======
+>>>>>>> 78e202dd (init king anti diagonal mask, add small NPS test for pseudo legal movegen vs legal movegen and more)
 }
 
 void legal_move_generator(moves *moveList, board* pos) {
@@ -1374,6 +1380,14 @@ void legal_move_generator(moves *moveList, board* pos) {
 
         splatPawnSingleMoves(moveList, single_push, NORTH, 0);
 
+        U64 lEnemy = bitboard & not_a_file & (enemy << 9);
+        U64 rEnemy = bitboard & not_h_file & (enemy << 7);
+        U64 lSingleCapt = lEnemy & 0x00FFFFFFFFFF0000 & (evasion_mask << 9) & king_anti_diag_mask[1][stm_king_square];
+        U64 rSingleCapt = rEnemy & 0x00FFFFFFFFFF0000 & (evasion_mask << 7) & king_anti_diag_mask[0][stm_king_square];
+
+        splatPawnSingleMoves(moveList, lSingleCapt, -9, 1);
+        splatPawnSingleMoves(moveList, rSingleCapt, -7, 1);
+
         
     } 
     else {
@@ -1384,8 +1398,8 @@ void legal_move_generator(moves *moveList, board* pos) {
 
         U64 lEnemy = bitboard & not_a_file & (enemy >> 7);
         U64 rEnemy = bitboard & not_h_file & (enemy >> 9);
-        U64 lSingleCapt = lEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 7);
-        U64 rSingleCapt = rEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 9);
+        U64 lSingleCapt = lEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 7) & king_anti_diag_mask[0][stm_king_square];
+        U64 rSingleCapt = rEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 9) & king_anti_diag_mask[1][stm_king_square];
 
         splatPawnSingleMoves(moveList, lSingleCapt, +7, 1);
         splatPawnSingleMoves(moveList, rSingleCapt, +9, 1);
