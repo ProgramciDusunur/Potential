@@ -1369,7 +1369,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             // Noisy Moves
             else {
                 int captured_piece = pos->mailbox[getMoveTarget(currentMove)];
-                int noisy_futility_margin = static_eval + 200 + 150 * lmrDepth +
+                int noisy_futility_margin = static_eval + 230 + 200 * depth +
                 FUTILITY_PIECE_VALUES[captured_piece];
                 if (noisy_futility_margin <= alpha) {
                     bestScore = myMAX(bestScore, noisy_futility_margin);
