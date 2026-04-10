@@ -20,6 +20,8 @@ void perftChild(int depth, board* position);
 void perftRoot(int depth, board* position);
 void perft(int depth, board* position);
 void perftSuite();
+void perft_child_legal(int depth, board* position);
+void perft_root_legal(int depth, board* position);
 
 
 #endif //POTENTIAL_PERFT_H

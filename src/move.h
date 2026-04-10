@@ -83,6 +83,13 @@ extern uint64_t rayBB[64][64];
 extern uint64_t ray_pass[64][64];
 extern uint64_t line_pass[64][64];
 
+extern U64 rookMask[64];
+extern U64 bishopMask[64];
+extern const int bishopRelevantBits[64];
+extern const int rookRelevantBits[64];
+extern U64 rookMagic[64];
+extern U64 bishopMagic[64];
+
 
 void copyBoard(board *p, struct copyposition *cp);
 void takeBack(board *p, struct copyposition *cp);
