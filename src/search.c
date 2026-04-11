@@ -1241,6 +1241,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 inc_rlx(t->search_i.nodes_searched);
                 legal_moves++;
 
+                // if the probcut move is escaped from any move loop pruning then take it to search stack
+                ss->probcut_move = move;
 
                 int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, t, time, ss + 1);
 
@@ -1315,7 +1317,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // loop over moves within a movelist
     while ((currentMove = get_next_move(&mp, move_scores, pos, t, ss)) != 0) {
 
-        if (currentMove == ss->singular_move) {
+        if (currentMove == ss->singular_move || currentMove == ss->probcut_move) {
             continue;
         }
 
@@ -1369,7 +1371,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // SEE PVS Pruning
         int seeThreshold =
                 notTactical ? SEE_QUIET_THRESHOLD * lmrDepth - moveHistory / 96 : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
-        if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
+        if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))            
             continue;
 
         int previous_move_target_square = getMoveTarget((ss - 1)->move);
