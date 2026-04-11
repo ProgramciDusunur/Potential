@@ -1239,10 +1239,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 prefetch_corrhist(pos);
                 
                 inc_rlx(t->search_i.nodes_searched);
-                legal_moves++;
-
-                // if the probcut move is escaped from any move loop pruning then take it to search stack
-                ss->probcut_move = move;
+                legal_moves++;                
 
                 int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, t, time, ss + 1);
 
@@ -1255,6 +1252,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     adjusted_probcut_depth -= 1024 * cutNode;
 
                     adjusted_probcut_depth /= 1024;
+
+                    // if the probcut move is escaped from any move loop pruning then take it to search stack
+                    ss->probcut_move = move == tt_move ? move : 0;
 
                     probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, t, time, ss + 1, !cutNode);
                 }
