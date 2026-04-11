@@ -775,7 +775,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     int evaluation = evaluate(position);
 
     evaluation = adjust_eval_with_corrhist(t, evaluation, ss);
-    int correction_value = get_correction_value(t, ss);
+    int correction_value = get_correction_value(t, ss) / 256;
     score = bestScore = tt_hit ? tt_score : evaluation;
 
     // fail-hard beta cutoff
@@ -824,7 +824,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
                 continue;
             }
 
-            if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1 - correction_value / 64)) {
+            if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1 - correction_value)) {
                 bestScore = myMAX(bestScore, futilityValue);
                 continue;
             }
