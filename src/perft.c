@@ -118,6 +118,109 @@ void perft(int depth, board* position) {
     }
 }
 
+void perft_child_bulk(int depth, board* position) {
+    if (depth == 0) {
+        perftNodes++;
+        variant++;
+        return;
+    }
+    moves moveList[1];
+    moveGenerator(moveList, position);
+    
+    if (depth == 1) {
+        for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+            struct copyposition copyPosition;
+            copyBoard(position, &copyPosition);
+            if (makeMove(moveList->moves[moveCount], allMoves, position)) {
+                perftNodes++;
+                variant++;
+            }
+            takeBack(position, &copyPosition);
+        }
+        return;
+    }
+
+    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+        struct copyposition copyPosition;
+        copyBoard(position, &copyPosition);
+        if (makeMove(moveList->moves[moveCount], allMoves, position) == 0) {
+            continue;
+        }
+        perft_child_bulk(depth - 1, position);
+        takeBack(position, &copyPosition);
+    }
+}
+
+void perft_root_bulk(int depth, board* position) {
+    moves moveList[1];
+    moveGenerator(moveList, position);
+    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+        struct copyposition copyPosition;
+        copyBoard(position, &copyPosition);
+        if (makeMove(moveList->moves[moveCount], allMoves, position) == 0) {
+            continue;
+        }
+        perft_child_bulk(depth - 1, position);
+
+        printf("%s%s", squareToCoordinates[getMoveSource(moveList->moves[moveCount])],
+               squareToCoordinates[getMoveTarget(moveList->moves[moveCount])]);
+        if (getMovePromote(moveList->moves[moveCount])) {
+            printf("%c", promotedPieces[getMovePromotedPiece(position->side, moveList->moves[moveCount])]);
+        }
+        printf(": %llu\n", variant);
+
+        variant = 0;
+        takeBack(position, &copyPosition);
+    }
+    printf("\n");
+}
+
+void perft_child_legal_bulk(int depth, board* position) {
+    if (depth == 0) {
+        perftNodes++;
+        variant++;
+        return;
+    }
+    moves moveList[1];
+    legal_move_generator(moveList, position);
+    
+    if (depth == 1) {
+        perftNodes += moveList->count;
+        variant += moveList->count;
+        return;
+    }
+
+    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+        struct copyposition copyPosition;
+        copyBoard(position, &copyPosition);
+        legal_make_move(moveList->moves[moveCount], position);
+        perft_child_legal_bulk(depth - 1, position);
+        takeBack(position, &copyPosition);
+    }
+}
+
+void perft_root_legal_bulk(int depth, board* position) {
+    moves moveList[1];
+    legal_move_generator(moveList, position);
+    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+        struct copyposition copyPosition;
+        copyBoard(position, &copyPosition);
+        legal_make_move(moveList->moves[moveCount], position);
+        perft_child_legal_bulk(depth - 1, position);
+
+        printf("%s%s", squareToCoordinates[getMoveSource(moveList->moves[moveCount])],
+               squareToCoordinates[getMoveTarget(moveList->moves[moveCount])]);
+        if (getMovePromote(moveList->moves[moveCount])) {
+            printf("%c", promotedPieces[getMovePromotedPiece(position->side, moveList->moves[moveCount])]);
+        }
+        printf(": %llu\n", variant);
+
+        variant = 0;
+        takeBack(position, &copyPosition);
+    }
+    printf("\n");
+}
+
 char* perftSuitFens[126] = {
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ;D1 20 ;D2 400 ;D3 8902 ;D4 197281 ;D5 4865609 ;D6 119060324",
     "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 ;D1 48 ;D2 2039 ;D3 97862 ;D4 4085603 ;D5 193690690",
