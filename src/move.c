@@ -925,7 +925,7 @@ void legal_move_generator(moves *moveList, board* pos) {
     U64 checkers = get_checkers(pos, stm_king_square);
 
     uint8_t checker_count = countBits(checkers);
-    uint8_t checker_square = getLS1BIndex(checkers);
+    uint8_t checker_square = checker_count == 1 ? getLS1BIndex(checkers) : 0;
     
 
     // in double check we can't create any move except king moves
