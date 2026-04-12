@@ -573,7 +573,7 @@ void generate_white_king_side_castling(board *position, moves *moveList) {
         // make sure square between king and king's rook are empty
         if (!(getBit(position->occupancies[both], f1)) && !(getBit(position->occupancies[both], g1))) {
             // make sure king and the f1 squares are not under attacks
-            if (!isSquareAttacked(e1, black, position) && !isSquareAttacked(f1, black, position))
+            if (!isSquareAttacked(e1, black, position) && !isSquareAttacked(f1, black, position) && !isSquareAttacked(g1, black, position))
                 addMove(moveList, encodeMove(e1, g1, mf_castling));
         }
     }
@@ -586,7 +586,7 @@ void generate_white_queen_side_castling(board *position, moves *moveList) {
         if (!(getBit(position->occupancies[both], d1)) && !(getBit(position->occupancies[both], c1)) &&
             !(getBit(position->occupancies[both], b1))) {
             // make sure king and the d1 squares are not under attacks
-            if (!isSquareAttacked(e1, black, position) && !isSquareAttacked(d1, black, position))
+            if (!isSquareAttacked(e1, black, position) && !isSquareAttacked(d1, black, position) && !isSquareAttacked(c1, black, position))
                 addMove(moveList, encodeMove(e1, c1, mf_castling));
         }
     }
@@ -598,7 +598,7 @@ void generate_black_king_side_castling(board *position, moves *moveList) {
         // make sure square between king and king's rook are empty
         if (!(getBit(position->occupancies[both], f8)) && !(getBit(position->occupancies[both], g8))) {
             // make sure king and the f8 squares are not under attacks
-            if (!isSquareAttacked(e8, white, position) && !isSquareAttacked(f8, white, position))
+            if (!isSquareAttacked(e8, white, position) && !isSquareAttacked(f8, white, position) && !isSquareAttacked(g8, white, position))
                 addMove(moveList, encodeMove(e8, g8, mf_castling));
         }
     }
@@ -611,7 +611,7 @@ void generate_black_queen_side_castling(board *position, moves *moveList) {
         if (!(getBit(position->occupancies[both], d8)) && !(getBit(position->occupancies[both], c8)) &&
             !(getBit(position->occupancies[both], b8))) {
             // make sure king and the d8 squares are not under attacks
-            if (!isSquareAttacked(e8, white, position) && !isSquareAttacked(d8, white, position))
+            if (!isSquareAttacked(e8, white, position) && !isSquareAttacked(d8, white, position) && !isSquareAttacked(c8, white, position))
                 addMove(moveList, encodeMove(e8, c8, mf_castling));
         }
     }
@@ -914,7 +914,7 @@ void legal_move_generator(moves *moveList, board* pos) {
 
     U64 piece, bitboard;
     U64 enemy = pos->occupancies[pos->side == white ? black : white];
-    U64 threats = pos->pieceThreats.stmThreats[!pos->side];
+    U64 threats = pos->pieceThreats.stmThreats[!pos->side];    
     U64 blockers = pos->occupancies[both];
     U64 friendly = pos->occupancies[pos->side];
     U64 empty = ~blockers;
@@ -1078,6 +1078,20 @@ void legal_move_generator(moves *moveList, board* pos) {
         popBit(bitboard, sourceSquare);
     }
 
+     // King moves
+    piece = pos->side == white ? K : k;
+    bitboard = pos->bitboards[piece];
+    while (bitboard) {
+        int sourceSquare = getLS1BIndex(bitboard);
+
+        U64 targetBitboard = kingAttacks[sourceSquare] & ~threats;
+
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
+        splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
+
+        popBit(bitboard, sourceSquare);
+    }
+
     /* PINNED PIECE MOVEMENTS */
 
     // Pinned Bishop Moves
@@ -1127,33 +1141,51 @@ void legal_move_generator(moves *moveList, board* pos) {
     U64 kingFileBB = 0x0101010101010101ULL << (stm_king_square % 8);
     if (pos->side == white) {
         bitboard = pos->bitboards[P] & pinned;
-        U64 single_push = bitboard & (empty << 8) & kingFileBB;
+        U64 emptyAhead = bitboard & (empty << 8) & kingFileBB & (evasion_mask << 8);
+        U64 single_push = emptyAhead;
+        U64 doublePush = emptyAhead & 0x00FF000000000000 & (empty << 16) & (evasion_mask << 16);
+        U64 promotions = emptyAhead & 0x000000000000FF00 & (evasion_mask << 8);
 
         splatPawnSingleMoves(moveList, single_push, NORTH, 0);
+        splatPawnDoubleMoves(moveList, doublePush, -16, white);
+        splatPawnPromoMoves(moveList, promotions, -8, white, 0);
 
         U64 lEnemy = bitboard & not_a_file & (enemy << 9);
         U64 rEnemy = bitboard & not_h_file & (enemy << 7);
         U64 lSingleCapt = lEnemy & 0x00FFFFFFFFFF0000 & (evasion_mask << 9) & king_anti_diag_mask[1][stm_king_square];
         U64 rSingleCapt = rEnemy & 0x00FFFFFFFFFF0000 & (evasion_mask << 7) & king_anti_diag_mask[0][stm_king_square];
+        U64 lPromotions = lEnemy & 0x000000000000FF00 & (evasion_mask << 9);
+        U64 rPromotions = rEnemy & 0x000000000000FF00 & (evasion_mask << 7);
 
         splatPawnSingleMoves(moveList, lSingleCapt, -9, 1);
         splatPawnSingleMoves(moveList, rSingleCapt, -7, 1);
+        splatPawnPromoMoves(moveList, lPromotions, -9, white, 1);
+        splatPawnPromoMoves(moveList, rPromotions, -7, white, 1);
 
         
     } 
     else {
         bitboard = pos->bitboards[p] & pinned;
-        U64 single_push = bitboard & (empty >> 8) & kingFileBB;        
+        U64 emptyAhead = bitboard & (empty >> 8) & kingFileBB & (evasion_mask >> 8);
+        U64 single_push = emptyAhead;
+        U64 doublePush = emptyAhead & 0x000000000000FF00 & (empty >> 16) & (evasion_mask >> 16);
+        U64 promotions = emptyAhead & 0x00FF000000000000 & (evasion_mask >> 8);
 
         splatPawnSingleMoves(moveList, single_push, SOUTH, 0);
+        splatPawnDoubleMoves(moveList, doublePush, +16, black);
+        splatPawnPromoMoves(moveList, promotions, +8, black, 0);
 
         U64 lEnemy = bitboard & not_a_file & (enemy >> 7);
         U64 rEnemy = bitboard & not_h_file & (enemy >> 9);
         U64 lSingleCapt = lEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 7) & king_anti_diag_mask[0][stm_king_square];
         U64 rSingleCapt = rEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 9) & king_anti_diag_mask[1][stm_king_square];
+        U64 lPromotions = lEnemy & 0x00FF000000000000 & (evasion_mask >> 7);
+        U64 rPromotions = rEnemy & 0x00FF000000000000 & (evasion_mask >> 9);
 
         splatPawnSingleMoves(moveList, lSingleCapt, +7, 1);
         splatPawnSingleMoves(moveList, rSingleCapt, +9, 1);
+        splatPawnPromoMoves(moveList, lPromotions, +7, black, 1);
+        splatPawnPromoMoves(moveList, rPromotions, +9, black, 1);
     }
 
     // Castling moves
