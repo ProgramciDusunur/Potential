@@ -1457,9 +1457,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
-            }            
-
+            }
+            
             // Negative Extensions
+            else if (singularScore >= tt_score) {
+                tt_move = 0;
+            }
+            
             else if (tt_score >= beta) {
                 extensions -= 2 + !pvNode;
             }
