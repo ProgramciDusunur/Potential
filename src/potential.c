@@ -45,10 +45,10 @@ int main(int argc, char* argv[]) {
     init_threads(1);
 
     initAll();
-    int debug = 1;
+    int debug = 0;
     if (debug) {
         board position;
-        parseFEN(startPosition, &position);
+        parseFEN("4k3/8/8/8/8/8/8/4K2R b K - 0 1", &position);
 
         // Double checkers position
         /*U64 checkers = get_checkers(&position);
@@ -72,7 +72,8 @@ int main(int argc, char* argv[]) {
 
         
         int depth = 6;
-        perftNodes = 0;
+        /*perftNodes = 0;
+        init_threats(&position);
         int startTime = getTimeMiliSecond();
         perft_root_legal(depth, &position);
         int duration = getTimeMiliSecond() - startTime;
@@ -85,10 +86,10 @@ int main(int argc, char* argv[]) {
         perftRoot(depth, &position);
         int duration2 = getTimeMiliSecond() - startTime2;
         printf("total: %llu\n", perftNodes);
-        printf("Pseudo Legal Move Generator NPS: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration2));
+        printf("Pseudo Legal Move Generator NPS: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration2));*/
 
         perftNodes = 0;
-        int startTime3 = getTimeMiliSecond();
+        int startTime3 = getTimeMiliSecond();        
         perft_root_legal_bulk(depth, &position);
         int duration3 = getTimeMiliSecond() - startTime3;
         printf("total: %llu\n", perftNodes);

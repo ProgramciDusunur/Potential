@@ -231,6 +231,12 @@ void get_threats(int side, board* pos) {
     uint64_t pawnBB;
     uint64_t kingBB;
 
+    uint64_t occupancies = pos->occupancies[both];
+    uint8_t enemy_king_square = getLS1BIndex(pos->bitboards[side == white ? K : k]);
+
+    // remove the king from occupancies, otherwise slider pieces can't see the squares behind the king
+    popBit(occupancies, enemy_king_square);
+
     // init piece bitboards
     knightBB = pos->bitboards[side == white ? n : N];
     bishopBB = pos->bitboards[side == white ? b : B];
@@ -246,7 +252,7 @@ void get_threats(int side, board* pos) {
     // Calculate Bishop attacks
     while (bishopBB) {
         int bishopSquare = getLS1BIndex(bishopBB);
-        pos->pieceThreats.bishopThreats |= getBishopAttacks(bishopSquare, pos->occupancies[both]);
+        pos->pieceThreats.bishopThreats |= getBishopAttacks(bishopSquare, occupancies);
         pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.bishopThreats;
         popBit(bishopBB, bishopSquare);
     }
@@ -254,19 +260,19 @@ void get_threats(int side, board* pos) {
     // Calculate Rook attacks
     while (rookBB) {    
         int rookSquare = getLS1BIndex(rookBB);
-        pos->pieceThreats.rookThreats |= getRookAttacks(rookSquare, pos->occupancies[both]);
+        pos->pieceThreats.rookThreats |= getRookAttacks(rookSquare, occupancies);
         pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.rookThreats;
         popBit(rookBB, rookSquare);
     }
 
     // Calculate Pawn attacks
-    pos->pieceThreats.pawnThreats |= pawn_threats(pawnBB, side);
+    pos->pieceThreats.pawnThreats |= pawn_threats(pawnBB, !side);
     pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.pawnThreats;
     
     // Calculate Queen attacks
     while (queenBB) {
         int queenSquare = getLS1BIndex(queenBB);
-        pos->pieceThreats.queenThreats |= getQueenAttacks(queenSquare, pos->occupancies[both]);
+        pos->pieceThreats.queenThreats |= getQueenAttacks(queenSquare, occupancies);
         pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.queenThreats;
         popBit(queenBB, queenSquare);
     }

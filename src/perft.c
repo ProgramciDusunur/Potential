@@ -118,6 +118,23 @@ void perft(int depth, board* position) {
     }
 }
 
+void perft_legal(int depth, board* position) {
+    if (depth == 0) {
+        perftNodes++;
+        return;
+    }
+    moves moveList[1];
+    legal_move_generator(moveList, position);
+    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+        struct copyposition copyPosition;
+        copyBoard(position, &copyPosition);
+        legal_make_move(moveList->moves[moveCount], position);
+        // call perft driver recursively
+        perft_legal(depth - 1, position);
+        takeBack(position, &copyPosition);
+    }
+}
+
 void perft_child_bulk(int depth, board* position) {
     if (depth == 0) {
         perftNodes++;
@@ -388,15 +405,16 @@ void perftSuite() {
         printf("Position %d: %s\n", i + 1, perftSuitFens[i]);
 
         int isCorrect = 1;
-        printf("Result: "); // Print the initial part
+        printf("Result: "); // Print the initial part        
 
         for (int depth = 1; depth <= depthCount; depth++) {
-            perft(depth, &position);
+            init_threats(&position);
+            perft_child_legal_bulk(depth, &position);
             printf("%llu ", perftNodes); // Print the calculated node count
             if (perftNodes != (unsigned long long int)depths[depth - 1]) {
                 isCorrect = 0;
             }
-            perftNodes = 0;
+            perftNodes = 0;            
         }
 
         if (isCorrect) {
