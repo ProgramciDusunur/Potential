@@ -356,22 +356,6 @@ int evaluate(board* position) {
     
     uint64_t bKingRing = kingAttacks[blackKingSquare];
     uint64_t wKingRing = kingAttacks[whiteKingSquare];
-
-    int wThreats = ((position->pieceThreats.pawnThreats & bKingRing) != 0) * 3 +
-                   ((position->pieceThreats.knightThreats & bKingRing) != 0) * 8 +
-                   ((position->pieceThreats.bishopThreats & bKingRing) != 0) * 8 +
-                   ((position->pieceThreats.rookThreats & bKingRing) != 0) * 12 +
-                   ((position->pieceThreats.queenThreats & bKingRing) != 0) * 25;
-    if (wThreats > 25) wThreats += (wThreats / 8 * 4);
-
-    int bThreats = ((position->pieceThreats.pawnThreats & wKingRing) != 0) * 3 +
-                   ((position->pieceThreats.knightThreats & wKingRing) != 0) * 8 +
-                   ((position->pieceThreats.bishopThreats & wKingRing) != 0) * 8 +
-                   ((position->pieceThreats.rookThreats & wKingRing) != 0) * 12 +
-                   ((position->pieceThreats.queenThreats & wKingRing) != 0) * 25;
-    if (bThreats > 25) bThreats += (bThreats / 8 * 4);
-
-    score += (position->side == white) ? S(wThreats, wThreats) : -S(bThreats, bThreats);
     
     int w_shield = countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]);
     score += S(w_shield * king_shield_bonus_middlegame, w_shield * king_shield_bonus_endgame);
