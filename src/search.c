@@ -881,7 +881,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
             bestScore = score;
             // found a better move
             if (score > alpha) {
-                //bestMove = moveList->moves[count];
+                bestMove = moveList->moves[count];
 
                 //hashFlag = hashFlagExact;
                 alpha = score;
@@ -897,7 +897,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
                 } else {
                     // update capture move history
                     updateCaptureHistory(t, bestMove, capthist_bonus);
-                }
+                }  
                 
                 // node (move) fails high
                 break;
