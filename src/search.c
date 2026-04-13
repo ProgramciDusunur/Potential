@@ -818,6 +818,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     for (int count = 0; count < moveList->count; count++) {
         pick_next_move(count, moveList, move_scores);
         uint16_t move = moveList->moves[count];
+        bool quiet_move = !isTactical(move);
 
         if (bestScore > -mateFound) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
@@ -887,7 +888,17 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
             }
 
             if (score >= beta) {
-                //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
+                int quiethist_bonus = 128;
+                int capthist_bonus = 64;
+
+                if (quiet_move) {
+                    // update quiet move history
+                    adjust_single_quiet_hist_entry(t, position->side, bestMove, quiethist_bonus);
+                } else {
+                    // update capture move history
+                    updateCaptureHistory(t, bestMove, capthist_bonus);
+                }
+                
                 // node (move) fails high
                 break;
             }
