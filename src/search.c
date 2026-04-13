@@ -911,7 +911,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
 
 // negamax alpha beta search
-int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, SearchStack *ss, bool cutNode) {
+int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, SearchStack *ss, bool predicted_cut_node) {
     board *pos = &t->pos;
 
     if (t->id == 0 && (load_rlx(t->search_i.nodes_searched) & 4095) == 0 && time->isNodeLimit) {
@@ -1025,7 +1025,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     improving = !in_check && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
 
     // Internal Iterative Reductions
-    if ((pvNode || cutNode) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
+    if ((pvNode || predicted_cut_node) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
         depth--;
     }
 
@@ -1089,7 +1089,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, depth - R, t, time, ss + 1, !cutNode);
+        score = -negamax(-beta, -beta + 1, depth - R, t, time, ss + 1, !predicted_cut_node);
 
         // decrement ply
         pos->ply--;
@@ -1250,11 +1250,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     // Capture History based reduction
                     adjusted_probcut_depth += move_history / PROBCUT_NOISY_HISTORY_DIVISOR * 256;
 
-                    adjusted_probcut_depth -= 1024 * cutNode;
+                    adjusted_probcut_depth -= 1024 * predicted_cut_node;
 
                     adjusted_probcut_depth /= 1024;
 
-                    probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, t, time, ss + 1, !cutNode);
+                    probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, t, time, ss + 1, !predicted_cut_node);
                 }
 
                 // decrement ply
@@ -1401,7 +1401,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             takeBack(pos, &copyPosition);            
 
             const int singularScore =
-                    negamax(singularBeta - 1, singularBeta, singularDepth, t, time, ss, cutNode);
+                    negamax(singularBeta - 1, singularBeta, singularDepth, t, time, ss, predicted_cut_node);
             
             ss->singular_move = 0;
 
@@ -1484,12 +1484,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
             
             // Cut Node Extension
-            else if (cutNode) {
+            else if (predicted_cut_node) {
                 extensions -= 2;
             }
         } 
         // Low Depth Singular Extensions
-        else if (depth <= 7 && !in_check && ttAdjustedEval <= alpha - 25 && cutNode) {
+        else if (depth <= 7 && !in_check && ttAdjustedEval <= alpha - 25 && predicted_cut_node) {
             extensions++;
         }
 
@@ -1547,7 +1547,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         /* All Moves */
 
         // Reduce More
-        if (cutNode) {
+        if (predicted_cut_node) {
             lmrReduction += CUT_NODE_LMR_SCALAR + !tt_move * 1024;
         }
 
@@ -1631,7 +1631,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 new_depth -= doShallower;
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
-                score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !cutNode);
+                score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !predicted_cut_node);
             }
         }
         else if (!pvNode || legal_moves > 1) {
@@ -1640,7 +1640,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 new_depth = myMAX(new_depth, 1);
             }
             
-            score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !cutNode);
+            score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !predicted_cut_node);
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
