@@ -442,7 +442,7 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         int quiet_score = 0;
         quiet_score +=
             // quiet main history 
-            t->search_d.quietHistory[t->pos.side][getMoveSource(move)][getMoveTarget(move)]
+            2 * t->search_d.quietHistory[t->pos.side][getMoveSource(move)][getMoveTarget(move)]
             [is_square_threatened(&t->pos, getMoveSource(move))][is_square_threatened(&t->pos, getMoveTarget(move))];
 
         // 1 ply continuation history
