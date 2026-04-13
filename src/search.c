@@ -1707,9 +1707,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
                         // initial history bonus based on depth
-                        int quiethist_bonus = 10 + 200 * depth - 96 * predicted_cut_node;                        
-                        int conthist_bonus  = 10 + 200 * depth - 96 * predicted_cut_node;
-                        int pawnhist_bonus  = 10 + 200 * depth - 96 * predicted_cut_node;
+                        int quiethist_bonus = 10 + 200 * depth - 32 * predicted_cut_node;                        
+                        int conthist_bonus  = 10 + 200 * depth - 32 * predicted_cut_node;
+                        int pawnhist_bonus  = 10 + 200 * depth - 32 * predicted_cut_node;
 
                         // if the move is failed low then give it bonus
                         bool failed_low = !in_check && ttAdjustedEval <= alpha;
@@ -1728,7 +1728,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         
                     } else { // noisy moves
                         // initial history bonus based on depth
-                        int capthist_bonus = 10 + 200 * depth - 128 * predicted_cut_node;
+                        int capthist_bonus = 10 + 200 * depth - 32 * predicted_cut_node;
 
                         // clamp history bonus
                         capthist_bonus = myMIN(capthist_bonus, 4096);
