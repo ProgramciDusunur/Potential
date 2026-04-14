@@ -48,10 +48,11 @@
 // no hash entry found constant
 #define noHashEntry 100000
 
-#define hashFlagNone 0
-#define hashFlagExact 1
-#define hashFlagAlpha 2
-#define hashFlagBeta  3
+// TT bound types
+#define BOUND_NONE  0
+#define BOUND_EXACT 1
+#define BOUND_LOWER 2
+#define BOUND_UPPER 3
 
 // fifty move rule key[fifty move count / fmr granularity]
 extern U64 FMR[100 / 10];

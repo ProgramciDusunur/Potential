@@ -240,7 +240,7 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
         hashEntry->bestMove = bestMove;
     }
 
-    if (hashFlag == hashFlagExact || key != position->hashKey || depth + 2 * ttPv + 4 > hashEntry->depth) {
+    if (hashFlag == BOUND_EXACT || key != position->hashKey || depth + 2 * ttPv + 4 > hashEntry->depth) {
         // store score independent from the actual path
         // from root node (position) to current node (position)
         if (score < -mateFound) score -= position->ply;
@@ -252,7 +252,7 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
         hashEntry->flag = hashFlag;
         hashEntry->depth = depth;        
         hashEntry->ttPv = ttPv;
-    } else if (hashEntry->depth >= 5 && hashFlag != hashFlagExact) {        
+    } else if (hashEntry->depth >= 5 && hashFlag != BOUND_EXACT) {        
         hashEntry->depth--;
     }
         

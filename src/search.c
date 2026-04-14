@@ -62,6 +62,7 @@
   int NOISY_HISTORY_LMR_DIVISOR = 10240;  
   int QUIET_NON_PV_LMR_SCALAR = 1024;
   int CUT_NODE_LMR_SCALAR = 2048;
+  int DOUBLE_CUT_NODE_LMR_SCALAR = 1024;
   int TT_PV_LMR_SCALAR = 1024;
   int TT_PV_FAIL_LOW_LMR_SCALAR = 1024;
   int TT_CAPTURE_LMR_SCALAR = 1024;
@@ -756,16 +757,16 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     int16_t tt_score = 0;
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
-    uint8_t tt_flag = hashFlagExact;
+    uint8_t tt_flag = BOUND_EXACT;
     bool tt_pv = pvNode;
 
     // read hash entry
     if (position->ply &&
         (tt_hit =
                  readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, position->fifty)) && !pvNode) {
-        if ((tt_flag == hashFlagExact) ||
-            ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
-            ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
+        if ((tt_flag == BOUND_EXACT) ||
+            ((tt_flag == BOUND_UPPER) && (tt_score <= alpha)) ||
+            ((tt_flag == BOUND_LOWER) && (tt_score >= beta))) {
              return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
                                           tt_score;
         }
@@ -797,7 +798,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     int move_scores[256];
 
     const bool should_do_evasions =
-        !pvNode && tt_move && tt_flag != hashFlagBeta && !isTactical(tt_move);
+        !pvNode && tt_move && tt_flag != BOUND_UPPER && !isTactical(tt_move);
 
     // generate moves
     if (should_do_evasions) {
@@ -882,23 +883,23 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
             if (score > alpha) {
                 //bestMove = moveList->moves[count];
 
-                //hashFlag = hashFlagExact;
+                //hashFlag = BOUND_EXACT;
                 alpha = score;
             }
 
             if (score >= beta) {
-                //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
+                //writeHashEntry(beta, bestMove, 0, BOUND_UPPER, position);
                 // node (move) fails high
                 break;
             }
         }
     }    
 
-    uint8_t hashFlag = hashFlagNone;
+    uint8_t hashFlag = BOUND_NONE;
     if (alpha >= beta) {
-        hashFlag = hashFlagAlpha;
+        hashFlag = BOUND_LOWER;  // fail-high: score >= beta
     } else {
-        hashFlag = hashFlagBeta;
+        hashFlag = BOUND_UPPER;  // fail-low: score <= alpha
     }
 
 
@@ -953,7 +954,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int16_t tt_score = 0;
     bool tt_hit = false;
     uint8_t tt_depth = 0;
-    uint8_t tt_flag = hashFlagExact;
+    uint8_t tt_flag = BOUND_EXACT;
     bool tt_pv = pvNode;    
 
     // Check for fifty-move rule
@@ -987,9 +988,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     if (tt_hit && !pvNode) {
         pos_key = pos->hashKey;
         if (tt_depth >= depth) {
-            if ((tt_flag == hashFlagExact) ||
-                ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
-                ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
+            if ((tt_flag == BOUND_EXACT) ||
+                ((tt_flag == BOUND_UPPER) && (tt_score <= alpha)) ||
+                ((tt_flag == BOUND_LOWER) && (tt_score >= beta))) {
                 return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
                                           tt_score;
             }
@@ -1018,7 +1019,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
-    int correction_value = get_correction_value(t, ss);    
+    int correction_value = get_correction_value(t, ss);
+
+    // if we are in a cut node and the tt score is >= beta, we can double the reduction
+    bool double_pre_cut_node = predicted_cut_node && tt_hit &&
+                     tt_flag == BOUND_LOWER && tt_score >= beta;
 
     ss->staticEval = static_eval;    
 
@@ -1032,9 +1037,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int ttAdjustedEval = static_eval;
 
     if (!ss->singular_move && tt_move && !in_check &&
-        (tt_flag == hashFlagExact ||
-         (tt_flag == hashFlagAlpha && tt_score >= static_eval) ||
-         (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
+        (tt_flag == BOUND_EXACT ||
+         (tt_flag == BOUND_LOWER && tt_score >= static_eval) ||
+         (tt_flag == BOUND_UPPER && tt_score <= static_eval))) {
 
         ttAdjustedEval = tt_score;
     }
@@ -1267,7 +1272,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 takeBack(pos, &copyPosition);
 
                 if (probcut_value >= probcut_beta) {
-                    writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos, pos->fifty);
+                    writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, BOUND_LOWER, tt_pv, pos, pos->fifty);
                     return probcut_value;
                 }
             }
@@ -1276,7 +1281,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int small_probcut_beta = beta + SPROBCUT_BETA_MARGIN;
     
     // Small Probcut
-    if (!ss->singular_move && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
+    if (!ss->singular_move && !pvNode && tt_flag == BOUND_LOWER && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
         tt_score >= small_probcut_beta && abs(tt_score) < mateValue && abs(beta) < mateValue) {
             return small_probcut_beta;            
     }
@@ -1377,11 +1382,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // Singular Extensions
         if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !ss->singular_move &&
-            tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
+            tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != BOUND_UPPER &&
             abs(tt_score) < mateValue) {
             int singularMargin = depth * 5;            
             singularMargin += (tt_pv && !pvNode) * 10;
-            singularMargin += (tt_flag == hashFlagExact ? depth * 5 / 10 : depth * 5);
+            singularMargin += (tt_flag == BOUND_EXACT ? depth * 5 / 10 : depth * 5);
             const int singularBeta = tt_score - singularMargin / 8;
             const int singularDepth = (depth - 1) / 2;
 
@@ -1548,7 +1553,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // Reduce More
         if (predicted_cut_node) {
-            lmrReduction += CUT_NODE_LMR_SCALAR + !tt_move * 1024;
+            lmrReduction += CUT_NODE_LMR_SCALAR + !tt_move * 1024 + DOUBLE_CUT_NODE_LMR_SCALAR;
         }
 
         if (tt_pv && tt_hit && tt_score <= alpha) {
@@ -1644,7 +1649,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
-            if (!rootNode && currentMove == tt_move && tt_score < alpha && tt_flag == hashFlagBeta) {
+            if (!rootNode && currentMove == tt_move && tt_score < alpha && tt_flag == BOUND_UPPER) {
                 new_depth -= 1;
             }
 
@@ -1765,16 +1770,16 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     }
 
     if (!ss->singular_move) {
-        uint8_t hashFlag = hashFlagExact;
+        uint8_t hashFlag = BOUND_EXACT;
         if (alpha >= beta) {
-            hashFlag = hashFlagAlpha;
+            hashFlag = BOUND_LOWER;  // fail-high: score >= beta
         } else if (alpha <= originalAlpha) {
-            hashFlag = hashFlagBeta;
+            hashFlag = BOUND_UPPER;  // fail-low: score <= alpha
         }
 
         if (!in_check && (bestMove == 0 || !getMoveCapture(bestMove)) &&
-            !(hashFlag == hashFlagAlpha && bestScore <= static_eval) &&
-            !(hashFlag == hashFlagBeta && bestScore >= static_eval)) {
+            !(hashFlag == BOUND_LOWER && bestScore <= static_eval) &&
+            !(hashFlag == BOUND_UPPER && bestScore >= static_eval)) {
 
             int corrhistBonus = clamp(bestScore - static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
             update_pawn_correction_hist(t, depth, corrhistBonus);
