@@ -93,14 +93,7 @@ int main(int argc, char* argv[]) {
         perft_root_legal_bulk(depth, &position);
         int duration3 = getTimeMiliSecond() - startTime3;
         printf("total: %llu\n", perftNodes);
-        printf("Legal Bulk Move Generator NPS: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration3));
-
-        perftNodes = 0;
-        int startTime4 = getTimeMiliSecond();
-        perft_root_bulk(depth, &position);
-        int duration4 = getTimeMiliSecond() - startTime4;
-        printf("total: %llu\n", perftNodes);
-        printf("Pseudo Legal Bulk Move Generator NPS: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration4));
+        printf("Legal Bulk Move Generator NPS: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration3));        
 
         //perftRoot(7, &position);
         //printf("Nodes: %llu", perftNodes);

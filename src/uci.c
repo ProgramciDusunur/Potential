@@ -19,7 +19,7 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "3.36.75"
+#define VERSION "3.36.76"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -706,7 +706,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             sscanf(input, "%*s %d", &depth);
             perftNodes = 0;
             int startTime = getTimeMiliSecond();
-            perftRoot(depth, position);
+            perft_root_legal_bulk(depth, position);
             int duration = getTimeMiliSecond() - startTime;
             printf("total: %llu\n", perftNodes);
             printf("nps: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration));
