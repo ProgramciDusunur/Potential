@@ -114,6 +114,8 @@ void printMove(uint16_t move);
 U64 get_checkers(board* pos, uint8_t stm_king_square);
 U64 attacked_bb(board *pos);
 void legal_move_generator(moves *moveList, board* pos);
+void legal_noisy_generator(moves *moveList, board* pos);
+void legal_quiet_generator(moves *moveList, board* pos);
 void legal_make_move(uint16_t move, board* pos);
 
 // BISHOP ATTACKS

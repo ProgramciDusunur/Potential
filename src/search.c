@@ -801,10 +801,10 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
     // generate moves
     if (should_do_evasions) {
-        moveGenerator(moveList, position);
+        legal_move_generator(moveList, position);
         init_move_scores(moveList, move_scores, 0, t, ss);
     } else {
-        noisyGenerator(moveList, position);
+        legal_noisy_generator(moveList, position);
         init_quiescence_scores(moveList, move_scores, position);
     }
 
@@ -841,17 +841,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         position->repetitionIndex++;
         position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
-        // make sure to make only legal moves
-        if (makeMove(moveList->moves[count], allMoves, position) == 0) {
-            // decrement ply
-            position->ply--;
-
-            // decrement repetition index
-            position->repetitionIndex--;
-
-            // skip to next move
-            continue;
-        }
+        legal_make_move(move, position);
 
         legal_moves++;
 
@@ -1080,6 +1070,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // hash the side
         pos->hashKey ^= sideKey;
 
+        init_threats(pos);
+
         prefetch_hash_entry(pos->hashKey, pos->fifty);        
         prefetch_corrhist(pos);
 
@@ -1193,7 +1185,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             capture_promos->count = 0;
             int probcut_depth = depth - PROBCUT_DEPTH_SUBTRACTOR;
 
-            noisyGenerator(capture_promos, pos);
+            legal_noisy_generator(capture_promos, pos);
 
             int move_scores[256];
             init_move_scores(capture_promos, move_scores, tt_move, t, ss);
@@ -1223,17 +1215,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 pos->repetitionIndex++;
                 pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
-                // make sure to make only legal moves
-                if (makeMove(capture_promos->moves[count], allMoves, pos) == 0) {
-                    // decrement ply
-                    pos->ply--;
-
-                    // decrement repetition index
-                    pos->repetitionIndex--;
-
-                    // skip to next move
-                    continue;
-                }
+                legal_make_move(move, pos);
 
                 prefetch_hash_entry(pos->hashKey, pos->fifty);                
                 prefetch_corrhist(pos);
@@ -1386,19 +1368,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             const int singularDepth = (depth - 1) / 2;
 
 
-            struct copyposition copyPosition;
-            // preserve board state
-            copyBoard(pos, &copyPosition);
-
-            // make sure to make only legal moves
-            if (makeMove(currentMove, allMoves, pos) == 0) {
-                continue;
-            }
-
             ss->singular_move = currentMove;
-
-            // take move back
-            takeBack(pos, &copyPosition);            
 
             const int singularScore =
                     negamax(singularBeta - 1, singularBeta, singularDepth, t, time, ss, predicted_cut_node);
@@ -1504,17 +1474,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         pos->repetitionIndex++;
         pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
-        // make sure to make only legal moves
-        if (makeMove(currentMove, allMoves, pos) == 0) {
-            // decrement ply
-            pos->ply--;
-
-            // decrement repetition index
-            pos->repetitionIndex--;
-
-            // skip to next move
-            continue;
-        }
+        legal_make_move(currentMove, pos);
 
 
         // increment nodes count
