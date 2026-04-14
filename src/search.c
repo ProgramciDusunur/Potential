@@ -792,7 +792,10 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     }    
 
     // create move list instance
-    moves moveList[1];
+    moves moveList[1], badQuiets[1], noisyMoves[1];
+    badQuiets->count = 0;
+    noisyMoves->count = 0;
+
 
     int move_scores[256];
 
@@ -818,6 +821,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     for (int count = 0; count < moveList->count; count++) {
         pick_next_move(count, moveList, move_scores);
         uint16_t move = moveList->moves[count];
+        bool quiet_move = !isTactical(move);
 
         if (bestScore > -mateFound) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
@@ -851,6 +855,12 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         prefetch_hash_entry(position->hashKey, position->fifty);        
         prefetch_corrhist(position);
 
+        if (quiet_move) {            
+            addMoveToHistoryList(badQuiets, move);
+        } else {            
+            addMoveToHistoryList(noisyMoves, move);
+        }
+
         // score current move
         score = -quiescence(-beta, -alpha, t, time, ss + 1);
 
@@ -870,14 +880,29 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
             bestScore = score;
             // found a better move
             if (score > alpha) {
-                //bestMove = moveList->moves[count];
+                bestMove = moveList->moves[count];
 
                 //hashFlag = hashFlagExact;
                 alpha = score;
             }
 
             if (score >= beta) {
-                //writeHashEntry(beta, bestMove, 0, hashFlagBeta, position);
+                int quiethist_bonus = 128;
+                int capthist_bonus = 64;
+
+                if (quiet_move) {
+                    // update quiet move history
+                    updateQuietMoveHistory(t, bestMove, position->side, quiethist_bonus, badQuiets);
+                } else {
+                    // update capture move history
+                    updateCaptureHistory(t, bestMove, capthist_bonus);
+                }
+
+                int capthist_malus_bonus = 64;
+
+                // always penalize bad noisy moves
+                updateCaptureHistoryMalus(t, capthist_malus_bonus, noisyMoves, bestMove);
+                
                 // node (move) fails high
                 break;
             }
