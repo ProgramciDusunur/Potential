@@ -906,7 +906,6 @@ void legal_make_move(uint16_t move, board* position) {
     position->full_moves += position->side == black;
 
     init_threats(position);
-
 }
 
 void legal_move_generator(moves *moveList, board* pos) {
@@ -950,15 +949,6 @@ void legal_move_generator(moves *moveList, board* pos) {
     // Pawn moves
     if (pos->side == white) {
         bitboard = pos->bitboards[P] & ~pinned;
-    U64 evasion_mask = checker_count == 1 ? (1ULL << checker_square) | lineBB[stm_king_square][checker_square] | rayBB[stm_king_square][checker_square] : ~0ULL;    
-
-    // Pawn moves
-    if (pos->side == white) {
-        bitboard = pos->bitboards[P];
-
-    // Pawn moves
-    if (pos->side == white) {
-        bitboard = pos->bitboards[P] & ~pinned;
 
         U64 emptyAhead = bitboard & (empty << 8);
         // evasion_mask is in target-square space; shift to source-square space
@@ -996,7 +986,6 @@ void legal_move_generator(moves *moveList, board* pos) {
     } else {
         bitboard = pos->bitboards[p] & ~pinned;
 
-
         U64 emptyAhead = bitboard & (empty >> 8);
         U64 singlePush = emptyAhead & 0x0000FFFFFFFFFF00 & (evasion_mask >> 8);
         U64 doublePush = emptyAhead & 0x000000000000FF00 & (empty >> 16) & (evasion_mask >> 16);
@@ -1029,19 +1018,6 @@ void legal_move_generator(moves *moveList, board* pos) {
             }
             splatEnpassant(moveList, attackers, pos->enpassant);
         }
-    }    
-
-    /* UNPINNED PIECE MOVEMENTS */
-
-    // Knight moves
-    piece = pos->side == white ? N : n;
-    bitboard = pos->bitboards[piece] & ~pinned;
-
-    }
-
-    // Knight moves
-    piece = pos->side == white ? N : n;
-    bitboard = pos->bitboards[piece];
     }    
 
     /* UNPINNED PIECE MOVEMENTS */
@@ -1104,7 +1080,7 @@ void legal_move_generator(moves *moveList, board* pos) {
 
      // King moves
     piece = pos->side == white ? K : k;
-    U64 evasion_mask = checker_count == 1 ? (1ULL << checker_square) | lineBB[stm_king_square][checker_square] | rayBB[stm_king_square][checker_square] : 0ULL;
+    
 
     // Knight moves
     piece = pos->side == white ? N : n;
