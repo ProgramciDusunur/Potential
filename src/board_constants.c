@@ -100,6 +100,14 @@ const U64 not8RankAndAFile = 18374403900871474688ULL;
 const U64 not8RankAndHFile = 9187201950435737344ULL;
 const U64 not1RankAndAFile = 71775015237779198ULL;
 
+// castling masks
+const U64 w_short_castle_mask = 0x6000000000000000;
+const U64 w_long_castle_threat_mask = 0xc00000000000000;
+const U64 w_long_castle_occupancy_mask = 0xe00000000000000;
+const U64 b_short_castle_mask = 0x60;
+const U64 b_long_castle_occupancy_mask = 0xe;
+const U64 b_long_castle_threat_mask = 0xc;
+
 int get_rank[64] = {
         7, 7, 7, 7, 7, 7, 7, 7,
         6, 6, 6, 6, 6, 6, 6, 6,

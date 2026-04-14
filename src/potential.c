@@ -48,52 +48,24 @@ int main(int argc, char* argv[]) {
     int debug = 0;
     if (debug) {
         board position;
-        parseFEN("4k3/8/8/8/8/8/8/4K2R b K - 0 1", &position);
-
-        // Double checkers position
-        /*U64 checkers = get_checkers(&position);
-        printBitboard(checkers);*/
-
-        /*moves moveList;
-
-        legal_make_move(0, &position);
-
-        // Attacked bitboard
-        legal_move_generator(&moveList, &position);
-
-        printMoveList(&moveList);
-
-        board position2;
-        parseFEN(startPosition, &position2);
-
-        board position3;
-        parseFEN(startPosition, &position3);*/
-          
-
+        parseFEN(startPosition, &position);
         
-        int depth = 6;
-        /*perftNodes = 0;
-        init_threats(&position);
-        int startTime = getTimeMiliSecond();
-        perft_root_legal(depth, &position);
-        int duration = getTimeMiliSecond() - startTime;
-        printf("total: %llu\n", perftNodes);
-        printf("Legal Move Generator NPS: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration));
-
+        U64 b_long_castle_occupancy_mask = 0ULL;        
+        setBit(b_long_castle_occupancy_mask, c8);
+        setBit(b_long_castle_occupancy_mask, d8);
+                
         
-        perftNodes = 0;
-        int startTime2 = getTimeMiliSecond();
-        perftRoot(depth, &position);
-        int duration2 = getTimeMiliSecond() - startTime2;
-        printf("total: %llu\n", perftNodes);
-        printf("Pseudo Legal Move Generator NPS: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration2));*/
-
+        printBitboard(b_long_castle_occupancy_mask);
+        printf("b_long_castle_occupancy_mask = %llu (0x%llx)\n", b_long_castle_occupancy_mask, b_long_castle_occupancy_mask);
+        
+        
+        /*int depth = 6;
         perftNodes = 0;
         int startTime3 = getTimeMiliSecond();        
         perft_root_legal_bulk(depth, &position);
         int duration3 = getTimeMiliSecond() - startTime3;
         printf("total: %llu\n", perftNodes);
-        printf("Legal Bulk Move Generator NPS: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration3));        
+        printf("Legal Bulk Move Generator NPS: %llu\n", (U64)perftNodes * 1000 / myMAX(1, duration3));*/
 
         //perftRoot(7, &position);
         //printf("Nodes: %llu", perftNodes);

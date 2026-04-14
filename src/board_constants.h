@@ -94,6 +94,12 @@ extern const U64 notAFileAndHRank;
 extern const U64 not8RankAndAFile;
 extern const U64 not8RankAndHFile;
 extern const U64 not1RankAndAFile;
+extern const U64 w_short_castle_mask;
+extern const U64 w_long_castle_threat_mask;
+extern const U64 w_long_castle_occupancy_mask;
+extern const U64 b_short_castle_mask;
+extern const U64 b_long_castle_occupancy_mask;
+extern const U64 b_long_castle_threat_mask;
 extern int get_rank[64];
 extern const U64 LIGHT_SQUARES;
 

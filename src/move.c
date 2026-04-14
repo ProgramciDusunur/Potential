@@ -465,52 +465,50 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
 
 // castling
 void generate_white_king_side_castling(board *position, moves *moveList) {
+    // make sure square between king and king's rook are empty
+    U64 w_short_castle_occupancy = position->occupancies[both] & w_short_castle_mask;
+    // make sure the f1, g1 squares are not under attacks
+    U64 w_short_castle_threats = position->pieceThreats.stmThreats[black] & w_short_castle_mask;
+
     // king side castling is available
-    if (position->castle & wk) {
-        // make sure square between king and king's rook are empty
-        if (!(getBit(position->occupancies[both], f1)) && !(getBit(position->occupancies[both], g1))) {
-            // make sure king and the f1 squares are not under attacks
-            if (!isSquareAttacked(e1, black, position) && !isSquareAttacked(f1, black, position) && !isSquareAttacked(g1, black, position))
-                addMove(moveList, encodeMove(e1, g1, mf_castling));
-        }
+    if (position->castle & wk && !w_short_castle_occupancy && !w_short_castle_threats) {        
+        addMove(moveList, encodeMove(e1, g1, mf_castling));
     }
 }
 
 void generate_white_queen_side_castling(board *position, moves *moveList) {
+    // make sure square between king and queen's rook are empty
+    U64 w_long_castle_occupancy = position->occupancies[both] & w_long_castle_occupancy_mask;
+    // make sure the d1, c1 squares are not under attacks
+    U64 w_long_castle_threats = position->pieceThreats.stmThreats[black] & w_long_castle_threat_mask;
+
     // queen side castling is available
-    if (position->castle & wq) {
-        // make sure square between king and queen's rook are empty
-        if (!(getBit(position->occupancies[both], d1)) && !(getBit(position->occupancies[both], c1)) &&
-            !(getBit(position->occupancies[both], b1))) {
-            // make sure king and the d1 squares are not under attacks
-            if (!isSquareAttacked(e1, black, position) && !isSquareAttacked(d1, black, position) && !isSquareAttacked(c1, black, position))
-                addMove(moveList, encodeMove(e1, c1, mf_castling));
-        }
+    if (position->castle & wq && !w_long_castle_occupancy && !w_long_castle_threats) {
+        addMove(moveList, encodeMove(e1, c1, mf_castling));
     }
 }
 
 void generate_black_king_side_castling(board *position, moves *moveList) {
+    // make sure square between king and king's rook are empty
+    U64 b_short_castle_occupancy = position->occupancies[both] & b_short_castle_mask;
+    // make sure the f8, g8 squares are not under attacks
+    U64 b_short_castle_threats = position->pieceThreats.stmThreats[white] & b_short_castle_mask;
+
     // king side castling is available
-    if (position->castle & bk) {
-        // make sure square between king and king's rook are empty
-        if (!(getBit(position->occupancies[both], f8)) && !(getBit(position->occupancies[both], g8))) {
-            // make sure king and the f8 squares are not under attacks
-            if (!isSquareAttacked(e8, white, position) && !isSquareAttacked(f8, white, position) && !isSquareAttacked(g8, white, position))
-                addMove(moveList, encodeMove(e8, g8, mf_castling));
-        }
+    if (position->castle & bk && !b_short_castle_occupancy && !b_short_castle_threats) {
+        addMove(moveList, encodeMove(e8, g8, mf_castling));
     }
 }
 
 void generate_black_queen_side_castling(board *position, moves *moveList) {
+    // make sure square between king and queen's rook are empty
+    U64 b_long_castle_occupancy = position->occupancies[both] & b_long_castle_occupancy_mask;
+    // make sure the d8, c8 squares are not under attacks
+    U64 b_long_castle_threats = position->pieceThreats.stmThreats[white] & b_long_castle_threat_mask;
+
     // queen side castling is available
-    if (position->castle & bq) {
-        // make sure square between king and queen's rook are empty
-        if (!(getBit(position->occupancies[both], d8)) && !(getBit(position->occupancies[both], c8)) &&
-            !(getBit(position->occupancies[both], b8))) {
-            // make sure king and the d8 squares are not under attacks
-            if (!isSquareAttacked(e8, white, position) && !isSquareAttacked(d8, white, position) && !isSquareAttacked(c8, white, position))
-                addMove(moveList, encodeMove(e8, c8, mf_castling));
-        }
+    if (position->castle & bq && !b_long_castle_occupancy && !b_long_castle_threats) {
+        addMove(moveList, encodeMove(e8, c8, mf_castling));
     }
 }
 
