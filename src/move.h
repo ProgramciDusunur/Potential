@@ -113,7 +113,6 @@ void legal_move_generator(moves *moveList, board* pos);
 void legal_noisy_generator(moves *moveList, board* pos);
 void legal_quiet_generator(moves *moveList, board* pos);
 void legal_make_move(uint16_t move, board* pos);
-bool verify_legality(uint16_t move, board *pos);
 
 // BISHOP ATTACKS
 static inline U64 getBishopAttacks(int square, U64 occupancy) {
