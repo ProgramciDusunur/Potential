@@ -39,11 +39,47 @@ bool isTactical(uint16_t move) {
 
 
 void copyBoard(board *p, struct copyposition *cp) {
-    memcpy(cp, p, sizeof(struct copyposition));
+    memcpy(cp->bitboards, p->bitboards, sizeof(cp->bitboards));
+    memcpy(cp->occupancies, p->occupancies, sizeof(cp->occupancies));
+    cp->hashKey = p->hashKey;
+    cp->pawnKey = p->pawnKey;
+    cp->minorKey = p->minorKey;
+    cp->majorKey = p->majorKey;
+    cp->whiteNonPawnKey = p->whiteNonPawnKey;
+    cp->blackNonPawnKey = p->blackNonPawnKey;
+    cp->krpKey = p->krpKey;
+    memcpy(cp->mailbox, p->mailbox, sizeof(cp->mailbox));
+    cp->side = p->side;
+    cp->castle = p->castle;
+    cp->enpassant = p->enpassant;
+    cp->fifty = p->fifty;
+    cp->full_moves = p->full_moves;
+    cp->phase_score = p->phase_score;
+    cp->pinned[0] = p->pinned[0];
+    cp->pinned[1] = p->pinned[1];
+    cp->pieceThreats = p->pieceThreats;
 }
 
 void takeBack(board *p, struct copyposition *cp) {
-    memcpy(p, cp, sizeof(struct copyposition));
+    memcpy(p->bitboards, cp->bitboards, sizeof(p->bitboards));
+    memcpy(p->occupancies, cp->occupancies, sizeof(p->occupancies));
+    p->hashKey = cp->hashKey;
+    p->pawnKey = cp->pawnKey;
+    p->minorKey = cp->minorKey;
+    p->majorKey = cp->majorKey;
+    p->whiteNonPawnKey = cp->whiteNonPawnKey;
+    p->blackNonPawnKey = cp->blackNonPawnKey;
+    p->krpKey = cp->krpKey;
+    memcpy(p->mailbox, cp->mailbox, sizeof(p->mailbox));
+    p->side = cp->side;
+    p->castle = cp->castle;
+    p->enpassant = cp->enpassant;
+    p->fifty = cp->fifty;
+    p->full_moves = cp->full_moves;
+    p->phase_score = cp->phase_score;
+    p->pinned[0] = cp->pinned[0];
+    p->pinned[1] = cp->pinned[1];
+    p->pieceThreats = cp->pieceThreats;
 }
 
 // add move to the move list
