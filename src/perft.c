@@ -30,6 +30,47 @@ void perftChild(int depth, board* position) {
     }
 }
 
+void perft_child_legal(int depth, board* position) {
+    if (depth == 0) {
+        perftNodes++;
+        variant++;
+        return;
+    }
+    moves moveList[1];
+    legal_move_generator(moveList, position);
+    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+        struct copyposition copyPosition;
+        copyBoard(position, &copyPosition);
+        legal_make_move(moveList->moves[moveCount], position);
+        // call perft driver recursively
+        perft_child_legal(depth - 1, position);
+        takeBack(position, &copyPosition);
+    }
+}
+
+void perft_root_legal(int depth, board* position) {
+    moves moveList[1];
+    legal_move_generator(moveList, position);
+    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+        struct copyposition copyPosition;
+        copyBoard(position, &copyPosition);
+        legal_make_move(moveList->moves[moveCount], position);
+        // call perft driver recursively
+        perft_child_legal(depth - 1, position);
+
+        printf("%s%s", squareToCoordinates[getMoveSource(moveList->moves[moveCount])],
+               squareToCoordinates[getMoveTarget(moveList->moves[moveCount])]);
+        if (getMovePromote(moveList->moves[moveCount])) {
+            printf("%c", promotedPieces[getMovePromotedPiece(position->side, moveList->moves[moveCount])]);
+        }
+        printf(": %llu\n", variant);
+
+        variant = 0;
+        takeBack(position, &copyPosition);
+    }
+    printf("\n");
+}
+
 
 void perftRoot(int depth, board* position) {
     moves moveList[1];
@@ -75,6 +116,126 @@ void perft(int depth, board* position) {
         perft(depth - 1, position);
         takeBack(position, &copyPosition);
     }
+}
+
+void perft_legal(int depth, board* position) {
+    if (depth == 0) {
+        perftNodes++;
+        return;
+    }
+    moves moveList[1];
+    legal_move_generator(moveList, position);
+    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+        struct copyposition copyPosition;
+        copyBoard(position, &copyPosition);
+        legal_make_move(moveList->moves[moveCount], position);
+        // call perft driver recursively
+        perft_legal(depth - 1, position);
+        takeBack(position, &copyPosition);
+    }
+}
+
+void perft_child_bulk(int depth, board* position) {
+    if (depth == 0) {
+        perftNodes++;
+        variant++;
+        return;
+    }
+    moves moveList[1];
+    moveGenerator(moveList, position);
+    
+    if (depth == 1) {
+        for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+            struct copyposition copyPosition;
+            copyBoard(position, &copyPosition);
+            if (makeMove(moveList->moves[moveCount], allMoves, position)) {
+                perftNodes++;
+                variant++;
+            }
+            takeBack(position, &copyPosition);
+        }
+        return;
+    }
+
+    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+        struct copyposition copyPosition;
+        copyBoard(position, &copyPosition);
+        if (makeMove(moveList->moves[moveCount], allMoves, position) == 0) {
+            continue;
+        }
+        perft_child_bulk(depth - 1, position);
+        takeBack(position, &copyPosition);
+    }
+}
+
+void perft_root_bulk(int depth, board* position) {
+    moves moveList[1];
+    moveGenerator(moveList, position);
+    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+        struct copyposition copyPosition;
+        copyBoard(position, &copyPosition);
+        if (makeMove(moveList->moves[moveCount], allMoves, position) == 0) {
+            continue;
+        }
+        perft_child_bulk(depth - 1, position);
+
+        printf("%s%s", squareToCoordinates[getMoveSource(moveList->moves[moveCount])],
+               squareToCoordinates[getMoveTarget(moveList->moves[moveCount])]);
+        if (getMovePromote(moveList->moves[moveCount])) {
+            printf("%c", promotedPieces[getMovePromotedPiece(position->side, moveList->moves[moveCount])]);
+        }
+        printf(": %llu\n", variant);
+
+        variant = 0;
+        takeBack(position, &copyPosition);
+    }
+    printf("\n");
+}
+
+void perft_child_legal_bulk(int depth, board* position) {
+    if (depth == 0) {
+        perftNodes++;
+        variant++;
+        return;
+    }
+    moves moveList[1];
+    legal_move_generator(moveList, position);
+    
+    if (depth == 1) {
+        perftNodes += moveList->count;
+        variant += moveList->count;
+        return;
+    }
+
+    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+        struct copyposition copyPosition;
+        copyBoard(position, &copyPosition);
+        legal_make_move(moveList->moves[moveCount], position);
+        perft_child_legal_bulk(depth - 1, position);
+        takeBack(position, &copyPosition);
+    }
+}
+
+void perft_root_legal_bulk(int depth, board* position) {
+    moves moveList[1];
+    legal_move_generator(moveList, position);
+    for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
+        struct copyposition copyPosition;
+        copyBoard(position, &copyPosition);
+        legal_make_move(moveList->moves[moveCount], position);
+        perft_child_legal_bulk(depth - 1, position);
+
+        printf("%s%s", squareToCoordinates[getMoveSource(moveList->moves[moveCount])],
+               squareToCoordinates[getMoveTarget(moveList->moves[moveCount])]);
+        if (getMovePromote(moveList->moves[moveCount])) {
+            printf("%c", promotedPieces[getMovePromotedPiece(position->side, moveList->moves[moveCount])]);
+        }
+        printf(": %llu\n", variant);
+
+        variant = 0;
+        takeBack(position, &copyPosition);
+    }
+    printf("\n");
 }
 
 char* perftSuitFens[126] = {
@@ -244,15 +405,16 @@ void perftSuite() {
         printf("Position %d: %s\n", i + 1, perftSuitFens[i]);
 
         int isCorrect = 1;
-        printf("Result: "); // Print the initial part
+        printf("Result: "); // Print the initial part        
 
         for (int depth = 1; depth <= depthCount; depth++) {
-            perft(depth, &position);
+            init_threats(&position);
+            perft_child_legal_bulk(depth, &position);
             printf("%llu ", perftNodes); // Print the calculated node count
             if (perftNodes != (unsigned long long int)depths[depth - 1]) {
                 isCorrect = 0;
             }
-            perftNodes = 0;
+            perftNodes = 0;            
         }
 
         if (isCorrect) {

@@ -120,7 +120,54 @@ void testSEE(void) {
 
 }
 
+void init_ray_pass() {
+    memset(ray_pass, 0, sizeof(ray_pass));
+    
+    // 8 directions: N, S, E, W, NE, NW, SE, SW
+    int dr[] = {-1, 1, 0, 0, -1, -1, 1, 1};
+    int df[] = {0, 0, 1, -1, 1, -1, 1, -1};
+    
+    for (int sq = 0; sq < 64; sq++) {
+        int rank = sq / 8;
+        int file = sq % 8;
+        
+        for (int dir = 0; dir < 8; dir++) {            
+            int squares[8];
+            int count = 0;
+            
+            int r = rank + dr[dir];
+            int f = file + df[dir];
+            while (r >= 0 && r < 8 && f >= 0 && f < 8) {
+                squares[count++] = r * 8 + f;
+                r += dr[dir];
+                f += df[dir];
+            }
+            
+            // Full ray bitboard
+            U64 fullRay = 0;
+            for (int j = 0; j < count; j++)
+                fullRay |= (1ULL << squares[j]);
+            
+            // Save the same fullRay for EVERY square on this ray
+            for (int j = 0; j < count; j++)
+                ray_pass[sq][squares[j]] = fullRay;
+        }
+    }
+}
+
+void init_line_pass() {
+    memset(line_pass, 0, sizeof(line_pass));
+    for (int sq1 = 0; sq1 < 64; sq1++) {
+        for (int sq2 = 0; sq2 < 64; sq2++) {
+            // Full line through both squares = both half-rays combined
+            line_pass[sq1][sq2] = ray_pass[sq1][sq2] | ray_pass[sq2][sq1];
+        }
+    }
+}
+
 void init_helper_bb(void) {
+    init_ray_pass();
+    init_line_pass();
     for (int square_x = 0; square_x < 64; square_x++) {
         for (int square_y = 0; square_y < 64; square_y++) {
             // init lineBB

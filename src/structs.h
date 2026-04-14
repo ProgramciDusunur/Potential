@@ -50,6 +50,8 @@ typedef struct {
 
     U64 pinned[2];
     //U64 check_squares[4];
+    threats pieceThreats;
+
     int ply;
     int seldepth;
     uint8_t rootDepth;
@@ -60,7 +62,6 @@ typedef struct {
 
     int pvLength[maxPly];
     int pvTable[maxPly][maxPly];
-    threats pieceThreats;
 
     bool benchmark;
 
@@ -87,6 +88,9 @@ struct copyposition {
     int fifty;
     int full_moves;
     int phase_score;
+
+    U64 pinned[2];
+    threats pieceThreats;
 };
 
 // transposition table data structure

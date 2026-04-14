@@ -14,6 +14,9 @@
 #include "table.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include "utils.h"
+#include "see.h"
+
 #if defined(__x86_64__) || defined(_M_X64)
     // Only x86 (Intel/AMD)
     #include <immintrin.h>
@@ -77,6 +80,15 @@ extern U64 rookAttacksPEXT[64][4096];
 // Helper bitboards for pinned pieces
 extern uint64_t lineBB[64][64];
 extern uint64_t rayBB[64][64];
+extern uint64_t ray_pass[64][64];
+extern uint64_t line_pass[64][64];
+
+extern U64 rookMask[64];
+extern U64 bishopMask[64];
+extern const int bishopRelevantBits[64];
+extern const int rookRelevantBits[64];
+extern U64 rookMagic[64];
+extern U64 bishopMagic[64];
 
 
 void copyBoard(board *p, struct copyposition *cp);
@@ -99,6 +111,13 @@ U64 knight_threats (U64 knightBB);
 bool move_gives_check(uint16_t move, board* pos);
 bool is_pseudo_legal(uint16_t move, board *pos);
 void printMove(uint16_t move);
+U64 get_checkers(board* pos, uint8_t stm_king_square);
+U64 attacked_bb(board *pos);
+void legal_move_generator(moves *moveList, board* pos);
+void legal_noisy_generator(moves *moveList, board* pos);
+void legal_quiet_generator(moves *moveList, board* pos);
+void legal_make_move(uint16_t move, board* pos);
+bool verify_legality(uint16_t move, board *pos);
 
 // BISHOP ATTACKS
 static inline U64 getBishopAttacks(int square, U64 occupancy) {

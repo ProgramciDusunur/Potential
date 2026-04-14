@@ -14,13 +14,13 @@ uint16_t get_next_move(MovePicker *mp, int *move_scores, board *pos, ThreadData 
     switch (mp->CURRENT_STAGE) {
         case STAGE_TT:
             mp->CURRENT_STAGE = STAGE_GEN_NOISY;
-            if (mp->tt_move != 0 && is_pseudo_legal(mp->tt_move, pos)) {
+            if (mp->tt_move != 0 && is_pseudo_legal(mp->tt_move, pos) && verify_legality(mp->tt_move, pos)) {
                 return mp->tt_move;
             }
         // fallthrough
         case STAGE_GEN_NOISY:
             mp->CURRENT_STAGE = STAGE_GOOD_NOISY;
-            noisyGenerator(&mp->good_noisy, pos);
+            legal_noisy_generator(&mp->good_noisy, pos);
             if (pos->followPv) enable_pv_scoring(&mp->good_noisy, pos);
             init_move_scores(&mp->good_noisy, move_scores, mp->tt_move, t, ss);
             mp->good_noisy_index = 0;
@@ -47,7 +47,7 @@ uint16_t get_next_move(MovePicker *mp, int *move_scores, board *pos, ThreadData 
         // fallthrough
         case STAGE_GEN_QUIET:
             mp->CURRENT_STAGE = STAGE_QUIET;
-            quietGenerator(&mp->quiet, pos);
+            legal_quiet_generator(&mp->quiet, pos);
             if (pos->followPv) enable_pv_scoring(&mp->quiet, pos);
             init_move_scores(&mp->quiet, move_scores, mp->tt_move, t, ss);
             mp->quiet_index = 0;

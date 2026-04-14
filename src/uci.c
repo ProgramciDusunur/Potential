@@ -37,7 +37,7 @@ uint16_t parse_move(char *move_string, board* position) {
     moves moveList[1];
 
     // generate moves
-    moveGenerator(moveList, position);
+    legal_move_generator(moveList, position);
 
     // parse source square
     int source_square = (move_string[0] - 'a') + (8 - (move_string[1] - '0')) * 8;
@@ -147,7 +147,7 @@ void parse_position(char *command, board* position) {
             position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
             // make move on the chess board
-            makeMove(move, allMoves, position);
+            legal_make_move(move, position);
 
             // move current character mointer to the end of current move
             while (*current_char && *current_char != ' ') current_char++;
