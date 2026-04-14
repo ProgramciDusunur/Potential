@@ -465,14 +465,14 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
 
 // castling
 void generate_white_king_side_castling(board *position, moves *moveList) {
+    // make sure square between king and king's rook are empty
+    U64 w_short_castle_occupancy = position->occupancies[both] & w_short_castle_mask;
+    // make sure the f1, g1 squares are not under attacks
+    U64 w_short_castle_threats = position->pieceThreats.stmThreats[black] & w_short_castle_mask;
+
     // king side castling is available
-    if (position->castle & wk) {
-        // make sure square between king and king's rook are empty
-        if (!(getBit(position->occupancies[both], f1)) && !(getBit(position->occupancies[both], g1))) {
-            // make sure king and the f1 squares are not under attacks
-            if (!isSquareAttacked(e1, black, position) && !isSquareAttacked(f1, black, position) && !isSquareAttacked(g1, black, position))
-                addMove(moveList, encodeMove(e1, g1, mf_castling));
-        }
+    if (position->castle & wk && !w_short_castle_occupancy && !w_short_castle_threats) {        
+        addMove(moveList, encodeMove(e1, g1, mf_castling));        
     }
 }
 

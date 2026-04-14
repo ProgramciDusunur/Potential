@@ -99,6 +99,7 @@ const U64 notAFileAndHRank = 35887507618889599ULL;
 const U64 not8RankAndAFile = 18374403900871474688ULL;
 const U64 not8RankAndHFile = 9187201950435737344ULL;
 const U64 not1RankAndAFile = 71775015237779198ULL;
+const U64 w_short_castle_mask = 0x6000000000000000;
 
 int get_rank[64] = {
         7, 7, 7, 7, 7, 7, 7, 7,
