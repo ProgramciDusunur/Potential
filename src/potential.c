@@ -50,15 +50,13 @@ int main(int argc, char* argv[]) {
         board position;
         parseFEN(startPosition, &position);
         
-        U64 w_short_castle_mask = 0x6000000000000000;
-        U64 w_short_castle_threats = 0x7000000000000000;
-        U64 w_long_castle_mask = 0x1c00000000000000;
-        popBit(w_short_castle_mask, e1);
-
-        U64 w_short_castling_occupancy = position.occupancies[both] & w_short_castle_mask;
+        U64 b_long_castle_occupancy_mask = 0ULL;        
+        setBit(b_long_castle_occupancy_mask, c8);
+        setBit(b_long_castle_occupancy_mask, d8);
+                
         
-        printBitboard(w_long_castle_mask);
-        printf("w_long_castle_mask = %llu (0x%llx)\n", w_long_castle_mask, w_long_castle_mask);
+        printBitboard(b_long_castle_occupancy_mask);
+        printf("b_long_castle_occupancy_mask = %llu (0x%llx)\n", b_long_castle_occupancy_mask, b_long_castle_occupancy_mask);
         
         
         /*int depth = 6;
