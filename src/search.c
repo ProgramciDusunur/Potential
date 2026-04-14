@@ -1281,104 +1281,26 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             return small_probcut_beta;            
     }
 
-    bool enemy_has_no_threats = !has_enemy_any_threat(pos);    
+    int previous_move_target_square = tt_move ? getMoveTarget(tt_move) : 0;
 
-    // create move list instance
-    moves moveList[1], badQuiets[1], noisyMoves[1];
-    badQuiets->count = 0;
-    noisyMoves->count = 0;
+    int extensions = 0;
 
-    MovePicker mp;
-    init_mp(&mp, tt_move);
-        
-    update_pinned(pos);
+    // Singular Extensions
+    if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && tt_move && !ss->singular_move &&
+        tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
+        abs(tt_score) < mateValue) {
+            bool isCapture = getMoveCapture(tt_move) != 0;
+            bool isPromotion = getMovePromote(tt_move) != 0;
+            bool tactical = isCapture || isPromotion;
+            bool notTactical = !tactical;
 
-    int move_scores[256];    
-
-    // number of moves searched in a move list
-    int moves_searched = 0;
-
-    int bestScore = -infinity;    
-
-    // legal moves counter
-    legal_moves = 0;
-
-    // quiet move counter
-    int quietMoves = 0;
-
-    // capture move counter
-    //int captureMoves = 0;
-
-    const int originalAlpha = alpha;
-
-    uint16_t currentMove = 0;
-    // loop over moves within a movelist
-    while ((currentMove = get_next_move(&mp, move_scores, pos, t, ss)) != 0) {
-
-        if (currentMove == ss->singular_move) {
-            continue;
-        }
-
-        bool isCapture = getMoveCapture(currentMove) != 0;
-        bool isPromotion = getMovePromote(currentMove) != 0;
-        bool tactical = isCapture || isPromotion;
-        bool notTactical = !tactical;
-        bool gives_check = move_gives_check(currentMove, pos);
-
-        int pawnHistoryValue = notTactical ? thread_pool.shared_history.pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
-
-        int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(t, 1, currentMove, ss) + getContinuationHistoryScore(t, 4, currentMove, ss): 
-                t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
-
-        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
+            int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(tt_move)][getMoveTarget(tt_move)]
+                                        [is_square_threatened(pos, getMoveSource(tt_move))][is_square_threatened(pos, getMoveTarget(tt_move))] +
+                getContinuationHistoryScore(t, 1, tt_move, ss) + getContinuationHistoryScore(t, 4, tt_move, ss): 
+                t->search_d.captureHistory[pos->mailbox[getMoveSource(tt_move)]][getMoveTarget(tt_move)][pos->mailbox[getMoveTarget(tt_move)]];
 
 
-        bool isNotMated = bestScore > -mateFound;
 
-        if (!rootNode && notTactical && isNotMated && !gives_check) {
-
-            int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
-            int history_adj = moveHistory / 64;
-            history_adj = clamp(history_adj, -6, 6);
-            lmpThreshold += history_adj;
-
-            // Late Move Pruning
-            if (legal_moves>= lmpThreshold) {
-                continue;
-            }            
-            int futility_margin = 
-                static_eval + 
-                FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
-                FP_MARGIN * lmrDepth + 
-                moveHistory / 32;
-            
-
-            // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !in_check && futility_margin <= alpha) {
-                continue;
-            }
-            // Quiet History Pruning
-            if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
-                break;
-            }
-
-        }
-
-        // SEE PVS Pruning
-        int seeThreshold =
-                notTactical ? SEE_QUIET_THRESHOLD * lmrDepth - moveHistory / 96 : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
-        if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
-            continue;
-
-        int previous_move_target_square = getMoveTarget((ss - 1)->move);
-        int extensions = 0;
-
-        // Singular Extensions
-        if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !ss->singular_move &&
-            tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
-            abs(tt_score) < mateValue) {
             int singularMargin = depth * 5;            
             singularMargin += (tt_pv && !pvNode) * 10;
             singularMargin += (tt_flag == hashFlagExact ? depth * 5 / 10 : depth * 5);
@@ -1391,11 +1313,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             copyBoard(pos, &copyPosition);
 
             // make sure to make only legal moves
-            if (makeMove(currentMove, allMoves, pos) == 0) {
-                continue;
+            if (makeMove(tt_move, allMoves, pos) == 0) {
+                // skip singular extension if move is not legal
+                takeBack(pos, &copyPosition);
+                ss->singular_move = 0;
+                goto after_singular_extension;                
             }
 
-            ss->singular_move = currentMove;
+            ss->singular_move = tt_move;
 
             // take move back
             takeBack(pos, &copyPosition);            
@@ -1488,10 +1413,103 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 extensions -= 2;
             }
         } 
-        // Low Depth Singular Extensions
-        else if (depth <= 7 && !in_check && ttAdjustedEval <= alpha - 25 && predicted_cut_node) {
-            extensions++;
+    // Low Depth Singular Extensions
+    else if (depth <= 7 && !in_check && ttAdjustedEval <= alpha - 25 && predicted_cut_node) {
+        extensions++;
+    }
+
+    after_singular_extension:
+
+    bool enemy_has_no_threats = !has_enemy_any_threat(pos);    
+
+    // create move list instance
+    moves moveList[1], badQuiets[1], noisyMoves[1];
+    badQuiets->count = 0;
+    noisyMoves->count = 0;
+
+    MovePicker mp;
+    init_mp(&mp, tt_move);
+        
+    update_pinned(pos);
+
+    int move_scores[256];    
+
+    // number of moves searched in a move list
+    int moves_searched = 0;
+
+    int bestScore = -infinity;    
+
+    // legal moves counter
+    legal_moves = 0;
+
+    // quiet move counter
+    int quietMoves = 0;
+
+    // capture move counter
+    //int captureMoves = 0;
+
+    const int originalAlpha = alpha;
+
+    uint16_t currentMove = 0;
+    // loop over moves within a movelist
+    while ((currentMove = get_next_move(&mp, move_scores, pos, t, ss)) != 0) {
+
+        if (currentMove == ss->singular_move) {
+            continue;
         }
+
+        bool isCapture = getMoveCapture(currentMove) != 0;
+        bool isPromotion = getMovePromote(currentMove) != 0;
+        bool tactical = isCapture || isPromotion;
+        bool notTactical = !tactical;
+        bool gives_check = move_gives_check(currentMove, pos);
+
+        int pawnHistoryValue = notTactical ? thread_pool.shared_history.pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
+
+        int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
+                                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
+                getContinuationHistoryScore(t, 1, currentMove, ss) + getContinuationHistoryScore(t, 4, currentMove, ss): 
+                t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+
+        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
+
+
+        bool isNotMated = bestScore > -mateFound;
+
+        if (!rootNode && notTactical && isNotMated && !gives_check) {
+
+            int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
+            int history_adj = moveHistory / 64;
+            history_adj = clamp(history_adj, -6, 6);
+            lmpThreshold += history_adj;
+
+            // Late Move Pruning
+            if (legal_moves>= lmpThreshold) {
+                continue;
+            }            
+            int futility_margin = 
+                static_eval + 
+                FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
+                FP_MARGIN * lmrDepth + 
+                moveHistory / 32;
+            
+
+            // Futility Pruning
+            if (lmrDepth <= FP_DEPTH && !in_check && futility_margin <= alpha) {
+                continue;
+            }
+            // Quiet History Pruning
+            if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
+                break;
+            }
+
+        }
+
+        // SEE PVS Pruning
+        int seeThreshold =
+                notTactical ? SEE_QUIET_THRESHOLD * lmrDepth - moveHistory / 96 : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
+        if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
+            continue;        
 
         struct copyposition copyPosition;
         // preserve board state
@@ -1540,7 +1558,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         uint64_t nodes_before_search = (t->id == 0) ? load_rlx(t->search_i.nodes_searched) : 0;
 
-        int new_depth = depth - 1 + extensions;
+        int new_depth = depth - 1 + (legal_moves == 1 ? extensions : 0);
 
         int lmrReduction = getLmrReduction(depth, legal_moves, notTactical) * 1024;
 
