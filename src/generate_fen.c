@@ -81,7 +81,7 @@ void default_fen_generation(board *pos, int current_ply, FILE *out_file) {
     }
 
     moves moveList[1];
-    moveGenerator(moveList, pos);
+    legal_move_generator(moveList, pos);
     
     int legal_moves[256];
     int legal_count = 0;
@@ -90,9 +90,9 @@ void default_fen_generation(board *pos, int current_ply, FILE *out_file) {
         struct copyposition cp;
         copyBoard(pos, &cp);
 
-        if (makeMove(moveList->moves[i], allMoves, pos)) {
-            legal_moves[legal_count++] = moveList->moves[i];
-        }        
+        legal_make_move(moveList->moves[i], pos);
+        legal_moves[legal_count++] = moveList->moves[i];
+
         takeBack(pos, &cp);
     }
     
@@ -104,9 +104,7 @@ void default_fen_generation(board *pos, int current_ply, FILE *out_file) {
     struct copyposition cp_step;
     copyBoard(pos, &cp_step);
     
-    if (makeMove(selected_move, allMoves, pos)) {
-        default_fen_generation(pos, current_ply + 1, out_file);
-    }
+    default_fen_generation(pos, current_ply + 1, out_file);
         
     takeBack(pos, &cp_step);
 }
