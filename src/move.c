@@ -944,6 +944,14 @@ void legal_make_move(uint16_t move, board* position) {
     init_threats(position);
 }
 
+bool verify_legality(uint16_t move, board *pos) {
+    struct copyposition cp;
+    copyBoard(pos, &cp);
+    int result = makeMove(move, allMoves, pos);
+    takeBack(pos, &cp);
+    return result != 0;
+}
+
 void legal_move_generator(moves *moveList, board* pos) {
     // init move list count
     moveList->count = 0;
