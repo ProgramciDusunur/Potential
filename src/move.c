@@ -745,7 +745,9 @@ void legal_make_move(uint16_t move, board* position) {
 
     // handle double pawn push
     if (doublePush) {
-        uint8_t stm_king_rank = get_rank[getLS1BIndex(position->bitboards[position->side == white ? K : k])];
+        // TO-DO: check legality for enpassant
+
+        /*uint8_t stm_king_rank = get_rank[getLS1BIndex(position->bitboards[position->side == white ? K : k])];
         uint8_t pawn_rank = get_rank[sourceSquare];
         
         printf("stm king rank: %d\n", stm_king_rank);
@@ -756,7 +758,7 @@ void legal_make_move(uint16_t move, board* position) {
         // remove the captured pawn from the occupancy
         popBit(occ, targetSquare);
 
-        printBitboard(occ);
+        printBitboard(occ);*/
 
         // set enpassant square
         position->enpassant = targetSquare + enPassantSquares[position->side];
