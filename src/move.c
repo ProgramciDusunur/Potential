@@ -745,6 +745,19 @@ void legal_make_move(uint16_t move, board* position) {
 
     // handle double pawn push
     if (doublePush) {
+        uint8_t stm_king_rank = get_rank[getLS1BIndex(position->bitboards[position->side == white ? K : k])];
+        uint8_t pawn_rank = get_rank[sourceSquare];
+        
+        printf("stm king rank: %d\n", stm_king_rank);
+        printf("pawn rank: %d\n", pawn_rank);
+
+        U64 occ = position->occupancies[both];
+
+        // remove the captured pawn from the occupancy
+        popBit(occ, targetSquare);
+
+        printBitboard(occ);
+
         // set enpassant square
         position->enpassant = targetSquare + enPassantSquares[position->side];
 
@@ -1053,8 +1066,8 @@ void legal_move_generator(moves *moveList, board* pos) {
         U64 rEnemy = bitboard & not_h_file & (enemy << 7);
         U64 lSingleCapt = lEnemy & 0x00FFFFFFFFFF0000 & (evasion_mask << 9) & king_anti_diag_mask[1][stm_king_square];
         U64 rSingleCapt = rEnemy & 0x00FFFFFFFFFF0000 & (evasion_mask << 7) & king_anti_diag_mask[0][stm_king_square];
-        U64 lPromotions = lEnemy & 0x000000000000FF00 & (evasion_mask << 9);
-        U64 rPromotions = rEnemy & 0x000000000000FF00 & (evasion_mask << 7);
+        U64 lPromotions = lEnemy & 0x000000000000FF00 & (evasion_mask << 9) & king_anti_diag_mask[1][stm_king_square];
+        U64 rPromotions = rEnemy & 0x000000000000FF00 & (evasion_mask << 7) & king_anti_diag_mask[0][stm_king_square];
 
         splatPawnSingleMoves(moveList, lSingleCapt, -9, 1);
         splatPawnSingleMoves(moveList, rSingleCapt, -7, 1);
@@ -1078,8 +1091,8 @@ void legal_move_generator(moves *moveList, board* pos) {
         U64 rEnemy = bitboard & not_h_file & (enemy >> 9);
         U64 lSingleCapt = lEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 7) & king_anti_diag_mask[0][stm_king_square];
         U64 rSingleCapt = rEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 9) & king_anti_diag_mask[1][stm_king_square];
-        U64 lPromotions = lEnemy & 0x00FF000000000000 & (evasion_mask >> 7);
-        U64 rPromotions = rEnemy & 0x00FF000000000000 & (evasion_mask >> 9);
+        U64 lPromotions = lEnemy & 0x00FF000000000000 & (evasion_mask >> 7) & king_anti_diag_mask[0][stm_king_square];
+        U64 rPromotions = rEnemy & 0x00FF000000000000 & (evasion_mask >> 9) & king_anti_diag_mask[1][stm_king_square];
 
         splatPawnSingleMoves(moveList, lSingleCapt, +7, 1);
         splatPawnSingleMoves(moveList, rSingleCapt, +9, 1);
