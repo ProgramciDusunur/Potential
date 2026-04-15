@@ -12,7 +12,7 @@
 #include "fen.h"
 
 
-extern char* perftSuitFens[126];
+extern char* perftSuitFens[128];
 extern U64 perftNodes;
 extern U64 variant;
 

@@ -2,6 +2,7 @@
 // Created by erena on 13.09.2024.
 //
 
+#include <string.h>
 #include "perft.h"
 
 U64 perftNodes = 0;
@@ -99,6 +100,12 @@ void perft_root_legal_bulk(int depth, board* position) {
         legal_make_move(moveList->moves[moveCount], position);
         perft_child_legal_bulk(depth - 1, position);
 
+        if (depth == 2 &&
+            strcmp(squareToCoordinates[getMoveSource(moveList->moves[moveCount])], "f2") == 0 &&
+            strcmp(squareToCoordinates[getMoveTarget(moveList->moves[moveCount])], "f4") == 0) {
+            printf("Debug: Move f2f4 has %llu nodes at depth %d\n", variant, depth);
+            printBoard(position);
+        }
         printf("%s%s", squareToCoordinates[getMoveSource(moveList->moves[moveCount])],
                squareToCoordinates[getMoveTarget(moveList->moves[moveCount])]);
         if (getMovePromote(moveList->moves[moveCount])) {
@@ -112,7 +119,7 @@ void perft_root_legal_bulk(int depth, board* position) {
     printf("\n");
 }
 
-char* perftSuitFens[126] = {
+char* perftSuitFens[128] = {
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ;D1 20 ;D2 400 ;D3 8902 ;D4 197281 ;D5 4865609 ;D6 119060324",
     "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 ;D1 48 ;D2 2039 ;D3 97862 ;D4 4085603 ;D5 193690690",
     "4k3/8/8/8/8/8/8/4K2R w K - 0 1 ;D1 15 ;D2 66 ;D3 1197 ;D4 7059 ;D5 133987 ;D6 764643",
@@ -239,6 +246,8 @@ char* perftSuitFens[126] = {
     "n1n5/1Pk5/8/8/8/8/5Kp1/5N1N b - - 0 1 ;D1 24 ;D2 421 ;D3 7421 ;D4 124608 ;D5 2193768 ;D6 37665329",
     "8/PPPk4/8/8/8/8/4Kppp/8 b - - 0 1 ;D1 18 ;D2 270 ;D3 4699 ;D4 79355 ;D5 1533145 ;D6 28859283",
     "n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1 ;D1 24 ;D2 496 ;D3 9483 ;D4 182838 ;D5 3605103 ;D6 71179139",
+    "2rr4/3P4/6p1/3K1pkp/8/3P2PP/R4P2/8 w - - 0 47 ;D1 20 ;D2 329 ;D3 6502 ;D4 123256 ;D5 2534848 ;D6 50037988",
+    "5k2/1p4pp/3n4/p7/3P4/7P/P1KBrpP1/4RR2 b - - 0 26 ;D1 26 ;D2 591 ;D3 15315 ;D4 382679 ;D5 9953105 ;D6 257424294",
     };
 
 // Extracts depths from a suitFen string
@@ -268,7 +277,7 @@ int extractDepths(char* suitFen, int* depths) {
 void perftSuite() {
     int depths[6];
     int correctCount = 0;
-    int totalCount = 126;
+    int totalCount = 128; // Total number of positions in the suite
 
     for (int i = 0; i < totalCount; i++) {
         board position;
