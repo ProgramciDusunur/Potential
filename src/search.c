@@ -485,10 +485,13 @@ int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
 }
 
 uint8_t justPawns(board *pos) {
-    return !((pos->bitboards[N] | pos->bitboards[n] | pos->bitboards[B] |
-              pos->bitboards[b] | pos->bitboards[R] | pos->bitboards[r] |
-              pos->bitboards[Q] | pos->bitboards[q]) &
-             pos->occupancies[pos->side]);
+    switch (pos->side) {
+        case white:
+        return (pos->bitboards[P] | pos->bitboards[K]) == pos->occupancies[white];
+        case black:
+        return (pos->bitboards[p] | pos->bitboards[k]) == pos->occupancies[black];
+    }
+    return 0;
 }
 
 
