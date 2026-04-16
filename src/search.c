@@ -792,7 +792,12 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     if (evaluation > alpha) {
         // PV node (move)
         alpha = evaluation;
-    }    
+    }
+
+    // is king in check
+    int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
+                                    getLS1BIndex(position->bitboards[k]),
+                                    position->side ^ 1, position);
 
     // create move list instance
     moves moveList[1];
@@ -873,7 +878,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
             bestScore = score;
             // found a better move
             if (score > alpha) {
-                //bestMove = moveList->moves[count];
+                bestMove = moveList->moves[count];
 
                 //hashFlag = hashFlagExact;
                 alpha = score;
@@ -894,9 +899,21 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         hashFlag = hashFlagBeta;
     }
 
+    if (!(in_check || isTactical(bestMove) ||
+        (tt_flag == hashFlagBeta && bestScore >= evaluation) ||
+        (tt_flag == hashFlagAlpha && bestScore <= evaluation)) ) {
+            int corrhistBonus = clamp(bestScore - evaluation, -CORRHIST_LIMIT, CORRHIST_LIMIT);
+            update_pawn_correction_hist(t, 1, corrhistBonus);
+            update_minor_correction_hist(t, 1, corrhistBonus);
+            update_major_correction_hist(t, 1, corrhistBonus);
+            update_non_pawn_corrhist(t, 1, corrhistBonus);
+            update_continuation_corrhist(t, 1, corrhistBonus, ss);
+            update_king_rook_pawn_corrhist(t, 1, corrhistBonus);
+        }
+
 
     // store hash entry with the score equal to alpha
-    writeHashEntry(position->hashKey, bestScore, bestMove, 0, hashFlag, tt_pv, position, position->fifty);
+    writeHashEntry(position->hashKey, bestScore, 0, 0, hashFlag, tt_pv, position, position->fifty);
 
     // node (move) fails low
     return bestScore;
