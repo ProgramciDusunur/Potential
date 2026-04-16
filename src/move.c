@@ -1404,7 +1404,7 @@ void legal_quiet_generator(moves *moveList, board* pos) {
     }
 
     U64 evasion_mask = checker_count == 1 ? (1ULL << checker_square) | lineBB[stm_king_square][checker_square] | rayBB[stm_king_square][checker_square] : ~0ULL;
-    update_pinned(pos);
+    //update_pinned(pos);
     U64 pinned = pos->pinned[pos->side];
 
 
