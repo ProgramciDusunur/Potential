@@ -1340,9 +1340,10 @@ void legal_noisy_generator(moves *moveList, board* pos) {
         U64 rEnemy = bitboard & not_h_file & (enemy << 7);
         U64 lSingleCapt = lEnemy & 0x00FFFFFFFFFF0000 & (evasion_mask << 9) & king_anti_diag_mask[1][stm_king_square];
         U64 rSingleCapt = rEnemy & 0x00FFFFFFFFFF0000 & (evasion_mask << 7) & king_anti_diag_mask[0][stm_king_square];
-        U64 lPromotions = lEnemy & 0x000000000000FF00 & (evasion_mask << 9);
-        U64 rPromotions = rEnemy & 0x000000000000FF00 & (evasion_mask << 7);
+        U64 lPromotions = lEnemy & 0x000000000000FF00 & (evasion_mask << 9) & king_anti_diag_mask[1][stm_king_square];
+        U64 rPromotions = rEnemy & 0x000000000000FF00 & (evasion_mask << 7) & king_anti_diag_mask[0][stm_king_square];
 
+        
         splatPawnSingleMoves(moveList, lSingleCapt, -9, 1);
         splatPawnSingleMoves(moveList, rSingleCapt, -7, 1);
         splatPawnPromoMoves(moveList, lPromotions, -9, white, 1);
@@ -1361,8 +1362,8 @@ void legal_noisy_generator(moves *moveList, board* pos) {
         U64 rEnemy = bitboard & not_h_file & (enemy >> 9);
         U64 lSingleCapt = lEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 7) & king_anti_diag_mask[0][stm_king_square];
         U64 rSingleCapt = rEnemy & 0x0000FFFFFFFFFF00 & (evasion_mask >> 9) & king_anti_diag_mask[1][stm_king_square];
-        U64 lPromotions = lEnemy & 0x00FF000000000000 & (evasion_mask >> 7);
-        U64 rPromotions = rEnemy & 0x00FF000000000000 & (evasion_mask >> 9);
+        U64 lPromotions = lEnemy & 0x00FF000000000000 & (evasion_mask >> 7) & king_anti_diag_mask[0][stm_king_square];
+        U64 rPromotions = rEnemy & 0x00FF000000000000 & (evasion_mask >> 9) & king_anti_diag_mask[1][stm_king_square];
 
         splatPawnSingleMoves(moveList, lSingleCapt, +7, 1);
         splatPawnSingleMoves(moveList, rSingleCapt, +9, 1);
