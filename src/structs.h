@@ -264,4 +264,15 @@ typedef struct {
     moves quiet;
 } MovePicker;
 
+typedef struct {
+    uint8_t CURRENT_STAGE;
+    int index;
+    int bad_noisy_index;
+    int quiet_index;
+    bool should_do_evasions;
+    moves captures;
+    moves bad_noisy;
+    moves quiet;
+} QSMovePicker;
+
 #endif //POTENTIAL_STRUCTS_H

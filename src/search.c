@@ -802,26 +802,14 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     const bool should_do_evasions =
         !pvNode && tt_move && tt_flag != hashFlagBeta && !isTactical(tt_move);
 
-    // generate moves
-    if (should_do_evasions) {
-        legal_move_generator(moveList, position);
-        init_move_scores(moveList, move_scores, 0, t, ss);
-    } else {
-        legal_noisy_generator(moveList, position);
-        init_quiescence_scores(moveList, move_scores, position);
-    }
+    QSMovePicker mp;
+    init_qs_mp(&mp, should_do_evasions);
 
     int futilityValue = bestScore + 100;
-
-    // legal moves counter
     int legal_moves = 0;
     
-
-    // loop over moves within a movelist
-    for (int count = 0; count < moveList->count; count++) {
-        pick_next_move(count, moveList, move_scores);
-        uint16_t move = moveList->moves[count];
-
+    uint16_t move;
+    while ((move = get_next_qs_move(&mp, move_scores, position, t, ss)) != 0) {
         if (bestScore > -mateFound) {
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
