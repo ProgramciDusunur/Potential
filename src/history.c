@@ -308,14 +308,20 @@ void clear_histories(void) {
     memset(&thread_pool.shared_history, 0, sizeof(SharedHistory));
 }
 
-void quiet_history_aging(void) {
+void history_aging(void) {
     int how_many_threads = thread_pool.thread_count;
 
     for (int i = 0;i < how_many_threads;i++) {
-        int16_t *p = (int16_t *)thread_pool.threads[i]->search_d.quietHistory;
+        int16_t *quiet_hist_p = (int16_t *)thread_pool.threads[i]->search_d.quietHistory;
 
         for (int j = 0; j < 32768; j++) {
-            p[j] >>= 1;
+            quiet_hist_p[j] >>= 1;
+        }
+
+        int16_t *continuation_hist_p = (int16_t *)thread_pool.threads[i]->search_d.continuationHistory;
+
+        for (int j = 0; j < 589824; j++) {            
+            continuation_hist_p[j] >>= 1;
         }
     }            
 }
