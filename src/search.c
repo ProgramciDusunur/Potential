@@ -1050,7 +1050,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     if (!ss->singular_move && depth >= NMP_DEPTH && !in_check && !rootNode &&
             ttAdjustedEval >= beta + 75 &&
             pos->ply >= pos->nmpPly &&
-            !justPawns(pos)) {
+            !justPawns(pos) &&
+            tt_flag != hashFlagBeta) {
         struct copyposition copyPosition;
         // preserve board state
         copyBoard(pos, &copyPosition);
