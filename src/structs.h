@@ -230,14 +230,15 @@ typedef struct {
     SearchStack ss_base[maxPly + 20]; // 20 = STACK_SAFETY_MARGIN
     SearchStack *ss;                   // points to ss_base + STACK_OFFSET (10)
     int search_depth;                  // depth for this thread's search
-    my_time *time;                     // pointer to shared time control
+    my_time *time;                     // pointer to shared time control    
 } ThreadData;
 
 typedef struct {
     ThreadData *threads[MAX_THREADS];
     int thread_count;
 
-    _Atomic bool stop;    
+    _Atomic bool stop;
+    _Atomic int soft_stopped_threads;
     board root_pos;
 
     SharedHistory shared_history;

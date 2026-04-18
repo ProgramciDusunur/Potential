@@ -1762,6 +1762,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
     // reset "time is up" flag
     time->stopped = 0;
+    bool soft_tm_stop = false;
 
     // reset nodes counter
     store_rlx(t->search_i.nodes_searched, 0);
@@ -1772,6 +1773,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     
     if (t->id == 0) {
         memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
+        store_rlx(thread_pool.soft_stopped_threads, 0);
     }
     memset(t->pos.pvTable, 0, sizeof(t->pos.pvTable));
     memset(t->pos.pvLength, 0, sizeof(t->pos.pvLength));    
@@ -1815,13 +1817,26 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         if (time->is_datagen) {
             check_node_limit(time, t);
         } else {
-            if (t->id == 0 && ((time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
+            if (t->id == 0 && time->isNodeLimit && total_nodes() >= time->node_limit) {
                 time->stopped = 1;
                 store_rlx(thread_pool.stop, true);
             } else if (load_rlx(thread_pool.stop)) {
                 time->stopped = 1;
             }
         }
+
+        if (time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0 && !soft_tm_stop) {
+            soft_tm_stop = true; 
+            
+            int currently_stopped = atomic_fetch_add(&thread_pool.soft_stopped_threads, 1) + 1;
+            
+            int vote_threshold = (thread_pool.thread_count + 1) / 2;
+            if (currently_stopped >= vote_threshold) {
+                time->stopped = 1;
+                store_rlx(thread_pool.stop, true);
+            }
+        }
+
 
         int window = ASP_WINDOW_BASE;
         int aspirationWindowDepth = current_depth;
@@ -1831,7 +1846,8 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             if (time->is_datagen) {
                 check_node_limit(time, t);
             } else {
-                if (t->id == 0 && ((time->timeset && (startTime >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
+                if (t->id == 0 && ((time->timeset && thread_pool.thread_count == 1 && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) || 
+                        (time->isNodeLimit && total_nodes() >= time->node_limit))) {
                     time->stopped = 1;
                     store_rlx(thread_pool.stop, true);
                 } else if (load_rlx(thread_pool.stop)) {

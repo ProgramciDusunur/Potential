@@ -41,7 +41,7 @@ void init_threads(int requested_count) {
 
         memset(thread_pool.threads[i], 0, sizeof(ThreadData));
         thread_pool.threads[i]->id = i;
-        thread_pool.threads[i]->ss = thread_pool.threads[i]->ss_base + STACK_OFFSET;
+        thread_pool.threads[i]->ss = thread_pool.threads[i]->ss_base + STACK_OFFSET;        
         clearStaticEvaluationHistory(thread_pool.threads[i]->ss);
     }
 }
