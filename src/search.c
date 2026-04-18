@@ -1830,7 +1830,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             
             int currently_stopped = atomic_fetch_add(&thread_pool.soft_stopped_threads, 1) + 1;
             
-            int vote_threshold = (thread_pool.thread_count - 1) / 2;
+            int vote_threshold = (thread_pool.thread_count + 2) / 2;
             if (currently_stopped >= vote_threshold) {
                 time->stopped = 1;
                 store_rlx(thread_pool.stop, true);
