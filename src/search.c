@@ -399,6 +399,8 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         }
     }
 
+    uint8_t source_square = getMoveSource(move);
+    uint8_t target_square = getMoveTarget(move);
 
 
     // score capture move
@@ -408,19 +410,19 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         // init target piece
         int target_piece = P;
 
-        uint8_t bb_piece = t->pos.mailbox[getMoveTarget(move)];
+        uint8_t bb_piece = t->pos.mailbox[target_square];
         // if there's a piece on the target square
         if (bb_piece != NO_PIECE &&
-            getBit(t->pos.bitboards[bb_piece], getMoveTarget(move))) {
+            getBit(t->pos.bitboards[bb_piece], target_square)) {
             target_piece = bb_piece;
         }
 
         int previous_move_target_square = getMoveTarget((ss - 1)->move);
-        int recapture_bonus = getMoveTarget(move) == previous_move_target_square ? 200000 : 0;
+        int recapture_bonus = target_square == previous_move_target_square ? 200000 : 0;
 
-        int piece = t->pos.mailbox[getMoveSource(move)];
+        int piece = t->pos.mailbox[source_square];
 
-        int16_t move_history = t->search_d.captureHistory[piece][getMoveTarget(move)][t->pos.mailbox[getMoveTarget(move)]];
+        int16_t move_history = t->search_d.captureHistory[piece][target_square][t->pos.mailbox[target_square]];
 
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[piece][target_piece];
@@ -438,27 +440,37 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
 
     }
     // score quiet moves
-    else {
-        int quiet_score = 0;
-        quiet_score +=
-            // quiet main history 
-            t->search_d.quietHistory[t->pos.side][getMoveSource(move)][getMoveTarget(move)]
-            [is_square_threatened(&t->pos, getMoveSource(move))][is_square_threatened(&t->pos, getMoveTarget(move))];
 
-        // 1 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 1, move, ss);
-        // 2 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 2, move, ss);
-        // 4 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 4, move, ss);
-        // pawn history
-        quiet_score += thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
-        // NMP refutation move
-        //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+    uint8_t piece = t->pos.mailbox[source_square];
+    int quiet_score = 0;
+    quiet_score +=
+    // quiet main history 
+    t->search_d.quietHistory[t->pos.side][source_square][target_square]
+        [is_square_threatened(&t->pos, source_square)][is_square_threatened(&t->pos, target_square)];
 
-        return quiet_score;
-    }
-    return 0;
+    // 1 ply continuation history
+    quiet_score += getContinuationHistoryScore(t, 1, move, ss);
+    
+    // 2 ply continuation history
+    quiet_score += getContinuationHistoryScore(t, 2, move, ss);
+    // 4 ply continuation history
+    quiet_score += getContinuationHistoryScore(t, 4, move, ss);
+    // pawn history
+    quiet_score += thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
+    // NMP refutation move
+    //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+
+    // threat ordering
+    U64 enemy_threats = t->pos.pieceThreats.stmThreats[t->pos.side ^ 1];
+    bool source_threatened = getBit(enemy_threats, source_square);
+    bool target_threatened = getBit(enemy_threats, target_square);
+
+    // pawn - knight - bishop - rook - queen - king
+    int escape_score[12] = {100, 300, 300, 500, 900, 0, 100, 300, 500, 900, 0};
+
+    quiet_score += escape_score[piece] * (source_threatened && !target_threatened);    
+
+    return quiet_score;    
 }
 
 
