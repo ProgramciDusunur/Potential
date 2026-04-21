@@ -458,7 +458,7 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
 
         // move gives direct check bonus
         bool gives_check = move_gives_check(move, &t->pos);
-        quiet_score += 8192 * (gives_check && SEE(&t->pos, move, -100));
+        quiet_score += 4096 * (gives_check && SEE(&t->pos, move, -100));
 
         return quiet_score;
     }
