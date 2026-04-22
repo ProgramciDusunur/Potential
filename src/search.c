@@ -430,6 +430,10 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         captureScore += SEE(&t->pos, move, SEE_MOVE_ORDERING_THRESHOLD - move_history / 32) ? 1000000000 : -1000000;
 
         captureScore += recapture_bonus;
+
+        int in_check_bonus = t->ss->in_check ? 200000 : 0;
+
+        captureScore += in_check_bonus;
         
         // NMP refutation move
         //captureScore += getMoveTarget(move) == getMoveSource(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
@@ -1001,6 +1005,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                                     pos->side ^ 1, pos);
     
 
+    ss->in_check = in_check;
+
+    
     // get static evaluation score
     int raw_eval = evaluate(pos);
 
