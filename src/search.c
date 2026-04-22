@@ -483,7 +483,7 @@ void enable_pv_scoring(moves *moveList, board* position) {
 // SMP Thread Reduction Differentiation
 static inline int helper_reduction_bias(const ThreadData *t) {
     if (t->id == 0) return 0;
-    static const int bias[] = { 128, -256, 256, -128 };
+    static const int bias[] = { -96, 96, -48, 48};
     return bias[t->id % 4];
 }
 
