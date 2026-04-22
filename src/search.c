@@ -480,6 +480,13 @@ void enable_pv_scoring(moves *moveList, board* position) {
     }
 }
 
+// SMP Thread Reduction Differentiation
+static inline int helper_reduction_bias(const ThreadData *t) {
+    if (t->id == 0) return 0;
+    static const int bias[] = { 128, -256, 256, -128 };
+    return bias[t->id % 4];
+}
+
 int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
     return LMR_TABLE[isQuiet][myMIN(63, myMAX(depth, 0))][myMIN(63, moveNumber)];
 }
@@ -1577,6 +1584,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction -= GIVES_CHECK_LMR_SCALAR;
         }
         
+
+        lmrReduction += helper_reduction_bias(t);
 
         lmrReduction /= 1024;
 
