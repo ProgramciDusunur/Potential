@@ -1727,6 +1727,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             return get_draw_score(t);
     }
 
+    // Prior Counter Move
+    uint16_t prior_move = (ss - 1)->move;
+    if (!rootNode && prior_move && isTactical(prior_move)) {
+        const int history_bonus = getHistoryBonus(depth);
+
+        adjust_single_quiet_hist_entry(t, pos->side, prior_move, history_bonus);
+    }
+
     if (!ss->singular_move) {
         uint8_t hashFlag = hashFlagExact;
         if (alpha >= beta) {
