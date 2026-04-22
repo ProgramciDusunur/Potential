@@ -19,7 +19,7 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "3.36.80"
+#define VERSION "3.36.81"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -396,7 +396,7 @@ void check_node_limit(my_time* time, ThreadData* t) {
             store_rlx(t->search_i.stopped, true);
         }
     } else {
-        if (total_nodes() >= time->node_limit) {
+        if (total_nodes() >= time->node_limit && t->pos.pvTable[0][0] != 0) {
             time->stopped = 1;
             store_rlx(thread_pool.stop, true);
         }
@@ -405,8 +405,6 @@ void check_node_limit(my_time* time, ThreadData* t) {
 
 
 void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
-    //ThreadData *threads = init_threads(thread_count);
-
     setup_main_thread(position);
 
     position->ply = 0;

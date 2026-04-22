@@ -1815,7 +1815,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         if (time->is_datagen) {
             check_node_limit(time, t);
         } else {
-            if (t->id == 0 && ((time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
+            if (t->id == 0 && ((time->timeset && startTime >= time->softLimit) || (time->isNodeLimit && total_nodes() >= time->node_limit)) && t->pos.pvTable[0][0] != 0) {
                 time->stopped = 1;
                 store_rlx(thread_pool.stop, true);
             } else if (load_rlx(thread_pool.stop)) {
@@ -1831,7 +1831,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             if (time->is_datagen) {
                 check_node_limit(time, t);
             } else {
-                if (t->id == 0 && ((time->timeset && (startTime >= time->softLimit) && t->pos.pvTable[0][0] != 0) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
+                if (t->id == 0 && ((time->timeset && startTime >= time->softLimit) || (time->isNodeLimit && total_nodes() >= time->node_limit)) && t->pos.pvTable[0][0] != 0) {
                     time->stopped = 1;
                     store_rlx(thread_pool.stop, true);
                 } else if (load_rlx(thread_pool.stop)) {
