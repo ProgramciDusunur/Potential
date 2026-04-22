@@ -453,8 +453,25 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         quiet_score += getContinuationHistoryScore(t, 4, move, ss);
         // pawn history
         quiet_score += thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
+
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+
+        // don't move king wall pawns (an idea from Reckless)
+        int side = t->pos.side;
+        int king_sq = getLS1BIndex(t->pos.bitboards[side == white ? K : k]);
+        
+        int king_home_rank = (side == white) ? 0 : 7;
+        if (get_rank[king_sq] == king_home_rank) {
+            U64 our_pawns = t->pos.bitboards[side == white ? P : p];
+            
+            U64 pawn_home_mask = rankMasks[(side == white) ? 48 : 8];
+            U64 wall_pawns = kingAttacks[king_sq] & our_pawns & pawn_home_mask;
+            int from = getMoveSource(move);
+            if (wall_pawns & (1ULL << from)) {
+                quiet_score -= 4000;
+            }
+        }
 
         return quiet_score;
     }
