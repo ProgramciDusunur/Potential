@@ -469,7 +469,7 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
             U64 wall_pawns = kingAttacks[king_sq] & our_pawns & pawn_home_mask;
             int from = getMoveSource(move);
             if (wall_pawns & (1ULL << from)) {
-                quiet_score -= 4000;
+                quiet_score -= 8192;
             }
         }
 
