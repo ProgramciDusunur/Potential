@@ -1359,6 +1359,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         int previous_move_target_square = getMoveTarget((ss - 1)->move);
         int extensions = 0;
+        uint16_t alternate_move = 0;
 
         // Singular Extensions
         if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !ss->singular_move &&
@@ -1377,6 +1378,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     negamax(singularBeta - 1, singularBeta, singularDepth, t, time, ss, predicted_cut_node);
             
             ss->singular_move = 0;
+            alternate_move = ss->move;
 
             // Singular Extension
             if (singularScore < singularBeta) {
@@ -1507,11 +1509,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         int lmrReduction = getLmrReduction(depth, legal_moves, notTactical) * 1024;
 
-        /* All Moves */
+        /* All Moves */        
 
         // Reduce More
         if (predicted_cut_node) {
-            lmrReduction += CUT_NODE_LMR_SCALAR + !tt_move * 1024;
+            int alt_move_bonus = alternate_move ? 1024 : 0;            
+            lmrReduction += CUT_NODE_LMR_SCALAR + !tt_move * 1024 + alt_move_bonus;
         }
 
         if (tt_pv && tt_hit && tt_score <= alpha) {
