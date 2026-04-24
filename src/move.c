@@ -512,6 +512,19 @@ void generate_black_queen_side_castling(board *position, moves *moveList) {
     }
 }
 
+// Filter out en passant captures that would expose the king to a horizontal
+inline static U64 ep_pin_filter(const board *pos, U64 attackers, int king_sq, int captured_sq) {
+    if (get_rank[king_sq] != get_rank[captured_sq]) return attackers;    
+    if (attackers & (attackers - 1)) return attackers;
+
+    U64 enemy_rq = pos->side == white
+        ? (pos->bitboards[r] | pos->bitboards[q])
+        : (pos->bitboards[R] | pos->bitboards[Q]);
+    U64 occ = pos->occupancies[both] ^ (1ULL << captured_sq) ^ attackers;
+
+    return (getRookAttacks(king_sq, occ) & rankMasks[king_sq] & enemy_rq) ? 0 : attackers;
+}
+
 #if __AVX512VBMI2__
 
 inline static __m512i SPLAT_TEMPLATE_TARGET_HALF() {
@@ -745,21 +758,6 @@ void legal_make_move(uint16_t move, board* position) {
 
     // handle double pawn push
     if (doublePush) {
-        // TO-DO: check legality for enpassant
-
-        /*uint8_t stm_king_rank = get_rank[getLS1BIndex(position->bitboards[position->side == white ? K : k])];
-        uint8_t pawn_rank = get_rank[sourceSquare];
-        
-        printf("stm king rank: %d\n", stm_king_rank);
-        printf("pawn rank: %d\n", pawn_rank);
-
-        U64 occ = position->occupancies[both];
-
-        // remove the captured pawn from the occupancy
-        popBit(occ, targetSquare);
-
-        printBitboard(occ);*/
-
         // set enpassant square
         position->enpassant = targetSquare + enPassantSquares[position->side];
 
@@ -888,13 +886,15 @@ void legal_move_generator(moves *moveList, board* pos) {
 
         if (pos->enpassant != no_sq) {
             U64 attackers = bitboard & pawnAttacks[black][pos->enpassant];
+            int capturedPawnSq = pos->enpassant + 8; // the pawn being captured
             // In check: ep is legal if the ep target square is in evasion_mask,
             // OR if the captured pawn IS the checker (checker_square = ep_target ± 8)
             if (checker_count == 1) {
-                int capturedPawnSq = pos->enpassant + 8; // the pawn being captured
                 if (!((1ULL << pos->enpassant) & evasion_mask) && capturedPawnSq != checker_square)
                     attackers = 0;
             }
+            // Filter out horizontal clearance pins
+            attackers = ep_pin_filter(pos, attackers, stm_king_square, capturedPawnSq);
             splatEnpassant(moveList, attackers, pos->enpassant);
         }
     } else {
@@ -923,13 +923,15 @@ void legal_move_generator(moves *moveList, board* pos) {
 
         if (pos->enpassant != no_sq) {
             U64 attackers = bitboard & pawnAttacks[white][pos->enpassant];
+            int capturedPawnSq = pos->enpassant - 8; // the pawn being captured
             // In check: ep is legal if the ep target square is in evasion_mask,
             // OR if the captured pawn IS the checker (checker_square = ep_target - 8)
             if (checker_count == 1) {
-                int capturedPawnSq = pos->enpassant - 8; // the pawn being captured
                 if (!((1ULL << pos->enpassant) & evasion_mask) && capturedPawnSq != checker_square)
                     attackers = 0;
             }
+            // Filter out horizontal clearance pins
+            attackers = ep_pin_filter(pos, attackers, stm_king_square, capturedPawnSq);
             splatEnpassant(moveList, attackers, pos->enpassant);
         }
     }    
@@ -1181,13 +1183,15 @@ void legal_noisy_generator(moves *moveList, board* pos) {
 
         if (pos->enpassant != no_sq) {
             U64 attackers = bitboard & pawnAttacks[black][pos->enpassant];
+            int capturedPawnSq = pos->enpassant + 8; // the pawn being captured
             // In check: ep is legal if the ep target square is in evasion_mask,
             // OR if the captured pawn IS the checker (checker_square = ep_target ± 8)
             if (checker_count == 1) {
-                int capturedPawnSq = pos->enpassant + 8; // the pawn being captured
                 if (!((1ULL << pos->enpassant) & evasion_mask) && capturedPawnSq != checker_square)
                     attackers = 0;
             }
+            // Filter out horizontal clearance pins
+            attackers = ep_pin_filter(pos, attackers, stm_king_square, capturedPawnSq);
             splatEnpassant(moveList, attackers, pos->enpassant);
         }
     } else {
@@ -1212,13 +1216,15 @@ void legal_noisy_generator(moves *moveList, board* pos) {
 
         if (pos->enpassant != no_sq) {
             U64 attackers = bitboard & pawnAttacks[white][pos->enpassant];
+            int capturedPawnSq = pos->enpassant - 8; // the pawn being captured
             // In check: ep is legal if the ep target square is in evasion_mask,
             // OR if the captured pawn IS the checker (checker_square = ep_target - 8)
             if (checker_count == 1) {
-                int capturedPawnSq = pos->enpassant - 8; // the pawn being captured
                 if (!((1ULL << pos->enpassant) & evasion_mask) && capturedPawnSq != checker_square)
                     attackers = 0;
             }
+            // Filter out horizontal clearance pins
+            attackers = ep_pin_filter(pos, attackers, stm_king_square, capturedPawnSq);
             splatEnpassant(moveList, attackers, pos->enpassant);
         }
     }    
