@@ -514,12 +514,12 @@ void generate_black_queen_side_castling(board *position, moves *moveList) {
 
 // Filter out en passant captures that would expose the king to a horizontal
 inline static U64 ep_pin_filter(const board *pos, U64 attackers, int king_sq, int captured_sq) {
-    if (get_rank[king_sq] != get_rank[captured_sq]) return attackers;
+    if (get_rank[king_sq] != get_rank[captured_sq]) return attackers;    
+    if (attackers & (attackers - 1)) return attackers;
 
     U64 enemy_rq = pos->side == white
         ? (pos->bitboards[r] | pos->bitboards[q])
         : (pos->bitboards[R] | pos->bitboards[Q]);
-    // remove captured pawn + all attackers from occupancy
     U64 occ = pos->occupancies[both] ^ (1ULL << captured_sq) ^ attackers;
 
     return (getRookAttacks(king_sq, occ) & rankMasks[king_sq] & enemy_rq) ? 0 : attackers;
