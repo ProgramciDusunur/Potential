@@ -758,8 +758,6 @@ void legal_make_move(uint16_t move, board* position) {
 
     // handle double pawn push
     if (doublePush) {
-        // en passant horizontal pin check is now handled in move generation
-
         // set enpassant square
         position->enpassant = targetSquare + enPassantSquares[position->side];
 
