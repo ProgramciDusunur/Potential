@@ -1513,7 +1513,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // Reduce More
         if (predicted_cut_node) {
-            int alt_move_bonus = alternate_move ? 1024 : 0;            
+            int alt_move_bonus = alternate_move ? 0 : 1024;
             lmrReduction += CUT_NODE_LMR_SCALAR + !tt_move * 1024 + alt_move_bonus;
         }
 
