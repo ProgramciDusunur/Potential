@@ -1580,7 +1580,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction -= GIVES_CHECK_LMR_SCALAR;
         }
         
-
         lmrReduction /= 1024;
 
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth)) + pvNode;
