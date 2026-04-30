@@ -1743,11 +1743,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             int bucket = halfmove_clock_bucket(t->pos.fifty);
 
             update_pawn_correction_hist(t, depth, corrhistBonus, bucket);
-            update_minor_correction_hist(t, depth, corrhistBonus, bucket);
-            update_major_correction_hist(t, depth, corrhistBonus, bucket);
-            update_non_pawn_corrhist(t, depth, corrhistBonus, bucket);
+            update_minor_correction_hist(t, depth, corrhistBonus);
+            update_major_correction_hist(t, depth, corrhistBonus);
+            update_non_pawn_corrhist(t, depth, corrhistBonus);
             update_continuation_corrhist(t, depth, corrhistBonus, ss);
-            update_king_rook_pawn_corrhist(t, depth, corrhistBonus, bucket);
+            update_king_rook_pawn_corrhist(t, depth, corrhistBonus);
         }
 
         // store hash entry with the score equal to alpha

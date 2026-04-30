@@ -204,17 +204,17 @@ typedef struct {
     // pawn correction history [bucket][side to move][key]
     int16_t pawn_corrhist[16][2][16384];
 
-    // minor correction history [bucket][side to move][key]
-    int16_t minor_corrhist[16][2][16384];
+    // minor correction history [side to move][key]
+    int16_t minor_corrhist[2][16384];
 
-    // major correction history [bucket][side to move][key]
-    int16_t major_corrhist[16][2][16384];
+    // major correction history [side to move][key]
+    int16_t major_corrhist[2][16384];
 
-    // non pawn correction history [bucket][white/black][side to move][key]
-    int16_t non_pawn_corrhist[16][2][2][16384];
+    // non pawn correction history [white/black][side to move][key]
+    int16_t non_pawn_corrhist[2][2][16384];
 
-    // king rook pawn correction history [bucket][side to move][key]
-    int16_t krp_corrhist[16][2][16384];
+    // king rook pawn correction history [side to move][key]
+    int16_t krp_corrhist[2][16384];
 } SharedHistory;
 
 typedef struct {
