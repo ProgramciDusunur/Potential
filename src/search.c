@@ -1266,7 +1266,126 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             return small_probcut_beta;            
     }
 
-    bool enemy_has_no_threats = !has_enemy_any_threat(pos);    
+    bool enemy_has_no_threats = !has_enemy_any_threat(pos);
+
+    int previous_move_target_square = getMoveTarget((ss - 1)->move);
+    int extensions = 0;
+
+    // Singular Extensions
+    if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && !ss->singular_move &&
+        tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
+        abs(tt_score) < mateValue) {
+        int singularMargin = depth * 5;            
+        singularMargin += (tt_pv && !pvNode) * 10;
+        singularMargin += (tt_flag == hashFlagExact ? depth * 5 / 10 : depth * 5);
+        const int singularBeta = tt_score - singularMargin / 8;
+        const int singularDepth = (depth - 1) / 2;
+
+        bool isCapture = getMoveCapture(tt_move) != 0;
+        bool isPromotion = getMovePromote(tt_move) != 0;
+        bool tactical = isCapture || isPromotion;
+        bool notTactical = !tactical;        
+
+        int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(tt_move)][getMoveTarget(tt_move)]
+                                        [is_square_threatened(pos, getMoveSource(tt_move))][is_square_threatened(pos, getMoveTarget(tt_move))] +
+                getContinuationHistoryScore(t, 1, tt_move, ss) + getContinuationHistoryScore(t, 4, tt_move, ss): 
+                t->search_d.captureHistory[pos->mailbox[getMoveSource(tt_move)]][getMoveTarget(tt_move)][pos->mailbox[getMoveTarget(tt_move)]];
+
+
+        ss->singular_move = tt_move;
+
+        const int singularScore =
+                negamax(singularBeta - 1, singularBeta, singularDepth, t, time, ss, predicted_cut_node);
+        
+        ss->singular_move = 0;
+
+        // Singular Extension
+        if (singularScore < singularBeta) {
+            extensions++;
+
+            int correction_adj = abs(correction_value) / 2875;                
+
+            // Double Extension                
+            /*int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrhplexity_value / 16);
+            doubleMargin -= correction_adj;
+            doubleMargin += isCapture * 75;
+            doubleMargin += isPromotion * 0; 
+            doubleMargin += tactical * 40;
+            doubleMargin -= ss->singular_ply * 25;*/
+
+            int doubleMargin = DOUBLE_EXTENSION_MARGIN;
+            if (!pvNode && singularScore <= singularBeta - doubleMargin) {
+                extensions++;
+            }
+
+            // Low Depth Extension
+            depth += depth < 10 && !pvNode;
+
+            // Triple Extension
+            int tripleMargin = TRIPLE_EXTENSION_MARGIN - (moveHistory / 512 * notTactical);
+            tripleMargin -= correction_adj;
+            tripleMargin += isCapture * 100;
+            tripleMargin += isPromotion * 0;
+            tripleMargin += tactical * 80;
+            
+
+            if (singularScore <= singularBeta - tripleMargin) {
+                extensions++;
+            }
+            
+            // ╔═══════════════════════════╗
+            // ║            /\             ║
+            // ║           /  \            ║
+            // ║         <SCALER>          ║
+            // ║           \  /            ║
+            // ║            \/             ║
+            // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
+            // ║    Scaling STC / LTC      ║
+            // ║   STC:  0.93  +-  1.94    ║
+            // ║   LTC: 14.05  +-  7.19    ║
+            // ╚═══════════════════════════╝
+
+            // ~~~~ Quadruple Extension ~~~~ //
+            int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + 170 * !notTactical;
+
+            if (singularScore <= singularBeta - quadrupleMargin) {
+                extensions++;
+            }
+        }            
+
+        // Negative Extensions
+        else if (tt_score >= beta) {
+            extensions -= 2 + !pvNode;
+        }
+
+        // ╔══════════════════════════════╗
+        // ║              /\              ║
+        // ║             /  \             ║
+        // ║           <SCALER>           ║
+        // ║             \  /             ║
+        // ║              \/              ║
+        // ╟      «-·´¯`·.¸¸.»·´¯`·-»     ╢        
+        // ║                              ║
+        // ║     STC:   -1.42  +-  3.69   ║
+        // ║     LTC:   -6.85  +-  5.03   ║
+        // ║    VLTC:    0.71  +-  2.94   ║
+        // ║   VVLTC:    5.13  +-  4.04   ║            
+        // ╚══════════════════════════════╝
+
+        // ~~~~ Recapture Extension ~~~~ //
+        else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
+            extensions += 1;
+        }
+        
+        // Cut Node Extension
+        else if (predicted_cut_node) {
+            extensions -= 2;
+        }
+    } 
+    // Low Depth Singular Extensions
+    else if (depth <= 7 && !in_check && ttAdjustedEval <= alpha - 25 && predicted_cut_node) {
+        extensions++;
+    }
 
     // create move list instance
     moves moveList[1], badQuiets[1], noisyMoves[1];
@@ -1357,114 +1476,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
-        int previous_move_target_square = getMoveTarget((ss - 1)->move);
-        int extensions = 0;
-
-        // Singular Extensions
-        if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !ss->singular_move &&
-            tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
-            abs(tt_score) < mateValue) {
-            int singularMargin = depth * 5;            
-            singularMargin += (tt_pv && !pvNode) * 10;
-            singularMargin += (tt_flag == hashFlagExact ? depth * 5 / 10 : depth * 5);
-            const int singularBeta = tt_score - singularMargin / 8;
-            const int singularDepth = (depth - 1) / 2;
-
-
-            ss->singular_move = currentMove;
-
-            const int singularScore =
-                    negamax(singularBeta - 1, singularBeta, singularDepth, t, time, ss, predicted_cut_node);
-            
-            ss->singular_move = 0;
-
-            // Singular Extension
-            if (singularScore < singularBeta) {
-                extensions++;
-
-                int correction_adj = abs(correction_value) / 2875;                
-
-                // Double Extension                
-                /*int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
-                doubleMargin -= correction_adj;
-                doubleMargin += isCapture * 75;
-                doubleMargin += isPromotion * 0; 
-                doubleMargin += tactical * 40;
-                doubleMargin -= ss->singular_ply * 25;*/
-
-                int doubleMargin = DOUBLE_EXTENSION_MARGIN;
-                if (!pvNode && singularScore <= singularBeta - doubleMargin) {
-                    extensions++;
-                }
-
-                // Low Depth Extension
-                depth += depth < 10 && !pvNode;
-
-                // Triple Extension
-                int tripleMargin = TRIPLE_EXTENSION_MARGIN - (moveHistory / 512 * notTactical);
-                tripleMargin -= correction_adj;
-                tripleMargin += isCapture * 100;
-                tripleMargin += isPromotion * 0;
-                tripleMargin += tactical * 80;
-                
-
-                if (singularScore <= singularBeta - tripleMargin) {
-                    extensions++;
-                }
-                
-                // ╔═══════════════════════════╗
-                // ║            /\             ║
-                // ║           /  \            ║
-                // ║         <SCALER>          ║
-                // ║           \  /            ║
-                // ║            \/             ║
-                // ╟    «-·´¯`·.¸¸.»·´¯`·-»    ╢
-                // ║    Scaling STC / LTC      ║
-                // ║   STC:  0.93  +-  1.94    ║
-                // ║   LTC: 14.05  +-  7.19    ║
-                // ╚═══════════════════════════╝
-
-                // ~~~~ Quadruple Extension ~~~~ //
-                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + 170 * !notTactical;
-
-                if (singularScore <= singularBeta - quadrupleMargin) {
-                    extensions++;
-                }
-            }            
-
-            // Negative Extensions
-            else if (tt_score >= beta) {
-                extensions -= 2 + !pvNode;
-            }
-
-            // ╔══════════════════════════════╗
-            // ║              /\              ║
-            // ║             /  \             ║
-            // ║           <SCALER>           ║
-            // ║             \  /             ║
-            // ║              \/              ║
-            // ╟      «-·´¯`·.¸¸.»·´¯`·-»     ╢        
-            // ║                              ║
-            // ║     STC:   -1.42  +-  3.69   ║
-            // ║     LTC:   -6.85  +-  5.03   ║
-            // ║    VLTC:    0.71  +-  2.94   ║
-            // ║   VVLTC:    5.13  +-  4.04   ║            
-            // ╚══════════════════════════════╝
-
-            // ~~~~ Recapture Extension ~~~~ //
-            else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
-                extensions += 1;
-            }
-            
-            // Cut Node Extension
-            else if (predicted_cut_node) {
-                extensions -= 2;
-            }
-        } 
-        // Low Depth Singular Extensions
-        else if (depth <= 7 && !in_check && ttAdjustedEval <= alpha - 25 && predicted_cut_node) {
-            extensions++;
-        }
+        int previous_move_target_square = getMoveTarget((ss - 1)->move);        
 
         struct copyposition copyPosition;
         // preserve board state
@@ -1503,7 +1515,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         uint64_t nodes_before_search = (t->id == 0) ? load_rlx(t->search_i.nodes_searched) : 0;
 
-        int new_depth = depth - 1 + extensions;
+        int new_depth = legal_moves == 1 ? depth - 1 + extensions : depth - 1;
 
         int lmrReduction = getLmrReduction(depth, legal_moves, notTactical) * 1024;
 
