@@ -55,6 +55,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->fifty = p->fifty;
     cp->full_moves = p->full_moves;
     cp->phase_score = p->phase_score;
+    cp->psqt_score = p->psqt_score;
     cp->pinned[0] = p->pinned[0];
     cp->pinned[1] = p->pinned[1];
     cp->pieceThreats = p->pieceThreats;
@@ -77,6 +78,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->fifty = cp->fifty;
     p->full_moves = cp->full_moves;
     p->phase_score = cp->phase_score;
+    p->psqt_score = cp->psqt_score;
     p->pinned[0] = cp->pinned[0];
     p->pinned[1] = cp->pinned[1];
     p->pieceThreats = cp->pieceThreats;
@@ -258,6 +260,7 @@ inline static void toggleHashesForPiece(board* position, int piece, int square) 
 
 inline static void addPiece(board* position, int piece, int square) {    
     position->phase_score += get_piece_phase_score(piece);
+    position->psqt_score += packed_table[piece][square];
     setBit(position->bitboards[piece], square);
     setBit(position->occupancies[pieceColor(piece)], square);
     setBit(position->occupancies[both], square);    
@@ -268,6 +271,7 @@ inline static void addPiece(board* position, int piece, int square) {
 inline static void removePiece(board* position, int piece, int square) {
     assert(position->mailbox[square] == piece);    
     position->phase_score -= get_piece_phase_score(piece);
+    position->psqt_score -= packed_table[piece][square];
     popBit(position->bitboards[piece], square);
     popBit(position->occupancies[pieceColor(piece)], square);
     popBit(position->occupancies[both], square);    

@@ -179,8 +179,6 @@ const int endgame_phase_score = 518;
 
 #include <stdint.h>
 
-typedef int64_t Score;
-
 #define S(mg, eg) make_score(mg, eg)
 
 inline Score make_score(int mg, int eg) {
@@ -388,48 +386,56 @@ int get_piece_phase_score(uint8_t piece) {
     return val < 0 ? -val : val;
 }
 
+Score get_psqt_score(const board* position) {
+    Score score = 0;
+    for (int piece = P; piece <= k; piece++) {
+        U64 bb = position->bitboards[piece];
+        while (bb) {
+            int sq = getLS1BIndex(bb);
+            score += packed_table[piece][sq];
+            popBit(bb, sq);
+        }
+    }
+    return score;   
+}
 
 int evaluate(board* position) {
     const int game_phase_score = position->phase_score;
-    Score score = S(0, 0);        
-
+    Score score = position->psqt_score;
+    
     const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
     const int blackKingSquare = getLS1BIndex(position->bitboards[k]);    
     
-    for (int piece = P; piece <= k; piece++) {
-        U64 bitboard = position->bitboards[piece];
-        while (bitboard) {
-            const int square = getLS1BIndex(bitboard);
-            score += packed_table[piece][square];
-
-            switch (piece) {
-                case R:
-                    if ((position->bitboards[P] & fileMasks[square]) == 0) score += S(semi_open_file_score, semi_open_file_score);                    
-                    break;
-                case r:
-                    if ((position->bitboards[p] & fileMasks[square]) == 0) score -= S(semi_open_file_score, semi_open_file_score);                    
-                    break;
-            }
-            popBit(bitboard, square);
-        }
+    
+    U64 rookBB = position->bitboards[R];
+    while (rookBB) {
+        int sq = getLS1BIndex(rookBB);
+        if ((position->bitboards[P] & fileMasks[sq]) == 0)
+            score += S(semi_open_file_score, semi_open_file_score);
+        popBit(rookBB, sq);
+    }
+    rookBB = position->bitboards[r];
+    while (rookBB) {
+        int sq = getLS1BIndex(rookBB);
+        if ((position->bitboards[p] & fileMasks[sq]) == 0)
+            score -= S(semi_open_file_score, semi_open_file_score);
+        popBit(rookBB, sq);
     }
     
-    uint64_t bKingRing = kingAttacks[blackKingSquare];
-    uint64_t wKingRing = kingAttacks[whiteKingSquare];
-    
+    // King safety
     int w_shield = countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]);
     score += S(w_shield * king_shield_bonus_middlegame, w_shield * king_shield_bonus_endgame);
-    
     int b_shield = countBits(kingAttacks[blackKingSquare] & position->occupancies[black]);
     score -= S(b_shield * king_shield_bonus_middlegame, b_shield * king_shield_bonus_endgame);
     
-    if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0) score -= S(king_semi_open_file_score, king_semi_open_file_score);    
-    if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0) score += S(king_semi_open_file_score, king_semi_open_file_score);    
+    if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0)
+        score -= S(king_semi_open_file_score, king_semi_open_file_score);
+    if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0)
+        score += S(king_semi_open_file_score, king_semi_open_file_score);
 
-    // Unpack ve Final Interpolation
+    // Interpolation
     int mg = mg_of(score);
     int eg = eg_of(score);
-
     int final_score;
     if (game_phase_score > opening_phase_score) final_score = mg;
     else if (game_phase_score < endgame_phase_score) final_score = eg;
@@ -437,6 +443,7 @@ int evaluate(board* position) {
 
     return (position->side == white) ? final_score : -final_score;
 }
+
 
 
 void clearStaticEvaluationHistory(SearchStack* ss) {

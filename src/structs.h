@@ -48,6 +48,8 @@ typedef struct {
     int full_moves;
     int phase_score;
 
+    int64_t psqt_score;
+
     U64 pinned[2];
     //U64 check_squares[4];
     threats pieceThreats;
@@ -88,6 +90,7 @@ struct copyposition {
     int fifty;
     int full_moves;
     int phase_score;
+    int64_t psqt_score;
 
     U64 pinned[2];
     threats pieceThreats;

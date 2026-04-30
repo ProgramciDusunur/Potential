@@ -44,6 +44,8 @@ enum {
     PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
 };
 
+typedef int64_t Score;
+
 // Mirror Score Array
 extern const int mirrorScore[128];
 
@@ -75,6 +77,7 @@ extern const int endgame_phase_score;
 extern int mg_table[12][64]; // [piece][square] -> midgame score
 extern int eg_table[12][64]; // [piece][square] -> endgame score
 extern const int piece_scores[13];
+extern int64_t packed_table[12][64];
 
 
 int get_game_phase_score(const board* position);
@@ -86,5 +89,6 @@ int evaluate(board* position);
 void clearStaticEvaluationHistory(SearchStack* ss);
 bool is_square_threatened(board *pos, int square);
 void init_threats(board *pos);
+Score get_psqt_score(const board* position);
 
 #endif //POTENTIAL_EVALUATION_H
