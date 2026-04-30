@@ -1198,7 +1198,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 int move_history =
                 t->search_d.captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
 
-                if (!SEE(pos, move, PROBCUT_SEE_NOISY_THRESHOLD)) {
+                int probcut_see_threshold = probcut_beta - static_eval;
+
+                if (!SEE(pos, move, probcut_see_threshold)) {
                     continue;
                 }
 
