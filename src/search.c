@@ -977,7 +977,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     tt_hit = !ss->singular_move && !rootNode && readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty);
 
     // read hash entry
-    if (tt_hit && !pvNode) {
+    if (tt_hit && !pvNode && (tt_score <= alpha || predicted_cut_node)) {
         pos_key = pos->hashKey;
         if (tt_depth >= depth) {
             if ((tt_flag == hashFlagExact) ||
