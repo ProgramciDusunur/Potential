@@ -1,4 +1,3 @@
-# Define make variables
 _THIS       := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT       := $(_THIS)
 TARGET      := Potential
@@ -13,41 +12,34 @@ NEONFLAGS   = -DUSE_NEON -flax-vector-conversions
 NAME        := Potential
 TMPDIR      := .tmp
 
-# Detect Clang
 ifeq ($(CC), clang)
 	CFLAGS = -funroll-loops -O3 -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
 endif
 
-# Detect Windows
 ifeq ($(OS), Windows_NT)
-    # Force CC to gcc on Windows_NT systems using direct assignment
     CC      = gcc
     MKDIR   := mkdir
 else
 ifeq ($(COMP), MINGW)
-    # Also force CC to gcc if MINGW detected using direct assignment
     CC      = gcc
     MKDIR   := mkdir
 else
-    # For other systems, use conditional assignment (allow override)
     CC      ?= cc
     MKDIR   := mkdir -p
 endif
 endif
 
-# Detect Windows (Second Block - Retained as per original structure)
 ifeq ($(OS), Windows_NT)
     uname_S  := Windows
     SUFFIX   := .exe
     CFLAGS  += -static
-    FLAGS    = -lpthread # Ensure FLAGS is defined for Windows, even if empty
+    FLAGS    = -lpthread
 else
-    FLAGS    = -pthread -lm # Define FLAGS for non-Windows
+    FLAGS    = -pthread -lm
     SUFFIX  :=
     uname_S := $(shell uname -s)
 endif
 
-# Different native flag for macOS
 ifeq ($(uname_S), Darwin)
 	NATIVE = -mcpu=apple-a14
 	FLAGS  =
@@ -76,7 +68,6 @@ ifeq ($(ARCH_DETECTED),)
 	endif
 endif
 
-# Remove native for builds
 ifdef build
 	NATIVE =
 else
@@ -94,7 +85,6 @@ else
 	endif
 endif
 
-# SPECIFIC BUILDS
 ifeq ($(build), native)
 	NATIVE     = -march=native
 	ARCH       = -x86-64-native
@@ -166,22 +156,18 @@ ifeq ($(build), debug)
 	endif
 endif
 
-# Get what pgo flags we should be using
-ifneq ($(findstring gcc, $(CC)),)
-	PGOGEN   = -fprofile-generate
-	PGOUSE   = -fprofile-use
-endif
-
-
 SOURCES := $(filter-out tuner.c,$(wildcard *.c))
 OBJECTS := $(patsubst %.c,$(TMPDIR)/%.o,$(SOURCES))
 DEPENDS := $(patsubst %.c,$(TMPDIR)/%.d,$(SOURCES))
 
-EXE	    := $(NAME)$(SUFFIX)
+EXE     := $(NAME)$(SUFFIX)
 
-all: $(TARGET)
+default: pgo
+
+build_core: $(TARGET)
+
 clean:
-	@rm -rf $(TMPDIR) *.o *.d $(TARGET) tuner$(SUFFIX)
+	@rm -rf $(TMPDIR) *.o *.d $(TARGET) tuner$(SUFFIX) *.gcda
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS) $(LDFLAGS)
@@ -195,10 +181,13 @@ $(TMPDIR):
 tuner: tuner.c
 	$(CC) -O3 -o tuner$(SUFFIX) tuner.c -lm
 
-# Usual disservin yoink for makefile related stuff
 pgo:
-	$(CC) $(CFLAGS) $(PGOGEN) $(NATIVE) $(INSTRUCTIONS) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
+	@$(MAKE) clean
+	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-generate -fprofile-update=atomic"
 	./$(EXE) bench
-	$(PGOMERGE)
-	$(CC) $(CFLAGS) $(NATIVE) $(INSTRUCTIONS) $(PGOUSE) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
-	@rm -f *.gcda *.profraw *.o $(DEPENDS) *.d
+	@rm -f $(OBJECTS) $(EXE)
+	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-use -fprofile-correction -fprofile-partial-training"
+	@rm -f $(TMPDIR)/*.gcda *.gcda
+
+fast:
+	@$(MAKE) build_core
