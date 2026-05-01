@@ -1351,7 +1351,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if (singularScore <= singularBeta - quadrupleMargin) {
                 extensions++;
             }
-        }            
+        }
+
+        // Multicut
+        else if (singularBeta >= beta) {
+            return singularBeta;
+        }
 
         // Negative Extensions
         else if (tt_score >= beta) {
