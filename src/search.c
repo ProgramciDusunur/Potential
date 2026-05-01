@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #if defined(__AVX2__) || defined(__SSE4_1__)
 #include <immintrin.h>
@@ -1336,7 +1337,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             int futility_margin = 
                 static_eval + 
                 FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
-                FP_MARGIN * lmrDepth + 
+                FP_MARGIN * lmrDepth +
+                512 * abs(correction_value) / 1024 +
                 moveHistory / 32;
             
 
