@@ -9,6 +9,7 @@
 #include "board_constants.h"
 #include "bit_manipulation.h"
 #include "values.h"
+#include <stdlib.h>
 
 // Relaxed atomic helpers
 #define load_rlx(x) atomic_load_explicit(&(x), memory_order_relaxed)
@@ -18,6 +19,10 @@
 
 
 bool is_mate_score(int score);
+bool is_win(int score);
+bool is_loss(int score);
+bool is_decisive(int score);
+
 int myMAX(int x, int y);
 int myMIN(int x, int y);
 double my_max_double(double x, double y);
