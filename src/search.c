@@ -1576,7 +1576,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (gives_check) {
             lmrReduction -= GIVES_CHECK_LMR_SCALAR;
         }
-        
+
+        // Dynamic helper thread reduction bias (from Reckless)
+        // giving each thread a different reduction offset that changes over time
+        lmrReduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 128) - 64;
 
         lmrReduction /= 1024;
 
