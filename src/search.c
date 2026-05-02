@@ -68,6 +68,7 @@
   int GOOD_EVAL_LMR_SCALAR = 1024;
   int IMPROVING_LMR_SCALAR = 1024;
   int GIVES_CHECK_LMR_SCALAR = 1024;
+  int EXACT_TT_LMR_SCALAR = 1024;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   
   
@@ -1524,6 +1525,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         if (enemy_has_no_threats && !in_check && static_eval - 365 > beta) {
             lmrReduction += GOOD_EVAL_LMR_SCALAR;
+        }
+
+        if (tt_flag == hashFlagExact) {
+            lmrReduction -= EXACT_TT_LMR_SCALAR;
         }
 
         // ╔══════════════════════════════╗
