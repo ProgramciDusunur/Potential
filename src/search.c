@@ -1528,7 +1528,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
 
         if (tt_flag == hashFlagExact) {
-            lmrReduction -= EXACT_TT_LMR_SCALAR;
+            lmrReduction += EXACT_TT_LMR_SCALAR;
         }
 
         // ╔══════════════════════════════╗
