@@ -96,15 +96,21 @@ struct copyposition {
     threats pieceThreats;
 };
 
-// transposition table data structure
+#define TT_AGE_CYCLE 32
+#define TT_AGE_MASK (TT_AGE_CYCLE - 1)
+#define TT_CLUSTER_SIZE 2
+
 typedef struct {
-    uint64_t hashKey;    // "almost" unique chess position identifier
-    uint16_t bestMove;        // best move from the search
-    int16_t score;       // score (alpha/beta/PV)
-    uint8_t depth;       // current search depth
-    uint8_t flag;        // flag the type of node (fail-high(score >= beta)/fail-low(score < alpha))
-    bool ttPv;           // tt was pv node or not
-} tt;                    // transposition table (TT aka hash table)
+    uint64_t hashKey;
+    uint16_t bestMove;
+    int16_t score;
+    uint8_t depth;
+    uint8_t flags;
+} tt;
+
+typedef struct {
+    tt entries[TT_CLUSTER_SIZE];
+} __attribute__((aligned(32))) TTCluster;
 
 
 // move list structure

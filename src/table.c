@@ -7,7 +7,8 @@
 U64 sideKey;
 U64 FMR[100 / 10];
 U64 hash_entries = 0;
-tt *hashTable = NULL;
+TTCluster *hashTable = NULL;
+uint8_t tt_age = 0;
 
 __extension__ typedef unsigned __int128 uint128_t;
 
@@ -17,7 +18,7 @@ int hash_full(void) {
   int samples = 1000;
 
   for (int i = 0; i < samples; ++i) {
-    if (hashTable[i].hashKey != 0) {
+    if (tt_bound(hashTable[i / TT_CLUSTER_SIZE].entries[i % TT_CLUSTER_SIZE].flags) != hashFlagNone) {
       used++;
     }
   }
@@ -210,13 +211,18 @@ uint64_t get_hash_index(uint64_t hash, uint8_t fmr_key) {
     return ((uint128_t)hash * (uint128_t)hash_entries) >> 64;
 }
 
-uint32_t get_hash_low_bits(uint64_t hash) {
-    return (uint32_t)hash;
+uint64_t get_hash_verification_key(uint64_t hash) {
+    uint64_t key = hash;
+    return key ? key : 1;
 }
 
 void prefetch_hash_entry(uint64_t hash_key, uint8_t fmr_key) {
     const uint64_t index = get_hash_index(hash_key, fmr_key);
     __builtin_prefetch(&hashTable[index]);
+}
+
+void tt_age_inc(void) {
+    tt_age = (tt_age + 1) & TT_AGE_MASK;
 }
 
 void prefetch_corrhist(board *pos) { 
@@ -231,82 +237,85 @@ void prefetch_corrhist(board *pos) {
     __builtin_prefetch(&thread_pool.shared_history.krp_corrhist[side][pos->krpKey & mask]);
 }
 
-void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key) {
-    // create a TT instance pointer to particular hash entry storing
-    // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[get_hash_index(position->hashKey, fmr_key)];
+void writeHashEntry(int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key) {
+    TTCluster *cluster = &hashTable[get_hash_index(position->hashKey, fmr_key)];
+    uint64_t vkey = get_hash_verification_key(position->hashKey);
 
-    if (bestMove != 0 || key != position->hashKey) {
+    int replace = 0;
+    int min_value = 0x7FFFFFFF;
+
+    for (int i = 0; i < TT_CLUSTER_SIZE; i++) {
+        tt *entry = &cluster->entries[i];
+
+        if (entry->hashKey == vkey || tt_bound(entry->flags) == hashFlagNone) {
+            replace = i;
+            break;
+        }
+
+        int relative_age = ((int)TT_AGE_CYCLE + (int)tt_age - (int)tt_entry_age(entry->flags)) & TT_AGE_MASK;
+        int value = (int)entry->depth - 2 * relative_age;
+
+        if (value < min_value) {
+            replace = i;
+            min_value = value;
+        }
+    }
+
+    tt *hashEntry = &cluster->entries[replace];
+
+    if (bestMove != 0 || vkey != hashEntry->hashKey) {
         hashEntry->bestMove = bestMove;
     }
 
-    if (hashFlag == hashFlagExact || key != position->hashKey || depth + 2 * ttPv + 4 > hashEntry->depth) {
-        // store score independent from the actual path
-        // from root node (position) to current node (position)
+    if (hashFlag == hashFlagExact
+        || depth + 4 + 2 * (int8_t)ttPv > hashEntry->depth) {
+
         if (score < -mateFound) score -= position->ply;
         if (score > mateFound) score += position->ply;
 
-
-        hashEntry->hashKey = get_hash_low_bits(position->hashKey);
+        hashEntry->hashKey = vkey;
         hashEntry->score = score;
-        hashEntry->flag = hashFlag;
-        hashEntry->depth = depth;        
-        hashEntry->ttPv = ttPv;
-    } else if (hashEntry->depth >= 5 && hashFlag != hashFlagExact) {        
+        hashEntry->depth = depth;
+        hashEntry->flags = tt_pack_flags(hashFlag, ttPv, tt_age);
+    } else if (hashEntry->depth >= 5 && hashFlag != hashFlagExact) {
         hashEntry->depth--;
     }
-        
-
-    
 }
 
-// read hash entry data
 bool readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
                     uint8_t *tt_depth, uint8_t *tt_flag, bool *tt_pv, uint8_t fmr_key) {
-    // create a TT instance pointer to particular hash entry storing
-    // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[get_hash_index(position->hashKey, fmr_key)];
+    TTCluster *cluster = &hashTable[get_hash_index(position->hashKey, fmr_key)];
+    uint64_t vkey = get_hash_verification_key(position->hashKey);
 
-    // make sure we're dealing with the exact position we need
-    if (hashEntry->hashKey == get_hash_low_bits(position->hashKey)) {
+    for (int i = 0; i < TT_CLUSTER_SIZE; i++) {
+        tt *entry = &cluster->entries[i];
 
-        // extract stored score from TT entry
-        int16_t score = hashEntry->score;
+        if (entry->hashKey == vkey && tt_bound(entry->flags) != hashFlagNone) {
+            int16_t score = entry->score;
 
-        if (score < -mateFound)
-            score += position->ply;
-        if (score > mateFound)
-            score -= position->ply;
+            if (score < -mateFound)
+                score += position->ply;
+            if (score > mateFound)
+                score -= position->ply;
 
-        *move = hashEntry->bestMove;
-        *tt_score = score;
-        *tt_depth = hashEntry->depth;
-        *tt_flag = hashEntry->flag;
-        *tt_pv = hashEntry->ttPv;
+            *move = entry->bestMove;
+            *tt_score = score;
+            *tt_depth = entry->depth;
+            *tt_flag = tt_bound(entry->flags);
+            *tt_pv = tt_pv_flag(entry->flags);
 
-        return true;
-
+            return true;
+        }
     }
-    // if hash entry doesn't exist
+
     return false;
 }
 
 
 void clearHashTable(void) {
-    // init hash table entry pointer
-    tt *hash_entry;
-
-    // loop over TT elements
-    for (hash_entry = hashTable; hash_entry < hashTable + hash_entries; hash_entry++)
-    {
-        // reset TT inner fields
-        hash_entry->hashKey = 0;
-        hash_entry->depth = 0;
-        hash_entry->flag = 0;
-        hash_entry->score = 0;
-        hash_entry->bestMove = 0;
-        hash_entry->ttPv = 0;
-    }
+    if (hashTable == NULL) return;
+    memset(hashTable, 0, hash_entries * sizeof(TTCluster));
+    tt_age = 0;
 }
 
 size_t current_allocated_bytes = 0;
@@ -378,9 +387,9 @@ void init_hash_table(int mb) {
             mb /= 2;
             attempts++;
         } else {
-            hashTable = (tt*)ptr;
+            hashTable = (TTCluster*)ptr;
             current_allocated_bytes = bytes;
-            hash_entries = bytes / sizeof(tt);
+            hash_entries = bytes / sizeof(TTCluster);
             clearHashTable();
             printf("info string Hash: %d MB | Huge Pages: %s\n", mb, status_msg);
             return;

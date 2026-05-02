@@ -896,7 +896,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
 
     // store hash entry with the score equal to alpha
-    writeHashEntry(position->hashKey, bestScore, bestMove, 0, hashFlag, tt_pv, position, position->fifty);
+    writeHashEntry(bestScore, bestMove, 0, hashFlag, tt_pv, position, position->fifty);
 
     // node (move) fails low
     return bestScore;
@@ -941,7 +941,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int rootNode = pos->ply == 0;
 
     uint16_t bestMove = 0;
-    uint64_t pos_key = 0;
     uint16_t tt_move = 0;
     int16_t tt_score = 0;
     bool tt_hit = false;
@@ -978,7 +977,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     // read hash entry
     if (tt_hit && !pvNode) {
-        pos_key = pos->hashKey;
         if (tt_depth >= depth) {
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
@@ -1252,7 +1250,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 takeBack(pos, &copyPosition);
 
                 if (probcut_value >= probcut_beta) {
-                    writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos, pos->fifty);
+                    writeHashEntry(probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos, pos->fifty);
                     return probcut_value;
                 }
             }
@@ -1749,7 +1747,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
 
         // store hash entry with the score equal to alpha
-        writeHashEntry(pos_key, bestScore, bestMove, depth, hashFlag, tt_pv, pos, pos->fifty);
+        writeHashEntry(bestScore, bestMove, depth, hashFlag, tt_pv, pos, pos->fifty);
     }
     // node (move) fails low
     return bestScore;
@@ -1791,7 +1789,8 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     uint8_t evalStability = 0;
     int baseSearchScore = -infinity;
 
-    quiet_history_aging();    
+    quiet_history_aging();
+    tt_age_inc();
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {        

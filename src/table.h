@@ -58,16 +58,24 @@ extern U64 FMR[100 / 10];
 // random side key
 extern U64 sideKey;
 extern U64 hash_entries;
-extern tt *hashTable;
+extern TTCluster *hashTable;
+extern uint8_t tt_age;
 
 int hash_full(void);
 U64 generateHashKey(board* position);
 uint64_t get_hash_index(uint64_t hash, uint8_t fmr_key);
-uint32_t get_hash_low_bits(uint64_t hash);
+uint64_t get_hash_verification_key(uint64_t hash);
 void prefetch_hash_entry(uint64_t hash_key, uint8_t fmr_key);
-void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key);
+void writeHashEntry(int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key);
 bool readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
                     uint8_t *tt_depth, uint8_t *tt_flag, bool *tt_pv, uint8_t fmr_key);
+void tt_age_inc(void);
+static inline uint8_t tt_pack_flags(uint8_t bound, bool pv, uint8_t age) {
+    return (uint8_t)(bound | ((uint8_t)pv << 2) | (age << 3));
+}
+static inline uint8_t tt_bound(uint8_t flags) { return flags & 3; }
+static inline bool tt_pv_flag(uint8_t flags) { return (flags >> 2) & 1; }
+static inline uint8_t tt_entry_age(uint8_t flags) { return (flags >> 3) & TT_AGE_MASK; }
 U64 generatePawnKey(board* position);
 U64 generateMinorKey(board *position);
 U64 generateMajorKey(board *position);
