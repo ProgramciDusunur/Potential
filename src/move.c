@@ -454,6 +454,10 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
             if (!(kingAttacks[source_square] & (1ULL << target_square))) {
                 return false;
             }
+            // Ensure king doesn't move into an attacked square
+            if (pos->pieceThreats.stmThreats[!pos->side] & (1ULL << target_square)) {
+                return false;
+            }
             break;
     }
     
