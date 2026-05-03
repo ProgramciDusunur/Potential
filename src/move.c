@@ -467,6 +467,51 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
         printMove(move);
         printf("\n");
     }*/
+    // Fast strict legality checks
+    uint8_t stm_king_square = getLS1BIndex(pos->bitboards[pos->side == white ? K : k]);
+
+    // 1. Evasions
+    U64 checkers = get_checkers(pos, stm_king_square);
+    if (checkers) {
+        if (piece != K && piece != k) {
+            uint8_t checker_count = countBits(checkers);
+            // Double check requires a king move
+            if (checker_count >= 2) return false;
+
+            // Single check: must capture checker or block
+            uint8_t checker_square = getLS1BIndex(checkers);
+            U64 evasion_mask = (1ULL << checker_square) | lineBB[stm_king_square][checker_square] | rayBB[stm_king_square][checker_square];
+            if (!((1ULL << target_square) & evasion_mask)) {
+                if (enpassant) {
+                    int captured_sq = target_square + (pos->side == white ? 8 : -8);
+                    if (checker_square != captured_sq) return false;
+                } else {
+                    return false;
+                }
+            }
+        }
+    }
+
+    // 2. Pins
+    if (piece != K && piece != k) {
+        update_pinned(pos);
+        if (pos->pinned[pos->side] & (1ULL << source_square)) {
+            // Pinned piece can only move along the pin ray
+            if (!((1ULL << target_square) & lineBB[stm_king_square][source_square])) {
+                return false;
+            }
+        }
+    }
+
+    // 3. En passant pins (horizontal clearance)
+    if (enpassant) {
+        int captured_sq = target_square + (pos->side == white ? 8 : -8);
+        U64 attacker = 1ULL << source_square;
+        // ep_pin_filter is defined later in the file, we added a prototype at the top or it was added to a header
+        if (ep_pin_filter(pos, attacker, stm_king_square, captured_sq) == 0) {
+            return false;
+        }
+    }
     
     return true;
 }
@@ -521,7 +566,7 @@ void generate_black_queen_side_castling(board *position, moves *moveList) {
 }
 
 // Filter out en passant captures that would expose the king to a horizontal
-inline static U64 ep_pin_filter(const board *pos, U64 attackers, int king_sq, int captured_sq) {
+U64 ep_pin_filter(const board *pos, U64 attackers, int king_sq, int captured_sq) {
     if (get_rank[king_sq] != get_rank[captured_sq]) return attackers;    
     if (attackers & (attackers - 1)) return attackers;
 

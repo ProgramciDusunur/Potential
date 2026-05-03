@@ -113,6 +113,7 @@ void legal_move_generator(moves *moveList, board* pos);
 void legal_noisy_generator(moves *moveList, board* pos);
 void legal_quiet_generator(moves *moveList, board* pos);
 void legal_make_move(uint16_t move, board* pos);
+U64 ep_pin_filter(const board *pos, U64 attackers, int king_sq, int captured_sq);
 
 // BISHOP ATTACKS
 static inline U64 getBishopAttacks(int square, U64 occupancy) {
