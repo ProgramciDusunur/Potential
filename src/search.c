@@ -1576,7 +1576,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (gives_check) {
             lmrReduction -= GIVES_CHECK_LMR_SCALAR;
         }
-        
+
+        // Dynamic helper thread reduction bias
+        // ~5% chance of tipping the reduced depth by ±1 ply
+        bool multithreaded_search = thread_pool.thread_count > 1;
+        if (multithreaded_search) {
+            lmrReduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 102) - 51;
+        }
 
         lmrReduction /= 1024;
 
@@ -1598,12 +1604,23 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
         }
         else if (!pvNode || legal_moves > 1) {
+            int nonpv_reduction = new_depth * 1024;
+
             // if we have chance about to dive into quiescence search then extend
             if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
-                new_depth = myMAX(new_depth, 1);
+                nonpv_reduction = myMAX(nonpv_reduction, 1024);
             }
+
+            // Dynamic helper thread depth bias for non-PV zero-window search
+            // ~5% chance of ±1 ply depth change
+            bool multithreaded_search = thread_pool.thread_count > 1;
+            if (multithreaded_search) {                
+                nonpv_reduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 1078) - 27;
+            }
+
+            nonpv_reduction /= 1024;
             
-            score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !predicted_cut_node);
+            score = -negamax(-alpha - 1, -alpha, nonpv_reduction, t, time, ss + 1, !predicted_cut_node);
         }
 
         if (pvNode && (legal_moves == 1 || score > alpha)) {
