@@ -1340,7 +1340,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     FP_MARGIN * lmrDepth + 
                     moveHistory / 32;
             
-
                 // Futility Pruning
                 if (lmrDepth <= FP_DEPTH && !in_check && futility_margin <= alpha) {
                     continue;
