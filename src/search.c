@@ -1579,7 +1579,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // Dynamic helper thread reduction bias
         // ~5% chance of tipping the reduced depth by ±1 ply
-        lmrReduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 102) - 51;
+        bool multithreaded_search = thread_pool.thread_count > 1;
+        if (multithreaded_search) {
+            lmrReduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 102) - 51;
+        }
 
         lmrReduction /= 1024;
 
@@ -1610,7 +1613,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             // Dynamic helper thread depth bias for non-PV zero-window search
             // ~5% chance of ±1 ply depth change
-            nonpv_reduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 1078) - 27;
+            bool multithreaded_search = thread_pool.thread_count > 1;
+            if (multithreaded_search) {                
+                nonpv_reduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 1078) - 27;
+            }
 
             nonpv_reduction /= 1024;
             
