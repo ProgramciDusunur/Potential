@@ -1790,6 +1790,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     if (t->id == 0) {
         memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
     }
+    t->soft_stop_voted = false;
     memset(t->pos.pvTable, 0, sizeof(t->pos.pvTable));
     memset(t->pos.pvLength, 0, sizeof(t->pos.pvLength));    
 
@@ -1832,10 +1833,20 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         if (time->is_datagen) {
             check_node_limit(time, t);
         } else {
-            if (t->id == 0 && ((time->timeset && startTime >= time->softLimit) || (time->isNodeLimit && total_nodes() >= time->node_limit)) && t->pos.pvTable[0][0] != 0) {
+            // Node limit: thread 0 only
+            if (t->id == 0 && time->isNodeLimit && total_nodes() >= time->node_limit && t->pos.pvTable[0][0] != 0) {
                 time->stopped = 1;
                 store_rlx(thread_pool.stop, true);
-            } else if (load_rlx(thread_pool.stop)) {
+            }
+            // Soft time limit: all threads vote
+            if (time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0 && !t->soft_stop_voted) {
+                t->soft_stop_voted = true;
+                int votes = atomic_fetch_add_explicit(&thread_pool.soft_stop_votes, 1, memory_order_acq_rel) + 1;
+                if (votes >= thread_pool.thread_count / 2) {
+                    store_rlx(thread_pool.stop, true);
+                }
+            }
+            if (load_rlx(thread_pool.stop)) {
                 time->stopped = 1;
             }
         }
@@ -1848,10 +1859,20 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             if (time->is_datagen) {
                 check_node_limit(time, t);
             } else {
-                if (t->id == 0 && ((time->timeset && startTime >= time->softLimit) || (time->isNodeLimit && total_nodes() >= time->node_limit)) && t->pos.pvTable[0][0] != 0) {
+                // Node limit: thread 0 only
+                if (t->id == 0 && time->isNodeLimit && total_nodes() >= time->node_limit && t->pos.pvTable[0][0] != 0) {
                     time->stopped = 1;
                     store_rlx(thread_pool.stop, true);
-                } else if (load_rlx(thread_pool.stop)) {
+                }
+                // Soft time limit: all threads vote
+                if (time->timeset && getTimeMiliSecond() >= time->softLimit && t->pos.pvTable[0][0] != 0 && !t->soft_stop_voted) {
+                    t->soft_stop_voted = true;
+                    int votes = atomic_fetch_add_explicit(&thread_pool.soft_stop_votes, 1, memory_order_acq_rel) + 1;
+                    if (votes >= thread_pool.thread_count / 2) {
+                        store_rlx(thread_pool.stop, true);
+                    }
+                }
+                if (load_rlx(thread_pool.stop)) {
                     time->stopped = 1;
                 }
             }

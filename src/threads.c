@@ -63,6 +63,7 @@ static void *thread_entry(void *arg) {
 
 void start_helpers(board *root_pos, int depth, my_time *time) {
     store_rlx(thread_pool.stop, false);
+    atomic_store_explicit(&thread_pool.soft_stop_votes, 0, memory_order_relaxed);
 
     for (int i = 1; i < thread_pool.thread_count; i++) {
         ThreadData *t = thread_pool.threads[i];
@@ -82,6 +83,7 @@ void start_helpers(board *root_pos, int depth, my_time *time) {
         // Set search parameters
         t->search_depth = depth;
         t->time = time;
+        t->soft_stop_voted = false;
 
         // Launch thread
         pthread_create(&t->native_handle, NULL, thread_entry, t);
