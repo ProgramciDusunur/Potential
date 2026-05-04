@@ -1687,7 +1687,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
                         // initial history bonus based on depth
-                        int quiethist_bonus = 10 + 200 * depth;                        
+                        int quiethist_bonus = 10 + 200 * depth;
                         int conthist_bonus  = 10 + 200 * depth;
                         int pawnhist_bonus  = 10 + 200 * depth;
 
@@ -1742,6 +1742,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         else
             // return stalemate score
             return get_draw_score(t);
+    }
+
+    // Prior Counter Move Bonus
+    uint16_t prior_move = (ss - 1)->move;
+    if (!rootNode && prior_move && !isTactical(prior_move) && (predicted_cut_node || pvNode)) {
+        const int pcm_bonus = 10 + 200 * depth;
+
+        adjust_single_quiet_hist_entry(t, pos->side, prior_move, pcm_bonus);
     }
 
     if (!ss->singular_move) {
