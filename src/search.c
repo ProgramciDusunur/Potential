@@ -1747,7 +1747,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // Prior Counter Move Bonus
     uint16_t prior_move = (ss - 1)->move;
     if (!rootNode && prior_move && !isTactical(prior_move) && (predicted_cut_node || pvNode)) {
-        const int pcm_bonus = 10 + 200 * depth;
+        int pcm_bonus = 5 + 100 * depth;
+
+        pcm_bonus = myMIN(pcm_bonus, 2048);
 
         adjust_single_quiet_hist_entry(t, pos->side, prior_move, pcm_bonus);
     }
