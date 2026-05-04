@@ -1748,7 +1748,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     uint16_t prior_move = (ss - 1)->move;
     if (!rootNode && tt_flag == hashFlagBeta && prior_move && !isTactical(prior_move) &&
         (predicted_cut_node || pvNode)) {
-        int pcm_bonus = 5 + 100 * depth;
+        int pcm_bonus = 5 + 25 * depth;
 
         pcm_bonus = myMIN(pcm_bonus, 2048);
 
