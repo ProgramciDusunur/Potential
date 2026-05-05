@@ -731,23 +731,12 @@ int get_draw_score(ThreadData *t) {
 int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *ss) {
     board *position = &t->pos;
 
-    if (time->isNodeLimit && (t->id == 0 || time->is_datagen)) {
-        check_node_limit(time, t);
-    }
-    if ((load_rlx(t->search_i.nodes_searched) & 2047) == 0) {
-        if (t->id == 0 && !time->is_datagen) {
-            communicate(time, position);
+    if (t->id == 0 || time->is_datagen) {
+        if (time->isNodeLimit) {
+            check_node_limit(time, t);
         }
-        if (load_rlx(thread_pool.stop)) {
-            time->stopped = 1;
-        } else if (!time->is_datagen && time->timeset && !t->soft_stop_voted && getTimeMiliSecond() >= t->thread_soft_limit && t->pos.pvTable[0][0] != 0) {
-            t->soft_stop_voted = true;
-            int votes = atomic_fetch_add_explicit(&thread_pool.soft_stop_votes, 1, memory_order_acq_rel) + 1;
-            int majority = (thread_pool.thread_count * 65 + 99) / 100;
-            if (votes >= majority) {
-                store_rlx(thread_pool.stop, true);
-                time->stopped = 1;
-            }
+        if ((load_rlx(t->search_i.nodes_searched) & 2047) == 0 && !time->is_datagen) {
+            communicate(time, position);
         }
     } else if (load_rlx(thread_pool.stop)) {
         time->stopped = 1;
@@ -925,20 +914,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     if (t->id == 0 && (load_rlx(t->search_i.nodes_searched) & 4095) == 0 && time->isNodeLimit) {
         check_node_limit(time, t);
     }
-    if ((load_rlx(t->search_i.nodes_searched) & 2047) == 0) {
-        if (t->id == 0) {
+    if (t->id == 0) {
+        if ((load_rlx(t->search_i.nodes_searched) & 2047) == 0) {
             communicate(time, pos);
-        }
-        if (load_rlx(thread_pool.stop)) {
-            time->stopped = 1;
-        } else if (time->timeset && !t->soft_stop_voted && getTimeMiliSecond() >= t->thread_soft_limit && t->pos.pvTable[0][0] != 0) {
-            t->soft_stop_voted = true;
-            int votes = atomic_fetch_add_explicit(&thread_pool.soft_stop_votes, 1, memory_order_acq_rel) + 1;
-            int majority = (thread_pool.thread_count * 65 + 99) / 100;
-            if (votes >= majority) {
-                store_rlx(thread_pool.stop, true);
-                time->stopped = 1;
-            }
         }
     } else if (load_rlx(thread_pool.stop)) {
         time->stopped = 1;
@@ -1870,7 +1848,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             if (past_soft && !t->soft_stop_voted) {
                 t->soft_stop_voted = true;
                 int votes = atomic_fetch_add_explicit(&thread_pool.soft_stop_votes, 1, memory_order_acq_rel) + 1;
-                int majority = (thread_pool.thread_count * 65 + 99) / 100;
+                int majority = (thread_pool.thread_count + 1) / 2;
                 if (votes >= majority) {
                     store_rlx(thread_pool.stop, true);
                 }
@@ -1901,7 +1879,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                 if (past_soft && !t->soft_stop_voted) {
                     t->soft_stop_voted = true;
                     int votes = atomic_fetch_add_explicit(&thread_pool.soft_stop_votes, 1, memory_order_acq_rel) + 1;
-                    int majority = (thread_pool.thread_count * 65 + 99) / 100;
+                    int majority = (thread_pool.thread_count + 1) / 2;
                     if (votes >= majority) {
                         store_rlx(thread_pool.stop, true);
                     }
