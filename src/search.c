@@ -1141,6 +1141,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 int refutation_bonus = 100 + 50 * nmp_depth;
                 adjust_single_quiet_hist_entry(t, pos->side, nmp_ref_move, refutation_bonus);
             }
+            if (getMoveCapture(nmp_ref_move)) {                
+                int refutation_bonus = 200 + 100 * nmp_depth;
+                adjust_single_capture_hist_entry(t, nmp_ref_move, refutation_bonus);
+            }
+                        
         }
     }    
 

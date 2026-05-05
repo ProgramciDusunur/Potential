@@ -6,6 +6,7 @@
 #include "evaluation.h"
 #include "utils.h"
 #include "threads.h"
+#include <stdio.h>
 
 
 /*╔═════════╗
@@ -41,6 +42,18 @@ void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int 
     bool threatTarget = is_square_threatened(&t->pos, to);
     
     t->search_d.quietHistory[side][from][to][threatSource][threatTarget] += bonus;
+}
+
+void adjust_single_capture_hist_entry(ThreadData *t, uint16_t move, int bonus) {
+    int piece = t->pos.mailbox[getMoveSource(move)];
+    if (piece == NO_PIECE) return;
+    
+    int to = getMoveTarget(move);
+    int capturedPiece = t->pos.mailbox[getMoveTarget(move)];
+
+    
+
+    t->search_d.captureHistory[piece][to][capturedPiece] += bonus;
 }
 
 void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int bonus, moves *badQuiets) {

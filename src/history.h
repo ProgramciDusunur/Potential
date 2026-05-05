@@ -48,6 +48,7 @@ void update_continuation_corrhist(ThreadData *t, const int depth, const int diff
 void update_single_cont_corrhist_entry(ThreadData *t, const int pliesBack, const int scaledDiff, const int newWeight, SearchStack *ss);
 void update_king_rook_pawn_corrhist(ThreadData *t, const int depth, const int diff);
 int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss);
+void adjust_single_capture_hist_entry(ThreadData *t, uint16_t move, int bonus);
 int get_correction_value(ThreadData *t, SearchStack *ss);
 void clear_histories(void);
 void quiet_history_aging(void);
