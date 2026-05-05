@@ -1840,7 +1840,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             }
         }
 
-        int window = ASP_WINDOW_BASE;
+        int window = ASP_WINDOW_BASE + t->id % 4;
         int aspirationWindowDepth = current_depth;
 
         while (true) {
