@@ -130,8 +130,8 @@
   int SE_DEPTH = 5;
   int SE_TT_DEPTH_SUBTRACTOR = 3;
   // Positive Extensions
-  int DOUBLE_EXTENSION_MARGIN = -20;
-  int TRIPLE_EXTENSION_MARGIN = -80;
+  int DOUBLE_EXTENSION_MARGIN = -40;
+  int TRIPLE_EXTENSION_MARGIN = -100;
   int QUADRUPLE_EXTENSION_MARGIN = 85;
   // Negative Extensions
   int DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
@@ -1395,7 +1395,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 doubleMargin -= ss->singular_ply * 25;*/
 
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN;
-                doubleMargin += 40 * (pvNode && !tt_was_pv);
+                doubleMargin += 60 * (pvNode && !tt_was_pv);
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
                 }
@@ -1405,7 +1405,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 // Triple Extension
                 int tripleMargin = TRIPLE_EXTENSION_MARGIN - (moveHistory / 512 * notTactical);
-                tripleMargin += 40 * (pvNode && !tt_was_pv);
+                tripleMargin += 60 * (pvNode && !tt_was_pv);
                 tripleMargin -= correction_adj;
                 tripleMargin += isCapture * 100;
                 tripleMargin += isPromotion * 0;
