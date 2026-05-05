@@ -130,8 +130,8 @@
   int SE_DEPTH = 5;
   int SE_TT_DEPTH_SUBTRACTOR = 3;
   // Positive Extensions
-  int DOUBLE_EXTENSION_MARGIN = 0;
-  int TRIPLE_EXTENSION_MARGIN = -60;
+  int DOUBLE_EXTENSION_MARGIN = -20;
+  int TRIPLE_EXTENSION_MARGIN = -80;
   int QUADRUPLE_EXTENSION_MARGIN = 85;
   // Negative Extensions
   int DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
@@ -761,11 +761,12 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
     bool tt_pv = pvNode;
+    bool tt_was_pv = false;
 
     // read hash entry
     if (position->ply &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, position->fifty)) && !pvNode) {
+                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, &tt_was_pv, position->fifty)) && !pvNode) {
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
@@ -947,7 +948,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     bool tt_hit = false;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
-    bool tt_pv = pvNode;    
+    bool tt_pv = pvNode;
+    bool tt_was_pv = false;
 
     // Check for fifty-move rule
     if (pos->fifty >= 100) {
@@ -974,7 +976,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     }
 
     // read hash entry
-    tt_hit = !ss->singular_move && !rootNode && readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty);
+    tt_hit = !ss->singular_move && !rootNode && readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, &tt_was_pv, pos->fifty);
 
     // read hash entry
     if (tt_hit && !pvNode) {
@@ -1393,6 +1395,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 doubleMargin -= ss->singular_ply * 25;*/
 
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN;
+                doubleMargin += 40 * (pvNode && !tt_was_pv);
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
                 }
@@ -1402,6 +1405,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 // Triple Extension
                 int tripleMargin = TRIPLE_EXTENSION_MARGIN - (moveHistory / 512 * notTactical);
+                tripleMargin += 40 * (pvNode && !tt_was_pv);
                 tripleMargin -= correction_adj;
                 tripleMargin += isCapture * 100;
                 tripleMargin += isPromotion * 0;
