@@ -234,7 +234,8 @@ typedef struct {
     SearchStack *ss;                   // points to ss_base + STACK_OFFSET (10)
     int search_depth;                  // depth for this thread's search
     my_time *time;                     // pointer to shared time control
-    bool soft_stop_voted;
+    bool soft_stop_voted;              // SMP soft TM: has this thread voted?
+    int thread_soft_limit;             // SMP soft TM: thread specific soft limit
 } ThreadData;
 
 typedef struct {

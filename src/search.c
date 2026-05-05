@@ -710,9 +710,13 @@ void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, 
     double not_bm_nodes_fraction = total > 0 ?
        (double)nodes_spent_table[move & 4095] / (double)total : 0.5;
     double node_scaling_factor = (1.5f - not_bm_nodes_fraction) * 1.35f;
-    time->softLimit =
+    int computed_limit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
-                evalScale[evalStability] * node_scaling_factor * complexityScale, time->maxTime + time->starttime);    
+                evalScale[evalStability] * node_scaling_factor * complexityScale, time->maxTime + time->starttime);
+    t->thread_soft_limit = computed_limit;
+    if (t->id == 0) {
+        time->softLimit = computed_limit;
+    }
 }
 
 bool has_enemy_any_threat(board *pos) {
@@ -1791,6 +1795,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
     }
     t->soft_stop_voted = false;
+    t->thread_soft_limit = time->softLimit;
     memset(t->pos.pvTable, 0, sizeof(t->pos.pvTable));
     memset(t->pos.pvLength, 0, sizeof(t->pos.pvLength));    
 
@@ -1839,12 +1844,17 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                 store_rlx(thread_pool.stop, true);
             }
             // Soft time limit: all threads vote
-            if (time->timeset && startTime >= time->softLimit && t->pos.pvTable[0][0] != 0 && !t->soft_stop_voted) {
+            bool past_soft = time->timeset && startTime >= t->thread_soft_limit && t->pos.pvTable[0][0] != 0;
+            if (past_soft && !t->soft_stop_voted) {
                 t->soft_stop_voted = true;
                 int votes = atomic_fetch_add_explicit(&thread_pool.soft_stop_votes, 1, memory_order_acq_rel) + 1;
-                if (votes >= thread_pool.thread_count / 2) {
+                int majority = (thread_pool.thread_count * 65 + 99) / 100;
+                if (votes >= majority) {
                     store_rlx(thread_pool.stop, true);
                 }
+            } else if (!past_soft && t->soft_stop_voted) {
+                t->soft_stop_voted = false;
+                atomic_fetch_sub_explicit(&thread_pool.soft_stop_votes, 1, memory_order_acq_rel);
             }
             if (load_rlx(thread_pool.stop)) {
                 time->stopped = 1;
@@ -1865,12 +1875,17 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                     store_rlx(thread_pool.stop, true);
                 }
                 // Soft time limit: all threads vote
-                if (time->timeset && getTimeMiliSecond() >= time->softLimit && t->pos.pvTable[0][0] != 0 && !t->soft_stop_voted) {
+                bool past_soft = time->timeset && getTimeMiliSecond() >= t->thread_soft_limit && t->pos.pvTable[0][0] != 0;
+                if (past_soft && !t->soft_stop_voted) {
                     t->soft_stop_voted = true;
                     int votes = atomic_fetch_add_explicit(&thread_pool.soft_stop_votes, 1, memory_order_acq_rel) + 1;
-                    if (votes >= thread_pool.thread_count / 2) {
+                    int majority = (thread_pool.thread_count * 65 + 99) / 100;
+                    if (votes >= majority) {
                         store_rlx(thread_pool.stop, true);
                     }
+                } else if (!past_soft && t->soft_stop_voted) {
+                    t->soft_stop_voted = false;
+                    atomic_fetch_sub_explicit(&thread_pool.soft_stop_votes, 1, memory_order_acq_rel);
                 }
                 if (load_rlx(thread_pool.stop)) {
                     time->stopped = 1;
@@ -1950,7 +1965,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             complexity = 0.6 * abs(baseSearchScore - score) * log(depth);
         }
 
-        if (t->id == 0 && time->timeset && current_depth > 6) {
+        if (time->timeset && current_depth > 6) {
             scaleTime(time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, t);
         }
         
