@@ -1142,7 +1142,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 // if the move is failed low then give it bonus
                 bool failed_low = !in_check && score <= alpha;                
-                refutation_bonus += 100 * failed_low;
+                refutation_bonus += 300 * failed_low;
 
                 adjust_single_quiet_hist_entry(t, pos->side, nmp_ref_move, refutation_bonus);
             }
