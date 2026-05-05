@@ -371,7 +371,7 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
             case g1:
                 if (!(pos->castle & wk) // castling right must be available
                     || !(!(getBit(pos->occupancies[both], f1)) && !(getBit(pos->occupancies[both], g1))) // squares between king and rook must be empty
-                    || !(!isSquareAttacked(e1, black, pos) && !isSquareAttacked(f1, black, pos) && !isSquareAttacked(g1, black, pos))) { // king, f1 and g1 squares must not be under attack
+                    || !(!(pos->pieceThreats.stmThreats[black] & ((1ULL << e1) | (1ULL << f1) | (1ULL << g1))))) { // king, f1 and g1 squares must not be under attack
                     return false;
                 }
                 break;                
@@ -379,7 +379,7 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
             case c1:
                 if (!(pos->castle & wq) // castling right must be available
                     || !(!(getBit(pos->occupancies[both], d1)) && !(getBit(pos->occupancies[both], c1))) // squares between king and rook must be empty
-                    || !(!isSquareAttacked(e1, black, pos) && !isSquareAttacked(d1, black, pos) && !isSquareAttacked(c1, black, pos))) { // king, d1 and c1 squares must not be under attack
+                    || !(!(pos->pieceThreats.stmThreats[black] & ((1ULL << e1) | (1ULL << d1) | (1ULL << c1))))) { // king, d1 and c1 squares must not be under attack
                     return false;
                 }
                 break;
@@ -388,7 +388,7 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
             case g8:
                 if (!(pos->castle & bk) // castling right must be available
                     || !(!(getBit(pos->occupancies[both], f8)) && !(getBit(pos->occupancies[both], g8))) // squares between king and rook must be empty
-                    || !(!isSquareAttacked(e8, white, pos) && !isSquareAttacked(f8, white, pos) && !isSquareAttacked(g8, white, pos))) { // king, f8 and g8 squares must not be under attack
+                    || !(!(pos->pieceThreats.stmThreats[white] & ((1ULL << e8) | (1ULL << f8) | (1ULL << g8))))) { // king, f8 and g8 squares must not be under attack
                     return false;
                 }
                 break;
@@ -397,7 +397,7 @@ bool is_pseudo_legal(uint16_t move, board *pos) {
             case c8:
                 if (!(pos->castle & bq) // castling right must be available
                     || !(!(getBit(pos->occupancies[both], d8)) && !(getBit(pos->occupancies[both], c8))) // squares between king and rook must be empty
-                    || !(!isSquareAttacked(e8, white, pos) && !isSquareAttacked(d8, white, pos) && !isSquareAttacked(c8, white, pos))) { // king, d8 and c8 squares must not be under attack
+                    || !(!(pos->pieceThreats.stmThreats[white] & ((1ULL << e8) | (1ULL << d8) | (1ULL << c8))))) { // king, d8 and c8 squares must not be under attack
                     return false;
                 }
                 break;
