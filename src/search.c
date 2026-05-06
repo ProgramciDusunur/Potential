@@ -1370,7 +1370,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             const int singularBeta = tt_score - singularMargin / 8;
             const int singularDepth = (depth - 1) / 2;
 
-
             ss->singular_move = currentMove;
 
             const int singularScore =
