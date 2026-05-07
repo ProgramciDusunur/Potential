@@ -18,6 +18,10 @@
 
 
 bool is_mate_score(int score);
+bool is_win(int score);
+bool is_loss(int score);
+bool is_decisive(int score);
+
 int myMAX(int x, int y);
 int myMIN(int x, int y);
 double my_max_double(double x, double y);
