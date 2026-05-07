@@ -197,9 +197,9 @@ void initializeLMRTable(void) {
 void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
     int count = moveList->count;
 
-    int best = move_scores[moveNum] << 8 | moveNum;
+    int best = (int)((unsigned int)move_scores[moveNum] << 8) | moveNum;
     for (int i = moveNum + 1; i < count; i++) {
-        int curr = move_scores[i] << 8 | i;
+        int curr = (int)((unsigned int)move_scores[i] << 8) | i;
         if (curr > best) best = curr;
     }
 
