@@ -9,6 +9,7 @@
 #include "board_constants.h"
 #include "bit_manipulation.h"
 #include "values.h"
+#include <stdlib.h>
 
 // Relaxed atomic helpers
 #define load_rlx(x) atomic_load_explicit(&(x), memory_order_relaxed)
