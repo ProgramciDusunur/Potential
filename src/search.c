@@ -7,10 +7,20 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/cdefs.h>
 
-#if defined(__AVX2__) || defined(__SSE4_1__)
-#include <immintrin.h>
-#endif
+#define MARGIN             (1 << 19)  // 524288, well above max history sum (~100k)
+
+#define TT_SCORE           ( 5 * MARGIN)
+#define PV_SCORE           ( 4 * MARGIN)
+#define GOOD_CAPTURE_SCORE ( 3 * MARGIN)
+#define QUEEN_PROMO_SCORE  ( 2 * MARGIN)
+#define KNIGHT_PROMO_SCORE ( 1 * MARGIN)
+#define QUIET_SCORE        ( 0)
+#define BAD_CAPTURE_SCORE  (-1 * MARGIN)
+#define ROOK_PROMO_SCORE   (-2 * MARGIN)
+#define BISHOP_PROMO_SCORE (-3 * MARGIN)
+
 
 
 
@@ -185,133 +195,15 @@ void initializeLMRTable(void) {
 }
 
 void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
-    int bestIndex = moveNum;
-    int bestScore = move_scores[moveNum];
-    int i = moveNum + 1;
     int count = moveList->count;
 
-#if defined(__AVX2__)    
-    if (i + 8 <= count) {
-        __m256i best_val_v = _mm256_set1_epi32(bestScore);
-        __m256i best_idx_v = _mm256_set1_epi32(bestIndex);
-        __m256i cur_idx_v = _mm256_set_epi32(i + 7, i + 6, i + 5, i + 4, i + 3, i + 2, i + 1, i);
-        __m256i step_v = _mm256_set1_epi32(8);
-
-        for (; i + 8 <= count; i += 8) {
-            __m256i scores_v = _mm256_loadu_si256((__m256i const*)&move_scores[i]);
-            __m256i mask_v = _mm256_cmpgt_epi32(scores_v, best_val_v);
-
-            best_val_v = _mm256_blendv_epi8(best_val_v, scores_v, mask_v);
-            best_idx_v = _mm256_blendv_epi8(best_idx_v, cur_idx_v, mask_v);
-
-            cur_idx_v = _mm256_add_epi32(cur_idx_v, step_v);
-        }
-
-        // Horizontal reduction: 8 -> 4
-        __m128i vlink_l = _mm256_extracti128_si256(best_val_v, 0);
-        __m128i vlink_h = _mm256_extracti128_si256(best_val_v, 1);
-        __m128i ilink_l = _mm256_extracti128_si256(best_idx_v, 0);
-        __m128i ilink_h = _mm256_extracti128_si256(best_idx_v, 1);
-
-        // Stable selection: Prefer higher score, or lower index on tie
-        __m128i m_gt = _mm_cmpgt_epi32(vlink_h, vlink_l);
-        __m128i m_eq = _mm_cmpeq_epi32(vlink_h, vlink_l);
-        __m128i m_lt_idx = _mm_cmpgt_epi32(ilink_l, ilink_h); // lane_l index > lane_h index
-        __m128i m_use_h = _mm_or_si128(m_gt, _mm_and_si128(m_eq, m_lt_idx));
-
-        __m128i v128 = _mm_blendv_epi8(vlink_l, vlink_h, m_use_h);
-        __m128i i128 = _mm_blendv_epi8(ilink_l, ilink_h, m_use_h);
-
-        // Horizontal reduction: 4 -> 2
-        __m128i v_shuf = _mm_shuffle_epi32(v128, _MM_SHUFFLE(1, 0, 3, 2));
-        __m128i i_shuf = _mm_shuffle_epi32(i128, _MM_SHUFFLE(1, 0, 3, 2));
-        
-        m_gt = _mm_cmpgt_epi32(v_shuf, v128);
-        m_eq = _mm_cmpeq_epi32(v_shuf, v128);
-        m_lt_idx = _mm_cmpgt_epi32(i128, i_shuf);
-        m_use_h = _mm_or_si128(m_gt, _mm_and_si128(m_eq, m_lt_idx));
-
-        v128 = _mm_blendv_epi8(v128, v_shuf, m_use_h);
-        i128 = _mm_blendv_epi8(i128, i_shuf, m_use_h);
-
-        // Horizontal reduction: 2 -> 1
-        v_shuf = _mm_shuffle_epi32(v128, _MM_SHUFFLE(2, 3, 0, 1));
-        i_shuf = _mm_shuffle_epi32(i128, _MM_SHUFFLE(2, 3, 0, 1));
-        
-        m_gt = _mm_cmpgt_epi32(v_shuf, v128);
-        m_eq = _mm_cmpeq_epi32(v_shuf, v128);
-        m_lt_idx = _mm_cmpgt_epi32(i128, i_shuf);
-        m_use_h = _mm_or_si128(m_gt, _mm_and_si128(m_eq, m_lt_idx));
-
-        v128 = _mm_blendv_epi8(v128, v_shuf, m_use_h);
-        i128 = _mm_blendv_epi8(i128, i_shuf, m_use_h);
-
-        int finalScore = _mm_cvtsi128_si32(v128);
-        int finalIndex = _mm_cvtsi128_si32(i128);
-
-        if (finalScore > bestScore) {
-            bestScore = finalScore;
-            bestIndex = finalIndex;
-        }
+    int best = move_scores[moveNum] << 8 | moveNum;
+    for (int i = moveNum + 1; i < count; i++) {
+        int curr = move_scores[i] << 8 | i;
+        if (curr > best) best = curr;
     }
-#elif defined(__SSE4_1__)
-    if (i + 4 <= count) {
-        __m128i best_val_v = _mm_set1_epi32(bestScore);
-        __m128i best_idx_v = _mm_set1_epi32(bestIndex);
-        __m128i cur_idx_v = _mm_set_epi32(i + 3, i + 2, i + 1, i);
-        __m128i step_v = _mm_set1_epi32(4);
 
-        for (; i + 4 <= count; i += 4) {
-            __m128i scores_v = _mm_loadu_si128((__m128i const*)&move_scores[i]);
-            __m128i mask_v = _mm_cmpgt_epi32(scores_v, best_val_v);
-
-            best_val_v = _mm_blendv_epi8(best_val_v, scores_v, mask_v);
-            best_idx_v = _mm_blendv_epi8(best_idx_v, cur_idx_v, mask_v);
-
-            cur_idx_v = _mm_add_epi32(cur_idx_v, step_v);
-        }
-
-        // Horizontal reduction: 4 -> 2
-        __m128i v_shuf = _mm_shuffle_epi32(best_val_v, _MM_SHUFFLE(1, 0, 3, 2));
-        __m128i i_shuf = _mm_shuffle_epi32(best_idx_v, _MM_SHUFFLE(1, 0, 3, 2));
-        
-        __m128i m_gt = _mm_cmpgt_epi32(v_shuf, best_val_v);
-        __m128i m_eq = _mm_cmpeq_epi32(v_shuf, best_val_v);
-        __m128i m_lt_idx = _mm_cmpgt_epi32(best_idx_v, i_shuf);
-        __m128i m_use_h = _mm_or_si128(m_gt, _mm_and_si128(m_eq, m_lt_idx));
-
-        __m128i v128 = _mm_blendv_epi8(best_val_v, v_shuf, m_use_h);
-        __m128i i128 = _mm_blendv_epi8(best_idx_v, i_shuf, m_use_h);
-
-        // Horizontal reduction: 2 -> 1
-        v_shuf = _mm_shuffle_epi32(v128, _MM_SHUFFLE(2, 3, 0, 1));
-        i_shuf = _mm_shuffle_epi32(i128, _MM_SHUFFLE(2, 3, 0, 1));
-        
-        m_gt = _mm_cmpgt_epi32(v_shuf, v128);
-        m_eq = _mm_cmpeq_epi32(v_shuf, v128);
-        m_lt_idx = _mm_cmpgt_epi32(i128, i_shuf);
-        m_use_h = _mm_or_si128(m_gt, _mm_and_si128(m_eq, m_lt_idx));
-
-        v128 = _mm_blendv_epi8(v128, v_shuf, m_use_h);
-        i128 = _mm_blendv_epi8(i128, i_shuf, m_use_h);
-
-        int finalScore = _mm_cvtsi128_si32(v128);
-        int finalIndex = _mm_cvtsi128_si32(i128);
-
-        if (finalScore > bestScore) {
-            bestScore = finalScore;
-            bestIndex = finalIndex;
-        }
-    }
-#endif
-
-    // Scalar fallback handles remainders and non-SIMD platforms
-    for (; i < count; i++) {
-        if (move_scores[i] > bestScore) {
-            bestScore = move_scores[i];
-            bestIndex = i;
-        }
-    }
+    int bestIndex = best & 0xff;
 
     if (bestIndex != moveNum) {
         int tempScore = move_scores[moveNum];
@@ -329,7 +221,7 @@ void init_move_scores(moves *moveList, int *move_scores, uint16_t tt_move, Threa
         uint16_t current_move = moveList->moves[count];
         
         if (tt_move == current_move) {
-            move_scores[count] = 2000000000;
+            move_scores[count] = TT_SCORE;
         } else {
             move_scores[count] = scoreMove(current_move, t, ss);
         }
@@ -348,7 +240,7 @@ void init_quiescence_scores(moves *moveList, int *move_scores, board* position) 
                 target_piece = bb_piece;
             }
             
-            move_scores[count] = mvvLva[position->mailbox[getMoveSource(move)]][target_piece] + 1000000000;
+            move_scores[count] = mvvLva[position->mailbox[getMoveSource(move)]][target_piece] + GOOD_CAPTURE_SCORE;
         } else {
             move_scores[count] = 0;
         }
@@ -374,7 +266,7 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         t->pos.scorePv = 0;
 
         // give PV move the highest score to search it first
-        return 1500000000;
+        return PV_SCORE;
     }
 
     // score promotion move
@@ -382,19 +274,19 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         switch (getMovePromotedPiece(t->pos.side, move)) {
             case q:
             case Q:
-                return 1000000000;
+                return QUEEN_PROMO_SCORE;
                 break;
             case n:
             case N:
-                return 800000000;
+                return KNIGHT_PROMO_SCORE;
                 break;
             case r:
             case R:
-                return -500000000;
+                return ROOK_PROMO_SCORE;
                 break;
             case b:
             case B:
-                return -800000000;
+                return BISHOP_PROMO_SCORE;
                 break;
         }
     }
@@ -427,7 +319,7 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
 
         captureScore += move_history;
 
-        captureScore += SEE(&t->pos, move, SEE_MOVE_ORDERING_THRESHOLD - move_history / 32) ? 1000000000 : -1000000;
+        captureScore += SEE(&t->pos, move, SEE_MOVE_ORDERING_THRESHOLD - move_history / 32) ? GOOD_CAPTURE_SCORE : BAD_CAPTURE_SCORE;
 
         captureScore += recapture_bonus;
         
