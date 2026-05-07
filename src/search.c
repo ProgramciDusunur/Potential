@@ -1214,33 +1214,43 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         bool isNotMated = bestScore > -mateFound;
 
-        if (!rootNode && notTactical && isNotMated && !gives_check) {
+        if (!rootNode && isNotMated && !gives_check) {
+            if (notTactical) {
+                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
+                int history_adj = moveHistory / 64;
+                history_adj = clamp(history_adj, -6, 6);
+                lmpThreshold += history_adj;
 
-            int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
-            int history_adj = moveHistory / 64;
-            history_adj = clamp(history_adj, -6, 6);
-            lmpThreshold += history_adj;
+                // Late Move Pruning
+                if (legal_moves>= lmpThreshold) {
+                    continue;
+                }            
+                int futility_margin = 
+                    static_eval + 
+                    FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
+                    FP_MARGIN * lmrDepth + 
+                    moveHistory / 32;
+                
 
-            // Late Move Pruning
-            if (legal_moves>= lmpThreshold) {
-                continue;
+                // Futility Pruning
+                if (lmrDepth <= FP_DEPTH && !in_check && futility_margin <= alpha) {
+                    continue;
+                }
+                // Quiet History Pruning
+                if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
+                    break;
+                }
+            } 
+
+            else {
+                int noisy_futility_margin = static_eval + 71 * depth;
+                if (!in_check && depth <= 4 && mp.CURRENT_STAGE == STAGE_BAD_NOISY && noisy_futility_margin <= alpha) {
+                    if (!is_decisive(bestScore) && bestScore < noisy_futility_margin) {
+                        bestScore = noisy_futility_margin;
+                    }
+                    break;
+                }
             }            
-            int futility_margin = 
-                static_eval + 
-                FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
-                FP_MARGIN * lmrDepth + 
-                moveHistory / 32;
-            
-
-            // Futility Pruning
-            if (lmrDepth <= FP_DEPTH && !in_check && futility_margin <= alpha) {
-                continue;
-            }
-            // Quiet History Pruning
-            if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
-                break;
-            }
-
         }
 
         // SEE PVS Pruning

@@ -144,3 +144,15 @@ bool is_mate_score(int score) {
     return (score >= mateFound && score <= mateValue) || 
     (score <= -mateFound && score >= -mateValue);
 }
+
+bool is_win(int score) {
+  return score > mateValue;
+}
+
+bool is_loss(int score) {
+  return score < -mateValue;
+}
+
+bool is_decisive(int score) {
+  return abs(score) > mateValue;
+}
