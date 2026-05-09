@@ -69,9 +69,9 @@ void updatePawnHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQu
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int score = thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[from]][to];
+    int score = t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[from]][to];
 
-    thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
+    t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
@@ -79,7 +79,7 @@ void updatePawnHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQu
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
-        thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
+        t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
     }
 }
 
@@ -161,7 +161,7 @@ void update_pawn_correction_hist(ThreadData *t, const int depth, const int diff)
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
     // Masking for faster indexing (assuming SIZE is power of 2)
-    int16_t *entry = &thread_pool.shared_history.pawn_corrhist[t->pos.side][t->pos.pawnKey & (CORRHIST_SIZE - 1)];
+    int16_t *entry = &t->search_d.pawn_corrhist[t->pos.side][t->pos.pawnKey & (CORRHIST_SIZE - 1)];
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
@@ -169,7 +169,7 @@ void update_minor_correction_hist(ThreadData *t, const int depth, const int diff
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
-    int16_t *entry = &thread_pool.shared_history.minor_corrhist[t->pos.side][t->pos.minorKey & (CORRHIST_SIZE - 1)];
+    int16_t *entry = &t->search_d.minor_corrhist[t->pos.side][t->pos.minorKey & (CORRHIST_SIZE - 1)];
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
@@ -177,7 +177,7 @@ void update_major_correction_hist(ThreadData *t, const int depth, const int diff
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
-    int16_t *entry = &thread_pool.shared_history.major_corrhist[t->pos.side][t->pos.majorKey & (CORRHIST_SIZE - 1)];
+    int16_t *entry = &t->search_d.major_corrhist[t->pos.side][t->pos.majorKey & (CORRHIST_SIZE - 1)];
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
@@ -187,10 +187,10 @@ void update_non_pawn_corrhist(ThreadData *t, const int depth, const int diff) {
     const int newWeight = 4 * myMIN(depth + 1, 16);
     const int mask = CORRHIST_SIZE - 1;
     
-    int16_t *white_ptr = &thread_pool.shared_history.non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask];
+    int16_t *white_ptr = &t->search_d.non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask];
     apply_corrhist_update(white_ptr, scaledDiff, newWeight);
     
-    int16_t *black_ptr = &thread_pool.shared_history.non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask];
+    int16_t *black_ptr = &t->search_d.non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask];
     apply_corrhist_update(black_ptr, scaledDiff, newWeight);
 }
 
@@ -198,7 +198,7 @@ void update_king_rook_pawn_corrhist(ThreadData *t, const int depth, const int di
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
-    int16_t *entry = &thread_pool.shared_history.krp_corrhist[t->pos.side][t->pos.krpKey & (CORRHIST_SIZE - 1)];
+    int16_t *entry = &t->search_d.krp_corrhist[t->pos.side][t->pos.krpKey & (CORRHIST_SIZE - 1)];
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
@@ -210,7 +210,7 @@ void update_single_cont_corrhist_entry(ThreadData *t, const int pliesBack, const
     const int m2 = ss->move;
     
     if (m1 && m2) {        
-        int16_t *entry_ptr = &thread_pool.shared_history.contCorrhist[prev->piece][getMoveTarget(m1)]
+        int16_t *entry_ptr = &t->search_d.contCorrhist[prev->piece][getMoveTarget(m1)]
                                          [ss->piece][getMoveTarget(m2)];
                 
         int val = *entry_ptr;
@@ -231,7 +231,7 @@ static inline int adjust_single_cont_corrhist_entry(ThreadData *t, const int pli
     const int m2 = ss->move;
 
     if (m1 && m2) {
-        return thread_pool.shared_history.contCorrhist[prev->piece][getMoveTarget(m1)]
+        return t->search_d.contCorrhist[prev->piece][getMoveTarget(m1)]
                                [ss->piece][getMoveTarget(m2)];
     }
     return 0;
@@ -255,12 +255,12 @@ int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss) {
     const int mask = CORRHIST_SIZE - 1;
 
     // Batch memory access    
-    int adjust = thread_pool.shared_history.pawn_corrhist[side][t->pos.pawnKey & mask]
-               + thread_pool.shared_history.minor_corrhist[side][t->pos.minorKey & mask]
-               + thread_pool.shared_history.major_corrhist[side][t->pos.majorKey & mask]
-               + thread_pool.shared_history.krp_corrhist[side][t->pos.krpKey & mask]
-               + thread_pool.shared_history.non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask]
-               + thread_pool.shared_history.non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask]
+    int adjust = t->search_d.pawn_corrhist[side][t->pos.pawnKey & mask]
+               + t->search_d.minor_corrhist[side][t->pos.minorKey & mask]
+               + t->search_d.major_corrhist[side][t->pos.majorKey & mask]
+               + t->search_d.krp_corrhist[side][t->pos.krpKey & mask]
+               + t->search_d.non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask]
+               + t->search_d.non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask]
                + adjust_single_cont_corrhist_entry(t, 1, ss)
                + adjust_single_cont_corrhist_entry(t, 2, ss)
                + adjust_single_cont_corrhist_entry(t, 3, ss)               
@@ -281,12 +281,12 @@ int get_correction_value(ThreadData *t, SearchStack *ss) {
     const int side = t->pos.side;
     const int mask = CORRHIST_SIZE - 1;
 
-    const int pawn_correction = thread_pool.shared_history.pawn_corrhist[side][t->pos.pawnKey & mask];
-    const int minor_correction = thread_pool.shared_history.minor_corrhist[side][t->pos.minorKey & mask];
-    const int major_correction = thread_pool.shared_history.major_corrhist[side][t->pos.majorKey & mask];
-    const int krp_correction = thread_pool.shared_history.krp_corrhist[side][t->pos.krpKey & mask];
-    const int white_non_pawn_correction = thread_pool.shared_history.non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask];
-    const int black_non_pawn_correction = thread_pool.shared_history.non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask];
+    const int pawn_correction = t->search_d.pawn_corrhist[side][t->pos.pawnKey & mask];
+    const int minor_correction = t->search_d.minor_corrhist[side][t->pos.minorKey & mask];
+    const int major_correction = t->search_d.major_corrhist[side][t->pos.majorKey & mask];
+    const int krp_correction = t->search_d.krp_corrhist[side][t->pos.krpKey & mask];
+    const int white_non_pawn_correction = t->search_d.non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask];
+    const int black_non_pawn_correction = t->search_d.non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask];
     const int continuation_correction = adjust_single_cont_corrhist_entry(t, 2, ss);
     
     int correction = pawn_correction + minor_correction + major_correction +
@@ -303,9 +303,16 @@ void clear_histories(void) {
         memset(thread_pool.threads[i]->search_d.quietHistory, 0, sizeof(thread_pool.threads[i]->search_d.quietHistory));
         memset(thread_pool.threads[i]->search_d.captureHistory, 0, sizeof(thread_pool.threads[i]->search_d.captureHistory));        
         memset(thread_pool.threads[i]->search_d.continuationHistory, 0, sizeof(thread_pool.threads[i]->search_d.continuationHistory));
-    }                        
+        memset(thread_pool.threads[i]->search_d.pawnHistory, 0, sizeof(thread_pool.threads[i]->search_d.pawnHistory));
 
-    memset(&thread_pool.shared_history, 0, sizeof(SharedHistory));
+        memset(thread_pool.threads[i]->search_d.contCorrhist, 0, sizeof(thread_pool.threads[i]->search_d.contCorrhist));
+        memset(thread_pool.threads[i]->search_d.pawn_corrhist, 0, sizeof(thread_pool.threads[i]->search_d.pawn_corrhist));
+        memset(thread_pool.threads[i]->search_d.minor_corrhist, 0, sizeof(thread_pool.threads[i]->search_d.minor_corrhist));
+        memset(thread_pool.threads[i]->search_d.major_corrhist, 0, sizeof(thread_pool.threads[i]->search_d.major_corrhist));
+        memset(thread_pool.threads[i]->search_d.non_pawn_corrhist, 0, sizeof(thread_pool.threads[i]->search_d.non_pawn_corrhist));    
+        memset(thread_pool.threads[i]->search_d.krp_corrhist, 0, sizeof(thread_pool.threads[i]->search_d.krp_corrhist));
+    }                        
+    
 }
 
 void quiet_history_aging(void) {

@@ -219,16 +219,16 @@ void prefetch_hash_entry(uint64_t hash_key, uint8_t fmr_key) {
     __builtin_prefetch(&hashTable[index]);
 }
 
-void prefetch_corrhist(board *pos) { 
+void prefetch_corrhist(board *pos, ThreadData *t) { 
     const int mask = CORRHIST_SIZE - 1;
     const int side = pos->side;
 
-    __builtin_prefetch(&thread_pool.shared_history.pawn_corrhist[side][pos->pawnKey & mask]);
-    __builtin_prefetch(&thread_pool.shared_history.minor_corrhist[side][pos->minorKey & mask]);
-    __builtin_prefetch(&thread_pool.shared_history.major_corrhist[side][pos->majorKey & mask]);
-    __builtin_prefetch(&thread_pool.shared_history.non_pawn_corrhist[white][side][pos->whiteNonPawnKey & mask]);
-    __builtin_prefetch(&thread_pool.shared_history.non_pawn_corrhist[black][side][pos->blackNonPawnKey & mask]);
-    __builtin_prefetch(&thread_pool.shared_history.krp_corrhist[side][pos->krpKey & mask]);
+    __builtin_prefetch(&t->search_d.pawn_corrhist[side][pos->pawnKey & mask]);
+    __builtin_prefetch(&t->search_d.minor_corrhist[side][pos->minorKey & mask]);
+    __builtin_prefetch(&t->search_d.major_corrhist[side][pos->majorKey & mask]);
+    __builtin_prefetch(&t->search_d.non_pawn_corrhist[white][side][pos->whiteNonPawnKey & mask]);
+    __builtin_prefetch(&t->search_d.non_pawn_corrhist[black][side][pos->blackNonPawnKey & mask]);
+    __builtin_prefetch(&t->search_d.krp_corrhist[side][pos->krpKey & mask]);
 }
 
 void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key) {

@@ -77,7 +77,7 @@ U64 generate_krp_key(board *position);
 void clearHashTable(void);
 void init_hash_table(int mb);
 void initRandomKeys(void);
-void prefetch_corrhist(board *pos);
+void prefetch_corrhist(board *pos, ThreadData *t);
 
 
 
