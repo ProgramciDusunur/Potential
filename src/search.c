@@ -1469,7 +1469,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction -= moveHistory / NOISY_HISTORY_LMR_DIVISOR;
 
             // Bad Noisy Futility LMR
-            lmrReduction += (!in_check && !gives_check && mp.CURRENT_STAGE == STAGE_BAD_NOISY && static_eval + 71 * depth <= alpha) * 1024;
+            lmrReduction += (!in_check && !gives_check && mp.CURRENT_STAGE == STAGE_BAD_NOISY && static_eval + 142 + 71 * depth <= alpha) * 1024;
         }
 
         // Reduce Less
