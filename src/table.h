@@ -53,8 +53,8 @@
 #define hashFlagAlpha 2
 #define hashFlagBeta  3
 
-// fifty move rule key[fifty move count / fmr granularity]
-extern U64 FMR[100 / 10];
+// fifty move rule key[fifty move count / fmr granularity + safety margin]
+extern U64 FMR[100 / 10 + 1];
 // random side key
 extern U64 sideKey;
 extern U64 hash_entries;
