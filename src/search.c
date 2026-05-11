@@ -1250,6 +1250,16 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     }
                     break;
                 }
+
+                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
+                int history_adj = moveHistory / 64;
+                history_adj = clamp(history_adj, -6, 6);
+                lmpThreshold += history_adj;
+
+                // Bad Noisy Late Move Pruning
+                if (legal_moves>= lmpThreshold && mp.CURRENT_STAGE == STAGE_BAD_NOISY) {
+                    continue;
+                }
             }            
         }
 
@@ -1365,6 +1375,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // Low Depth Singular Extensions
         else if (depth <= 7 && !in_check && ttAdjustedEval <= alpha - 25 && predicted_cut_node) {
             extensions++;
+
+            if (!pvNode && !tt_capture && tt_depth >= depth && ttAdjustedEval <= alpha - 50) {
+                extensions++;
+            }
         }
 
         struct copyposition copyPosition;
