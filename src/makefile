@@ -14,7 +14,7 @@ ifeq ($(COMMIT_SHA),)
     COMMIT_SHA := unknown
 endif
 
-CFLAGS += -DCOMMIT_SHA=\"$(COMMIT_SHA)\"
+CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 
 NAME        := Potential
 TMPDIR      := .tmp

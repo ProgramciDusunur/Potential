@@ -1846,10 +1846,10 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             if (is_mate_score(score))
                 printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
                        (score > 0 ? mateValue - score + 1 : -mateValue - score) / 2,
-                       nodes, nps, hash_full(), totalTime);            
+                       (unsigned long long)nodes, nps, hash_full(), totalTime);            
             else
                 printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
-                       score, nodes, nps, hash_full(), totalTime);
+                       score, (unsigned long long)nodes, nps, hash_full(), totalTime);
 
             // loop over the moves within a PV line
             for (int count = 0; count < t->pos.pvLength[0]; count++) {
