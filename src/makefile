@@ -8,6 +8,13 @@ AVX2FLAGS   = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi
 BMI2FLAGS   = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2
 AVX512FLAGS = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw
 NEONFLAGS   = -DUSE_NEON -flax-vector-conversions
+COMMIT_SHA := $(shell git rev-parse --short HEAD 2>/dev/null)
+
+ifeq ($(COMMIT_SHA),)
+    COMMIT_SHA := unknown
+endif
+
+CFLAGS += -DCOMMIT_SHA=\"$(COMMIT_SHA)\"
 
 NAME        := Potential
 TMPDIR      := .tmp
