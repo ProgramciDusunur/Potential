@@ -1365,6 +1365,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // Low Depth Singular Extensions
         else if (depth <= 7 && !in_check && ttAdjustedEval <= alpha - 25 && predicted_cut_node) {
             extensions++;
+
+            if (!notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
+                extensions ++;
+            }
         }
 
         struct copyposition copyPosition;
