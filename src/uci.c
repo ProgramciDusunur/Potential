@@ -23,6 +23,9 @@ extern uint64_t global_start_time;
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
 #ifndef COMMIT_SHA
 #define COMMIT_SHA "unknown"
 #endif
@@ -687,7 +690,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         // parse UCI "uci" command
         else if (strncmp(input, "uci", 3) == 0) {        
             // print engine info
-            printf("id name Potential %s\n", COMMIT_SHA);
+            printf("id name Potential %s\n", STR(COMMIT_SHA));
             printf("id author Eren Araz\n");
             printf("option name Hash type spin default %d min 4 max %d\n",
                    default_hash_size, max_hash);
