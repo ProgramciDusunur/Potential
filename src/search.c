@@ -1363,7 +1363,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
         } 
         // Low Depth Singular Extensions
-        else if (depth <= 7 && !in_check && ttAdjustedEval <= alpha - 25 && predicted_cut_node) {
+        else if (depth <= 9 && !in_check && tt_depth >= depth - 6 && ttAdjustedEval <= alpha - 25 && predicted_cut_node) {
             extensions++;
         }
 
