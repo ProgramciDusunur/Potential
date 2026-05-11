@@ -5,7 +5,7 @@
 #include "table.h"
 
 U64 sideKey;
-U64 FMR[100 / 10];
+U64 FMR[100 / 10 + 1];
 U64 hash_entries = 0;
 tt *hashTable = NULL;
 
@@ -406,7 +406,7 @@ void initRandomKeys(void) {
     // init random side key
     sideKey = get_random_uint64_number();
 
-    for (int i = 0; i < 100 / 10; i++) {
+    for (int i = 0; i <= 100 / 10; i++) {
         if (i * 10 <= 50) {
             FMR[i] = get_random_uint64_number();
         } else {
