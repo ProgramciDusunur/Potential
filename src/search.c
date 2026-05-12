@@ -1416,7 +1416,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         else if (depth <= 7 && !in_check && ttAdjustedEval <= alpha - 25 && predicted_cut_node) {
             extensions++;
 
-            if (!pvNode && !tt_capture && tt_depth >= depth && ttAdjustedEval <= alpha - 35) {
+            if (!pvNode && !tt_capture && tt_depth >= depth && ttAdjustedEval <= alpha - 45) {
                 extensions++;
             }
         }
