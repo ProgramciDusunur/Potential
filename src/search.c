@@ -755,6 +755,9 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     // legal moves counter
     int legal_moves = 0;
     
+    struct copyposition copyPosition;
+    // preserve board state once before move loop
+    copyBoard(position, &copyPosition);
 
     // loop over moves within a movelist
     for (int count = 0; count < moveList->count; count++) {
@@ -771,10 +774,6 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
                 continue;
             }
         }
-        
-        struct copyposition copyPosition;
-        // preserve board state
-        copyBoard(position, &copyPosition);
 
         // increment ply
         position->ply++;
@@ -1131,6 +1130,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             int move_scores[256];
             init_move_scores(capture_promos, move_scores, tt_move, t, ss);
+            struct copyposition probcutCopy;
+            // preserve board state once before probcut loop
+            copyBoard(pos, &probcutCopy);
+
             for (int count = 0; count < capture_promos->count; count++) {
                 pick_next_move(count, capture_promos, move_scores);
                 uint16_t move = capture_promos->moves[count];
@@ -1146,10 +1149,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 if (!pvNode && !in_check && noisyFPMargin <= alpha) {
                     continue;
                 }
-
-                struct copyposition copyPosition;
-                // preserve board state
-                copyBoard(pos, &copyPosition);
                 // increment ply
                 pos->ply++;
 
@@ -1188,7 +1187,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 pos->repetitionIndex--;
 
                 // take move back
-                takeBack(pos, &copyPosition);
+                takeBack(pos, &probcutCopy);
 
                 if (probcut_value >= probcut_beta) {
                     writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos, pos->fifty);
@@ -1234,6 +1233,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     //int captureMoves = 0;
 
     const int originalAlpha = alpha;
+
+    struct copyposition copyPosition;
+    // preserve board state once before move loop
+    copyBoard(pos, &copyPosition);
 
     uint16_t currentMove = 0;
     // loop over moves within a movelist
@@ -1414,9 +1417,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             extensions++;
         }
 
-        struct copyposition copyPosition;
-        // preserve board state
-        copyBoard(pos, &copyPosition);
+
 
         // increment ply
         pos->ply++;
