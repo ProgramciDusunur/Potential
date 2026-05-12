@@ -160,6 +160,53 @@
   int ASP_WINDOW_MIN_DEPTH = 4;
   double ASP_WINDOW_MULTIPLIER = 1.8;
 
+
+/*╔═══════════════════════╗
+  ║ History Bonus / Malus ║
+  ╚═══════════════════════╝*/
+
+  // Quiet History
+  int QUIET_HIST_BONUS_BASE = 10;
+  int QUIET_HIST_BONUS_DEPTH = 200;
+  int QUIET_HIST_BONUS_MAX = 4096;
+  int QUIET_HIST_MALUS_BASE = 10;
+  int QUIET_HIST_MALUS_DEPTH = 200;
+  int QUIET_HIST_FAILED_LOW_BONUS = 200;
+  int QUIET_HIST_FAILED_LOW_MALUS = 200;
+  int QUIET_HIST_MALUS_MAX = 4096;
+
+  // Continuation History
+  int CONTHIST_BONUS_BASE = 10;
+  int CONTHIST_BONUS_DEPTH = 200;
+  int CONTHIST_BONUS_MAX = 4096;
+  int CONTHIST_MALUS_BASE = 10;
+  int CONTHIST_MALUS_DEPTH = 200;
+  int CONTHIST_FAILED_LOW_BONUS = 200;
+  int CONTHIST_FAILED_LOW_MALUS = 200;
+  int CONTHIST_MALUS_MAX = 4096;
+
+  // Pawn History
+  int PAWNHIST_BONUS_BASE = 10;
+  int PAWNHIST_BONUS_DEPTH = 200;
+  int PAWNHIST_BONUS_MAX = 4096;
+  int PAWNHIST_MALUS_BASE = 10;
+  int PAWNHIST_MALUS_DEPTH = 200;
+  int PAWNHIST_FAILED_LOW_BONUS = 200;
+  int PAWNHIST_FAILED_LOW_MALUS = 200;
+  int PAWNHIST_MALUS_MAX = 4096;
+
+  // Capture History
+  int CAPTHIST_BONUS_BASE = 10;
+  int CAPTHIST_BONUS_DEPTH = 200;
+  int CAPTHIST_BONUS_MAX = 4096;
+  int CAPTHIST_MALUS_BASE = 10;
+  int CAPTHIST_MALUS_DEPTH = 200;
+  int CAPTHIST_MALUS_MAX = 4096;  
+
+  // Bad Quiet Index Scaling
+  int BAD_QUIET_INDEX_SCALE = 30;
+
+
   uint64_t nodes_spent_table[4096] = {0};  
 
 
@@ -1587,43 +1634,58 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
 
-                        // initial history bonus based on depth
-                        int quiethist_bonus = 10 + 200 * depth;                        
-                        int conthist_bonus  = 10 + 200 * depth;
-                        int pawnhist_bonus  = 10 + 200 * depth;
-
                         // if the move is failed low then give it bonus
                         bool failed_low = !in_check && ttAdjustedEval <= alpha;
-                        quiethist_bonus += 200 * failed_low;
-                        conthist_bonus  += 200 * failed_low;
-                        pawnhist_bonus  += 200 * failed_low;
+
+                        // history bonus based on depth
+                        int quiethist_bonus = QUIET_HIST_BONUS_BASE + QUIET_HIST_BONUS_DEPTH * depth;
+                        int conthist_bonus  = CONTHIST_BONUS_BASE + CONTHIST_BONUS_DEPTH * depth;
+                        int pawnhist_bonus  = PAWNHIST_BONUS_BASE + PAWNHIST_BONUS_DEPTH * depth;
+
+                        quiethist_bonus += QUIET_HIST_FAILED_LOW_BONUS * failed_low;
+                        conthist_bonus  += CONTHIST_FAILED_LOW_BONUS * failed_low;
+                        pawnhist_bonus  += PAWNHIST_FAILED_LOW_BONUS * failed_low;
                                                 
                         // clamp history bonus
-                        quiethist_bonus = myMIN(quiethist_bonus, 4096);
-                        conthist_bonus = myMIN(conthist_bonus, 4096);
-                        pawnhist_bonus = myMIN(pawnhist_bonus, 4096);
+                        quiethist_bonus = myMIN(quiethist_bonus, QUIET_HIST_BONUS_MAX);
+                        conthist_bonus  = myMIN(conthist_bonus, CONTHIST_BONUS_MAX);
+                        pawnhist_bonus  = myMIN(pawnhist_bonus, PAWNHIST_BONUS_MAX);
 
-                        updateQuietMoveHistory(t, bestMove, pos->side, quiethist_bonus, badQuiets);
-                        updateContinuationHistory(t, bestMove, conthist_bonus, badQuiets, quiet_history_score, ss);
-                        updatePawnHistory(t, bestMove, pawnhist_bonus, badQuiets);
+                        // history malus based on depth
+                        int quiethist_malus = QUIET_HIST_MALUS_BASE + QUIET_HIST_MALUS_DEPTH * depth;
+                        int conthist_malus  = CONTHIST_MALUS_BASE + CONTHIST_MALUS_DEPTH * depth;
+                        int pawnhist_malus  = PAWNHIST_MALUS_BASE + PAWNHIST_MALUS_DEPTH * depth;
+
+                        quiethist_malus += QUIET_HIST_FAILED_LOW_MALUS * failed_low;
+                        conthist_malus  += CONTHIST_FAILED_LOW_MALUS * failed_low;
+                        pawnhist_malus  += PAWNHIST_FAILED_LOW_MALUS * failed_low;
+
+                        // clamp history malus
+                        quiethist_malus = myMIN(quiethist_malus, QUIET_HIST_MALUS_MAX);
+                        conthist_malus  = myMIN(conthist_malus, CONTHIST_MALUS_MAX);
+                        pawnhist_malus  = myMIN(pawnhist_malus, PAWNHIST_MALUS_MAX);
+
+                        updateQuietMoveHistory(t, bestMove, pos->side, quiethist_bonus, quiethist_malus, badQuiets);
+                        updateContinuationHistory(t, bestMove, conthist_bonus, conthist_malus, badQuiets, quiet_history_score, ss);
+                        updatePawnHistory(t, bestMove, pawnhist_bonus, pawnhist_malus, badQuiets);
                         
                     } else { // noisy moves
-                        // initial history bonus based on depth
-                        int capthist_bonus = 10 + 200 * depth;                        
+                        // capture history bonus based on depth
+                        int capthist_bonus = CAPTHIST_BONUS_BASE + CAPTHIST_BONUS_DEPTH * depth;
 
-                        // clamp history bonus
-                        capthist_bonus = myMIN(capthist_bonus, 4096);
+                        // clamp capture history bonus
+                        capthist_bonus = myMIN(capthist_bonus, CAPTHIST_BONUS_MAX);
 
                         updateCaptureHistory(t, bestMove, capthist_bonus);
                     }
-                    // initial history bonus based on depth
-                    int capthist_malus_bonus = 10 + 200 * depth;
+                    // capture history malus based on depth
+                    int capthist_malus = CAPTHIST_MALUS_BASE + CAPTHIST_MALUS_DEPTH * depth;
                     
-                    // clamp history bonus
-                    capthist_malus_bonus = myMIN(capthist_malus_bonus, 4096);
+                    // clamp capture history malus
+                    capthist_malus = myMIN(capthist_malus, CAPTHIST_MALUS_MAX);
 
                     // always penalize bad noisy moves
-                    updateCaptureHistoryMalus(t, capthist_malus_bonus, noisyMoves, bestMove);
+                    updateCaptureHistoryMalus(t, capthist_malus, noisyMoves, bestMove);
 
                     // node (move) fails high
                     break;

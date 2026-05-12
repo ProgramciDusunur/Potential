@@ -43,7 +43,7 @@ void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int 
     t->search_d.quietHistory[side][from][to][threatSource][threatTarget] += bonus;
 }
 
-void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int bonus, moves *badQuiets) {
+void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int bonus, int malus, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
@@ -58,14 +58,14 @@ void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int bonu
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
         int badQuietScore = t->search_d.quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(&t->pos, badQuietFrom)][is_square_threatened(&t->pos, badQuietTo)];
-        int scaled_bonus = bonus + index * 30;
+        int scaled_malus = malus + index * BAD_QUIET_INDEX_SCALE;
 
         t->search_d.quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(&t->pos, badQuietFrom)][is_square_threatened(&t->pos, badQuietTo)] +=
-        scaledBonus(badQuietScore, -scaled_bonus, maxQuietHistory);
+        scaledBonus(badQuietScore, -scaled_malus, maxQuietHistory);
     }
 }
 
-void updatePawnHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQuiets) {
+void updatePawnHistory(ThreadData *t, uint16_t bestMove, int bonus, int malus, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
@@ -79,7 +79,7 @@ void updatePawnHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQu
         int badQuietFrom = getMoveSource(badQuiets->moves[index]);
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
-        t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -bonus, maxPawnHistory);
+        t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -malus, maxPawnHistory);
     }
 }
 
@@ -135,12 +135,12 @@ void updateAllCH(ThreadData *t, uint16_t move, int bonus, int quiet_hist_score, 
     updateSingleCHScore(t, move, 4, bonus, quiet_hist_score, ss);
 }
 
-void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int bonus, moves *badQuiets, int quiet_hist_score, SearchStack *ss) {
+void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int bonus, int malus, moves *badQuiets, int quiet_hist_score, SearchStack *ss) {
     updateAllCH(t, bestMove, bonus, quiet_hist_score, ss);
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
-        updateAllCH(t, badQuiets->moves[index], -bonus, quiet_hist_score, ss);
+        updateAllCH(t, badQuiets->moves[index], -malus, quiet_hist_score, ss);
     }
 }
 
