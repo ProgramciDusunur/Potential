@@ -82,6 +82,8 @@ void start_helpers(board *root_pos, int depth, my_time *time) {
         // Set search parameters
         t->search_depth = depth;
         t->time = time;
+        t->opponent_singular_reply = 0;
+        atomic_store_explicit(&t->best_opponent_singular_reply, 0, memory_order_relaxed);
 
         // Launch thread
         pthread_create(&t->native_handle, NULL, thread_entry, t);

@@ -1241,6 +1241,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     uint16_t currentMove = 0;
     // loop over moves within a movelist
     while ((currentMove = get_next_move(&mp, move_scores, pos, t, ss)) != 0) {
+        if (rootNode) {
+            t->opponent_singular_reply = 0;
+        }
 
         if (currentMove == ss->singular_move) {
             continue;
@@ -1331,6 +1334,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             // Singular Extension
             if (singularScore < singularBeta) {
+                if (pos->ply == 1) {
+                    t->opponent_singular_reply = currentMove;
+                }
                 extensions++;
 
                 int correction_adj = abs(correction_value) / 2875;                
@@ -1612,6 +1618,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 // store best move (for TT or anything)
                 bestMove = currentMove;
 
+                if (rootNode) {
+                    atomic_store_explicit(&t->best_opponent_singular_reply, t->opponent_singular_reply, memory_order_relaxed);
+                }
+
                 // PV node (move)
                 alpha = score;
 
@@ -1756,6 +1766,9 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     }
     memset(t->pos.pvTable, 0, sizeof(t->pos.pvTable));
     memset(t->pos.pvLength, 0, sizeof(t->pos.pvLength));    
+    
+    t->opponent_singular_reply = 0;
+    atomic_store_explicit(&t->best_opponent_singular_reply, 0, memory_order_relaxed);
 
     // define initial alpha beta bounds
     int alpha = -infinity;
@@ -1895,6 +1908,26 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         if (t->id == 0 && time->timeset && current_depth > 6) {
             scaleTime(time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, t);
+        }
+
+        if (bestMoveStability >= 2 && !time->stopped && !benchmark && t->pos.pvTable[0][0] != 0 && t->pos.pvLength[0] > 1) {
+            uint16_t opponent_reply = t->pos.pvTable[0][1];
+            uint16_t my_best = atomic_load_explicit(&t->best_opponent_singular_reply, memory_order_relaxed);
+            
+            if (my_best == opponent_reply && opponent_reply != 0) {
+                int votes = 0;
+                for (int i = 0; i < thread_pool.thread_count; i++) {
+                    if (atomic_load_explicit(&thread_pool.threads[i]->best_opponent_singular_reply, memory_order_relaxed) == opponent_reply) {
+                        votes++;
+                    }
+                }
+                
+                int majority = (thread_pool.thread_count + 1) / 2;
+                if (votes >= majority) {
+                    time->stopped = 1;
+                    store_rlx(thread_pool.stop, true);
+                }
+            }
         }
         
         int endTime = getTimeMiliSecond();

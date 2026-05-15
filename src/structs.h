@@ -230,6 +230,8 @@ typedef struct {
     SearchStack *ss;                   // points to ss_base + STACK_OFFSET (10)
     int search_depth;                  // depth for this thread's search
     my_time *time;                     // pointer to shared time control
+    uint16_t opponent_singular_reply;
+    _Atomic uint16_t best_opponent_singular_reply;
 } ThreadData;
 
 typedef struct {
