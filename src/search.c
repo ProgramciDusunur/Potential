@@ -1556,7 +1556,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             int nonpv_reduction = new_depth * 1024;
 
             // if we have chance about to dive into quiescence search then extend
-            if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
+            if (currentMove == tt_move && tt_depth > 1) {
                 nonpv_reduction = myMAX(nonpv_reduction, 1024);
             }
 
@@ -1578,7 +1578,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
 
             // if we have chance about to dive into quiescence search then extend
-            if (currentMove == tt_move && pos->rootDepth > 8 && tt_depth > 1) {
+            if (currentMove == tt_move && tt_depth > 1) {
                 new_depth = myMAX(new_depth, 1);
             }
             
