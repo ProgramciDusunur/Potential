@@ -985,8 +985,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         return ttAdjustedEval;
 
     // Null Move Pruning
+    int nmp_eval_margin = 75;
+    if (thread_pool.thread_count > 1) {
+        int eval_bias = (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 17) % 1000) - 500;
+        nmp_eval_margin += (eval_bias / 450) * 15;
+    }
+
     if (!ss->singular_move && depth >= NMP_DEPTH && !in_check && !rootNode &&
-            ttAdjustedEval >= beta + 75 &&
+            ttAdjustedEval >= beta + nmp_eval_margin &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
@@ -1020,6 +1026,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         R += myMIN((ttAdjustedEval - beta) / NMP_EVAL_DIVISOR, 3);        
 
+        if (thread_pool.thread_count > 1) {
+            int r_bias = (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 1000) - 500;
+            R += r_bias / 450;
+        }
+
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
         score = -negamax(-beta, -beta + 1, depth - R, t, time, ss + 1, !predicted_cut_node);
@@ -1050,7 +1061,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 return score;
             }
 
-            if (score >= beta + 30) {
+            int nmp_verify_margin = 30;
+            if (thread_pool.thread_count > 1) {
+                int verify_bias = (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 19) % 1000) - 500;
+                nmp_verify_margin += (verify_bias / 450) * 10;
+            }
+
+            if (score >= beta + nmp_verify_margin) {
                 ss->move = 0;
                 ss->piece = 0;
                 return score;
