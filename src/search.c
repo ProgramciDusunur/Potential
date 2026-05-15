@@ -1020,6 +1020,17 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         R += myMIN((ttAdjustedEval - beta) / NMP_EVAL_DIVISOR, 3);        
 
+        int nmp_reduction = R * 1024;
+
+        // Dynamic helper thread reduction bias
+        // ~5% chance of ±1 ply depth change
+        bool multithreaded_search = thread_pool.thread_count > 1;
+        if (multithreaded_search) {
+            nmp_reduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 1078) - 27;
+        }
+
+        R = nmp_reduction / 1024;
+
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
         score = -negamax(-beta, -beta + 1, depth - R, t, time, ss + 1, !predicted_cut_node);
