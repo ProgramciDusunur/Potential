@@ -401,7 +401,7 @@ void uciProtocol(int argc, char *argv[]) {
     printf("Potential by ProgramciDusunur\n");
 
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
-        printf("bench running..");
+        printf("bench running..\n");
         benchmark(13, position, time_ctrl);
         return;
     }

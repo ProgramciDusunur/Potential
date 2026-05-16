@@ -1,46 +1,52 @@
-# Define make variables
 _THIS       := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _ROOT       := $(_THIS)
 TARGET      := Potential
 WARNINGS    = -Wall -Wextra -Wno-unused-variable
-CFLAGS      := -funroll-loops -fomit-frame-pointer -Ofast -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
+CFLAGS      := -funroll-loops -fomit-frame-pointer -O3 -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
 NATIVE      = -march=native
 AVX2FLAGS   = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi
 BMI2FLAGS   = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2
 AVX512FLAGS = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw
 NEONFLAGS   = -DUSE_NEON -flax-vector-conversions
+COMMIT_SHA := $(shell git rev-parse --short HEAD 2>/dev/null)
+
+ifeq ($(COMMIT_SHA),)
+    COMMIT_SHA := unknown
+endif
+
+CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 
 NAME        := Potential
 TMPDIR      := .tmp
 
-# Detect Clang
 ifeq ($(CC), clang)
-	CFLAGS = -funroll-loops -Ofast -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
+	CFLAGS = -funroll-loops -O3 -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
 endif
 
-# Detect Windows
 ifeq ($(OS), Windows_NT)
-	MKDIR   := mkdir
+    CC      = gcc
+    MKDIR   := mkdir
 else
 ifeq ($(COMP), MINGW)
-	MKDIR   := mkdir
+    CC      = gcc
+    MKDIR   := mkdir
 else
-	MKDIR   := mkdir -p
+    CC      ?= cc
+    MKDIR   := mkdir -p
 endif
 endif
 
-# Detect Windows
 ifeq ($(OS), Windows_NT)
-	uname_S  := Windows
-	SUFFIX   := .exe
-	CFLAGS  += -static
+    uname_S  := Windows
+    SUFFIX   := .exe
+    CFLAGS  += -static
+    FLAGS    = -lpthread
 else
-	FLAGS    = -pthread -lm
-	SUFFIX  :=
-	uname_S := $(shell uname -s)
+    FLAGS    = -pthread -lm
+    SUFFIX  :=
+    uname_S := $(shell uname -s)
 endif
 
-# Different native flag for macOS
 ifeq ($(uname_S), Darwin)
 	NATIVE = -mcpu=apple-a14
 	FLAGS  =
@@ -69,7 +75,6 @@ ifeq ($(ARCH_DETECTED),)
 	endif
 endif
 
-# Remove native for builds
 ifdef build
 	NATIVE =
 else
@@ -87,7 +92,6 @@ else
 	endif
 endif
 
-# SPECIFIC BUILDS
 ifeq ($(build), native)
 	NATIVE     = -march=native
 	ARCH       = -x86-64-native
@@ -135,6 +139,12 @@ ifeq ($(build), x86-64-avx512)
 	CFLAGS   += $(AVX512FLAGS)
 endif
 
+ifeq ($(build), haswell)
+    NATIVE    = -march=haswell
+    ARCH      = -x86-64-haswell
+    CFLAGS   += $(BMI2FLAGS)
+endif
+
 ifeq ($(build), debug)
 	CFLAGS = -O3 -g3 -fno-omit-frame-pointer -std=gnu++2a
 	NATIVE   = -msse -msse3 -mpopcnt
@@ -153,27 +163,18 @@ ifeq ($(build), debug)
 	endif
 endif
 
-# Get what pgo flags we should be using
-ifneq ($(findstring gcc, $(CC)),)
-	PGOGEN   = -fprofile-generate
-	PGOUSE   = -fprofile-use
-endif
-
-ifneq ($(findstring clang, $(CC)),)
-	PGOMERGE = llvm-profdata merge -output=quanticade.profdata *.profraw
-	PGOGEN   = -fprofile-instr-generate
-	PGOUSE   = -fprofile-instr-use=quanticade.profdata
-endif
-
-SOURCES := $(wildcard *.c)
+SOURCES := $(filter-out tuner.c,$(wildcard *.c))
 OBJECTS := $(patsubst %.c,$(TMPDIR)/%.o,$(SOURCES))
 DEPENDS := $(patsubst %.c,$(TMPDIR)/%.d,$(SOURCES))
 
-EXE	    := $(NAME)$(SUFFIX)
+EXE     := $(NAME)$(SUFFIX)
 
-all: $(TARGET)
+default: pgo
+
+build_core: $(TARGET)
+
 clean:
-	@rm -rf $(TMPDIR) *.o *.d $(TARGET)
+	@rm -rf $(TMPDIR) *.o *.d $(TARGET) tuner$(SUFFIX) *.gcda
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS) $(LDFLAGS)
@@ -184,10 +185,16 @@ $(TMPDIR)/%.o: %.c | $(TMPDIR)
 $(TMPDIR):
 	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/Source"
 
-# Usual disservin yoink for makefile related stuff
+tuner: tuner.c
+	$(CC) -O3 -o tuner$(SUFFIX) tuner.c -lm
+
 pgo:
-	$(CC) $(CFLAGS) $(PGOGEN) $(NATIVE) $(INSTRUCTIONS) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
+	@$(MAKE) clean
+	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-generate -fprofile-update=atomic"
 	./$(EXE) bench
-	$(PGOMERGE)
-	$(CC) $(CFLAGS) $(NATIVE) $(INSTRUCTIONS) $(PGOUSE) -MMD -MP -o $(EXE) $(SOURCES) $(LDFLAGS)
-	@rm -f *.gcda *.profraw *.o $(DEPENDS) *.d
+	@rm -f $(OBJECTS) $(EXE)
+	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-use -fprofile-correction -fprofile-partial-training"
+	@rm -f $(TMPDIR)/*.gcda *.gcda
+
+fast:
+	@$(MAKE) build_core
