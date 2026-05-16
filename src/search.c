@@ -1078,6 +1078,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if (!isTactical(nmp_ref_move)) {
                 int refutation_bonus = 100 + 50 * nmp_depth;
                 adjust_single_quiet_hist_entry(t, pos->side, nmp_ref_move, refutation_bonus);
+                adjust_single_pawn_hist_entry(t, nmp_ref_move, refutation_bonus);
             }
         }
     }    

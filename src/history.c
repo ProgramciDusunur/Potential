@@ -43,6 +43,14 @@ void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int 
     t->search_d.quietHistory[side][from][to][threatSource][threatTarget] += bonus;
 }
 
+void adjust_single_pawn_hist_entry(ThreadData *t, uint16_t move, int bonus) {
+    int from = getMoveSource(move);
+    int to = getMoveTarget(move);
+
+    t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[from]][to] += bonus;
+
+}
+
 void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int bonus, int malus, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);

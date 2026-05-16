@@ -31,6 +31,7 @@ extern int BAD_QUIET_INDEX_SCALE;
 
 int scaledBonus(int score, int bonus, int gravity);
 void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int bonus);
+void adjust_single_pawn_hist_entry(ThreadData *t, uint16_t move, int bonus);
 void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int bonus, int malus, moves *badQuiets);
 void updatePawnHistory(ThreadData *t, uint16_t bestMove, int bonus, int malus, moves *badQuiets);
 void updateSingleCHScore(ThreadData *t, uint16_t move, const int offSet, const int bonus, int quiet_hist_score, SearchStack *ss);
