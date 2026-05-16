@@ -358,9 +358,9 @@ void read_input(time* time) {
     }
 }
 
-void communicate(time* time) {
+void communicate(time* time, board* position) {
     // if time is up break here
-    if (time->timeset == 1 && getTimeMiliSecond() > time->hardLimit) {
+    if (time->timeset == 1 && getTimeMiliSecond() > time->hardLimit && position->pvTable[0][0] != 0) {
         // tell engine to stop calculating
         time->stopped = 1;
     }
