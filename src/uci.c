@@ -403,6 +403,8 @@ void uciProtocol(int argc, char *argv[]) {
     if (argc >= 2 && strncmp(argv[1], "bench", 5) == 0) {
         printf("bench running..\n");
         benchmark(13, position, time_ctrl);
+        free(position);
+        free(time_ctrl);
         return;
     }
 
@@ -520,5 +522,8 @@ void uciProtocol(int argc, char *argv[]) {
             benchmark(13, position, time_ctrl);
         }
     }
+    
+    free(position);
+    free(time_ctrl);
 }
 
