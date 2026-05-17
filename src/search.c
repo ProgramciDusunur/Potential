@@ -391,7 +391,7 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         // 4 ply continuation history
         quiet_score += getContinuationHistoryScore(t, 4, move, ss);
         // pawn history
-        quiet_score += t->shared_history->pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
+        quiet_score += thread_pool.shared_history.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
@@ -790,7 +790,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         inc_rlx(t->search_i.nodes_searched);
 
         prefetch_hash_entry(position->hashKey, position->fifty);        
-        prefetch_corrhist(position, t);
+        prefetch_corrhist(position);
 
         // score current move
         score = -quiescence(-beta, -alpha, t, time, ss + 1);
@@ -1014,7 +1014,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         init_threats(pos);
 
         prefetch_hash_entry(pos->hashKey, pos->fifty);        
-        prefetch_corrhist(pos, t);
+        prefetch_corrhist(pos);
 
         int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) / NMP_REDUCTION_DEPTH_DIVISOR;
 
@@ -1159,7 +1159,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 legal_make_move(move, pos);
 
                 prefetch_hash_entry(pos->hashKey, pos->fifty);                
-                prefetch_corrhist(pos, t);
+                prefetch_corrhist(pos);
                 
                 inc_rlx(t->search_i.nodes_searched);
                 legal_moves++;
@@ -1252,7 +1252,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         bool notTactical = !tactical;
         bool gives_check = move_gives_check(currentMove, pos);
 
-        int pawnHistoryValue = notTactical ? t->shared_history->pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
+        int pawnHistoryValue = notTactical ? thread_pool.shared_history.pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
 
         int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
@@ -1433,7 +1433,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         inc_rlx(t->search_i.nodes_searched);
 
         prefetch_hash_entry(pos->hashKey, pos->fifty);    
-        prefetch_corrhist(pos, t);
+        prefetch_corrhist(pos);
 
         // increment legal moves
         legal_moves++;

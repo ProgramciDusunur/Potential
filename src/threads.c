@@ -1,16 +1,5 @@
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-
 #include "threads.h"
 #include "search.h"
-
-#if defined(_WIN32)
-#include <windows.h>
-#elif defined(__linux__) || defined(__APPLE__)
-#include <sched.h>
-#include <pthread.h>
-#endif
 
 ThreadPool thread_pool;
 
@@ -30,18 +19,6 @@ static void free_threads(void) {
         }
     }
     thread_pool.thread_count = 0;
-
-    for (int i = 0; i < thread_pool.shared_history_count; i++) {
-        if (thread_pool.shared_histories[i] != NULL) {
-            free(thread_pool.shared_histories[i]);
-            thread_pool.shared_histories[i] = NULL;
-        }
-    }
-    if (thread_pool.shared_histories != NULL) {
-        free(thread_pool.shared_histories);
-        thread_pool.shared_histories = NULL;
-    }
-    thread_pool.shared_history_count = 0;
 }
 
 void init_threads(int requested_count) {
@@ -54,20 +31,6 @@ void init_threads(int requested_count) {
     thread_pool.thread_count = requested_count;
     store_rlx(thread_pool.stop, false);
 
-    // Default to 8 threads per L3 Cache domain
-    int threads_per_l3 = 8;
-    thread_pool.shared_history_count = (requested_count + threads_per_l3 - 1) / threads_per_l3;
-    thread_pool.shared_histories = (SharedHistory **)malloc(thread_pool.shared_history_count * sizeof(SharedHistory *));
-
-    for (int i = 0; i < thread_pool.shared_history_count; i++) {
-        // calloc allocates zeroed memory lazily, supporting NUMA first-touch policy
-        thread_pool.shared_histories[i] = (SharedHistory *)calloc(1, sizeof(SharedHistory));
-        if (thread_pool.shared_histories[i] == NULL) {
-            printf("FATAL ERROR: Memory allocation failed for shared history domain %d\n", i);
-            exit(1);
-        }
-    }
-
     for (int i = 0; i < requested_count; i++) {
         thread_pool.threads[i] = (ThreadData *)malloc(sizeof(ThreadData));
         
@@ -78,7 +41,6 @@ void init_threads(int requested_count) {
 
         memset(thread_pool.threads[i], 0, sizeof(ThreadData));
         thread_pool.threads[i]->id = i;
-        thread_pool.threads[i]->shared_history = thread_pool.shared_histories[i / threads_per_l3];
         thread_pool.threads[i]->ss = thread_pool.threads[i]->ss_base + STACK_OFFSET;
         clearStaticEvaluationHistory(thread_pool.threads[i]->ss);
     }
@@ -95,23 +57,6 @@ uint64_t total_nodes(void) {
 // Thread entry function for helper threads
 static void *thread_entry(void *arg) {
     ThreadData *t = (ThreadData *)arg;
-
-#if defined(_WIN32)
-    // Pin thread to specific logical processor for NUMA-awareness (Windows)
-    HANDLE native_thread = GetCurrentThread();
-    GROUP_AFFINITY affinity;
-    memset(&affinity, 0, sizeof(GROUP_AFFINITY));
-    affinity.Group = t->id / 64;
-    affinity.Mask = 1ULL << (t->id % 64);
-    SetThreadGroupAffinity(native_thread, &affinity, NULL);
-#elif defined(__linux__)
-    // Pin thread to specific logical processor for NUMA-awareness (Linux)
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(t->id, &cpuset);
-    pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-#endif
-
     searchPosition(t->search_depth, false, t, t->time);
     return NULL;
 }

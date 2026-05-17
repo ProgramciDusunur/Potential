@@ -225,7 +225,6 @@ typedef struct {
     pthread_t native_handle;
     SearchInfo search_i;
     SearchData search_d;
-    SharedHistory *shared_history;
     board pos;
     SearchStack ss_base[maxPly + 20]; // 20 = STACK_SAFETY_MARGIN
     SearchStack *ss;                   // points to ss_base + STACK_OFFSET (10)
@@ -237,8 +236,7 @@ typedef struct {
     ThreadData *threads[MAX_THREADS];
     int thread_count;
 
-    SharedHistory **shared_histories;
-    int shared_history_count;
+    SharedHistory shared_history;
 
     _Atomic bool stop;    
     board root_pos;    
