@@ -303,15 +303,16 @@ void clear_histories(void) {
         memset(thread_pool.threads[i]->search_d.quietHistory, 0, sizeof(thread_pool.threads[i]->search_d.quietHistory));
         memset(thread_pool.threads[i]->search_d.captureHistory, 0, sizeof(thread_pool.threads[i]->search_d.captureHistory));        
         memset(thread_pool.threads[i]->search_d.continuationHistory, 0, sizeof(thread_pool.threads[i]->search_d.continuationHistory));
-    }                        
+    }
     
-    // To preserve NUMA first-touch policy, we free and re-allocate the shared histories
-    // instead of memsetting them from the main thread.
     for (int i = 0; i < thread_pool.shared_history_count; i++) {
         free(thread_pool.shared_histories[i]);
-        // calloc allocates zeroed memory lazily, ensuring the first thread to write to a page
-        // will cause that page to be physically allocated on its own NUMA node!
         thread_pool.shared_histories[i] = (SharedHistory *)calloc(1, sizeof(SharedHistory));
+    }
+    
+    int threads_per_l3 = 8;
+    for (int i = 0; i < how_many_threads; i++) {
+        thread_pool.threads[i]->shared_history = thread_pool.shared_histories[i / threads_per_l3];
     }
 }
 
