@@ -1526,6 +1526,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction -= GIVES_CHECK_LMR_SCALAR;
         }
 
+        // correction value based reduction
+        // when the position becomes more complex we want to reduce less
+        lmrReduction -= 768 * abs(correction_value) / 98304;
+
         // Dynamic helper thread reduction bias
         // ~5% chance of tipping the reduced depth by ±1 ply
         bool multithreaded_search = thread_pool.thread_count > 1;
