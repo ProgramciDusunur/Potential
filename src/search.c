@@ -1412,9 +1412,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 extensions -= 2;
             }
         } 
-        // Low Depth Singular Extensions
-        else if (depth <= 7 && !in_check && ttAdjustedEval <= alpha - 25 && predicted_cut_node) {
-            extensions++;
+        // Low Depth Singular Extensions        
+        else if (depth <= 7 && !in_check && predicted_cut_node) {
+            int ldse_margin = alpha - 25;
+            ldse_margin += 768 * abs(correction_value) / 98304;
+            if (ttAdjustedEval <= ldse_margin) {
+                extensions++;
+            }            
         }
 
 
