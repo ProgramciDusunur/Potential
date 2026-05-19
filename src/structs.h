@@ -183,17 +183,6 @@ typedef struct {
     // pawnHistory [pawnKey][piece][to]
     int16_t pawnHistory[2048][12][64];
 
-    // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
-    int16_t quietHistory[2][64][64][2][2];
-
-    // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-    int16_t continuationHistory[12][64][12][64];    
-
-    // captureHistory [piece][toSquare][capturedPiece]
-    int16_t captureHistory[12][64][13];
-
-     /* Correction Histories */
-    
     // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
     int16_t contCorrhist[12][64][12][64];
 
@@ -211,6 +200,17 @@ typedef struct {
 
     // king rook pawn correction history [side to move][key]
     int16_t krp_corrhist[2][16384];
+} SharedHistory;
+
+typedef struct {
+    // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
+    int16_t quietHistory[2][64][64][2][2];
+
+    // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+    int16_t continuationHistory[12][64][12][64];    
+
+    // captureHistory [piece][toSquare][capturedPiece]
+    int16_t captureHistory[12][64][13];
 } SearchData;
 
 typedef struct {
@@ -225,6 +225,7 @@ typedef struct {
     pthread_t native_handle;
     SearchInfo search_i;
     SearchData search_d;
+    SharedHistory *shared_history;
     board pos;
     SearchStack ss_base[maxPly + 20]; // 20 = STACK_SAFETY_MARGIN
     SearchStack *ss;                   // points to ss_base + STACK_OFFSET (10)
@@ -235,6 +236,9 @@ typedef struct {
 typedef struct {
     ThreadData *threads[MAX_THREADS];
     int thread_count;
+
+    SharedHistory **shared_histories;
+    int shared_history_count;
 
     _Atomic bool stop;    
     board root_pos;    

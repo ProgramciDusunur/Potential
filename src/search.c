@@ -391,7 +391,7 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         // 4 ply continuation history
         quiet_score += getContinuationHistoryScore(t, 4, move, ss);
         // pawn history
-        quiet_score += t->search_d.pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
+        quiet_score += t->shared_history->pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
@@ -1252,7 +1252,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         bool notTactical = !tactical;
         bool gives_check = move_gives_check(currentMove, pos);
 
-        int pawnHistoryValue = notTactical ? t->search_d.pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
+        int pawnHistoryValue = notTactical ? t->shared_history->pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
 
         int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
                                         [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
@@ -1260,7 +1260,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + (moveHistory / 8192 * notTactical));
-
 
         bool isNotMated = bestScore > -mateFound;
 
