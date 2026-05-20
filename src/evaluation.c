@@ -426,12 +426,7 @@ int evaluate(board* position) {
     int w_shield = countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]);
     score += S(w_shield * king_shield_bonus_middlegame, w_shield * king_shield_bonus_endgame);
     int b_shield = countBits(kingAttacks[blackKingSquare] & position->occupancies[black]);
-    score -= S(b_shield * king_shield_bonus_middlegame, b_shield * king_shield_bonus_endgame);
-    
-    if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0)
-        score -= S(king_semi_open_file_score, king_semi_open_file_score);
-    if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0)
-        score += S(king_semi_open_file_score, king_semi_open_file_score);
+    score -= S(b_shield * king_shield_bonus_middlegame, b_shield * king_shield_bonus_endgame);        
 
     // Interpolation
     int mg = mg_of(score);
