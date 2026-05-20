@@ -404,24 +404,8 @@ int evaluate(board* position) {
     Score score = position->psqt_score;
     
     const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
-    const int blackKingSquare = getLS1BIndex(position->bitboards[k]);    
-    
-    
-    U64 rookBB = position->bitboards[R];
-    while (rookBB) {
-        int sq = getLS1BIndex(rookBB);
-        if ((position->bitboards[P] & fileMasks[sq]) == 0)
-            score += S(semi_open_file_score, semi_open_file_score);
-        popBit(rookBB, sq);
-    }
-    rookBB = position->bitboards[r];
-    while (rookBB) {
-        int sq = getLS1BIndex(rookBB);
-        if ((position->bitboards[p] & fileMasks[sq]) == 0)
-            score -= S(semi_open_file_score, semi_open_file_score);
-        popBit(rookBB, sq);
-    }
-    
+    const int blackKingSquare = getLS1BIndex(position->bitboards[k]);
+            
     // King safety
     int w_shield = countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]);
     score += S(w_shield * king_shield_bonus_middlegame, w_shield * king_shield_bonus_endgame);
