@@ -1417,7 +1417,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             ldse_margin += 768 * abs(correction_value) / 98304;
             if (ttAdjustedEval <= ldse_margin) {
                 extensions++;
-            }            
+
+                if (!pvNode && !tt_capture && tt_depth >= depth - 3 && ttAdjustedEval <= alpha - 100) {
+                    extensions++;
+                }
+            }
         }
 
 
