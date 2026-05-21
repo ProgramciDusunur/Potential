@@ -1292,7 +1292,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             } 
 
             else {
-                int noisy_futility_margin = static_eval + 71 * depth;
+                int noisy_futility_margin = static_eval + 71 * depth +
+                    SEE_PIECE_VALUES[t->pos.mailbox[getMoveTarget(currentMove)]];
+                ;
                 if (!in_check && depth <= 4 && mp.CURRENT_STAGE == STAGE_BAD_NOISY && noisy_futility_margin <= alpha) {
                     if (!is_decisive(bestScore) && bestScore < noisy_futility_margin) {
                         bestScore = noisy_futility_margin;
