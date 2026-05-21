@@ -320,10 +320,15 @@ void quiet_history_aging(void) {
     int how_many_threads = thread_pool.thread_count;
 
     for (int i = 0;i < how_many_threads;i++) {
-        int16_t *p = (int16_t *)thread_pool.threads[i]->search_d.quietHistory;
+        int16_t *quiet_hist_p = (int16_t *)thread_pool.threads[i]->search_d.quietHistory;
 
         for (int j = 0; j < 32768; j++) {
-            p[j] >>= 1;
+            quiet_hist_p[j] >>= 1;
+        }
+
+        int16_t *pawn_hist_p = (int16_t *)thread_pool.threads[i]->shared_history->pawnHistory;
+        for (int j = 0; j < 1572864; j++) {
+            pawn_hist_p[j] >>= 1;
         }
     }            
 }
