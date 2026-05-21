@@ -34,7 +34,7 @@
 /*╔═══════════════════════════════╗
   ║ Static Exchange Evaluation    ║
   ╚═══════════════════════════════╝*/
-  int SEE_PIECE_VALUES[] = {100, 300, 300, 500, 1200, 0, 0};
+  int SEE_PIECE_VALUES[] = {100, 300, 300, 500, 1200, 0, 0};  
   int QS_SEE_THRESHOLD = 0;
   int SEE_MOVE_ORDERING_THRESHOLD = -82;
   int SEE_QUIET_THRESHOLD = -67;
@@ -109,6 +109,7 @@
     ║ Futility Pruning   ║
     ╚════════════════════╝*/
   int FUTILITY_PRUNING_OFFSET[] = {0, 82, 41, 20, 10, 5};
+  int BNFP_CAPTURED_VALUES[] = {71, 353, 399, 527, 1107, 0, -71, -353, -399, -527, -1107, 0};
   int FP_DEPTH = 5;
   int FP_MARGIN = 82;
   
@@ -1293,7 +1294,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             else {
                 int noisy_futility_margin = static_eval + 71 * depth +
-                    SEE_PIECE_VALUES[t->pos.mailbox[getMoveTarget(currentMove)]];
+                    BNFP_CAPTURED_VALUES[t->pos.mailbox[getMoveTarget(currentMove)]];
                 ;
                 if (!in_check && depth <= 4 && mp.CURRENT_STAGE == STAGE_BAD_NOISY && noisy_futility_margin <= alpha) {
                     if (!is_decisive(bestScore) && bestScore < noisy_futility_margin) {
