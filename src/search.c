@@ -1343,7 +1343,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 doubleMargin -= ss->singular_ply * 25;*/
 
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN;
-                doubleMargin += 300 * pvNode; // Bigger margin for PV nodes
+                doubleMargin += 200 * pvNode; // Bigger margin for PV nodes
                 if (singularScore <= singularBeta - doubleMargin) {
                     extensions++;
                 }
