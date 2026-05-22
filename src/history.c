@@ -58,10 +58,11 @@ void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int bonu
         int badQuietTo = getMoveTarget(badQuiets->moves[index]);
 
         int badQuietScore = t->search_d.quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(&t->pos, badQuietFrom)][is_square_threatened(&t->pos, badQuietTo)];
-        int scaled_malus = malus + index * BAD_QUIET_INDEX_SCALE;
+        int base = 1024 + 45 * index;
+        int scale = 1024 * 1024 / (base * base / 1024);
 
         t->search_d.quietHistory[side][badQuietFrom][badQuietTo][is_square_threatened(&t->pos, badQuietFrom)][is_square_threatened(&t->pos, badQuietTo)] +=
-        scaledBonus(badQuietScore, -scaled_malus, maxQuietHistory);
+        scaledBonus(badQuietScore, -malus * scale / 1024, maxQuietHistory);
     }
 }
 
@@ -140,7 +141,9 @@ void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int bonus, int 
 
     for (int index = 0; index < badQuiets->count; index++) {
         if (badQuiets->moves[index] == bestMove) continue;
-        updateAllCH(t, badQuiets->moves[index], -malus, quiet_hist_score, ss);
+        int base = 1024 + 45 * index;
+        int scale = 1024 * 1024 / (base * base / 1024);
+        updateAllCH(t, badQuiets->moves[index], -malus * scale / 1024, quiet_hist_score, ss);
     }
 }
 
