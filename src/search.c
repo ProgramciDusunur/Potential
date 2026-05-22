@@ -1774,6 +1774,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     int averageScore = noEval;
     uint8_t evalStability = 0;
     int baseSearchScore = -infinity;
+    bool completed_d1 = false;
 
     quiet_history_aging();    
 
@@ -1809,6 +1810,14 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         int window = ASP_WINDOW_BASE;
         int aspirationWindowDepth = current_depth;
+
+        if (current_depth >= ASP_WINDOW_MIN_DEPTH && averageScore != noEval &&
+            thread_pool.thread_count > 1 &&
+            load_rlx(thread_pool.sum_completed_d1) == thread_pool.thread_count) {
+            int tc = thread_pool.thread_count;
+            int64_t sum = load_rlx(thread_pool.sum_scores);
+            score = (int)(((int64_t)averageScore * tc + sum) / (tc * 2));
+        }
 
         while (true) {
 
@@ -1867,6 +1876,20 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                 }
 
             } else {
+                int old_avg = averageScore;
+                averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
+
+                if (thread_pool.thread_count > 1) {
+                    if (completed_d1) {
+                        atomic_fetch_add_explicit(&thread_pool.sum_scores,
+                            (int64_t)(averageScore - old_avg), memory_order_relaxed);
+                    } else {
+                        completed_d1 = true;
+                        atomic_fetch_add_explicit(&thread_pool.sum_completed_d1, 1, memory_order_relaxed);
+                        atomic_fetch_add_explicit(&thread_pool.sum_scores,
+                            (int64_t)averageScore, memory_order_relaxed);
+                    }
+                }
                 break;
             }
             window *= 1.8f;
@@ -1874,7 +1897,6 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         }
 
         baseSearchScore = current_depth == 1 ? score : baseSearchScore;
-        averageScore = averageScore == noEval ? score : (averageScore + score) / 2;
 
 
         if (t->pos.pvTable[0][0] == previousBestMove) {

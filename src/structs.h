@@ -240,7 +240,9 @@ typedef struct {
     SharedHistory **shared_histories;
     int shared_history_count;
 
-    _Atomic bool stop;    
+    _Atomic bool stop;
+    _Atomic int64_t sum_scores;
+    _Atomic int sum_completed_d1;
     board root_pos;    
 } ThreadPool;
 
