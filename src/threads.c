@@ -116,8 +116,7 @@ static void *thread_entry(void *arg) {
 
 void start_helpers(board *root_pos, int depth, my_time *time) {
     store_rlx(thread_pool.stop, false);
-    store_rlx(thread_pool.sum_scores, 0);
-    store_rlx(thread_pool.sum_completed_d1, 0);
+    store_rlx(thread_pool.best_thread_score, 32768);
 
     for (int i = 1; i < thread_pool.thread_count; i++) {
         ThreadData *t = thread_pool.threads[i];

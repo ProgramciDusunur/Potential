@@ -30,6 +30,15 @@ double clamp_double(const double d, const double min, const double max) {
     return t > max ? max : t;
 }
 
+void atomic_max_u32(_Atomic uint32_t *ptr, uint32_t val) {
+    uint32_t old = atomic_load_explicit(ptr, memory_order_relaxed);
+    while (val > old) {
+        if (atomic_compare_exchange_weak_explicit(ptr, &old, val,
+                memory_order_relaxed, memory_order_relaxed))
+            return;
+    }
+}
+
 void printBoard(board* position) {
     printf("\n");
     // loop over board ranks

@@ -17,6 +17,8 @@
 #define dec_rlx(x)  atomic_fetch_sub_explicit(&(x), 1, memory_order_relaxed)
 #define store_rlx(x, v) atomic_store_explicit(&(x), (v), memory_order_relaxed)
 
+void atomic_max_u32(_Atomic uint32_t *ptr, uint32_t val);
+
 
 bool is_mate_score(int score);
 bool is_win(int score);
