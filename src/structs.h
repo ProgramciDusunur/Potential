@@ -241,6 +241,10 @@ typedef struct {
     int shared_history_count;
 
     _Atomic bool stop;    
+
+#define SINGULAR_TABLE_SIZE 8192
+    _Atomic uint16_t singular_votes[SINGULAR_TABLE_SIZE];
+
     board root_pos;    
 } ThreadPool;
 

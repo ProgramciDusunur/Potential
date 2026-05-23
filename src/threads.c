@@ -116,6 +116,7 @@ static void *thread_entry(void *arg) {
 
 void start_helpers(board *root_pos, int depth, my_time *time) {
     store_rlx(thread_pool.stop, false);
+    memset((void *)thread_pool.singular_votes, 0, sizeof(thread_pool.singular_votes));
 
     for (int i = 1; i < thread_pool.thread_count; i++) {
         ThreadData *t = thread_pool.threads[i];

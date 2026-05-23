@@ -146,6 +146,8 @@
   // Negative Extensions
   int DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
   int TRIPLE_NEGATIVE_EXTENSION_MARGIN = 90;
+  // Cross-Thread SE Ply Relaxation
+  int SE_PLY_EXTENSION = 256;
   
   /*╔═══════════════════════════════╗
     ║ Internal Iterative Reductions ║
@@ -1312,7 +1314,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         int extensions = 0;
 
         // Singular Extensions
-        if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !ss->singular_move &&
+        int se_ply_limit = depth * 2;
+        if (thread_pool.thread_count > 1) {
+            int votes = load_rlx(thread_pool.singular_votes[pos->hashKey % SINGULAR_TABLE_SIZE]);
+            se_ply_limit += votes * SE_PLY_EXTENSION / 1024;
+        }
+        if (pos->ply < se_ply_limit && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !ss->singular_move &&
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
             abs(tt_score) < mateValue) {
             int singularMargin = depth * 5;            
@@ -1331,6 +1338,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             // Singular Extension
             if (singularScore < singularBeta) {
                 extensions++;
+
+                if (thread_pool.thread_count > 1) {
+                    inc_rlx(thread_pool.singular_votes[pos->hashKey % SINGULAR_TABLE_SIZE]);
+                }
 
                 int correction_adj = abs(correction_value) / 2875;                
 
