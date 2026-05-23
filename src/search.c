@@ -1299,6 +1299,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     }
                     break;
                 }
+
+                // Bad Noisy Capture History Pruning
+                if (depth <= 4 && !in_check && mp.CURRENT_STAGE == STAGE_BAD_NOISY && moveHistory < depth * -2048) {
+                    break;
+                }
             }            
         }
 
