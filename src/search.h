@@ -22,6 +22,7 @@ extern int LMR_FULL_DEPTH_MOVES;
 extern int LMR_REDUCTION_LIMIT;
 extern int lateMovePruningBaseReduction;
 extern int NMP_DEPTH;
+extern int CONTHIST_MULT;
 
 extern int LMR_TABLE[2][maxPly][maxPly];
 
