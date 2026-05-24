@@ -1026,11 +1026,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) * NMP_REDUCTION_DEPTH_MULT / 16384;
 
-        R += myMIN(((ttAdjustedEval - beta) * NMP_EVAL_MULT) / 51200, 3);        
+        R += myMIN(((ttAdjustedEval - beta) * NMP_EVAL_MULT) / 51200, 3);
+
+        int bound = beta > tt_score && tt_flag == hashFlagAlpha && depth - 2 <= tt_depth
+                    ? tt_score : beta;
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
-        score = -negamax(-beta, -beta + 1, depth - R, t, time, ss + 1, !predicted_cut_node);
+        score = -negamax(-bound, -bound + 1, depth - R, t, time, ss + 1, !predicted_cut_node);
 
         // decrement ply
         pos->ply--;
@@ -1045,7 +1048,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (time->stopped == 1) return 0;
 
         // fail-hard beta cutoff
-        if (score >= beta) {
+        if (score >= bound) {
 
             // if there is any unproven mate don't return but we can still return beta
             if (score > mateValue) {
@@ -1058,17 +1061,17 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 return score;
             }
 
-            if (score >= beta + 30) {
+            if (score >= bound + 30) {
                 ss->move = 0;
                 ss->piece = 0;
                 return score;
             }
                 
             pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
-            int verificationScore = -negamax(beta - 1, beta, depth - R, t, time, ss, false);
+            int verificationScore = -negamax(bound - 1, bound, depth - R, t, time, ss, false);
             pos->nmpPly = 0;
 
-            if (verificationScore >= beta) {
+            if (verificationScore >= bound) {
                 ss->move = 0;
                 ss->piece = 0;
                 return score;
@@ -1076,7 +1079,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
 
         // Refutation, our opponent has an argument
-        if (score < beta) {
+        if (score < bound) {
             // store null move refutation move
             ss->nmp_refutation_move = ss->move;
 
