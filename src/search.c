@@ -1427,7 +1427,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 extensions++;
             }
 
-            if (!tt_capture && tt_depth >= depth - 3 && ttAdjustedEval <= alpha - 150) {
+            if (!tt_capture && tt_depth >= depth - 3 && ttAdjustedEval <= alpha - 175) {
                 extensions++;
             }
         }
