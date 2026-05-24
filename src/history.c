@@ -6,6 +6,7 @@
 #include "evaluation.h"
 #include "utils.h"
 #include "threads.h"
+#include "search.h"
 
 
 /*╔═════════╗
@@ -124,7 +125,7 @@ void updateSingleCHScore(ThreadData *t, uint16_t move, const int offSet, const i
     if (t->pos.ply < offSet) return;
     int base_conthist_score = getAllCHScore(t, move, quiet_hist_score, ss);
     SearchStack *prev = ss - offSet;
-    const int scaledBonus = bonus - base_conthist_score * abs(bonus) / maxQuietHistory;
+    const int scaledBonus = bonus - (base_conthist_score * abs(bonus) * CONTHIST_MULT) / 16384;
     t->search_d.continuationHistory[prev->piece][getMoveTarget(prev->move)]
                           [t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
 }
