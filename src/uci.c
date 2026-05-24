@@ -357,11 +357,14 @@ void read_input(my_time* time, board* pos) {
         // loop to read bytes from STDIN
         do {
             // read bytes from STDIN
-            bytes = read(fileno(stdin), input, 256);
+            bytes = read(fileno(stdin), input, sizeof(input) - 1);
         }
 
             // until bytes available
         while (bytes < 0);
+
+        // null-terminate the input buffer
+        if (bytes > 0) input[bytes] = '\0';
 
         // searches for the first occurrence of '\n'
         endc = strchr(input, '\n');
@@ -459,8 +462,8 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
 
         if (argc > 2) {
             for (int i = 1; i < argc; i++) {
-                strcat(buffer, argv[i]);
-                if (i < argc - 1) strcat(buffer, " ");
+                snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), "%s", argv[i]);
+                if (i < argc - 1) snprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), " ");
             }
             command = buffer;
         }
@@ -529,7 +532,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
                 use_book = 1;
                 if (strncmp(argv[arg_idx], "book", 4) != 0) {
                     // It's not the literal "book", assume it's a path
-                    strncpy(datagen_book_path, argv[arg_idx], sizeof(datagen_book_path) - 1);
+                    snprintf(datagen_book_path, sizeof(datagen_book_path), "%s", argv[arg_idx]);
                 }
             }
             arg_idx++;
