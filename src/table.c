@@ -46,7 +46,7 @@ U64 generateHashKey(board* position) {
             int square = getLS1BIndex(bitboard);
 
             // hash piece
-            finalKey ^= pieceKeys[piece][square];
+            finalKey ^= pieceKeys[piece][square].hashKey;
 
             // pop LS1B
             popBit(bitboard, square);
@@ -77,7 +77,7 @@ U64 generatePawnKey(board* position) {
     while (bitboard) {
         int square = getLS1BIndex(bitboard);
 
-        final_key ^= pieceKeys[P][square];
+        final_key ^= pieceKeys[P][square].hashKey;
         popBit(bitboard, square);
     }
 
@@ -86,7 +86,7 @@ U64 generatePawnKey(board* position) {
     while (bitboard) {
         int square = getLS1BIndex(bitboard);
 
-        final_key ^= pieceKeys[p][square];
+        final_key ^= pieceKeys[p][square].hashKey;
         popBit(bitboard, square);
     }
     return final_key;
@@ -107,7 +107,7 @@ U64 generateMinorKey(board *position) {
 
             int square = getLS1BIndex(bitboard);
 
-            final_key ^= pieceKeys[piece][square];
+            final_key ^= pieceKeys[piece][square].hashKey;
             popBit(bitboard, square);
         }
     }
@@ -129,7 +129,7 @@ U64 generateMajorKey(board *position) {
 
             int square = getLS1BIndex(bitboard);
 
-            final_key ^= pieceKeys[piece][square];
+            final_key ^= pieceKeys[piece][square].hashKey;
             popBit(bitboard, square);
         }
     }
@@ -151,7 +151,7 @@ U64 generate_white_np_hash_key(board *position) {
 
             int square = getLS1BIndex(bitboard);
 
-            final_key ^= pieceKeys[piece][square];
+            final_key ^= pieceKeys[piece][square].hashKey;
             popBit(bitboard, square);
         }
     }
@@ -174,7 +174,7 @@ U64 generate_black_np_hash_key(board *position) {
 
             int square = getLS1BIndex(bitboard);
 
-            final_key ^= pieceKeys[piece][square];
+            final_key ^= pieceKeys[piece][square].hashKey;
             popBit(bitboard, square);
         }
     }
@@ -197,7 +197,7 @@ U64 generate_krp_key(board *position) {
 
             int square = getLS1BIndex(bitboard);
 
-            final_key ^= pieceKeys[piece][square];
+            final_key ^= pieceKeys[piece][square].hashKey;
             popBit(bitboard, square);
         }
     }
@@ -390,7 +390,15 @@ void initRandomKeys(void) {
     for (int piece = P; piece <= k; piece++) {
         // loop over board squares
         for (int square = 0; square < 64; square++) {
-            pieceKeys[piece][square] = get_random_uint64_number();
+            U64 key = get_random_uint64_number();
+            pieceKeys[piece][square].hashKey = key;
+            pieceKeys[piece][square].pawnKey = (piece == P || piece == p) ? key : 0;
+            pieceKeys[piece][square].minorKey = (isMinor(piece)) ? key : 0;
+            pieceKeys[piece][square].majorKey = (isMajor(piece)) ? key : 0;
+            pieceKeys[piece][square].whiteNonPawnKey = (piece != P && piece != p && pieceColor(piece) == white) ? key : 0;
+            pieceKeys[piece][square].blackNonPawnKey = (piece != P && piece != p && pieceColor(piece) == black) ? key : 0;
+            pieceKeys[piece][square].krpKey = (isKRP(piece) && piece != P && piece != p) ? key : 0;
+            pieceKeys[piece][square].padding_key = 0;
         }
     }
     // loop over board squares

@@ -236,25 +236,8 @@ bool isKRP(int piece) {
 }
 
 inline static void toggleHashesForPiece(board* position, int piece, int square) {
-    position->hashKey ^= pieceKeys[piece][square];
-    if (piece == P || piece == p) {
-        position->pawnKey ^= pieceKeys[piece][square];
-        position->krpKey ^= pieceKeys[piece][square];
-    } else {
-        if (pieceColor(piece) == white) {
-            position->whiteNonPawnKey ^= pieceKeys[piece][square];
-        } else {
-            position->blackNonPawnKey ^= pieceKeys[piece][square];
-        }
-    }
-    if (isMinor(piece)) {
-        position->minorKey ^= pieceKeys[piece][square];
-    }
-    if (isMajor(piece)) {
-        position->majorKey ^= pieceKeys[piece][square];
-    }
-    if (isKRP(piece)) {
-        position->krpKey ^= pieceKeys[piece][square];
+    for (int i = 0; i < 8; i++) {
+        position->zinfo.raw[i] ^= pieceKeys[piece][square].raw[i];
     }
 }
 
