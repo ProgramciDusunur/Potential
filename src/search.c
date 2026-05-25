@@ -960,7 +960,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int corrplexity_value = abs(raw_eval - static_eval);
     int correction_value = get_correction_value(t, ss);    
 
-    ss->staticEval = static_eval;    
+    ss->staticEval = static_eval;
 
     improving = !in_check && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
 
@@ -970,6 +970,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     }
 
     int ttAdjustedEval = static_eval;
+    ss->ttAdjustedEval = ttAdjustedEval;
 
     if (!ss->singular_move && tt_move && !in_check &&
         (tt_flag == hashFlagExact ||
@@ -977,14 +978,15 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
          (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
 
         ttAdjustedEval = tt_score;
+        ss->ttAdjustedEval = ttAdjustedEval;
     }
 
     uint16_t counter_move = (ss - 1)->move;
     bool counter_move_available = counter_move ? !getMoveCapture(counter_move) && !getMovePromote(counter_move) : false;
 
     // static evaluation difference to improve quiet move ordering 
-    if (!rootNode && !ss->singular_move && (ss - 1)->staticEval != noEval && counter_move != 0 && counter_move_available && !(ss - 1)->in_check) {
-        int eval_diff = clamp(-((ss - 1)->staticEval + ss->staticEval), -50, 50);
+    if (!rootNode && !ss->singular_move && (ss - 1)->ttAdjustedEval != noEval && counter_move != 0 && counter_move_available && !(ss - 1)->in_check) {
+        int eval_diff = clamp(-((ss - 1)->ttAdjustedEval + ss->ttAdjustedEval), -50, 50);
         adjust_single_quiet_hist_entry(t, pos->side ^ 1, counter_move, eval_diff);
     }
 
