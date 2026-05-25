@@ -8,6 +8,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "structs.h"
 
 
 #ifndef U64
@@ -64,6 +65,10 @@ inline int pieceColor(int piece) {
     return black;
 }
 
+bool isMinor(int piece);
+bool isMajor(int piece);
+bool isKRP(int piece);
+
 extern char *squareToCoordinates[];
 extern char asciiPieces[];
 extern char promotedPieces[];
@@ -108,7 +113,7 @@ extern const U64 LIGHT_SQUARES;
 /*   Zobrist Hashing   */
 
 // random piece keys [piece][square]
-extern U64 pieceKeys[12][64];
+extern ZobristInfo pieceKeys[12][64];
 // random enpassant keys [square]
 extern U64 enpassantKeys[64];
 // random castling keys

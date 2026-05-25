@@ -30,16 +30,36 @@ typedef struct  {
     uint64_t stmThreats[2];    
 } threats;
 
+typedef union {
+    struct {
+        U64 hashKey;
+        U64 pawnKey;
+        U64 minorKey;
+        U64 majorKey;
+        U64 whiteNonPawnKey;
+        U64 blackNonPawnKey;
+        U64 krpKey;
+        U64 padding_key;
+    };
+    U64 raw[8];
+} ZobristInfo;
+
 typedef struct {
     U64 bitboards[12];
     U64 occupancies[3];
-    U64 hashKey;
-    U64 pawnKey;
-    U64 minorKey;
-    U64 majorKey;
-    U64 whiteNonPawnKey;
-    U64 blackNonPawnKey;
-    U64 krpKey;
+    union {
+        ZobristInfo zinfo;
+        struct {
+            U64 hashKey;
+            U64 pawnKey;
+            U64 minorKey;
+            U64 majorKey;
+            U64 whiteNonPawnKey;
+            U64 blackNonPawnKey;
+            U64 krpKey;
+            U64 padding_key;
+        };
+    };
     uint8_t mailbox[64];
     int side;
     int castle;
@@ -76,13 +96,19 @@ typedef struct {
 struct copyposition {
     U64 bitboards[12];
     U64 occupancies[3];
-    U64 hashKey;
-    U64 pawnKey;
-    U64 minorKey;
-    U64 majorKey;
-    U64 whiteNonPawnKey;
-    U64 blackNonPawnKey;
-    U64 krpKey;
+    union {
+        ZobristInfo zinfo;
+        struct {
+            U64 hashKey;
+            U64 pawnKey;
+            U64 minorKey;
+            U64 majorKey;
+            U64 whiteNonPawnKey;
+            U64 blackNonPawnKey;
+            U64 krpKey;
+            U64 padding_key;
+        };
+    };
     uint8_t mailbox[64];
     int side;
     int castle;
