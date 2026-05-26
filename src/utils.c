@@ -135,6 +135,21 @@ void printMailbox(const board *position) {
 
 }
 
+char* get_move_string(uint16_t move) {
+    static char moveStr[5];
+    if (getMovePromote(move)) {
+        snprintf(moveStr, sizeof(moveStr), "%s%s%c",
+                squareToCoordinates[getMoveSource(move)],
+                squareToCoordinates[getMoveTarget(move)],
+                promotedPieces[getMovePromotedPiece(black, move)]);
+    } else {
+        snprintf(moveStr, sizeof(moveStr), "%s%s",
+               squareToCoordinates[getMoveSource(move)],
+               squareToCoordinates[getMoveTarget(move)]);
+    }
+    return moveStr;
+}
+
 double clampDecimalValue(double d, const double min, const double max) {
     const double t = d < min ? min : d;
     return t > max ? max : t;

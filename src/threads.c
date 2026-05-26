@@ -149,3 +149,30 @@ void wait_helpers(void) {
         pthread_join(thread_pool.threads[i]->native_handle, NULL);
     }
 }
+
+int select_thread(void) {
+    int how_many_threads = thread_pool.thread_count;
+
+    // If only one thread, main thread is best
+    if (how_many_threads == 1) return 0;
+
+    int best_thread = 0;
+    int best_voting_score = -1000000;
+
+    for (int i = 0; i < how_many_threads; i++) {
+        ThreadData *td = thread_pool.threads[i];
+        int depth = td->search_i.depthCompleted;
+        int score = td->search_i.score;
+
+        // Weight = depth * 100 + score
+        // Higher completed depth is strongly preferred, score breaks ties
+        int voting_score = depth * 100 + score;
+
+        if (voting_score > best_voting_score) {
+            best_voting_score = voting_score;
+            best_thread = i;
+        }
+    }
+
+    return best_thread;
+}

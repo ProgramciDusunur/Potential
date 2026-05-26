@@ -1758,6 +1758,10 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     // reset nodes counter
     store_rlx(t->search_i.nodes_searched, 0);
 
+    // reset thread selection fields
+    t->search_i.depthCompleted = 0;
+    t->search_i.score = 0;
+
     // reset follow PV flags
     t->pos.followPv = 0;
     t->pos.scorePv = 0;
@@ -1844,10 +1848,11 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             // find best move within a given position
             int current_score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), t, time, ss, false);
             
-            if (time->stopped == 1) {
+            if (time->stopped == 1) {                
                 break;
             }
-            
+
+            t->search_i.score = current_score;
             score = current_score;
 
             if (score == infinity) {
@@ -1879,6 +1884,11 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             }
             window *= 1.8f;
 
+        }
+
+        // Only count this depth as completed if we weren't stopped mid-search
+        if (!time->stopped && !time->quit) {
+            t->search_i.depthCompleted = current_depth;
         }
 
         baseSearchScore = current_depth == 1 ? score : baseSearchScore;
@@ -1936,10 +1946,13 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
     }
     if (t->id == 0 && !benchmark) {
-        // best move placeholder
+        int best_thread = select_thread();
+        ThreadData *bt = thread_pool.threads[best_thread];
+
+        // best move from the best thread
         printf("bestmove ");
-        printMove(t->pos.pvTable[0][0]);
-        printf("\n");        
+        printMove(bt->pos.pvTable[0][0]);
+        printf("\n");
     }
     return score;
 }
