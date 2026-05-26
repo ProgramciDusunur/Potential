@@ -162,9 +162,13 @@ int select_thread(void) {
     for (int i = 0; i < how_many_threads; i++) {
         ThreadData *td = thread_pool.threads[i];
         int depth = td->search_i.depthCompleted;
+
+        // Skip threads that haven't completed any depth
+        if (depth == 0) continue;
+
         int score = td->search_i.score;
 
-        // Weight = depth * 100 + score
+        // Stormphrax-style voting: weight = depth * 100 + score
         // Higher completed depth is strongly preferred, score breaks ties
         int voting_score = depth * 100 + score;
 
