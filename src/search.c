@@ -1313,7 +1313,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // SEE PVS Pruning
         int seeThreshold =
                 notTactical ? SEE_QUIET_THRESHOLD * lmrDepth - (moveHistory * SEE_QUIET_HIST_MULT) / 12288 : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
-        if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
+        if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && (!in_check || !notTactical) && !SEE(pos, currentMove, seeThreshold))
             continue;
 
         int previous_move_target_square = getMoveTarget((ss - 1)->move);
