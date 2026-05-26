@@ -163,8 +163,8 @@ int select_thread(void) {
         ThreadData *td = thread_pool.threads[i];
         int depth = td->search_i.depthCompleted;
 
-        // Skip threads that haven't completed any depth
-        if (depth == 0) continue;
+        // Skip threads that haven't completed any depth or doesn't have a best move yet        
+        if (depth == 0 || td->pos.pvTable[0][0] == 0) continue;
 
         int score = td->search_i.score;
 
