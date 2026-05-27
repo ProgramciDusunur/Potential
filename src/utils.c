@@ -3,7 +3,8 @@
 //
 
 #include "utils.h"
-
+#include "threads.h"
+#include "table.h"
 int myMAX(int x, int y) {
     return (x > y) ? x : y;
 }
@@ -170,4 +171,25 @@ bool is_loss(int score) {
 
 bool is_decisive(int score) {
   return abs(score) > mateValue;
+}
+
+void print_info(ThreadData *t, int depth, int score, int totalTime) {
+    uint64_t nodes = total_nodes();
+    unsigned long long nps = (totalTime > 0) ? (nodes * 1000) / totalTime : 0;
+
+    printf("info depth %d seldepth %d ", depth, t->pos.seldepth);
+
+    if (is_mate_score(score))
+        printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
+               (score > 0 ? mateValue - score + 1 : -mateValue - score) / 2,
+               (unsigned long long)nodes, nps, hash_full(), totalTime);            
+    else
+        printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
+               score, (unsigned long long)nodes, nps, hash_full(), totalTime);
+
+    for (int count = 0; count < t->pos.pvLength[0]; count++) {
+        printMove(t->pos.pvTable[0][count]);
+        printf(" ");
+    }
+    printf("\n");
 }

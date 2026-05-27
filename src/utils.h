@@ -33,5 +33,6 @@ void printBoard(board* position);
 void printMailbox(const board *position);
 char* get_move_string(uint16_t move);
 int clamp(const int d, const int min, const int max);
+void print_info(ThreadData *t, int depth, int score, int totalTime);
 
 #endif //POTENTIAL_UTILS_H
