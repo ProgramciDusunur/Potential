@@ -10,6 +10,7 @@
 #include "bit_manipulation.h"
 #include "values.h"
 #include <stdlib.h>
+#include "move.h"
 
 // Relaxed atomic helpers
 #define load_rlx(x) atomic_load_explicit(&(x), memory_order_relaxed)
@@ -30,6 +31,7 @@ double my_min_double(double x, double y);
 double clamp_double(const double d, const double min, const double max);
 void printBoard(board* position);
 void printMailbox(const board *position);
+char* get_move_string(uint16_t move);
 int clamp(const int d, const int min, const int max);
 
 #endif //POTENTIAL_UTILS_H

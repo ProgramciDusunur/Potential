@@ -10,3 +10,4 @@ void init_threads(int requested_count);
 uint64_t total_nodes(void);
 void start_helpers(board *root_pos, int depth, my_time *time);
 void wait_helpers(void);
+int select_thread(void);

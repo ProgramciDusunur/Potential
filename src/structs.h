@@ -243,6 +243,8 @@ typedef struct {
     _Atomic uint64_t nodes_searched;
     int16_t seldepth;
     int16_t rootDepth;
+    int score;
+    int depthCompleted;
     _Atomic bool stopped;
 } SearchInfo;
 
