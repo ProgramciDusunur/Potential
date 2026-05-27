@@ -245,6 +245,7 @@ typedef struct {
     int16_t rootDepth;
     int score;
     int depthCompleted;
+    uint8_t bestMoveStability;
     _Atomic bool stopped;
 } SearchInfo;
 

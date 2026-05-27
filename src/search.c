@@ -1908,6 +1908,10 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             evalStability = 0;
         }
 
+        if (!time->stopped && !time->quit) {
+            t->search_i.bestMoveStability = bestMoveStability;
+        }
+
         // Complexity TM
         double complexity = 0;
         if (abs(score) < mateValue) {
