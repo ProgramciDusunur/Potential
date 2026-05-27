@@ -1747,6 +1747,34 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     return bestScore;
 }
 
+void update_pv_stability(ThreadData *t, uint16_t *previousPV, int *previousPVLength, uint8_t *pvStability) {
+    int matched_moves = 0;
+    int curr_len = t->pos.pvLength[0];
+    int prev_len = *previousPVLength;
+    int max_check = myMIN(curr_len, prev_len);
+    max_check = myMIN(max_check, 3);
+
+    for (int i = 0; i < max_check; i++) {
+        if (t->pos.pvTable[0][i] == previousPV[i]) {
+            matched_moves++;
+        } else {
+            break;
+        }
+    }
+
+    if (max_check > 0 && matched_moves > 0) {
+        int stab = *pvStability;
+        *pvStability = myMIN(stab + matched_moves, 12);
+    } else {
+        *pvStability = 0;
+    }
+
+    *previousPVLength = myMIN(curr_len, 3);
+    for (int i = 0; i < *previousPVLength; i++) {
+        previousPV[i] = t->pos.pvTable[0][i];
+    }
+}
+
 // search position for the best move
 int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     SearchStack *ss = t->ss;
@@ -1786,6 +1814,10 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     int averageScore = noEval;
     uint8_t evalStability = 0;
     int baseSearchScore = -infinity;
+
+    int previousPVLength = 0;
+    uint16_t previousPV[3] = {0};
+    uint8_t pvStability = 0;
 
     quiet_history_aging();    
 
@@ -1906,6 +1938,12 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             evalStability = myMIN(evalStability + 1, 4);
         } else {
             evalStability = 0;
+        }
+
+        update_pv_stability(t, previousPV, &previousPVLength, &pvStability);
+
+        if (!time->stopped && !time->quit) {
+            t->search_i.pvStability = pvStability;
         }
 
         // Complexity TM
