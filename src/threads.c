@@ -152,31 +152,48 @@ void wait_helpers(void) {
 
 int select_thread(void) {
     int how_many_threads = thread_pool.thread_count;
-
-    // If only one thread, main thread is best
     if (how_many_threads == 1) return 0;
 
-    int best_thread = 0;
-    int best_voting_score = -1000000;
-
+    int64_t votes[4096];
+    memset(votes, 0, sizeof(votes));
+    
+    int minScore = 999999;
+    int first_valid_thread = -1;
+    
     for (int i = 0; i < how_many_threads; i++) {
         ThreadData *td = thread_pool.threads[i];
-        int depth = td->search_i.depthCompleted;
-
-        // Skip threads that haven't completed any depth or doesn't have a best move yet        
-        if (depth == 0 || td->pos.pvTable[0][0] == 0) continue;
-
-        int score = td->search_i.score;
-
-        // Stormphrax-style voting: weight = depth * 100 + score
-        // Higher completed depth is strongly preferred, score breaks ties
-        int voting_score = depth * 100 + score;
-
-        if (voting_score > best_voting_score) {
-            best_voting_score = voting_score;
-            best_thread = i;
+        if (td->search_i.depthCompleted == 0 || td->pos.pvTable[0][0] == 0) continue;
+        
+        if (first_valid_thread == -1) first_valid_thread = i;
+        
+        if (td->search_i.score < minScore) {
+            minScore = td->search_i.score;
         }
     }
 
+    if (first_valid_thread == -1) return 0;
+    
+    int best_thread = first_valid_thread;
+    
+    for (int i = 0; i < how_many_threads; i++) {
+        ThreadData *td = thread_pool.threads[i];
+        if (td->search_i.depthCompleted == 0 || td->pos.pvTable[0][0] == 0) continue;
+        
+        uint16_t move = td->pos.pvTable[0][0];
+        int moveIdx = (getMoveSource(move) * 64 + getMoveTarget(move)) & 4095;
+        
+        int64_t weight = (int64_t)(td->search_i.score - minScore + 50) 
+                       * (int64_t)td->search_i.depthCompleted;
+                       
+        votes[moveIdx] += weight;
+        
+        uint16_t best_move = thread_pool.threads[best_thread]->pos.pvTable[0][0];
+        int bestMoveIdx = (getMoveSource(best_move) * 64 + getMoveTarget(best_move)) & 4095;
+        
+        if (votes[moveIdx] > votes[bestMoveIdx]) {
+            best_thread = i;
+        }
+    }
+    
     return best_thread;
 }

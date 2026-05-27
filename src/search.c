@@ -1922,32 +1922,17 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         totalTime += endTime - startTime;
 
         if (t->id == 0 && t->pos.pvLength[0] && !benchmark) {
-            uint64_t nodes = total_nodes();
-            unsigned long long nps = (totalTime > 0) ? (nodes * 1000) / totalTime : 0;
-
-            printf("info depth %d seldepth %d ", current_depth, t->pos.seldepth);
-
-            if (is_mate_score(score))
-                printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
-                       (score > 0 ? mateValue - score + 1 : -mateValue - score) / 2,
-                       (unsigned long long)nodes, nps, hash_full(), totalTime);            
-            else
-                printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
-                       score, (unsigned long long)nodes, nps, hash_full(), totalTime);
-
-            // loop over the moves within a PV line
-            for (int count = 0; count < t->pos.pvLength[0]; count++) {
-                printMove(t->pos.pvTable[0][count]);
-                printf(" ");
-            }
-            // print new line
-            printf("\n");
+            print_info(t, current_depth, score, totalTime);
         }
 
     }
     if (t->id == 0 && !benchmark) {
         int best_thread = select_thread();
         ThreadData *bt = thread_pool.threads[best_thread];
+
+        if (best_thread != 0 && bt->pos.pvLength[0] > 0) {            
+            print_info(bt, bt->search_i.depthCompleted, bt->search_i.score, totalTime);
+        }
 
         // best move from the best thread
         printf("bestmove ");
