@@ -919,6 +919,17 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             return alpha;
     }
 
+    // get static evaluation score
+    int raw_eval = evaluate(pos);
+
+    int correction_value = get_correction_value(t, ss);
+    bool tt_capture = tt_move && getMoveCapture(tt_move);
+
+    // is king in check
+    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
+                                    getLS1BIndex(pos->bitboards[k]),
+                                    pos->side ^ 1, pos);
+
     // read hash entry
     tt_hit = !ss->singular_move && !rootNode && readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty);
 
@@ -929,8 +940,23 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
                 ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
-                return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
-                                          tt_score;
+
+                    int eval = adjust_eval_with_corrhist(t, raw_eval, ss);
+                    if (!(in_check || tt_capture 
+                        || (tt_score <= alpha && tt_score >= eval) 
+                        || (tt_score >= beta && tt_score <= eval))) {
+                            int corrhist_bonus = tt_score - eval;
+                            int corrhist_depth = depth / 2 + 1;
+                            update_pawn_correction_hist(t, corrhist_depth, corrhist_bonus);
+                            update_minor_correction_hist(t, corrhist_depth, corrhist_bonus);
+                            update_major_correction_hist(t, corrhist_depth, corrhist_bonus);
+                            update_non_pawn_corrhist(t, corrhist_depth, corrhist_bonus);
+                            update_continuation_corrhist(t, corrhist_depth, corrhist_bonus, ss);
+                            update_king_rook_pawn_corrhist(t, corrhist_depth, corrhist_bonus);                    
+                    }
+
+                    return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
+                                              tt_score;
             }
         }
     }
@@ -939,25 +965,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // recursion escapre condition
     if (depth <= 0)
         // run quiescence search
-        return quiescence(alpha, beta, t, time, ss);        
-
-    // is king in check
-    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
-                                    getLS1BIndex(pos->bitboards[k]),
-                                    pos->side ^ 1, pos);
-    
-
-    // get static evaluation score
-    int raw_eval = evaluate(pos);
+        return quiescence(alpha, beta, t, time, ss);            
 
     int static_eval = adjust_eval_with_corrhist(t, raw_eval, ss);
 
-    bool improving = false;
-    bool tt_capture = tt_move && getMoveCapture(tt_move);
+    bool improving = false;    
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
-    int corrplexity_value = abs(raw_eval - static_eval);
-    int correction_value = get_correction_value(t, ss);    
+    int corrplexity_value = abs(raw_eval - static_eval);    
 
     ss->staticEval = static_eval;    
 
