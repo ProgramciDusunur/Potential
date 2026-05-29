@@ -947,12 +947,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         || (tt_score >= beta && tt_score <= eval))) {
                             int corrhist_bonus = tt_score - eval;
                             int corrhist_depth = depth / 2 + 1;
-                            update_pawn_correction_hist(t, corrhist_depth, corrhist_bonus);
-                            update_minor_correction_hist(t, corrhist_depth, corrhist_bonus);
-                            update_major_correction_hist(t, corrhist_depth, corrhist_bonus);
-                            update_non_pawn_corrhist(t, corrhist_depth, corrhist_bonus);
-                            update_continuation_corrhist(t, corrhist_depth, corrhist_bonus, ss);
-                            update_king_rook_pawn_corrhist(t, corrhist_depth, corrhist_bonus);                    
+                            update_pawn_correction_hist(t, corrhist_depth, corrhist_bonus);                            
                     }
 
                     return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
