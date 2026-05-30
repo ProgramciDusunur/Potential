@@ -897,9 +897,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     // Check for fifty-move rule
     if (pos->fifty >= 100) {
-        int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
-                                    getLS1BIndex(pos->bitboards[k]),
-                                    pos->side ^ 1, pos);
+        int in_check = !!pos->checkers;
         if (!in_check) {
             // return draw by fifty-move rule
             return get_draw_score(t);
@@ -942,9 +940,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         return quiescence(alpha, beta, t, time, ss);        
 
     // is king in check
-    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
-                                    getLS1BIndex(pos->bitboards[k]),
-                                    pos->side ^ 1, pos);
+    int in_check = !!pos->checkers;
     
 
     // get static evaluation score
