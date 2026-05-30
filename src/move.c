@@ -1069,6 +1069,21 @@ void legal_move_generator(moves *moveList, board* pos) {
         splatPawnPromoMoves(moveList, lPromotions, -9, white, 1);
         splatPawnPromoMoves(moveList, rPromotions, -7, white, 1);
 
+        if (pos->enpassant != no_sq) {
+            U64 attackers = bitboard & pawnAttacks[black][pos->enpassant];
+            int capturedPawnSq = pos->enpassant + 8;
+            if (checker_count == 1) {
+                if (!((1ULL << pos->enpassant) & evasion_mask) && capturedPawnSq != checker_square)
+                    attackers = 0;
+            }
+            U64 ep = 1ULL << pos->enpassant;
+            U64 lEpMask = (attackers & not_a_file & (ep << 9)) & king_anti_diag_mask[1][stm_king_square];
+            U64 rEpMask = (attackers & not_h_file & (ep << 7)) & king_anti_diag_mask[0][stm_king_square];
+            if (lEpMask || rEpMask) {
+                splatEnpassant(moveList, lEpMask | rEpMask, pos->enpassant);
+            }
+        }
+
 
     } 
     else {
@@ -1093,6 +1108,21 @@ void legal_move_generator(moves *moveList, board* pos) {
         splatPawnSingleMoves(moveList, rSingleCapt, +9, 1);
         splatPawnPromoMoves(moveList, lPromotions, +7, black, 1);
         splatPawnPromoMoves(moveList, rPromotions, +9, black, 1);
+
+        if (pos->enpassant != no_sq) {
+            U64 attackers = bitboard & pawnAttacks[white][pos->enpassant];
+            int capturedPawnSq = pos->enpassant - 8;
+            if (checker_count == 1) {
+                if (!((1ULL << pos->enpassant) & evasion_mask) && capturedPawnSq != checker_square)
+                    attackers = 0;
+            }
+            U64 ep = 1ULL << pos->enpassant;
+            U64 lEpMask = (attackers & not_a_file & (ep >> 7)) & king_anti_diag_mask[0][stm_king_square];
+            U64 rEpMask = (attackers & not_h_file & (ep >> 9)) & king_anti_diag_mask[1][stm_king_square];
+            if (lEpMask || rEpMask) {
+                splatEnpassant(moveList, lEpMask | rEpMask, pos->enpassant);
+            }
+        }
     }
 
     // Castling moves
@@ -1346,6 +1376,21 @@ void legal_noisy_generator(moves *moveList, board* pos) {
         splatPawnPromoMoves(moveList, lPromotions, -9, white, 1);
         splatPawnPromoMoves(moveList, rPromotions, -7, white, 1);
 
+        if (pos->enpassant != no_sq) {
+            U64 attackers = bitboard & pawnAttacks[black][pos->enpassant];
+            int capturedPawnSq = pos->enpassant + 8;
+            if (checker_count == 1) {
+                if (!((1ULL << pos->enpassant) & evasion_mask) && capturedPawnSq != checker_square)
+                    attackers = 0;
+            }
+            U64 ep = 1ULL << pos->enpassant;
+            U64 lEpMask = (attackers & not_a_file & (ep << 9)) & king_anti_diag_mask[1][stm_king_square];
+            U64 rEpMask = (attackers & not_h_file & (ep << 7)) & king_anti_diag_mask[0][stm_king_square];
+            if (lEpMask || rEpMask) {
+                splatEnpassant(moveList, lEpMask | rEpMask, pos->enpassant);
+            }
+        }
+
 
     } 
     else {
@@ -1366,6 +1411,21 @@ void legal_noisy_generator(moves *moveList, board* pos) {
         splatPawnSingleMoves(moveList, rSingleCapt, +9, 1);
         splatPawnPromoMoves(moveList, lPromotions, +7, black, 1);
         splatPawnPromoMoves(moveList, rPromotions, +9, black, 1);
+
+        if (pos->enpassant != no_sq) {
+            U64 attackers = bitboard & pawnAttacks[white][pos->enpassant];
+            int capturedPawnSq = pos->enpassant - 8;
+            if (checker_count == 1) {
+                if (!((1ULL << pos->enpassant) & evasion_mask) && capturedPawnSq != checker_square)
+                    attackers = 0;
+            }
+            U64 ep = 1ULL << pos->enpassant;
+            U64 lEpMask = (attackers & not_a_file & (ep >> 7)) & king_anti_diag_mask[0][stm_king_square];
+            U64 rEpMask = (attackers & not_h_file & (ep >> 9)) & king_anti_diag_mask[1][stm_king_square];
+            if (lEpMask || rEpMask) {
+                splatEnpassant(moveList, lEpMask | rEpMask, pos->enpassant);
+            }
+        }
     }
 }
 
