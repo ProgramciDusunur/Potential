@@ -60,8 +60,7 @@ bool filtering(board *pos, int score, uint16_t best_move) {
     if (abs(score) >= mateFound) should_filter = true;
 
     // 2. Filter positions in check
-    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
-                                             getLS1BIndex(pos->bitboards[k]), pos->side ^ 1, pos);
+    int in_check = !!pos->checkers;
     if (in_check) should_filter = true;
 
     // 3. Filter positions where the best move is noisy (captures or promotions)
@@ -142,8 +141,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         }
         
         if (legal_moves == 0) {
-            int in_check = isSquareAttacked((pos.side == white) ? getLS1BIndex(pos.bitboards[K]) :
-                                             getLS1BIndex(pos.bitboards[k]), pos.side ^ 1, &pos);
+            int in_check = !!pos.checkers;
             if (in_check) {
                 result = pos.side == white ? 0.0 : 1.0; 
             } else {

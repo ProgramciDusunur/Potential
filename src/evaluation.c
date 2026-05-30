@@ -344,6 +344,9 @@ void init_threats(board *pos) {
     pos->pieceThreats.stmThreats[black] = 0;
 
     get_threats(pos->side, pos);
+
+    uint8_t stm_king_sq = getLS1BIndex(pos->bitboards[pos->side == white ? K : k]);
+    pos->checkers = get_checkers(pos, stm_king_sq);
 }
 
 bool is_square_threatened(board *pos, int square) {

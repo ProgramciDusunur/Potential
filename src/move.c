@@ -58,6 +58,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->psqt_score = p->psqt_score;
     cp->pinned[0] = p->pinned[0];
     cp->pinned[1] = p->pinned[1];
+    cp->checkers = p->checkers;
     cp->pieceThreats = p->pieceThreats;
 }
 
@@ -81,6 +82,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->psqt_score = cp->psqt_score;
     p->pinned[0] = cp->pinned[0];
     p->pinned[1] = cp->pinned[1];
+    p->checkers = cp->checkers;
     p->pieceThreats = cp->pieceThreats;
 }
 
@@ -824,7 +826,7 @@ void legal_move_generator(moves *moveList, board* pos) {
     U64 friendly = pos->occupancies[pos->side];
     U64 empty = ~blockers;    
 
-    U64 checkers = get_checkers(pos, stm_king_square);
+    U64 checkers = pos->checkers;
 
     uint8_t checker_count = countBits(checkers);
     uint8_t checker_square = checker_count == 1 ? getLS1BIndex(checkers) : 0;
@@ -1126,7 +1128,7 @@ void legal_noisy_generator(moves *moveList, board* pos) {
 
 
 
-    U64 checkers = get_checkers(pos, stm_king_square);
+    U64 checkers = pos->checkers;
 
     uint8_t checker_count = countBits(checkers);
     uint8_t checker_square = checker_count == 1 ? getLS1BIndex(checkers) : 0;
@@ -1382,7 +1384,7 @@ void legal_quiet_generator(moves *moveList, board* pos) {
 
     uint8_t stm_king_square = getLS1BIndex(pos->bitboards[pos->side == white ? K : k]);    
 
-    U64 checkers = get_checkers(pos, stm_king_square);
+    U64 checkers = pos->checkers;
 
     uint8_t checker_count = countBits(checkers);
     uint8_t checker_square = checker_count == 1 ? getLS1BIndex(checkers) : 0;
