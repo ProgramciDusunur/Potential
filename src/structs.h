@@ -85,10 +85,7 @@ typedef struct {
     int pvLength[maxPly];
     int pvTable[maxPly][maxPly];
 
-    bool benchmark;
-
-    int followPv;
-    int scorePv;
+    bool benchmark;    
 
     int gamePhase;
 } board;

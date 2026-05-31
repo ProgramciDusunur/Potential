@@ -30,7 +30,6 @@ int isRepetition(board* position);
 uint8_t isMaterialDraw(board *pos);
 void initializeLMRTable(void);
 int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss);
-void enable_pv_scoring(moves *moveList, board* position);
 void printMove(uint16_t move);
 int getLmrReduction(int depth, int moveNumber, bool isQuiet);
 uint8_t justPawns(board *pos);
