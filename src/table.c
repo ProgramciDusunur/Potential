@@ -353,6 +353,7 @@ void init_hash_table(int mb) {
         if (!ptr) ptr = VirtualAlloc(NULL, bytes, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
 #else
+#ifdef __linux__
         // Linux: Try Static Huge Pages first
         ptr = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
         if (ptr != MAP_FAILED) {
@@ -367,6 +368,14 @@ void init_hash_table(int mb) {
                 ptr = NULL;
             }
         }
+#else        
+        ptr = mmap(NULL, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        if (ptr != MAP_FAILED) {
+            snprintf(status_msg, sizeof(status_msg), "SUCCESS (standard pages)");
+        } else {
+            ptr = NULL;
+        }
+#endif
 #endif
 
         if (ptr == NULL || ptr == (void*)-1) {
