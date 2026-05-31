@@ -182,9 +182,10 @@ int select_thread(void) {
         uint16_t move = td->pos.pvTable[0][0];
         int moveIdx = (getMoveSource(move) * 64 + getMoveTarget(move)) & 4095;
         
-        int quality_bonus = td->search_i.pvStability * 2;
-        int64_t weight = (int64_t)(td->search_i.score - minScore + 50 + quality_bonus) 
+        int64_t weight = (int64_t)(td->search_i.score - minScore + 50) 
                        * (int64_t)td->search_i.depthCompleted;
+
+        if (td->search_i.pvStability == 0) weight /= 2;
                        
         votes[moveIdx] += weight;
         

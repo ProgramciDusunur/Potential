@@ -1764,7 +1764,7 @@ void update_pv_stability(ThreadData *t, uint16_t *previousPV, int *previousPVLen
 
     if (max_check > 0 && matched_moves > 0) {
         int stab = *pvStability;
-        *pvStability = myMIN(stab + matched_moves, 20);
+        *pvStability = myMIN(stab + matched_moves, 12);
     } else {
         *pvStability = 0;
     }
