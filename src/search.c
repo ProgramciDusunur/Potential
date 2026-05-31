@@ -964,6 +964,15 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
         return ttAdjustedEval;
 
+    int small_probcut_beta = beta + SPROBCUT_BETA_MARGIN;
+    
+    // Small Probcut
+    if (!ss->singular_move && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
+        tt_score >= small_probcut_beta && abs(tt_score) < mateValue && abs(beta) < mateValue) {
+            return small_probcut_beta;            
+    }
+    
+
     // Null Move Pruning
     if (!ss->singular_move && depth >= NMP_DEPTH && !in_check && !rootNode &&
             ttAdjustedEval >= beta + 75 &&
@@ -1174,15 +1183,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     return probcut_value;
                 }
             }
-    }
-
-    int small_probcut_beta = beta + SPROBCUT_BETA_MARGIN;
-    
-    // Small Probcut
-    if (!ss->singular_move && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
-        tt_score >= small_probcut_beta && abs(tt_score) < mateValue && abs(beta) < mateValue) {
-            return small_probcut_beta;            
-    }
+    }    
 
     bool enemy_has_no_threats = !has_enemy_any_threat(pos);    
 
