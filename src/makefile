@@ -189,12 +189,22 @@ tuner: tuner.c
 	$(CC) -O3 -o tuner$(SUFFIX) tuner.c -lm
 
 pgo:
+ifeq ($(uname_S), Darwin)
+	@$(MAKE) clean
+	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-generate"
+	LLVM_PROFILE_FILE="$(TMPDIR)/default.profraw" ./$(EXE) bench
+	xcrun llvm-profdata merge -output=$(TMPDIR)/default.profdata $(TMPDIR)/default.profraw
+	@rm -f $(OBJECTS) $(EXE)
+	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-use=$(TMPDIR)/default.profdata"
+	@rm -f $(TMPDIR)/default.profraw $(TMPDIR)/default.profdata
+else
 	@$(MAKE) clean
 	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-generate -fprofile-update=atomic"
 	./$(EXE) bench
 	@rm -f $(OBJECTS) $(EXE)
 	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-use -fprofile-correction -fprofile-partial-training"
 	@rm -f $(TMPDIR)/*.gcda *.gcda
+endif
 
 fast:
 	@$(MAKE) build_core
