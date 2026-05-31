@@ -314,16 +314,7 @@ void init_quiescence_scores(moves *moveList, int *move_scores, board* position) 
 */
 
 // score moves
-int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
-    // make sure we are dealing with PV move
-    if (t->pos.scorePv && t->pos.pvTable[0][t->pos.ply] == move) {
-        // disable score PV flag
-        t->pos.scorePv = 0;
-
-        // give PV move the highest score to search it first
-        return PV_SCORE;
-    }
-
+int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {    
     // score promotion move
     if (getMovePromote(move)) {
         switch (getMovePromotedPiece(t->pos.side, move)) {
@@ -406,25 +397,6 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         return quiet_score;
     }
     return 0;
-}
-
-
-// enable PV move scoring
-void enable_pv_scoring(moves *moveList, board* position) {
-    // disable following PV
-    position->followPv = 0;
-
-    // loop over the moves within a move list
-    for (int count = 0; count < moveList->count; count++) {
-        // make sure we hit PV move
-        if (position->pvTable[0][position->ply] == moveList->moves[count]) {
-            // enable move scoring
-            position->scorePv = 1;
-
-            // enable following PV
-            position->followPv = 1;
-        }
-    }
 }
 
 int getLmrReduction(int depth, int moveNumber, bool isQuiet) {
@@ -1760,11 +1732,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
     // reset thread selection fields
     t->search_i.depthCompleted = 0;
-    t->search_i.score = 0;
-
-    // reset follow PV flags
-    t->pos.followPv = 0;
-    t->pos.scorePv = 0;
+    t->search_i.score = 0;    
     
     if (t->id == 0) {
         memset(nodes_spent_table, 0, sizeof(nodes_spent_table));
@@ -1843,8 +1811,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                 alpha = myMAX(-infinity, score - window);
                 beta = myMIN(infinity, score + window);
             }
-
-            t->pos.followPv = 1;
+            
             // find best move within a given position
             int current_score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), t, time, ss, false);
             
