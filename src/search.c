@@ -1515,7 +1515,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if (multithreaded_search) {
             lmrReduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 102) - 51;
             
-            lmrReduction -= 256 * t->search_i.relative_quality;
+            lmrReduction -= 5 * t->search_i.relative_quality;
         }
 
         lmrReduction /= 1024;
@@ -1551,7 +1551,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if (multithreaded_search) {                
                 nonpv_reduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 1078) - 27;
 
-                nonpv_reduction -= 256 * t->search_i.relative_quality;
+                nonpv_reduction -= 5 * t->search_i.relative_quality;
             }
 
             nonpv_reduction /= 1024;
@@ -1762,10 +1762,9 @@ void update_relative_quality(ThreadData *t) {
         
         int64_t my_weight = weights[t->id];
         if (my_weight != -1 && mad > 0) {
-            if (my_weight > mean + mad) {
-                t->search_i.relative_quality = 1;
-            } else if (my_weight < mean - mad) {
-                t->search_i.relative_quality = -1;
+            if (my_weight > mean + mad || my_weight < mean - mad) {
+                int64_t percent = ((my_weight - mean) * 100) / mean;
+                t->search_i.relative_quality = (int)percent;
             }
         }
     }
