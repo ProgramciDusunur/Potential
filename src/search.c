@@ -1726,46 +1726,38 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 void update_relative_quality(ThreadData *t) {
     int count = 0;
     int64_t sum = 0;
-    int64_t weights[512] = {0};
-    
     int local_minScore = 999999;
-    int how_many_threads = thread_pool.thread_count;
-    for(int i=0; i<how_many_threads; i++) {
+    int tc = thread_pool.thread_count;
+
+    for (int i = 0; i < tc; i++) {
         ThreadData *td = thread_pool.threads[i];
-        if(td->search_i.depthCompleted > 0 && td->search_i.score < local_minScore) {
+        if (td->search_i.depthCompleted > 0 && td->search_i.score < local_minScore) {
             local_minScore = td->search_i.score;
         }
     }
-    
-    for(int i=0; i<how_many_threads; i++) {
+
+    if (local_minScore == 999999) {
+        t->search_i.relative_quality = 0;
+        return;
+    }
+
+    for (int i = 0; i < tc; i++) {
         ThreadData *td = thread_pool.threads[i];
-        if(td->search_i.depthCompleted > 0) {
-            int64_t w = (int64_t)(td->search_i.score - local_minScore + 50) * td->search_i.depthCompleted;
-            weights[i] = w;
-            sum += w;
+        if (td->search_i.depthCompleted > 0) {
+            sum += (int64_t)(td->search_i.score - local_minScore + 50) * td->search_i.depthCompleted;
             count++;
-        } else {
-            weights[i] = -1;
         }
     }
-    
+
     t->search_i.relative_quality = 0;
     if (count > 0) {
         int64_t mean = sum / count;
-        int64_t mad_sum = 0;
-        for(int i=0; i<how_many_threads; i++) {
-            if(weights[i] != -1) {
-                mad_sum += (weights[i] > mean ? weights[i] - mean : mean - weights[i]);
-            }
-        }
-        int64_t mad = mad_sum / count;
-        
-        int64_t my_weight = weights[t->id];
-        if (my_weight != -1 && mad > 0) {
-            if (my_weight > mean + mad || my_weight < mean - mad) {
-                int64_t percent = ((my_weight - mean) * 100) / mean;
-                t->search_i.relative_quality = (int)percent;
-            }
+        if (mean > 0 && t->search_i.depthCompleted > 0) {
+            int64_t my_w = (int64_t)(t->search_i.score - local_minScore + 50) * t->search_i.depthCompleted;
+            
+            // Düz lineer sistem: Tüm thread'ler için yüzdelik sapma
+            int64_t percent = ((my_w - mean) * 100) / mean;
+            t->search_i.relative_quality = (int)percent;
         }
     }
 }
