@@ -1514,6 +1514,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         bool multithreaded_search = thread_pool.thread_count > 1;
         if (multithreaded_search) {
             lmrReduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 102) - 51;
+            
+            lmrReduction -= 256 * t->search_i.relative_quality;
         }
 
         lmrReduction /= 1024;
@@ -1548,6 +1550,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             bool multithreaded_search = thread_pool.thread_count > 1;
             if (multithreaded_search) {                
                 nonpv_reduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 1078) - 27;
+
+                nonpv_reduction -= 256 * t->search_i.relative_quality;
             }
 
             nonpv_reduction /= 1024;
@@ -1719,6 +1723,54 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     return bestScore;
 }
 
+void update_relative_quality(ThreadData *t) {
+    int count = 0;
+    int64_t sum = 0;
+    int64_t weights[512] = {0};
+    
+    int local_minScore = 999999;
+    int how_many_threads = thread_pool.thread_count;
+    for(int i=0; i<how_many_threads; i++) {
+        ThreadData *td = thread_pool.threads[i];
+        if(td->search_i.depthCompleted > 0 && td->search_i.score < local_minScore) {
+            local_minScore = td->search_i.score;
+        }
+    }
+    
+    for(int i=0; i<how_many_threads; i++) {
+        ThreadData *td = thread_pool.threads[i];
+        if(td->search_i.depthCompleted > 0) {
+            int64_t w = (int64_t)(td->search_i.score - local_minScore + 50) * td->search_i.depthCompleted;
+            weights[i] = w;
+            sum += w;
+            count++;
+        } else {
+            weights[i] = -1;
+        }
+    }
+    
+    t->search_i.relative_quality = 0;
+    if (count > 0) {
+        int64_t mean = sum / count;
+        int64_t mad_sum = 0;
+        for(int i=0; i<how_many_threads; i++) {
+            if(weights[i] != -1) {
+                mad_sum += (weights[i] > mean ? weights[i] - mean : mean - weights[i]);
+            }
+        }
+        int64_t mad = mad_sum / count;
+        
+        int64_t my_weight = weights[t->id];
+        if (my_weight != -1 && mad > 0) {
+            if (my_weight > mean + mad) {
+                t->search_i.relative_quality = 1;
+            } else if (my_weight < mean - mad) {
+                t->search_i.relative_quality = -1;
+            }
+        }
+    }
+}
+
 // search position for the best move
 int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     SearchStack *ss = t->ss;
@@ -1880,6 +1932,10 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         if (abs(score) < mateValue) {
             complexity = 0.6 * abs(baseSearchScore - score) * log(depth);
         }
+
+        if (thread_pool.thread_count > 1) {
+            update_relative_quality(t);
+        }        
 
         if (t->id == 0 && time->timeset && current_depth > 6) {
             scaleTime(time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, t);
