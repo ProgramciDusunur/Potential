@@ -1755,7 +1755,6 @@ void update_relative_quality(ThreadData *t) {
         if (mean > 0 && t->search_i.depthCompleted > 0) {
             int64_t my_w = (int64_t)(t->search_i.score - local_minScore + 50) * t->search_i.depthCompleted;
             
-            // Düz lineer sistem: Tüm thread'ler için yüzdelik sapma
             int64_t percent = ((my_w - mean) * 100) / mean;
             t->search_i.relative_quality = (int)percent;
         }
