@@ -1719,6 +1719,39 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     return bestScore;
 }
 
+bool check_soft_stop_majority(void) {
+    int how_many_threads = thread_pool.thread_count;
+    if (how_many_threads <= 1) return thread_pool.threads[0]->search_i.soft_stop_voted;
+
+    int minScore = 999999;
+    for (int i = 0; i < how_many_threads; i++) {
+        ThreadData *td = thread_pool.threads[i];
+        if (td->search_i.depthCompleted == 0 || td->pos.pvTable[0][0] == 0) continue;
+        if (td->search_i.score < minScore) {
+            minScore = td->search_i.score;
+        }
+    }
+
+    if (minScore == 999999) return false;
+
+    int64_t total_weight = 0;
+    int64_t voted_weight = 0;
+
+    for (int i = 0; i < how_many_threads; i++) {
+        ThreadData *td = thread_pool.threads[i];
+        if (td->search_i.depthCompleted == 0 || td->pos.pvTable[0][0] == 0) continue;
+
+        int64_t weight = (int64_t)(td->search_i.score - minScore + 50) 
+                       * (int64_t)td->search_i.depthCompleted;
+        total_weight += weight;
+        if (td->search_i.soft_stop_voted) {
+            voted_weight += weight;
+        }
+    }
+
+    return voted_weight >= (total_weight / 2);
+}
+
 // search position for the best move
 int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     SearchStack *ss = t->ss;
@@ -1784,9 +1817,8 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         } else {
             if (!t->search_i.soft_stop_voted && ((local_time.timeset && startTime >= local_time.softLimit && t->pos.pvTable[0][0] != 0) || (local_time.isNodeLimit && total_nodes() >= local_time.node_limit))) {
                 t->search_i.soft_stop_voted = true;
-                atomic_fetch_add_explicit(&thread_pool.soft_stop_votes, 1, memory_order_relaxed);
             }
-            if (load_rlx(thread_pool.stop) || load_rlx(thread_pool.soft_stop_votes) >= myMAX(1, thread_pool.thread_count / 2)) {
+            if (load_rlx(thread_pool.stop) || check_soft_stop_majority()) {
                 if (thread_pool.threads[0]->pos.pvTable[0][0] != 0) {
                     time->stopped = 1;
                     store_rlx(thread_pool.stop, true);
@@ -1805,9 +1837,8 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                 int innerTime = getTimeMiliSecond();
                 if (!t->search_i.soft_stop_voted && ((local_time.timeset && innerTime >= local_time.softLimit && t->pos.pvTable[0][0] != 0) || (local_time.isNodeLimit && total_nodes() >= local_time.node_limit))) {
                     t->search_i.soft_stop_voted = true;
-                    atomic_fetch_add_explicit(&thread_pool.soft_stop_votes, 1, memory_order_relaxed);
                 }
-                if (load_rlx(thread_pool.stop) || load_rlx(thread_pool.soft_stop_votes) >= myMAX(1, thread_pool.thread_count / 2)) {
+                if (load_rlx(thread_pool.stop) || check_soft_stop_majority()) {
                     if (thread_pool.threads[0]->pos.pvTable[0][0] != 0) {
                         time->stopped = 1;
                         store_rlx(thread_pool.stop, true);

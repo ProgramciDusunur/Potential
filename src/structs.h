@@ -266,7 +266,6 @@ typedef struct {
     SharedHistory **shared_histories;
     int shared_history_count;
 
-    _Atomic int soft_stop_votes;
     _Atomic bool stop;    
     board root_pos;    
 } ThreadPool;
