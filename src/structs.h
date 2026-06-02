@@ -242,6 +242,7 @@ typedef struct {
     int16_t rootDepth;
     int score;
     int depthCompleted;
+    bool soft_stop_voted;
     _Atomic bool stopped;
 } SearchInfo;
 
@@ -265,6 +266,7 @@ typedef struct {
     SharedHistory **shared_histories;
     int shared_history_count;
 
+    _Atomic int soft_stop_votes;
     _Atomic bool stop;    
     board root_pos;    
 } ThreadPool;

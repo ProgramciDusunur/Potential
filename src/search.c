@@ -1755,6 +1755,9 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     uint8_t evalStability = 0;
     int baseSearchScore = -infinity;
 
+    my_time local_time = *time;
+    t->search_i.soft_stop_voted = false;
+
     quiet_history_aging();    
 
     // iterative deepening
@@ -1779,11 +1782,15 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         if (time->is_datagen) {
             check_node_limit(time, t);
         } else {
-            if (t->id == 0 && ((time->timeset && startTime >= time->softLimit) || (time->isNodeLimit && total_nodes() >= time->node_limit)) && t->pos.pvTable[0][0] != 0) {
-                time->stopped = 1;
-                store_rlx(thread_pool.stop, true);
-            } else if (load_rlx(thread_pool.stop)) {
-                time->stopped = 1;
+            if (!t->search_i.soft_stop_voted && ((local_time.timeset && startTime >= local_time.softLimit && t->pos.pvTable[0][0] != 0) || (local_time.isNodeLimit && total_nodes() >= local_time.node_limit))) {
+                t->search_i.soft_stop_voted = true;
+                atomic_fetch_add_explicit(&thread_pool.soft_stop_votes, 1, memory_order_relaxed);
+            }
+            if (load_rlx(thread_pool.stop) || load_rlx(thread_pool.soft_stop_votes) >= myMAX(1, thread_pool.thread_count / 2)) {
+                if (thread_pool.threads[0]->pos.pvTable[0][0] != 0) {
+                    time->stopped = 1;
+                    store_rlx(thread_pool.stop, true);
+                }
             }
         }
 
@@ -1795,11 +1802,16 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             if (time->is_datagen) {
                 check_node_limit(time, t);
             } else {
-                if (t->id == 0 && ((time->timeset && startTime >= time->softLimit) || (time->isNodeLimit && total_nodes() >= time->node_limit)) && t->pos.pvTable[0][0] != 0) {
-                    time->stopped = 1;
-                    store_rlx(thread_pool.stop, true);
-                } else if (load_rlx(thread_pool.stop)) {
-                    time->stopped = 1;
+                int innerTime = getTimeMiliSecond();
+                if (!t->search_i.soft_stop_voted && ((local_time.timeset && innerTime >= local_time.softLimit && t->pos.pvTable[0][0] != 0) || (local_time.isNodeLimit && total_nodes() >= local_time.node_limit))) {
+                    t->search_i.soft_stop_voted = true;
+                    atomic_fetch_add_explicit(&thread_pool.soft_stop_votes, 1, memory_order_relaxed);
+                }
+                if (load_rlx(thread_pool.stop) || load_rlx(thread_pool.soft_stop_votes) >= myMAX(1, thread_pool.thread_count / 2)) {
+                    if (thread_pool.threads[0]->pos.pvTable[0][0] != 0) {
+                        time->stopped = 1;
+                        store_rlx(thread_pool.stop, true);
+                    }
                 }
             }
 
@@ -1881,8 +1893,8 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             complexity = 0.6 * abs(baseSearchScore - score) * log(depth);
         }
 
-        if (t->id == 0 && time->timeset && current_depth > 6) {
-            scaleTime(time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, t);
+        if (local_time.timeset && current_depth > 6) {
+            scaleTime(&local_time, bestMoveStability, evalStability, t->pos.pvTable[0][0], complexity, t);
         }
         
         int endTime = getTimeMiliSecond();
