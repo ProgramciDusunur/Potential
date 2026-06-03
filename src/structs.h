@@ -206,8 +206,8 @@ typedef struct {
     // pawnHistory [pawnKey][piece][to]
     int16_t pawnHistory[2048][12][64];
 
-    // continuationCorrectionHistory Zobrist based 1D array
-    int16_t *contCorrhist;
+    // continuationCorrectionHistory 4D array
+    int16_t contCorrhist[12][64][12][64];
 
     // pawn correction history [side to move]
     int16_t *pawn_corrhist[2];
@@ -225,7 +225,6 @@ typedef struct {
     int16_t *krp_corrhist[2];
     
     int corrhist_mask;
-    int cont_mask;
 } SharedHistory;
 
 typedef struct {

@@ -46,11 +46,11 @@ void update_pawn_correction_hist(ThreadData *t, const int depth, const int diff)
 void update_minor_correction_hist(ThreadData *t, const int depth, const int diff);
 void update_major_correction_hist(ThreadData *t, const int depth, const int diff);
 void update_non_pawn_corrhist(ThreadData *t, const int depth, const int diff);
-void update_continuation_corrhist(ThreadData *t, const int depth, const int diff);
-void update_single_cont_corrhist_entry(ThreadData *t, const int pliesBack, const int scaledDiff, const int newWeight);
+void update_continuation_corrhist(ThreadData *t, const int depth, const int diff, SearchStack *ss);
+void update_single_cont_corrhist_entry(ThreadData *t, const int pliesBack, const int scaledDiff, const int newWeight, SearchStack *ss);
 void update_king_rook_pawn_corrhist(ThreadData *t, const int depth, const int diff);
-int adjust_eval_with_corrhist(ThreadData *t, int rawEval);
-int get_correction_value(ThreadData *t);
+int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss);
+int get_correction_value(ThreadData *t, SearchStack *ss);
 void clear_histories(void);
 void quiet_history_aging(void);
 

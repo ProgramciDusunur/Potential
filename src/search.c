@@ -696,7 +696,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     // evaluate position
     int evaluation = evaluate(position);
 
-    evaluation = adjust_eval_with_corrhist(t, evaluation);
+    evaluation = adjust_eval_with_corrhist(t, evaluation, ss);
 
     score = bestScore = tt_hit ? tt_score : evaluation;
 
@@ -922,14 +922,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // get static evaluation score
     int raw_eval = evaluate(pos);
 
-    int static_eval = adjust_eval_with_corrhist(t, raw_eval);
+    int static_eval = adjust_eval_with_corrhist(t, raw_eval, ss);
 
     bool improving = false;
     bool tt_capture = tt_move && getMoveCapture(tt_move);
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
-    int correction_value = get_correction_value(t);    
+    int correction_value = get_correction_value(t, ss);    
 
     ss->staticEval = static_eval;    
 
@@ -1708,7 +1708,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             update_minor_correction_hist(t, depth, corrhistBonus);
             update_major_correction_hist(t, depth, corrhistBonus);
             update_non_pawn_corrhist(t, depth, corrhistBonus);
-            update_continuation_corrhist(t, depth, corrhistBonus);
+            update_continuation_corrhist(t, depth, corrhistBonus, ss);
             update_king_rook_pawn_corrhist(t, depth, corrhistBonus);
         }
 
