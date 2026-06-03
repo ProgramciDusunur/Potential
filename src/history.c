@@ -22,7 +22,7 @@ int CORRHIST_WEIGHT_SCALE = 256;
 int CORRHIST_GRAIN = 256;
 int CORRHIST_LIMIT = 1024;
 int BASE_CORRHIST_SIZE = 16384;
-int BASE_CONT_CORRHIST_SIZE = 262144;
+int BASE_CONT_CORRHIST_SIZE = 1048576;
 int CORRHIST_MAX = 16384;
 
 /* Update History */
@@ -204,53 +204,40 @@ void update_king_rook_pawn_corrhist(ThreadData *t, const int depth, const int di
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
-void update_single_cont_corrhist_entry(ThreadData *t, const int pliesBack, const int scaledDiff, const int newWeight, SearchStack *ss) {
+void update_single_cont_corrhist_entry(ThreadData *t, const int pliesBack, const int scaledDiff, const int newWeight) {
     if (t->pos.ply < pliesBack) return;
-    SearchStack *prev = ss - pliesBack;
 
-    const int m1 = prev->move;
-    const int m2 = ss->move;
-    
-    if (m1 && m2) {
-        uint64_t diff_key = t->pos.hashKey ^ t->pos.repetitionTable[t->pos.repetitionIndex - pliesBack + 1];
-        int16_t *entry_ptr = &t->shared_history->contCorrhist[diff_key & t->shared_history->cont_mask];
-                
-        int val = *entry_ptr;
-        val = (val * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
-                
-        if (val > CORRHIST_MAX) val = CORRHIST_MAX;
-        else if (val < -CORRHIST_MAX) val = -CORRHIST_MAX;
+    uint64_t diff_key = t->pos.hashKey ^ t->pos.repetitionTable[t->pos.repetitionIndex - pliesBack + 1];
+    int16_t *entry_ptr = &t->shared_history->contCorrhist[diff_key & t->shared_history->cont_mask];
+            
+    int val = *entry_ptr;
+    val = (val * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
+            
+    if (val > CORRHIST_MAX) val = CORRHIST_MAX;
+    else if (val < -CORRHIST_MAX) val = -CORRHIST_MAX;
 
-        *entry_ptr = (int16_t)val;
-    }
+    *entry_ptr = (int16_t)val;
 }
 
-static inline int adjust_single_cont_corrhist_entry(ThreadData *t, const int pliesBack, SearchStack *ss) {
+static inline int adjust_single_cont_corrhist_entry(ThreadData *t, const int pliesBack) {
     if (t->pos.ply < pliesBack) return 0;
-    SearchStack *prev = ss - pliesBack;
-
-    const int m1 = prev->move;
-    const int m2 = ss->move;
-
-    if (m1 && m2) {
-        uint64_t diff_key = t->pos.hashKey ^ t->pos.repetitionTable[t->pos.repetitionIndex - pliesBack + 1];
-        return t->shared_history->contCorrhist[diff_key & t->shared_history->cont_mask];
-    }
-    return 0;
+    
+    uint64_t diff_key = t->pos.hashKey ^ t->pos.repetitionTable[t->pos.repetitionIndex - pliesBack + 1];
+    return t->shared_history->contCorrhist[diff_key & t->shared_history->cont_mask];
 }
 
-void update_continuation_corrhist(ThreadData *t, const int depth, const int diff, SearchStack *ss) {
+void update_continuation_corrhist(ThreadData *t, const int depth, const int diff) {
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
 
-    update_single_cont_corrhist_entry(t, 1, scaledDiff, newWeight, ss);
-    update_single_cont_corrhist_entry(t, 2, scaledDiff, newWeight, ss);
-    update_single_cont_corrhist_entry(t, 3, scaledDiff, newWeight, ss);
-    update_single_cont_corrhist_entry(t, 4, scaledDiff, newWeight, ss);
-    update_single_cont_corrhist_entry(t, 5, scaledDiff, newWeight, ss);
+    update_single_cont_corrhist_entry(t, 1, scaledDiff, newWeight);
+    update_single_cont_corrhist_entry(t, 2, scaledDiff, newWeight);
+    update_single_cont_corrhist_entry(t, 3, scaledDiff, newWeight);
+    update_single_cont_corrhist_entry(t, 4, scaledDiff, newWeight);
+    update_single_cont_corrhist_entry(t, 5, scaledDiff, newWeight);
 }
 
-int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss) {       
+int adjust_eval_with_corrhist(ThreadData *t, int rawEval) {       
     rawEval = (rawEval * (300 - t->pos.fifty)) / 300;
     
     const int side = t->pos.side;
@@ -263,11 +250,11 @@ int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss) {
                + t->shared_history->krp_corrhist[side][t->pos.krpKey & mask]
                + t->shared_history->non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask]
                + t->shared_history->non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask]
-               + adjust_single_cont_corrhist_entry(t, 1, ss)
-               + adjust_single_cont_corrhist_entry(t, 2, ss)
-               + adjust_single_cont_corrhist_entry(t, 3, ss)               
-               + adjust_single_cont_corrhist_entry(t, 4, ss)
-               + adjust_single_cont_corrhist_entry(t, 5, ss);
+               + adjust_single_cont_corrhist_entry(t, 1)
+               + adjust_single_cont_corrhist_entry(t, 2)
+               + adjust_single_cont_corrhist_entry(t, 3)               
+               + adjust_single_cont_corrhist_entry(t, 4)
+               + adjust_single_cont_corrhist_entry(t, 5);
 
     const int mateFound = mateValue - maxPly;
     
@@ -279,7 +266,7 @@ int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss) {
     return rawEval;
 }
 
-int get_correction_value(ThreadData *t, SearchStack *ss) {
+int get_correction_value(ThreadData *t) {
     const int side = t->pos.side;
     const int mask = t->shared_history->corrhist_mask;
 
@@ -289,7 +276,7 @@ int get_correction_value(ThreadData *t, SearchStack *ss) {
     const int krp_correction = t->shared_history->krp_corrhist[side][t->pos.krpKey & mask];
     const int white_non_pawn_correction = t->shared_history->non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask];
     const int black_non_pawn_correction = t->shared_history->non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask];
-    const int continuation_correction = adjust_single_cont_corrhist_entry(t, 2, ss);
+    const int continuation_correction = adjust_single_cont_corrhist_entry(t, 2);
     
     int correction = pawn_correction + minor_correction + major_correction +
                     krp_correction + white_non_pawn_correction + black_non_pawn_correction +
