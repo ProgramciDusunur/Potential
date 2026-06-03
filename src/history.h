@@ -25,7 +25,8 @@ enum {
 extern int CORRHIST_WEIGHT_SCALE;
 extern int CORRHIST_GRAIN;
 extern int CORRHIST_LIMIT;
-extern int CORRHIST_SIZE;
+extern int BASE_CORRHIST_SIZE;
+extern int BASE_CONT_CORRHIST_SIZE;
 extern int CORRHIST_MAX;
 extern int BAD_QUIET_INDEX_SCALE;
 

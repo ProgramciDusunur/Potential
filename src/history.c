@@ -21,7 +21,8 @@
 int CORRHIST_WEIGHT_SCALE = 256;
 int CORRHIST_GRAIN = 256;
 int CORRHIST_LIMIT = 1024;
-int CORRHIST_SIZE = 16384;
+int BASE_CORRHIST_SIZE = 16384;
+int BASE_CONT_CORRHIST_SIZE = 262144;
 int CORRHIST_MAX = 16384;
 
 /* Update History */
@@ -162,7 +163,7 @@ void update_pawn_correction_hist(ThreadData *t, const int depth, const int diff)
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
     // Masking for faster indexing (assuming SIZE is power of 2)
-    int16_t *entry = &t->shared_history->pawn_corrhist[t->pos.side][t->pos.pawnKey & (CORRHIST_SIZE - 1)];
+    int16_t *entry = &t->shared_history->pawn_corrhist[t->pos.side][t->pos.pawnKey & t->shared_history->corrhist_mask];
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
@@ -170,7 +171,7 @@ void update_minor_correction_hist(ThreadData *t, const int depth, const int diff
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
-    int16_t *entry = &t->shared_history->minor_corrhist[t->pos.side][t->pos.minorKey & (CORRHIST_SIZE - 1)];
+    int16_t *entry = &t->shared_history->minor_corrhist[t->pos.side][t->pos.minorKey & t->shared_history->corrhist_mask];
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
@@ -178,7 +179,7 @@ void update_major_correction_hist(ThreadData *t, const int depth, const int diff
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
-    int16_t *entry = &t->shared_history->major_corrhist[t->pos.side][t->pos.majorKey & (CORRHIST_SIZE - 1)];
+    int16_t *entry = &t->shared_history->major_corrhist[t->pos.side][t->pos.majorKey & t->shared_history->corrhist_mask];
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
@@ -186,7 +187,7 @@ void update_non_pawn_corrhist(ThreadData *t, const int depth, const int diff) {
     const int side = t->pos.side;
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
-    const int mask = CORRHIST_SIZE - 1;
+    const int mask = t->shared_history->corrhist_mask;
     
     int16_t *white_ptr = &t->shared_history->non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask];
     apply_corrhist_update(white_ptr, scaledDiff, newWeight);
@@ -199,7 +200,7 @@ void update_king_rook_pawn_corrhist(ThreadData *t, const int depth, const int di
     const int scaledDiff = diff * CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
     
-    int16_t *entry = &t->shared_history->krp_corrhist[t->pos.side][t->pos.krpKey & (CORRHIST_SIZE - 1)];
+    int16_t *entry = &t->shared_history->krp_corrhist[t->pos.side][t->pos.krpKey & t->shared_history->corrhist_mask];
     apply_corrhist_update(entry, scaledDiff, newWeight);
 }
 
@@ -210,9 +211,9 @@ void update_single_cont_corrhist_entry(ThreadData *t, const int pliesBack, const
     const int m1 = prev->move;
     const int m2 = ss->move;
     
-    if (m1 && m2) {        
-        int16_t *entry_ptr = &t->shared_history->contCorrhist[prev->piece][getMoveTarget(m1)]
-                                         [ss->piece][getMoveTarget(m2)];
+    if (m1 && m2) {
+        uint64_t diff_key = t->pos.hashKey ^ t->pos.repetitionTable[t->pos.repetitionIndex - pliesBack + 1];
+        int16_t *entry_ptr = &t->shared_history->contCorrhist[diff_key & t->shared_history->cont_mask];
                 
         int val = *entry_ptr;
         val = (val * (CORRHIST_WEIGHT_SCALE - newWeight) + scaledDiff * newWeight) / CORRHIST_WEIGHT_SCALE;
@@ -232,8 +233,8 @@ static inline int adjust_single_cont_corrhist_entry(ThreadData *t, const int pli
     const int m2 = ss->move;
 
     if (m1 && m2) {
-        return t->shared_history->contCorrhist[prev->piece][getMoveTarget(m1)]
-                               [ss->piece][getMoveTarget(m2)];
+        uint64_t diff_key = t->pos.hashKey ^ t->pos.repetitionTable[t->pos.repetitionIndex - pliesBack + 1];
+        return t->shared_history->contCorrhist[diff_key & t->shared_history->cont_mask];
     }
     return 0;
 }
@@ -253,7 +254,7 @@ int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss) {
     rawEval = (rawEval * (300 - t->pos.fifty)) / 300;
     
     const int side = t->pos.side;
-    const int mask = CORRHIST_SIZE - 1;
+    const int mask = t->shared_history->corrhist_mask;
 
     // Batch memory access    
     int adjust = t->shared_history->pawn_corrhist[side][t->pos.pawnKey & mask]
@@ -280,7 +281,7 @@ int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss) {
 
 int get_correction_value(ThreadData *t, SearchStack *ss) {
     const int side = t->pos.side;
-    const int mask = CORRHIST_SIZE - 1;
+    const int mask = t->shared_history->corrhist_mask;
 
     const int pawn_correction = t->shared_history->pawn_corrhist[side][t->pos.pawnKey & mask];
     const int minor_correction = t->shared_history->minor_corrhist[side][t->pos.minorKey & mask];
@@ -307,8 +308,17 @@ void clear_histories(void) {
     }
     
     for (int i = 0; i < thread_pool.shared_history_count; i++) {
-        free(thread_pool.shared_histories[i]);
-        thread_pool.shared_histories[i] = (SharedHistory *)calloc(1, sizeof(SharedHistory));
+        SharedHistory *sh = thread_pool.shared_histories[i];
+        memset(sh->contCorrhist, 0, (sh->cont_mask + 1) * sizeof(int16_t));
+        for (int c = 0; c < 2; c++) {
+            memset(sh->pawn_corrhist[c], 0, (sh->corrhist_mask + 1) * sizeof(int16_t));
+            memset(sh->minor_corrhist[c], 0, (sh->corrhist_mask + 1) * sizeof(int16_t));
+            memset(sh->major_corrhist[c], 0, (sh->corrhist_mask + 1) * sizeof(int16_t));
+            memset(sh->krp_corrhist[c], 0, (sh->corrhist_mask + 1) * sizeof(int16_t));
+            for (int c2 = 0; c2 < 2; c2++) {
+                memset(sh->non_pawn_corrhist[c][c2], 0, (sh->corrhist_mask + 1) * sizeof(int16_t));
+            }
+        }
     }
     
     int threads_per_l3 = 8;

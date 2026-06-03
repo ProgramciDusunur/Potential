@@ -4,6 +4,8 @@
 
 #include "threads.h"
 #include "search.h"
+#include "utils.h"
+#include "history.h"
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -33,7 +35,18 @@ static void free_threads(void) {
 
     for (int i = 0; i < thread_pool.shared_history_count; i++) {
         if (thread_pool.shared_histories[i] != NULL) {
-            free(thread_pool.shared_histories[i]);
+            SharedHistory *sh = thread_pool.shared_histories[i];
+            free(sh->contCorrhist);
+            for (int c = 0; c < 2; c++) {
+                free(sh->pawn_corrhist[c]);
+                free(sh->minor_corrhist[c]);
+                free(sh->major_corrhist[c]);
+                free(sh->krp_corrhist[c]);
+                for (int c2 = 0; c2 < 2; c2++) {
+                    free(sh->non_pawn_corrhist[c][c2]);
+                }
+            }
+            free(sh);
             thread_pool.shared_histories[i] = NULL;
         }
     }
@@ -61,9 +74,29 @@ void init_threads(int requested_count) {
 
     for (int i = 0; i < thread_pool.shared_history_count; i++) {
         thread_pool.shared_histories[i] = (SharedHistory *)calloc(1, sizeof(SharedHistory));
-        // Note: calloc allocates zeroed memory lazily. The physical RAM pages will only be
-        // allocated when the threads first write to them during search, perfectly assigning
-        // the memory to their local NUMA node!
+        SharedHistory *sh = thread_pool.shared_histories[i];
+        
+        int local_threads = requested_count - (i * threads_per_l3);
+        if (local_threads > threads_per_l3) local_threads = threads_per_l3;
+        
+        int scale = next_power_of_2(local_threads);
+        int corrhist_size = BASE_CORRHIST_SIZE * scale;
+        int cont_size = BASE_CONT_CORRHIST_SIZE * scale;
+        
+        sh->corrhist_mask = corrhist_size - 1;
+        sh->cont_mask = cont_size - 1;
+        
+        sh->contCorrhist = (int16_t *)calloc(cont_size, sizeof(int16_t));
+        
+        for (int c = 0; c < 2; c++) {
+            sh->pawn_corrhist[c] = (int16_t *)calloc(corrhist_size, sizeof(int16_t));
+            sh->minor_corrhist[c] = (int16_t *)calloc(corrhist_size, sizeof(int16_t));
+            sh->major_corrhist[c] = (int16_t *)calloc(corrhist_size, sizeof(int16_t));
+            sh->krp_corrhist[c] = (int16_t *)calloc(corrhist_size, sizeof(int16_t));
+            for (int c2 = 0; c2 < 2; c2++) {
+                sh->non_pawn_corrhist[c][c2] = (int16_t *)calloc(corrhist_size, sizeof(int16_t));
+            }
+        }
     }
 
     for (int i = 0; i < requested_count; i++) {
