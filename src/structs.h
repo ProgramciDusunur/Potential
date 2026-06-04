@@ -206,23 +206,25 @@ typedef struct {
     // pawnHistory [pawnKey][piece][to]
     int16_t pawnHistory[2048][12][64];
 
-    // continuationCorrectionHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+    // continuationCorrectionHistory 4D array
     int16_t contCorrhist[12][64][12][64];
 
-    // pawn correction history [side to move][key]
-    int16_t pawn_corrhist[2][16384];
+    // pawn correction history [side to move]
+    int16_t *pawn_corrhist[2];
 
-    // minor correction history [side to move][key]
-    int16_t minor_corrhist[2][16384];
+    // minor correction history [side to move]
+    int16_t *minor_corrhist[2];
 
-    // major correction history [side to move][key]
-    int16_t major_corrhist[2][16384];
+    // major correction history [side to move]
+    int16_t *major_corrhist[2];
 
-    // non pawn correction history [side to move][key]
-    int16_t non_pawn_corrhist[2][2][16384];
+    // non pawn correction history [side to move]
+    int16_t *non_pawn_corrhist[2][2];
 
-    // king rook pawn correction history [side to move][key]
-    int16_t krp_corrhist[2][16384];
+    // king rook pawn correction history [side to move]
+    int16_t *krp_corrhist[2];
+    
+    int corrhist_mask;
 } SharedHistory;
 
 typedef struct {

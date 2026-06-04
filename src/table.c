@@ -220,7 +220,7 @@ void prefetch_hash_entry(uint64_t hash_key, uint8_t fmr_key) {
 }
 
 void prefetch_corrhist(board *pos, ThreadData *t) { 
-    const int mask = CORRHIST_SIZE - 1;
+    const int mask = t->shared_history->corrhist_mask;
     const int side = pos->side;
 
     __builtin_prefetch(&t->shared_history->pawn_corrhist[side][pos->pawnKey & mask]);
