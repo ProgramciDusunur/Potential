@@ -84,9 +84,7 @@ void init_threads(int requested_count) {
         int cont_size = BASE_CONT_CORRHIST_SIZE * scale;
         
         sh->corrhist_mask = corrhist_size - 1;
-        sh->cont_mask = cont_size - 1;
-        
-        printf("info string Initialized SharedHistory %d with scale %d, corrhist_size %d\n", i, scale, corrhist_size);
+        sh->cont_mask = cont_size - 1;                
         
         sh->contCorrhist = (int16_t *)calloc(cont_size, sizeof(int16_t));
         
