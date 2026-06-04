@@ -231,10 +231,10 @@ void update_continuation_corrhist(ThreadData *t, const int depth, const int diff
     const int newWeight = 4 * myMIN(depth + 1, 16);
 
     update_single_cont_corrhist_entry(t, 1, scaledDiff, newWeight);
-    update_single_cont_corrhist_entry(t, 2, scaledDiff, newWeight);
-    update_single_cont_corrhist_entry(t, 3, scaledDiff, newWeight);
-    update_single_cont_corrhist_entry(t, 4, scaledDiff, newWeight);
-    update_single_cont_corrhist_entry(t, 5, scaledDiff, newWeight);
+    // update_single_cont_corrhist_entry(t, 2, scaledDiff, newWeight);
+    // update_single_cont_corrhist_entry(t, 3, scaledDiff, newWeight);
+    // update_single_cont_corrhist_entry(t, 4, scaledDiff, newWeight);
+    // update_single_cont_corrhist_entry(t, 5, scaledDiff, newWeight);
 }
 
 int adjust_eval_with_corrhist(ThreadData *t, int rawEval) { 
@@ -252,11 +252,7 @@ int adjust_eval_with_corrhist(ThreadData *t, int rawEval) {
                + t->shared_history->krp_corrhist[side][t->pos.krpKey & mask]
                + t->shared_history->non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask]
                + t->shared_history->non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask]
-               + adjust_single_cont_corrhist_entry(t, 1)
-               + adjust_single_cont_corrhist_entry(t, 2)
-               + adjust_single_cont_corrhist_entry(t, 3)               
-               + adjust_single_cont_corrhist_entry(t, 4)
-               + adjust_single_cont_corrhist_entry(t, 5);
+               + adjust_single_cont_corrhist_entry(t, 1);
 
     const int mateFound = mateValue - maxPly;
     
@@ -278,11 +274,8 @@ int get_correction_value(ThreadData *t) {
     const int krp_correction = t->shared_history->krp_corrhist[side][t->pos.krpKey & mask];
     const int white_non_pawn_correction = t->shared_history->non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask];
     const int black_non_pawn_correction = t->shared_history->non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask];
-    const int continuation_correction = adjust_single_cont_corrhist_entry(t, 1)
-               + adjust_single_cont_corrhist_entry(t, 2)
-               + adjust_single_cont_corrhist_entry(t, 3)               
-               + adjust_single_cont_corrhist_entry(t, 4)
-               + adjust_single_cont_corrhist_entry(t, 5);  
+    const int continuation_correction = adjust_single_cont_corrhist_entry(t, 1);
+    
     int correction = pawn_correction + minor_correction + major_correction +
                     krp_correction + white_non_pawn_correction + black_non_pawn_correction +
                     continuation_correction;
