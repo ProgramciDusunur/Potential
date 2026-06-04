@@ -36,6 +36,7 @@ static void free_threads(void) {
     for (int i = 0; i < thread_pool.shared_history_count; i++) {
         if (thread_pool.shared_histories[i] != NULL) {
             SharedHistory *sh = thread_pool.shared_histories[i];
+            free(sh->contCorrhist);
             for (int c = 0; c < 2; c++) {
                 free(sh->pawn_corrhist[c]);
                 free(sh->minor_corrhist[c]);
@@ -80,7 +81,14 @@ void init_threads(int requested_count) {
         
         int scale = next_power_of_2(local_threads);
         int corrhist_size = BASE_CORRHIST_SIZE * scale;
+        int cont_size = BASE_CONT_CORRHIST_SIZE * scale;
+        
         sh->corrhist_mask = corrhist_size - 1;
+        sh->cont_mask = cont_size - 1;
+        
+        printf("info string Initialized SharedHistory %d with scale %d, corrhist_size %d\n", i, scale, corrhist_size);
+        
+        sh->contCorrhist = (int16_t *)calloc(cont_size, sizeof(int16_t));
         
         for (int c = 0; c < 2; c++) {
             sh->pawn_corrhist[c] = (int16_t *)calloc(corrhist_size, sizeof(int16_t));
