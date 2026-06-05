@@ -117,7 +117,7 @@ int getAllCHScore(ThreadData *t, uint16_t move, int quiet_hist_score, SearchStac
 int getContinuationHistoryScore(ThreadData *t, int offSet, uint16_t move, SearchStack *ss) {
     if (t->pos.ply < offSet) return 0;
     SearchStack *prev = ss - offSet;
-    return t->search_d.continuationHistory[prev->piece][getMoveTarget(prev->move)]
+    return t->shared_history->continuationHistory[prev->piece][getMoveTarget(prev->move)]
                               [t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
 }
 
@@ -126,7 +126,7 @@ void updateSingleCHScore(ThreadData *t, uint16_t move, const int offSet, const i
     int base_conthist_score = getAllCHScore(t, move, quiet_hist_score, ss);
     SearchStack *prev = ss - offSet;
     const int scaledBonus = bonus - (base_conthist_score * abs(bonus) * CONTHIST_MULT) / 16384;
-    t->search_d.continuationHistory[prev->piece][getMoveTarget(prev->move)]
+    t->shared_history->continuationHistory[prev->piece][getMoveTarget(prev->move)]
                           [t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] += scaledBonus;
 }
 
@@ -303,13 +303,13 @@ void clear_histories(void) {
     for (int i = 0; i < how_many_threads; i++) {
         memset(thread_pool.threads[i]->search_d.quietHistory, 0, sizeof(thread_pool.threads[i]->search_d.quietHistory));
         memset(thread_pool.threads[i]->search_d.captureHistory, 0, sizeof(thread_pool.threads[i]->search_d.captureHistory));        
-        memset(thread_pool.threads[i]->search_d.continuationHistory, 0, sizeof(thread_pool.threads[i]->search_d.continuationHistory));
     }
     
     for (int i = 0; i < thread_pool.shared_history_count; i++) {
         SharedHistory *sh = thread_pool.shared_histories[i];
         memset(sh->pawnHistory, 0, sizeof(sh->pawnHistory));
         memset(sh->contCorrhist, 0, sizeof(sh->contCorrhist));
+        memset(sh->continuationHistory, 0, sizeof(sh->continuationHistory));
         for (int c = 0; c < 2; c++) {
             memset(sh->pawn_corrhist[c], 0, (sh->corrhist_mask + 1) * sizeof(int16_t));
             memset(sh->minor_corrhist[c], 0, (sh->corrhist_mask + 1) * sizeof(int16_t));

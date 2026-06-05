@@ -221,18 +221,17 @@ typedef struct {
     // non pawn correction history [side to move]
     int16_t *non_pawn_corrhist[2][2];
 
-    // king rook pawn correction history [side to move]
     int16_t *krp_corrhist[2];
     
+    // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
+    int16_t continuationHistory[12][64][12][64];
+
     int corrhist_mask;
 } SharedHistory;
 
 typedef struct {
     // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
     int16_t quietHistory[2][64][64][2][2];
-
-    // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
-    int16_t continuationHistory[12][64][12][64];    
 
     // captureHistory [piece][toSquare][capturedPiece]
     int16_t captureHistory[12][64][13];
