@@ -1318,7 +1318,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                         extensions += 1;
                     }
                     else {
-                        
+                        extensions -= 2;
                     }
                 }
             }
