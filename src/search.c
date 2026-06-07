@@ -1308,14 +1308,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             
             if (singularScore >= singularBeta) {
                 int softMargin = singularScore - singularBeta;
-                int VERIFY_THRESHOLD = depth;
+                int VERIFY_THRESHOLD = depth * 5 / 10;
                 
                 if (softMargin < VERIFY_THRESHOLD) {
                     int verifyBeta = singularBeta + VERIFY_THRESHOLD;
                     int verifyScore = negamax(verifyBeta - 1, verifyBeta, singularDepth, t, time, ss, predicted_cut_node);
                     
                     if (verifyScore < verifyBeta) {                        
-                        extensions += 1;
+                        //extensions += 1;
                     }
                     else {
                         extensions -= 2;
