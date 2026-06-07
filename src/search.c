@@ -576,10 +576,37 @@ int SEE(board *pos, uint16_t move, int threshold) {
 }
 
 uint8_t isMaterialDraw(board *pos) {
-    // early exit: pawns, rooks or queens on the board
-    if (pos->bitboards[P] | pos->bitboards[p] |
-        pos->bitboards[R] | pos->bitboards[r] |
-        pos->bitboards[Q] | pos->bitboards[q]) {
+    U64 pawns = pos->bitboards[P] | pos->bitboards[p];
+    U64 rooks_queens = pos->bitboards[R] | pos->bitboards[r] | pos->bitboards[Q] | pos->bitboards[q];
+
+    if (rooks_queens) return 0;
+
+    if (pawns) {
+        U64 knights = pos->bitboards[N] | pos->bitboards[n];
+        if (knights) return 0;
+
+        int w_pawns = countBits(pos->bitboards[P]);
+        int b_pawns = countBits(pos->bitboards[p]);
+        int w_bishops = countBits(pos->bitboards[B]);
+        int b_bishops = countBits(pos->bitboards[b]);
+
+        U64 A8_CORNER = (1ULL << a8) | (1ULL << b8) | (1ULL << a7) | (1ULL << b7);
+        U64 H8_CORNER = (1ULL << h8) | (1ULL << g8) | (1ULL << h7) | (1ULL << g7);
+        U64 A1_CORNER = (1ULL << a1) | (1ULL << b1) | (1ULL << a2) | (1ULL << b2);
+        U64 H1_CORNER = (1ULL << h1) | (1ULL << g1) | (1ULL << h2) | (1ULL << g2);
+
+        int w_draw = (w_bishops == 1) * (b_bishops == 0) * (b_pawns == 0) * (w_pawns > 0) * (
+            (((pos->bitboards[P] & notAFile) == 0) * ((pos->bitboards[B] & LIGHT_SQUARES) == 0) * ((pos->bitboards[k] & A8_CORNER) != 0)) +
+            (((pos->bitboards[P] & notHFile) == 0) * ((pos->bitboards[B] & LIGHT_SQUARES) != 0) * ((pos->bitboards[k] & H8_CORNER) != 0))
+        );
+
+        int b_draw = (b_bishops == 1) * (w_bishops == 0) * (w_pawns == 0) * (b_pawns > 0) * (
+            (((pos->bitboards[p] & notAFile) == 0) * ((pos->bitboards[b] & LIGHT_SQUARES) != 0) * ((pos->bitboards[K] & A1_CORNER) != 0)) +
+            (((pos->bitboards[p] & notHFile) == 0) * ((pos->bitboards[b] & LIGHT_SQUARES) == 0) * ((pos->bitboards[K] & H1_CORNER) != 0))
+        );
+
+        if (w_draw + b_draw) return 1;
+        
         return 0;
     }
 
