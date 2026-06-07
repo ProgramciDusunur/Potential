@@ -1774,33 +1774,16 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         t->pos.rootDepth = current_depth;
 
 
-        int startTime = getTimeMiliSecond();
-
-        if (time->is_datagen) {
-            check_node_limit(time, t);
-        } else {
-            if (t->id == 0 && ((time->timeset && startTime >= time->softLimit) || (time->isNodeLimit && total_nodes() >= time->node_limit)) && t->pos.pvTable[0][0] != 0) {
-                time->stopped = 1;
-                store_rlx(thread_pool.stop, true);
-            } else if (load_rlx(thread_pool.stop)) {
-                time->stopped = 1;
-            }
-        }
+        int startTime = getTimeMiliSecond();        
 
         int window = ASP_WINDOW_BASE;
         int aspirationWindowDepth = current_depth;
 
         while (true) {
 
-            if (time->is_datagen) {
-                check_node_limit(time, t);
-            } else {
-                if (t->id == 0 && ((time->timeset && startTime >= time->softLimit) || (time->isNodeLimit && total_nodes() >= time->node_limit)) && t->pos.pvTable[0][0] != 0) {
-                    time->stopped = 1;
-                    store_rlx(thread_pool.stop, true);
-                } else if (load_rlx(thread_pool.stop)) {
-                    time->stopped = 1;
-                }
+            // check time and node limits (the check should done by the main thread)
+            if (t->id == 0) {
+                check_time_limit(time, startTime, t, score);
             }
 
             if (time->stopped == 1) {
@@ -1888,7 +1871,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
 
-        if (t->id == 0 && t->pos.pvLength[0] && !benchmark) {
+        if (t->id == 0 && t->pos.pvLength[0] && !benchmark && !time->stopped) {
             print_info(t, current_depth, score, totalTime);
         }
 
