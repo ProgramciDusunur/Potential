@@ -21,22 +21,24 @@ void initTimeControl(my_time* time) {
     time->is_datagen = false;
 }
 
-// reset time control variables
-void resetTimeControl(my_time* time) {
-    // reset timing
-    time->quit = 0;
-    time->isNodeLimit = false;
-    time->movestogo = 20;
-    time->movetime = -1;
-    time->time = -1;
-    time->inc = 0;
-    time->starttime = 0;
-    time->stoptime = 0;
-    time->timeset = 0;
-    time->stopped = 0;
-    time->softLimit = 0;
-    time->hardLimit = 0;
-    time->is_datagen = false;
+
+void check_time_limit(my_time *time, int startTime, ThreadData *t, int score) {
+    if (time->is_datagen) {
+        check_node_limit(time, t);
+    } else {
+        // the search must contain a best move
+        if (t->pos.pvTable[0][0] != 0) {
+            if (((time->timeset && startTime >= time->softLimit) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
+                time->stopped = 1;
+                store_rlx(thread_pool.stop, true);
+            } else if (score >= mateValue - 3 || score == -mateValue + 2) {
+                time->stopped = 1;
+                store_rlx(thread_pool.stop, true);
+            } else if (load_rlx(thread_pool.stop)) {
+                time->stopped = 1;
+            }
+        }        
+    }
 }
 
 int getTimeMiliSecond(void) {

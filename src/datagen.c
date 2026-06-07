@@ -174,7 +174,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
 
         FenString fen_str = get_fen(&pos);
 
-        resetTimeControl(&time);
+        initTimeControl(&time);
         time.isNodeLimit = 1;
         time.node_limit = nodes_limit;
         time.is_datagen = true;

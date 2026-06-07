@@ -19,7 +19,7 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "3.43.91"
+#define VERSION "3.44.91"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -173,7 +173,7 @@ void parse_position(char *command, board* position) {
 void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time) {
 
     // reset time control
-    resetTimeControl(time);
+    initTimeControl(time);
 
     // init parameters
     int depth = -1;

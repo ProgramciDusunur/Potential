@@ -4,6 +4,8 @@
 #pragma once
 
 #include "structs.h"
+#include "threads.h"
+#include "values.h"
 
 #ifdef WIN64
 
@@ -20,9 +22,10 @@
 #endif
 
 void initTimeControl(my_time* time);
-void resetTimeControl(my_time* time);
+
 int getTimeMiliSecond();
 int input_waiting();
+void check_time_limit(my_time *time, int startTime, ThreadData *t, int score);
 
 
 
