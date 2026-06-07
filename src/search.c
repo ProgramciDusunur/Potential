@@ -1303,9 +1303,26 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             ss->singular_move = currentMove;
 
-            const int singularScore =
+            int singularScore =
                     negamax(singularBeta - 1, singularBeta, singularDepth, t, time, ss, predicted_cut_node);
             
+            if (singularScore >= singularBeta) {
+                int softMargin = singularScore - singularBeta;
+                int VERIFY_THRESHOLD = depth;
+                
+                if (softMargin < VERIFY_THRESHOLD) {
+                    int verifyBeta = singularBeta + VERIFY_THRESHOLD;
+                    int verifyScore = negamax(verifyBeta - 1, verifyBeta, singularDepth, t, time, ss, predicted_cut_node);
+                    
+                    if (verifyScore < verifyBeta) {                        
+                        extensions += 1;
+                    }
+                    else {
+                        
+                    }
+                }
+            }
+
             ss->singular_move = 0;
 
             // Singular Extension
