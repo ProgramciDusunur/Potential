@@ -358,7 +358,10 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
 
         int piece = t->pos.mailbox[getMoveSource(move)];
 
-        int16_t move_history = t->search_d.captureHistory[piece][getMoveTarget(move)][t->pos.mailbox[getMoveTarget(move)]];
+        bool threatFrom = is_square_threatened(&t->pos, getMoveSource(move));
+        bool threatTo = is_square_threatened(&t->pos, getMoveTarget(move));
+
+        int16_t move_history = t->search_d.captureHistory[piece][getMoveTarget(move)][t->pos.mailbox[getMoveTarget(move)]][threatFrom][threatTo];
 
         // score move by MVV LVA lookup [source piece][target piece]
         captureScore += mvvLva[piece][target_piece];
@@ -1117,8 +1120,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             for (int count = 0; count < capture_promos->count; count++) {
                 pick_next_move(count, capture_promos, move_scores);
                 uint16_t move = capture_promos->moves[count];
+
+                bool threatFrom = is_square_threatened(&t->pos, getMoveSource(move));
+                bool threatTo = is_square_threatened(&t->pos, getMoveTarget(move));
+                
                 int move_history =
-                t->search_d.captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]];
+                t->search_d.captureHistory[pos->mailbox[getMoveSource(move)]][getMoveTarget(move)][pos->mailbox[getMoveTarget(move)]][threatFrom][threatTo];
 
                 if (!SEE(pos, move, PROBCUT_SEE_NOISY_THRESHOLD)) {
                     continue;
@@ -1232,12 +1239,15 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         bool notTactical = !tactical;
         bool gives_check = move_gives_check(currentMove, pos);
 
+        bool threatFrom = is_square_threatened(&t->pos, getMoveSource(currentMove));
+        bool threatTo = is_square_threatened(&t->pos, getMoveTarget(currentMove));
+
         int pawnHistoryValue = notTactical ? t->shared_history->pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
 
         int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
+                                        [threatFrom][threatTo] +
                 getContinuationHistoryScore(t, 1, currentMove, ss) + getContinuationHistoryScore(t, 4, currentMove, ss): 
-                t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+                t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]][threatFrom][threatTo];
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + ((moveHistory * LMR_DEPTH_HIST_MULT) / 16384 * notTactical));
 

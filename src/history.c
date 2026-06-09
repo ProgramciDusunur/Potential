@@ -89,9 +89,12 @@ void updateCaptureHistory(ThreadData *t, uint16_t bestMove, int bonus) {
     int to = getMoveTarget(bestMove);
     int capturedPiece = t->pos.mailbox[getMoveTarget(bestMove)];
 
-    int score = t->search_d.captureHistory[piece][to][capturedPiece];
+    bool threatFrom = is_square_threatened(&t->pos, getMoveSource(bestMove));
+    bool threatTo = is_square_threatened(&t->pos, to);
 
-    t->search_d.captureHistory[piece][to][capturedPiece] += scaledBonus(score, bonus, maxCaptureHistory);
+    int score = t->search_d.captureHistory[piece][to][capturedPiece][threatFrom][threatTo];
+
+    t->search_d.captureHistory[piece][to][capturedPiece][threatFrom][threatTo] += scaledBonus(score, bonus, maxCaptureHistory);
 }
 
 void updateCaptureHistoryMalus(ThreadData *t, int bonus, moves *noisyMoves, uint16_t bestMove) {
@@ -102,9 +105,12 @@ void updateCaptureHistoryMalus(ThreadData *t, int bonus, moves *noisyMoves, uint
 
         if (noisyMoves->moves[index] == bestMove) continue;
 
-        int noisyMoveScore = t->search_d.captureHistory[noisyPiece][noisyTo][noisyCapturedPiece];        
+        bool noisyThreatFrom = is_square_threatened(&t->pos, getMoveSource(noisyMoves->moves[index]));
+        bool noisyThreatTo = is_square_threatened(&t->pos, noisyTo);
 
-        t->search_d.captureHistory[noisyPiece][noisyTo][noisyCapturedPiece] += scaledBonus(noisyMoveScore, -bonus, maxCaptureHistory);
+        int noisyMoveScore = t->search_d.captureHistory[noisyPiece][noisyTo][noisyCapturedPiece][noisyThreatFrom][noisyThreatTo];
+
+        t->search_d.captureHistory[noisyPiece][noisyTo][noisyCapturedPiece][noisyThreatFrom][noisyThreatTo] += scaledBonus(noisyMoveScore, -bonus, maxCaptureHistory);
     }
 }
 

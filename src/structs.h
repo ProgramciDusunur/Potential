@@ -233,8 +233,8 @@ typedef struct {
     // quietHistory[side to move][fromSquare][toSquare][threatSource][threatTarget]
     int16_t quietHistory[2][64][64][2][2];
 
-    // captureHistory [piece][toSquare][capturedPiece]
-    int16_t captureHistory[12][64][13];
+    // captureHistory[piece][toSquare][capturedPiece][threatSource][threatTarget]
+    int16_t captureHistory[12][64][13][2][2];
 } SearchData;
 
 typedef struct {
