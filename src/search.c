@@ -81,14 +81,14 @@
   int GOOD_EVAL_LMR_SCALAR = 1024;
   int IMPROVING_LMR_SCALAR = 1024;
   int GIVES_CHECK_LMR_SCALAR = 1024;
-  int NO_TT_MOVE_LMR_SCALAR = 1024;
+  int NO_TT_MOVE_LMR_SCALAR = 512;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
   int LMR_DEPTH_HIST_MULT = 2;
 
   /*╔══════════════════════╗
     ║  Zero Window Search  ║
     ╚══════════════════════╝*/
-    int NO_TT_MOVE_ZW_REDUCTION = 1024;
+    int NO_TT_MOVE_ZW_REDUCTION = 512;
   
   /*╔═════════════════════╗
     ║  Late Move Pruning  ║
@@ -1559,7 +1559,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 nonpv_reduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 1078) - 27;
             }
 
-            if (!tt_move) {
+            if (predicted_cut_node && !tt_move) {
                 nonpv_reduction -= NO_TT_MOVE_ZW_REDUCTION;
             }
 
