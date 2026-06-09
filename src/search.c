@@ -932,15 +932,15 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int correction_value = get_correction_value(t, ss);    
 
     ss->staticEval = static_eval;    
+    int ttAdjustedEval = static_eval;
+    ss->ttAdjustedEval = ttAdjustedEval;
 
-    improving = !in_check && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
+    improving = !in_check && (ss - 2)->ttAdjustedEval != noEval && ss->ttAdjustedEval > (ss - 2)->ttAdjustedEval;
 
     // Internal Iterative Reductions
     if ((pvNode || predicted_cut_node) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
         depth--;
-    }
-
-    int ttAdjustedEval = static_eval;
+    }    
 
     if (!ss->singular_move && tt_move && !in_check &&
         (tt_flag == hashFlagExact ||
@@ -948,6 +948,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
          (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
 
         ttAdjustedEval = tt_score;
+        ss->ttAdjustedEval = ttAdjustedEval;
     }
 
     improving |= ss->staticEval >= beta + 100;
