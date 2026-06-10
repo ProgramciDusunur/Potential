@@ -5,7 +5,6 @@
 #include <pthread.h>
 
 
-
 #include "uci.h"
 #include "magic.h"
 #include "move.h"
@@ -14,7 +13,6 @@
 #include "perft.h"
 #include "see.h"
 #include "generate_fen.h"
-
 
 
 
