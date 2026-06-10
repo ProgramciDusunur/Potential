@@ -194,6 +194,11 @@ typedef struct {
 } FenString;
 
 typedef struct {
+    uint64_t check_mask[6];
+    uint8_t valid;
+} check_info_t;
+
+typedef struct {
     int cutoff_count;
     int staticEval;
     uint16_t singular_move;

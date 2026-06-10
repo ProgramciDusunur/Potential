@@ -104,7 +104,7 @@ void initLeaperAttacks();
 void addMoveToHistoryList(moves* list, uint16_t move);
 U64 pawn_threats(U64 pawnBitboard, int side);
 U64 knight_threats (U64 knightBB);
-bool move_gives_check(uint16_t move, board* pos);
+bool move_gives_check(uint16_t move, board* pos, check_info_t* check_info);
 bool is_pseudo_legal(uint16_t move, board *pos);
 void printMove(uint16_t move);
 U64 get_checkers(board* pos, uint8_t stm_king_square);
