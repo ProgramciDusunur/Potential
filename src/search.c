@@ -151,6 +151,7 @@
   // Negative Extensions
   int DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
   int TRIPLE_NEGATIVE_EXTENSION_MARGIN = 90;
+  int BORDERLINE_SE_MARGIN = 5;
   int TRIPLE_EXT_HIST_MULT = 32;
   
   /*╔═══════════════════════════════╗
@@ -1360,7 +1361,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
-            }            
+            }
+
+            // Borderline Singular Extension
+            // If the fail-high margin is very small
+            // the alternative barely beat singularBeta — still grant SE.
+            else if (singularScore - singularBeta < BORDERLINE_SE_MARGIN) {
+                extensions++;
+            }
 
             // Negative Extensions
             else if (tt_score >= beta) {
