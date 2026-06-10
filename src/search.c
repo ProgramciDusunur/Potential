@@ -1301,12 +1301,17 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             const int singularBeta = tt_score - singularMargin / 8;
             const int singularDepth = (depth - 1) / 2;
 
-            ss->singular_move = currentMove;
+            int se_rfp_margin = depth * 10 + 768 * abs(correction_value) / 98304 + 6 * depth * depth;
+            int singularScore;
 
-            const int singularScore =
-                    negamax(singularBeta - 1, singularBeta, singularDepth, t, time, ss, predicted_cut_node);
-            
-            ss->singular_move = 0;
+            // Singular Extensions RFP (Skip SE search if eval is extremely high)
+            if (!pvNode && !in_check && ttAdjustedEval - se_rfp_margin >= singularBeta) {
+                singularScore = singularBeta; // Fail-high, skip the search completely
+            } else {
+                ss->singular_move = currentMove;
+                singularScore = negamax(singularBeta - 1, singularBeta, singularDepth, t, time, ss, predicted_cut_node);
+                ss->singular_move = 0;
+            }
 
             // Singular Extension
             if (singularScore < singularBeta) {
