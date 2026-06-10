@@ -1299,9 +1299,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             singularMargin += (tt_pv && !pvNode) * 10;
             singularMargin += (tt_flag == hashFlagExact ? depth * 5 / 10 : depth * 5);
             const int singularBeta = tt_score - singularMargin / 8;
-            const int singularDepth = (depth - 1) / 2;
+            const int singularDepth = (depth - 1) / 2;            
 
-            int se_rfp_margin = depth * 10 + 768 * abs(correction_value) / 98304 + 6 * depth * depth;
+            int se_rfp_margin = depth * 30 + 768 * abs(correction_value) / 98304 + 768 * moveHistory / 98304;
             int singularScore;
 
             // Singular Extensions RFP (Skip SE search if eval is extremely high)
