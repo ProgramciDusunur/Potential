@@ -1191,6 +1191,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     badQuiets->count = 0;
     noisyMoves->count = 0;
 
+    check_info_t check_info = { .valid = 0 };
+
     MovePicker mp;
     init_mp(&mp, tt_move);
         
@@ -1230,7 +1232,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         bool isPromotion = getMovePromote(currentMove) != 0;
         bool tactical = isCapture || isPromotion;
         bool notTactical = !tactical;
-        bool gives_check = move_gives_check(currentMove, pos);
+        bool gives_check = move_gives_check(currentMove, pos, &check_info);
 
         int pawnHistoryValue = notTactical ? t->shared_history->pawnHistory[pos->pawnKey % 2048][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
 
