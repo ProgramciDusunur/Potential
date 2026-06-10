@@ -20,7 +20,6 @@
 
 
 
-
 void initAll(void) {
     initLeaperAttacks();
     // init random keys for tranposition table
