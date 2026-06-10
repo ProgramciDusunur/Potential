@@ -4,9 +4,6 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#ifndef __AVX2__
-#error "AVX2 is required but not supported by the target architecture."
-#endif
 
 #include "uci.h"
 #include "magic.h"
