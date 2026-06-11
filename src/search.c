@@ -950,7 +950,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         ttAdjustedEval = tt_score;
     }
 
-    improving |= ss->staticEval >= beta + 100;
+    improving |= ttAdjustedEval >= beta + 100;
 
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
