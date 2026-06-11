@@ -119,18 +119,21 @@ struct copyposition {
     threats pieceThreats;
 };
 
-// transposition table entry (8 bytes)
+// transposition table entry (10 bytes)
+#pragma pack(push, 1)
 typedef struct {
-    uint16_t key;        // 2 bytes: verification key from hash
+    uint32_t key;        // 4 bytes: verification key from hash
     uint16_t bestMove;   // 2 bytes: best move from search
     int16_t score;       // 2 bytes: score (alpha/beta/PV)
-    int8_t depth;        // 1 byte: search depth
+    uint8_t depth;       // 1 byte: search depth
     uint8_t flag;        // 1 byte: flags (bits 0-1 hashFlag, bit 2 ttPv, bits 3-7 age)
 } tt_entry;
+#pragma pack(pop)
 
 // transposition table cluster (32 bytes)
 typedef struct {
-    tt_entry entries[4];
+    tt_entry entries[3];
+    uint8_t padding[2]; // 3 * 10 + 2 = 32 bytes
 } __attribute__((aligned(32))) tt;
 
 

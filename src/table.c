@@ -20,12 +20,13 @@ int hash_full(void) {
   int samples = 1000 / 4;
 
   for (int i = 0; i < samples; ++i) {
-      for (int j = 0; j < 4; ++j) {
+      for (int j = 0; j < 3; ++j) {
         if (hashTable[i].entries[j].key != 0 || (hashTable[i].entries[j].flag & 0x3) != hashFlagNone) {
           used++;
         }
       }
-  }    
+  }
+
   return used;
 }
 
@@ -237,14 +238,14 @@ void prefetch_corrhist(board *pos, ThreadData *t) {
 
 void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key) {
     tt *cluster = &hashTable[get_hash_index(key, fmr_key)];
-    uint16_t hash16 = (uint16_t)key;
+    uint32_t hash32 = (uint32_t)key;
     
     int replace = 0;
     int min_value = 999999;
     
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 3; i++) {
         tt_entry *candidate = &cluster->entries[i];
-        if (candidate->key == hash16 || (candidate->flag & 0x3) == hashFlagNone) {
+        if (candidate->key == hash32 || (candidate->flag & 0x3) == hashFlagNone) {
             replace = i;
             break;
         }
@@ -261,21 +262,21 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
     
     tt_entry *entry = &cluster->entries[replace];
     
-    if (!(hash16 != entry->key
+    if (!(hash32 != entry->key
         || hashFlag == hashFlagExact
         || depth + 4 + 2 * ttPv > entry->depth
         || (entry->flag >> 3) != tt_age)) {
         return;
     }
 
-    if (bestMove != 0 || hash16 != entry->key) {
+    if (bestMove != 0 || hash32 != entry->key) {
         entry->bestMove = bestMove;
     }
 
     if (score < -mateFound) score -= position->ply;
     if (score > mateFound) score += position->ply;
 
-    entry->key = hash16;
+    entry->key = hash32;
     entry->score = score;
     entry->depth = depth;
     entry->flag = hashFlag | (ttPv << 2) | (tt_age << 3);
@@ -285,11 +286,11 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
 bool readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
                     uint8_t *tt_depth, uint8_t *tt_flag, bool *tt_pv, uint8_t fmr_key) {
     tt *cluster = &hashTable[get_hash_index(position->hashKey, fmr_key)];
-    uint16_t hash16 = (uint16_t)position->hashKey;
+    uint32_t hash32 = (uint32_t)position->hashKey;
     
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 3; i++) {
         tt_entry *entry = &cluster->entries[i];
-        if (entry->key == hash16 && (entry->flag & 0x3) != hashFlagNone) {
+        if (entry->key == hash32 && (entry->flag & 0x3) != hashFlagNone) {
             int16_t score = entry->score;
             if (score < -mateFound) score += position->ply;
             if (score > mateFound) score -= position->ply;
@@ -308,7 +309,7 @@ bool readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
 
 void clearHashTable(void) {
     for (uint64_t i = 0; i < hash_entries; i++) {
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 3; j++) {
             hashTable[i].entries[j].key = 0;
             hashTable[i].entries[j].bestMove = 0;
             hashTable[i].entries[j].score = 0;
