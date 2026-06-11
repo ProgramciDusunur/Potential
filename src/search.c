@@ -941,8 +941,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         && (ss - 1)->staticEval != noEval 
         && (depth < 7 || !tt_hit)) 
     {
-        int value = 880 * (-(static_eval + (ss - 1)->staticEval)) / 128;
-        int bonus = clamp(value, -133, 361);
+        int value = 300 * (-(static_eval + (ss - 1)->staticEval)) / 256;
+        int bonus = clamp(value, -75, 150);
         
         adjust_single_quiet_hist_entry(t, pos->side ^ 1, (ss - 1)->move, bonus);
     }
