@@ -8,6 +8,7 @@ U64 sideKey;
 U64 FMR[100 / 10 + 1];
 U64 hash_entries = 0;
 tt *hashTable = NULL;
+uint8_t tt_age = 0;
 
 __extension__ typedef unsigned __int128 uint128_t;
 
@@ -17,7 +18,7 @@ int hash_full(void) {
   int samples = 1000;
 
   for (int i = 0; i < samples; ++i) {
-    if (hashTable[i].hashKey != 0) {
+    if (hashTable[i].hashKey != 0 && hashTable[i].age == tt_age) {
       used++;
     }
   }
@@ -240,7 +241,9 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
         hashEntry->bestMove = bestMove;
     }
 
-    if (hashFlag == hashFlagExact || key != position->hashKey || depth + 2 * ttPv + 4 > hashEntry->depth) {
+    uint8_t ageDelta = tt_age - hashEntry->age;
+
+    if (hashFlag == hashFlagExact || key != position->hashKey || depth + 2 * ttPv + 4 + ageDelta * 4 > hashEntry->depth) {
         // store score independent from the actual path
         // from root node (position) to current node (position)
         if (score < -mateFound) score -= position->ply;
@@ -252,6 +255,7 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
         hashEntry->flag = hashFlag;
         hashEntry->depth = depth;        
         hashEntry->ttPv = ttPv;
+        hashEntry->age = tt_age;
     }
 }
 
@@ -301,6 +305,7 @@ void clearHashTable(void) {
         hash_entry->score = 0;
         hash_entry->bestMove = 0;
         hash_entry->ttPv = 0;
+        hash_entry->age = 0;
     }
 }
 
