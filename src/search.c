@@ -933,6 +933,20 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     ss->staticEval = static_eval;    
 
+    // Quiet move ordering using eval difference
+    if (pos->ply > 0 
+        && !in_check 
+        && !ss->singular_move 
+        && !isTactical((ss - 1)->move) 
+        && (ss - 1)->staticEval != noEval 
+        && (depth < 7 || !tt_hit)) 
+    {
+        int value = 880 * (-(static_eval + (ss - 1)->staticEval)) / 128;
+        int bonus = clamp(value, -133, 361);
+        
+        adjust_single_quiet_hist_entry(t, pos->side ^ 1, (ss - 1)->move, bonus);
+    }
+
     improving = !in_check && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
 
     // Internal Iterative Reductions

@@ -41,7 +41,8 @@ void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int 
     bool threatSource = is_square_threatened(&t->pos, from);
     bool threatTarget = is_square_threatened(&t->pos, to);
     
-    t->search_d.quietHistory[side][from][to][threatSource][threatTarget] += bonus;
+    int score = t->search_d.quietHistory[side][from][to][threatSource][threatTarget];
+    t->search_d.quietHistory[side][from][to][threatSource][threatTarget] += scaledBonus(score, bonus, maxQuietHistory);
 }
 
 void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int bonus, int malus, moves *badQuiets) {
