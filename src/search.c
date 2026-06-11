@@ -1726,6 +1726,11 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     SearchStack *ss = t->ss;
     int score = 0;
 
+    // increment TT age only once per search, handled by the main thread
+    if (t->id == 0) {
+        tt_age = (tt_age + 1) & 31;
+    }
+
     // reset "time is up" flag
     time->stopped = 0;
 

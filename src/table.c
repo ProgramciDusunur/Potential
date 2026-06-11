@@ -8,20 +8,24 @@ U64 sideKey;
 U64 FMR[100 / 10 + 1];
 U64 hash_entries = 0;
 tt *hashTable = NULL;
+uint8_t tt_age = 0;
 
 __extension__ typedef unsigned __int128 uint128_t;
 
 
 int hash_full(void) {
   int used = 0;
-  int samples = 1000;
+
+  // TO-DO: Recheck this.
+  int samples = 1000 / 4;
 
   for (int i = 0; i < samples; ++i) {
-    if (hashTable[i].hashKey != 0) {
-      used++;
-    }
-  }
-
+      for (int j = 0; j < 4; ++j) {
+        if (hashTable[i].entries[j].key != 0 || (hashTable[i].entries[j].flag & 0x3) != hashFlagNone) {
+          used++;
+        }
+      }
+  }    
   return used;
 }
 
@@ -232,75 +236,85 @@ void prefetch_corrhist(board *pos, ThreadData *t) {
 }
 
 void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key) {
-    // create a TT instance pointer to particular hash entry storing
-    // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[get_hash_index(position->hashKey, fmr_key)];
-
-    if (bestMove != 0 || key != position->hashKey) {
-        hashEntry->bestMove = bestMove;
+    tt *cluster = &hashTable[get_hash_index(key, fmr_key)];
+    uint16_t hash16 = (uint16_t)key;
+    
+    int replace = 0;
+    int min_value = 999999;
+    
+    for (int i = 0; i < 4; i++) {
+        tt_entry *candidate = &cluster->entries[i];
+        if (candidate->key == hash16 || (candidate->flag & 0x3) == hashFlagNone) {
+            replace = i;
+            break;
+        }
+        
+        int candidate_age = candidate->flag >> 3;
+        int relative_age = (32 + tt_age - candidate_age) & 31;
+        int value = (int)candidate->depth - 2 * relative_age;
+        
+        if (value < min_value) {
+            replace = i;
+            min_value = value;
+        }
+    }
+    
+    tt_entry *entry = &cluster->entries[replace];
+    
+    if (!(hash16 != entry->key
+        || hashFlag == hashFlagExact
+        || depth + 4 + 2 * ttPv > entry->depth
+        || (entry->flag >> 3) != tt_age)) {
+        return;
     }
 
-    if (hashFlag == hashFlagExact || key != position->hashKey || depth + 2 * ttPv + 4 > hashEntry->depth) {
-        // store score independent from the actual path
-        // from root node (position) to current node (position)
-        if (score < -mateFound) score -= position->ply;
-        if (score > mateFound) score += position->ply;
-
-
-        hashEntry->hashKey = get_hash_low_bits(position->hashKey);
-        hashEntry->score = score;
-        hashEntry->flag = hashFlag;
-        hashEntry->depth = depth;        
-        hashEntry->ttPv = ttPv;
+    if (bestMove != 0 || hash16 != entry->key) {
+        entry->bestMove = bestMove;
     }
+
+    if (score < -mateFound) score -= position->ply;
+    if (score > mateFound) score += position->ply;
+
+    entry->key = hash16;
+    entry->score = score;
+    entry->depth = depth;
+    entry->flag = hashFlag | (ttPv << 2) | (tt_age << 3);
 }
 
 // read hash entry data
 bool readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
                     uint8_t *tt_depth, uint8_t *tt_flag, bool *tt_pv, uint8_t fmr_key) {
-    // create a TT instance pointer to particular hash entry storing
-    // the scoring data for the current board position if available
-    tt *hashEntry = &hashTable[get_hash_index(position->hashKey, fmr_key)];
+    tt *cluster = &hashTable[get_hash_index(position->hashKey, fmr_key)];
+    uint16_t hash16 = (uint16_t)position->hashKey;
+    
+    for (int i = 0; i < 4; i++) {
+        tt_entry *entry = &cluster->entries[i];
+        if (entry->key == hash16 && (entry->flag & 0x3) != hashFlagNone) {
+            int16_t score = entry->score;
+            if (score < -mateFound) score += position->ply;
+            if (score > mateFound) score -= position->ply;
 
-    // make sure we're dealing with the exact position we need
-    if (hashEntry->hashKey == get_hash_low_bits(position->hashKey)) {
-
-        // extract stored score from TT entry
-        int16_t score = hashEntry->score;
-
-        if (score < -mateFound)
-            score += position->ply;
-        if (score > mateFound)
-            score -= position->ply;
-
-        *move = hashEntry->bestMove;
-        *tt_score = score;
-        *tt_depth = hashEntry->depth;
-        *tt_flag = hashEntry->flag;
-        *tt_pv = hashEntry->ttPv;
-
-        return true;
-
+            *move = entry->bestMove;
+            *tt_score = score;
+            *tt_depth = entry->depth;
+            *tt_flag = entry->flag & 0x3;
+            *tt_pv = (entry->flag >> 2) & 1;
+            return true;
+        }
     }
-    // if hash entry doesn't exist
     return false;
 }
 
 
 void clearHashTable(void) {
-    // init hash table entry pointer
-    tt *hash_entry;
-
-    // loop over TT elements
-    for (hash_entry = hashTable; hash_entry < hashTable + hash_entries; hash_entry++)
-    {
-        // reset TT inner fields
-        hash_entry->hashKey = 0;
-        hash_entry->depth = 0;
-        hash_entry->flag = 0;
-        hash_entry->score = 0;
-        hash_entry->bestMove = 0;
-        hash_entry->ttPv = 0;
+    for (uint64_t i = 0; i < hash_entries; i++) {
+        for (int j = 0; j < 4; j++) {
+            hashTable[i].entries[j].key = 0;
+            hashTable[i].entries[j].bestMove = 0;
+            hashTable[i].entries[j].score = 0;
+            hashTable[i].entries[j].depth = 0;
+            hashTable[i].entries[j].flag = 0;
+        }
     }
 }
 
