@@ -170,7 +170,7 @@ bool is_loss(int score) {
 }
 
 bool is_decisive(int score) {
-  return abs(score) > mateValue;
+  return !is_win(score) || !is_loss(score);
 }
 
 void print_info(ThreadData *t, int depth, int score, int totalTime) {

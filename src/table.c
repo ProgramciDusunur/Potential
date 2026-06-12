@@ -256,6 +256,10 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
         hashEntry->depth = depth;        
         hashEntry->ttPv = ttPv;
         hashEntry->age = tt_age;
+    } else if (hashEntry->depth >= 5 && hashFlag != hashFlagExact) {                
+        if (is_decisive(hashEntry->score)) {            
+            hashEntry->depth = myMAX(hashEntry->depth - 1, 0);
+        }
     }
 }
 
