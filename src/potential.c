@@ -13,6 +13,7 @@
 #include "perft.h"
 #include "see.h"
 #include "generate_fen.h"
+#include "spsa.h"
 
 
 
@@ -35,6 +36,8 @@ void initAll(void) {
     init_tables();
     init_helper_bb();
     init_king_anti_diag_mask();
+    // init SPSA tuning parameters (no-op in normal builds)
+    spsa_init();
 }
 
 

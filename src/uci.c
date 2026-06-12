@@ -2,7 +2,9 @@
 // Created by erena on 3.07.2024.
 //
 
+
 #include "uci.h"
+#include "spsa.h"
 #include "perft.h"
 #include "timeman.h"
 #include "datagen.h"
@@ -37,6 +39,24 @@ double DEF_INC_MULTIPLIER = 0.85;
 double MAX_TIME_MULTIPLIER = 0.76;
 double HARD_LIMIT_MULTIPLIER = 3.04;
 double SOFT_LIMIT_MULTIPLIER = 0.76;
+
+double TM_BEST_MOVE_SCALE_0 = 2.43;
+double TM_BEST_MOVE_SCALE_1 = 1.35;
+double TM_BEST_MOVE_SCALE_2 = 1.09;
+double TM_BEST_MOVE_SCALE_3 = 0.88;
+double TM_BEST_MOVE_SCALE_4 = 0.68;
+
+double TM_EVAL_SCALE_0 = 1.25;
+double TM_EVAL_SCALE_1 = 1.15;
+double TM_EVAL_SCALE_2 = 1.00;
+double TM_EVAL_SCALE_3 = 0.94;
+double TM_EVAL_SCALE_4 = 0.88;
+
+double TM_COMPLEXITY_BASE = 0.77;
+double TM_COMPLEXITY_DIVISOR = 400.0;
+double TM_COMPLEXITY_MULT = 0.60;
+double TM_NODE_FRACTION_BASE = 1.50;
+double TM_NODE_MULTIPLIER = 1.35;
 
 // parse user/GUI move string input (e.g. "e7e8q")
 uint16_t parse_move(char *move_string, board* position) {
@@ -681,6 +701,9 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             init_threads(thread_count);
             printf("info string set Threads to value %d\n", thread_count);
         }
+        else if (!strncmp(input, "setoption name ", 15)) {
+            spsa_set_option(input);
+        }
         // parse UCI "quit" command
         else if (strncmp(input, "quit", 4) == 0) {
             // quit from the chess engine program executions
@@ -695,6 +718,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             printf("option name Hash type spin default %d min 4 max %d\n",
                    default_hash_size, max_hash);
             printf("option name Threads type spin default 1 min 1 max %d\n", MAX_THREADS);
+            spsa_print_uci_options();
             printf("uciok\n");
         } 
         
@@ -719,6 +743,10 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
 
         else if (strncmp(input, "bench", 5) == 0) {
             benchmark(BENCH_DEPTH, thread_pool.threads[0], time_ctrl);
+        }
+
+        else if (strncmp(input, "tune", 4) == 0) {
+            spsa_print_params();
         }
     }    
 }
