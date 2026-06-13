@@ -52,13 +52,14 @@
   TUNE_INT NMP_DEPTH = 3;  
   TUNE_INT NMP_BASE_REDUCTION = 5120;
   TUNE_INT NMP_DEPTH_MULTIPLIER = 256;
-  TUNE_INT NMP_REDUCTION_DEPTH_MULT = 16;
+  TUNE_INT NMP_REDUCTION_DEPTH_MULT = 8192;
   TUNE_INT NMP_EVAL_MULT = 128;
   TUNE_INT NMP_FAILED_HIGH_HIST_BASE = 100;
-  TUNE_INT NMP_FAILED_HIGH_HIST_MULT = 50;
+  TUNE_INT NMP_FAILED_HIGH_HIST_MULT = 25600;
+  TUNE_INT NMP_FAILED_HIGH_HIST_DIVISOR = 512;
   TUNE_INT NMP_EVAL_BETA_MARGIN = 75;
   TUNE_INT NMP_VERIFICATION_MARGIN = 30;
-  TUNE_INT NMP_REDUCTION_DIVISOR = 16384;
+  TUNE_INT NMP_REDUCTION_DIVISOR = 8388608;
   TUNE_INT NMP_EVAL_DIVISOR = 51200;
   TUNE_INT NMP_EVAL_MAX_REDUCTION = 3;
   
@@ -73,12 +74,12 @@
   TUNE_INT LMR_FULL_DEPTH_MOVES = 2;
   TUNE_INT LMR_REDUCTION_LIMIT = 3;
   TUNE_INT DEEPER_LMR_MARGIN = 35;  
-  TUNE_INT QUIET_HISTORY_LMR_MULT = 4;
-  TUNE_INT QUIET_HISTORY_LMR_DIVISOR = 16384;
+  TUNE_INT QUIET_HISTORY_LMR_MULT = 2048;
+  TUNE_INT QUIET_HISTORY_LMR_DIVISOR = 8388608;
   TUNE_INT QUIET_HISTORY_LMR_MINIMUM_SCALAR = 3072;
   TUNE_INT QUIET_HISTORY_LMR_MAXIMUM_SCALAR = 3072;
-  TUNE_INT PAWN_HISTORY_LMR_MULT = 4;
-  TUNE_INT PAWN_HISTORY_LMR_DIVISOR = 16384;
+  TUNE_INT PAWN_HISTORY_LMR_MULT = 2048;
+  TUNE_INT PAWN_HISTORY_LMR_DIVISOR = 8388608;
   TUNE_INT PAWN_HISTORY_LMR_MINIMUM_SCALAR = 3072;
   TUNE_INT PAWN_HISTORY_LMR_MAXIMUM_SCALAR = 3072;
   TUNE_INT NOISY_HISTORY_LMR_MULT = 128;  
@@ -145,7 +146,8 @@
     ╚══════════════════════════════╝*/
   TUNE_INT RFP_MARGIN = 52;
   TUNE_INT RFP_IMPROVING_MARGIN = 45;
-  TUNE_INT RFP_CORRPLEXITY_MULT = 20;
+  TUNE_INT RFP_CORRPLEXITY_MULT = 10240;
+  TUNE_INT RFP_CORRPLEXITY_DIVISOR = 512;
   TUNE_INT RFP_DEPTH = 11;
   
   
@@ -204,7 +206,8 @@
   /*╔══════════════════════════════╗
     ║      Aspiration Windows      ║
     ╚══════════════════════════════╝*/
-  TUNE_INT ASP_WINDOW_BASE = 9;
+  TUNE_INT ASP_WINDOW_BASE = 4608;
+  TUNE_INT ASP_WINDOW_DIVISOR = 512;
   TUNE_INT ASP_WINDOW_MIN_DEPTH = 4;
   TUNE_DOUBLE ASP_WINDOW_MULTIPLIER = 1.8000;
 
@@ -1004,7 +1007,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // Reverse Futility Pruning
     if (!ss->singular_move && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
-        ttAdjustedEval - rfpMargin >= beta + corrplexity * RFP_CORRPLEXITY_MULT)
+        ttAdjustedEval - rfpMargin >= beta + (corrplexity * RFP_CORRPLEXITY_MULT) / RFP_CORRPLEXITY_DIVISOR)
         return ttAdjustedEval;
 
     // Null Move Pruning
@@ -1099,7 +1102,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             int nmp_depth = depth - R;
 
             if (!isTactical(nmp_ref_move)) {
-                int refutation_bonus = NMP_FAILED_HIGH_HIST_BASE + NMP_FAILED_HIGH_HIST_MULT * nmp_depth;
+                int refutation_bonus = NMP_FAILED_HIGH_HIST_BASE + (NMP_FAILED_HIGH_HIST_MULT * nmp_depth) / NMP_FAILED_HIGH_HIST_DIVISOR;
                 adjust_single_quiet_hist_entry(t, pos->side, nmp_ref_move, refutation_bonus);
             }
         }
@@ -1532,11 +1535,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
-            int moveHistoryReduction = (moveHistory * QUIET_HISTORY_LMR_MULT) / 16384;
+            int moveHistoryReduction = (moveHistory * QUIET_HISTORY_LMR_MULT) / QUIET_HISTORY_LMR_DIVISOR;
             lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALAR, QUIET_HISTORY_LMR_MAXIMUM_SCALAR);
 
             // pawn history based reduction, same logic as the quiet history
-            int pawnHistoryReduction = (pawnHistoryValue * PAWN_HISTORY_LMR_MULT) / 16384;            
+            int pawnHistoryReduction = (pawnHistoryValue * PAWN_HISTORY_LMR_MULT) / PAWN_HISTORY_LMR_DIVISOR;            
             lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALAR, PAWN_HISTORY_LMR_MAXIMUM_SCALAR);
         }
         // Noisy Moves
@@ -1821,7 +1824,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         int startTime = getTimeMiliSecond();        
 
-        int window = ASP_WINDOW_BASE;
+        int window = ASP_WINDOW_BASE / ASP_WINDOW_DIVISOR;
         int aspirationWindowDepth = current_depth;
 
         while (true) {

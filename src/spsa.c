@@ -1,5 +1,6 @@
 #include "spsa.h"
 #include "search.h"
+#include "evaluation.h"
 
 
 // ═══════════════════════════════════════════════════════════
@@ -31,6 +32,19 @@ extern TUNE_DOUBLE TM_NODE_FRACTION_BASE;
 extern TUNE_DOUBLE TM_NODE_MULTIPLIER;
 
 // ═══════════════════════════════════════════════════════════
+//  Material Evaluation parameters (defined in evaluation.c)
+// ═══════════════════════════════════════════════════════════
+extern TUNE_INT MG_PAWN_MAT;
+extern TUNE_INT MG_KNIGHT_MAT;
+extern TUNE_INT MG_BISHOP_MAT;
+extern TUNE_INT MG_ROOK_MAT;
+extern TUNE_INT MG_QUEEN_MAT;
+extern TUNE_INT EG_PAWN_MAT;
+extern TUNE_INT EG_KNIGHT_MAT;
+extern TUNE_INT EG_BISHOP_MAT;
+extern TUNE_INT EG_ROOK_MAT;
+extern TUNE_INT EG_QUEEN_MAT;
+// ═══════════════════════════════════════════════════════════
 //  Search parameters (defined in search.c)
 // ═══════════════════════════════════════════════════════════
 extern TUNE_INT RFP_MARGIN;
@@ -41,12 +55,15 @@ extern TUNE_INT NMP_REDUCTION_DEPTH_MULT;
 extern TUNE_INT NMP_EVAL_MULT;
 extern TUNE_INT NMP_FAILED_HIGH_HIST_BASE;
 extern TUNE_INT NMP_FAILED_HIGH_HIST_MULT;
+extern TUNE_INT NMP_FAILED_HIGH_HIST_DIVISOR;
 extern TUNE_INT NMP_EVAL_BETA_MARGIN;
 extern TUNE_INT NMP_VERIFICATION_MARGIN;
 extern TUNE_INT NMP_REDUCTION_DIVISOR;
 extern TUNE_INT NMP_EVAL_DIVISOR;
 extern TUNE_INT RFP_CORRPLEXITY_MULT;
+extern TUNE_INT RFP_CORRPLEXITY_DIVISOR;
 extern TUNE_INT ASP_WINDOW_BASE;
+extern TUNE_INT ASP_WINDOW_DIVISOR;
 extern TUNE_DOUBLE ASP_WINDOW_MULTIPLIER;
 extern TUNE_DOUBLE LMR_TABLE_BASE_NOISY;
 extern TUNE_DOUBLE LMR_TABLE_NOISY_MULT;
@@ -196,22 +213,25 @@ void spsa_init(void) {
     // ── Reverse Futility Pruning ──
     spsa_add_int("RFP_MARGIN",                  &RFP_MARGIN,                56,     20,    100,   5.00, 0.002);
     spsa_add_int("RFP_IMPROVING_MARGIN",        &RFP_IMPROVING_MARGIN,      41,     15,     80,   4.00, 0.002);
-    spsa_add_int("RFP_CORRPLEXITY_MULT",        &RFP_CORRPLEXITY_MULT,      18,      5,     50,   4.00, 0.002);
+    spsa_add_int("RFP_CORRPLEXITY_MULT",        &RFP_CORRPLEXITY_MULT,      9216,   2560,  25600, 2048.0, 0.002);
+    spsa_add_int("RFP_CORRPLEXITY_DIVISOR",     &RFP_CORRPLEXITY_DIVISOR,    512,    128,   2048,  128.0, 0.002);
 
     // ── Null Move Pruning ──
     spsa_add_int("NMP_BASE_REDUCTION",          &NMP_BASE_REDUCTION,      5138,   3000,   7000,  50.00, 0.002);
     spsa_add_int("NMP_DEPTH_MULTIPLIER",        &NMP_DEPTH_MULTIPLIER,     271,    128,    512,  25.00, 0.002);
-    spsa_add_int("NMP_REDUCTION_DEPTH_MULT",    &NMP_REDUCTION_DEPTH_MULT,  16,      4,     64,   3.00, 0.002);
+    spsa_add_int("NMP_REDUCTION_DEPTH_MULT",    &NMP_REDUCTION_DEPTH_MULT,  8192,   2048,  32768, 1536.0, 0.002);
     spsa_add_int("NMP_EVAL_MULT",               &NMP_EVAL_MULT,            127,     32,    256,  12.00, 0.002);
     spsa_add_int("NMP_FAILED_HIGH_HIST_BASE",   &NMP_FAILED_HIGH_HIST_BASE,94,     50,    200,  10.00, 0.002);
-    spsa_add_int("NMP_FAILED_HIGH_HIST_MULT",   &NMP_FAILED_HIGH_HIST_MULT, 55,     10,    100,   5.00, 0.002);
+    spsa_add_int("NMP_FAILED_HIGH_HIST_MULT",   &NMP_FAILED_HIGH_HIST_MULT, 28160,  5120,  51200, 2560.0, 0.002);
+    spsa_add_int("NMP_FAILED_HIGH_HIST_DIVISOR",&NMP_FAILED_HIGH_HIST_DIVISOR, 512,  128,   2048,  128.0, 0.002);
     spsa_add_int("NMP_EVAL_BETA_MARGIN",        &NMP_EVAL_BETA_MARGIN,      74,     20,    150,  10.00, 0.002);
     spsa_add_int("NMP_VERIFICATION_MARGIN",     &NMP_VERIFICATION_MARGIN,   30,     10,     80,   5.00, 0.002);
-    spsa_add_int("NMP_REDUCTION_DIVISOR",       &NMP_REDUCTION_DIVISOR,  16708,   8192,  32768, 1000.0, 0.002);
+    spsa_add_int("NMP_REDUCTION_DIVISOR",       &NMP_REDUCTION_DIVISOR,  8554496, 4194304, 16777216, 512000.0, 0.002);
     spsa_add_int("NMP_EVAL_DIVISOR",            &NMP_EVAL_DIVISOR,       47622,  25600, 102400, 5000.0, 0.002);
 
     // ── Aspiration Windows ──
-    spsa_add_int("ASP_WINDOW_BASE",             &ASP_WINDOW_BASE,            6,      3,     25,   2.00, 0.002);
+    spsa_add_int("ASP_WINDOW_BASE",             &ASP_WINDOW_BASE,            3072,   1536,  12800, 1024.00, 0.002);
+    spsa_add_int("ASP_WINDOW_DIVISOR",          &ASP_WINDOW_DIVISOR,          512,    128,   2048,  128.00, 0.002);
     spsa_add_double("ASP_WINDOW_MULTIPLIER",    &ASP_WINDOW_MULTIPLIER,    1.9603985234529453,    1.2,    3.0,   0.15, 0.002);
 
     // ── LMR Table Parameters ──
@@ -236,12 +256,12 @@ void spsa_init(void) {
 
     // ── LMR Scalars ──
     spsa_add_int("DEEPER_LMR_MARGIN",                 &DEEPER_LMR_MARGIN,               36,     10,     80,   4.00, 0.002);
-    spsa_add_int("QUIET_HISTORY_LMR_MULT",            &QUIET_HISTORY_LMR_MULT,           4,      1,     16,   1.00, 0.002);
-    spsa_add_int("QUIET_HISTORY_LMR_DIVISOR",         &QUIET_HISTORY_LMR_DIVISOR,  16240,   8192,  32768, 1000.0, 0.002);
+    spsa_add_int("QUIET_HISTORY_LMR_MULT",            &QUIET_HISTORY_LMR_MULT,           2048,    512,   8192, 512.00, 0.002);
+    spsa_add_int("QUIET_HISTORY_LMR_DIVISOR",         &QUIET_HISTORY_LMR_DIVISOR,  8314880,  4194304, 16777216, 512000.0, 0.002);
     spsa_add_int("QUIET_HISTORY_LMR_MINIMUM_SCALAR",  &QUIET_HISTORY_LMR_MINIMUM_SCALAR, 3145, 1024, 6144, 100.00, 0.002);
     spsa_add_int("QUIET_HISTORY_LMR_MAXIMUM_SCALAR",  &QUIET_HISTORY_LMR_MAXIMUM_SCALAR, 3186, 1024, 6144, 100.00, 0.002);
-    spsa_add_int("PAWN_HISTORY_LMR_MULT",             &PAWN_HISTORY_LMR_MULT,            3,      1,     16,   1.00, 0.002);
-    spsa_add_int("PAWN_HISTORY_LMR_DIVISOR",          &PAWN_HISTORY_LMR_DIVISOR,   17651,   8192,  32768, 1000.0, 0.002);
+    spsa_add_int("PAWN_HISTORY_LMR_MULT",             &PAWN_HISTORY_LMR_MULT,            1536,    512,   8192, 512.00, 0.002);
+    spsa_add_int("PAWN_HISTORY_LMR_DIVISOR",          &PAWN_HISTORY_LMR_DIVISOR,   9037312,  4194304, 16777216, 512000.0, 0.002);
     spsa_add_int("PAWN_HISTORY_LMR_MINIMUM_SCALAR",   &PAWN_HISTORY_LMR_MINIMUM_SCALAR, 2982, 1024, 6144, 100.00, 0.002);
     spsa_add_int("PAWN_HISTORY_LMR_MAXIMUM_SCALAR",   &PAWN_HISTORY_LMR_MAXIMUM_SCALAR, 3069, 1024, 6144, 100.00, 0.002);
     spsa_add_int("NOISY_HISTORY_LMR_MULT",            &NOISY_HISTORY_LMR_MULT,         110,     32,    512,  15.00, 0.002);
@@ -374,6 +394,19 @@ void spsa_init(void) {
     spsa_add_double("TM_NODE_FRACTION_BASE",    &TM_NODE_FRACTION_BASE,        1.5978437248375372,   1.00,   2.50,  0.15, 0.002);
     spsa_add_double("TM_NODE_MULTIPLIER",       &TM_NODE_MULTIPLIER,           1.2491058810748539,   0.80,   2.20,  0.10, 0.002);
 
+    // ── Material Evaluation ──
+    spsa_add_int("MG_PAWN_MAT", &MG_PAWN_MAT, 71, 50, 200, 10.0, 0.002);
+    spsa_add_int("MG_KNIGHT_MAT", &MG_KNIGHT_MAT, 353, 200, 500, 25.0, 0.002);
+    spsa_add_int("MG_BISHOP_MAT", &MG_BISHOP_MAT, 399, 200, 500, 25.0, 0.002);
+    spsa_add_int("MG_ROOK_MAT", &MG_ROOK_MAT, 527, 300, 800, 35.0, 0.002);
+    spsa_add_int("MG_QUEEN_MAT", &MG_QUEEN_MAT, 1107, 700, 1500, 50.0, 0.002);
+
+    spsa_add_int("EG_PAWN_MAT", &EG_PAWN_MAT, 106, 50, 200, 10.0, 0.002);
+    spsa_add_int("EG_KNIGHT_MAT", &EG_KNIGHT_MAT, 371, 200, 500, 25.0, 0.002);
+    spsa_add_int("EG_BISHOP_MAT", &EG_BISHOP_MAT, 405, 200, 500, 25.0, 0.002);
+    spsa_add_int("EG_ROOK_MAT", &EG_ROOK_MAT, 657, 400, 1000, 35.0, 0.002);
+    spsa_add_int("EG_QUEEN_MAT", &EG_QUEEN_MAT, 1268, 800, 1800, 50.0, 0.002);
+
     printf("info string SPSA: %d parameters registered\n", spsa_count);
 }
 
@@ -415,7 +448,8 @@ int spsa_set_option(const char *input) {
                 printf("info string %s = %d\n", p->name, raw);
             }
 
-            // update LMR table
+            // update evaluation tables and LMR table
+            init_tables();
             initializeLMRTable();
             return 1;
         }

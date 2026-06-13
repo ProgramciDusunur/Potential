@@ -3,7 +3,7 @@
 //
 
 #include "evaluation.h"
-
+#include "spsa.h"
 #include "utils.h"
 
 
@@ -27,11 +27,19 @@ const int piece_scores[13] = {0, 337, 365, 477, 1025, 0, 0, -337, -365, -477, -1
 // SEE Material Array
 const int seeMaterial[12] = {100, 300, 300, 500, 900, 12000, -100, -300, -300, -500, -900, -12000};
 
-// Tuned Material scores ÔÇö paste into evaluation.c
-const int material_score[2][12] = {
-    { 71, 353, 399, 527, 1107, 0, -71, -353, -399, -527, -1107, 0 },
-    { 106, 371, 405, 657, 1268, 0, -106, -371, -405, -657, -1268, 0 }
-};
+TUNE_INT MG_PAWN_MAT = 71;
+TUNE_INT MG_KNIGHT_MAT = 353;
+TUNE_INT MG_BISHOP_MAT = 399;
+TUNE_INT MG_ROOK_MAT = 527;
+TUNE_INT MG_QUEEN_MAT = 1107;
+
+TUNE_INT EG_PAWN_MAT = 106;
+TUNE_INT EG_KNIGHT_MAT = 371;
+TUNE_INT EG_BISHOP_MAT = 405;
+TUNE_INT EG_ROOK_MAT = 657;
+TUNE_INT EG_QUEEN_MAT = 1268;
+
+int material_score[2][12];
 
 // Tuned PSQT tables ÔÇö paste into evaluation.c
 const int positional_score[2][6][64] = {
@@ -199,7 +207,33 @@ int eg_table[12][64]; // [piece][square] -> endgame score
 
 Score packed_table[12][64];
 
-void init_tables() {    
+void init_tables() {
+    material_score[0][P] = MG_PAWN_MAT;
+    material_score[0][N] = MG_KNIGHT_MAT;
+    material_score[0][B] = MG_BISHOP_MAT;
+    material_score[0][R] = MG_ROOK_MAT;
+    material_score[0][Q] = MG_QUEEN_MAT;
+    material_score[0][K] = 0;
+    material_score[0][p] = -MG_PAWN_MAT;
+    material_score[0][n] = -MG_KNIGHT_MAT;
+    material_score[0][b] = -MG_BISHOP_MAT;
+    material_score[0][r] = -MG_ROOK_MAT;
+    material_score[0][q] = -MG_QUEEN_MAT;
+    material_score[0][k] = 0;
+
+    material_score[1][P] = EG_PAWN_MAT;
+    material_score[1][N] = EG_KNIGHT_MAT;
+    material_score[1][B] = EG_BISHOP_MAT;
+    material_score[1][R] = EG_ROOK_MAT;
+    material_score[1][Q] = EG_QUEEN_MAT;
+    material_score[1][K] = 0;
+    material_score[1][p] = -EG_PAWN_MAT;
+    material_score[1][n] = -EG_KNIGHT_MAT;
+    material_score[1][b] = -EG_BISHOP_MAT;
+    material_score[1][r] = -EG_ROOK_MAT;
+    material_score[1][q] = -EG_QUEEN_MAT;
+    material_score[1][k] = 0;
+    
     for (int piece = P; piece <= K; piece++) {
         for (int square = 0; square < 64; square++) {
             int mg = material_score[opening][piece] + positional_score[opening][piece][square];
