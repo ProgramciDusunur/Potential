@@ -186,7 +186,7 @@ static void spsa_add_int(const char *name, const void *ptr, int def, int min, in
 }
 
 static void spsa_add_double(const char *name, const void *ptr, double def, double min, double max, double c, double r) {
-    spsa_params[spsa_count++] = (SPSAParam){name, 1, ptr, def, min, max, c, r};
+    spsa_params[spsa_count++] = (SPSAParam){name, 1, (void *)ptr, def, min, max, c, r};
 }
 
 
