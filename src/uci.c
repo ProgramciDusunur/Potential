@@ -32,11 +32,11 @@ extern uint64_t global_start_time;
 
 int thread_count = 1;
 
-double DEF_TIME_MULTIPLIER = 0.054;
-double DEF_INC_MULTIPLIER = 0.85;
-double MAX_TIME_MULTIPLIER = 0.76;
-double HARD_LIMIT_MULTIPLIER = 3.04;
-double SOFT_LIMIT_MULTIPLIER = 0.76;
+double DEF_TIME_MULTIPLIER = 0.04792226229427353;
+double DEF_INC_MULTIPLIER = 0.8805542080859208;
+double MAX_TIME_MULTIPLIER = 0.7170951646905626;
+double HARD_LIMIT_MULTIPLIER = 3.015896727936034;
+double SOFT_LIMIT_MULTIPLIER = 0.7268487358663149;
 
 // parse user/GUI move string input (e.g. "e7e8q")
 uint16_t parse_move(char *move_string, board* position) {

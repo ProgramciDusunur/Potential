@@ -35,54 +35,54 @@
   ║ Static Exchange Evaluation    ║
   ╚═══════════════════════════════╝*/
   int SEE_PIECE_VALUES[] = {100, 300, 300, 500, 1200, 0, 0};
-  int QS_SEE_THRESHOLD = 0;
-  int SEE_MOVE_ORDERING_THRESHOLD = -82;
-  int SEE_QUIET_THRESHOLD = -67;
-  int SEE_NOISY_THRESHOLD = -32;
+  int QS_SEE_THRESHOLD = 7;
+  int SEE_MOVE_ORDERING_THRESHOLD = -62;
+  int SEE_QUIET_THRESHOLD = -65;
+  int SEE_NOISY_THRESHOLD = -34;
   int SEE_DEPTH = 10;
-  int MOVE_ORDER_HIST_MULT = 512;
-  int SEE_PRUNING_HIST_MULT = 512;
-  int SEE_QUIET_HIST_MULT = 128;
+  int MOVE_ORDER_HIST_MULT = 470;
+  int SEE_PRUNING_HIST_MULT = 561;
+  int SEE_QUIET_HIST_MULT = 152;
   
   
   /*╔═══════════════════════╗
     ║ Null Move Pruning     ║
     ╚═══════════════════════╝*/
   int NMP_DEPTH = 3;  
-  int NMP_BASE_REDUCTION = 5120;
-  int NMP_DEPTH_MULTIPLIER = 256;
-  int NMP_REDUCTION_DEPTH_MULT = 16;
-  int NMP_EVAL_MULT = 128;
+  int NMP_BASE_REDUCTION = 5155;
+  int NMP_DEPTH_MULTIPLIER = 291;
+  int NMP_REDUCTION_DEPTH_MULT = 11667;
+  int NMP_EVAL_MULT = 131;
   
   
   /*╔═══════════════════════╗
     ║ Late Move Reduction   ║
     ╚═══════════════════════╝*/
   int LMR_TABLE[2][maxPly][maxPly];
-  double LMR_TABLE_BASE_NOISY = 0.38;
-  double LMR_TABLE_NOISY_MULT = 128.0;
-  double LMR_TABLE_BASE_QUIET = 1.01;
-  double LMR_TABLE_QUIET_MULT = 128.0;
+  double LMR_TABLE_BASE_NOISY = 0.4044907685832703;
+  double LMR_TABLE_NOISY_MULT = 134.73882986262203;
+  double LMR_TABLE_BASE_QUIET = 0.9866980564770735;
+  double LMR_TABLE_QUIET_MULT = 138.79068677176207;
   int LMR_FULL_DEPTH_MOVES = 2;
   int LMR_REDUCTION_LIMIT = 3;
-  int DEEPER_LMR_MARGIN = 35;  
-  int QUIET_HISTORY_LMR_MULT = 4;
-  int QUIET_HISTORY_LMR_MINIMUM_SCALAR = 3072;
-  int QUIET_HISTORY_LMR_MAXIMUM_SCALAR = 3072;
-  int PAWN_HISTORY_LMR_MULT = 4;
-  int PAWN_HISTORY_LMR_MINIMUM_SCALAR = 3072;
-  int PAWN_HISTORY_LMR_MAXIMUM_SCALAR = 3072;
-  int NOISY_HISTORY_LMR_MULT = 128;  
-  int QUIET_NON_PV_LMR_SCALAR = 1024;
-  int CUT_NODE_LMR_SCALAR = 2048;
-  int TT_PV_LMR_SCALAR = 1024;
-  int TT_PV_FAIL_LOW_LMR_SCALAR = 1024;
-  int TT_CAPTURE_LMR_SCALAR = 1024;
-  int GOOD_EVAL_LMR_SCALAR = 1024;
-  int IMPROVING_LMR_SCALAR = 1024;
-  int GIVES_CHECK_LMR_SCALAR = 1024;
+  int DEEPER_LMR_MARGIN = 39;  
+  int QUIET_HISTORY_LMR_MULT = 2192;
+  int QUIET_HISTORY_LMR_MINIMUM_SCALAR = 3129;
+  int QUIET_HISTORY_LMR_MAXIMUM_SCALAR = 3315;
+  int PAWN_HISTORY_LMR_MULT = 1418;
+  int PAWN_HISTORY_LMR_MINIMUM_SCALAR = 2919;
+  int PAWN_HISTORY_LMR_MAXIMUM_SCALAR = 2982;
+  int NOISY_HISTORY_LMR_MULT = 114;  
+  int QUIET_NON_PV_LMR_SCALAR = 1068;
+  int CUT_NODE_LMR_SCALAR = 1990;
+  int TT_PV_LMR_SCALAR = 1064;
+  int TT_PV_FAIL_LOW_LMR_SCALAR = 1055;
+  int TT_CAPTURE_LMR_SCALAR = 1051;
+  int GOOD_EVAL_LMR_SCALAR = 1042;
+  int IMPROVING_LMR_SCALAR = 1076;
+  int GIVES_CHECK_LMR_SCALAR = 1025;
   int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
-  int LMR_DEPTH_HIST_MULT = 2;
+  int LMR_DEPTH_HIST_MULT = 2043;
   
   
   /*╔═══════════════════════╗
@@ -90,39 +90,39 @@
     ╚═══════════════════════╝*/
   int LMP_BASE = 4;
   int LMP_MULTIPLIER = 3;
-  int LMP_HIST_MULT = 256;
+  int LMP_HIST_MULT = 226;
 
 /*╔═════════════╗
   ║   Probcut   ║
   ╚═════════════╝*/
-  int PROBCUT_BETA_MARGIN = 150;
+  int PROBCUT_BETA_MARGIN = 137;
   int PROBCUT_DEPTH = 5;
   int PROBCUT_DEPTH_SUBTRACTOR = 4;
-  int PROBCUT_IMPROVING_MARGIN = 30;
-  int PROBCUT_SEE_NOISY_THRESHOLD = 100;
-  int PROBCUT_NOISY_HIST_MULT = 128;
+  int PROBCUT_IMPROVING_MARGIN = 38;
+  int PROBCUT_SEE_NOISY_THRESHOLD = 93;
+  int PROBCUT_NOISY_HIST_MULT = 107;
 
 
 /*╔═══════════════════╗
   ║   Small Probcut   ║
   ╚═══════════════════╝*/
-  int SPROBCUT_BETA_MARGIN = 350;
+  int SPROBCUT_BETA_MARGIN = 394;
   int SPROBCUT_TT_DEPTH_SUBTRACTOR = 4;
   
   
   /*╔════════════════════╗
     ║ Futility Pruning   ║
     ╚════════════════════╝*/
-  int FUTILITY_PRUNING_OFFSET[] = {0, 82, 41, 20, 10, 5};
+  int FUTILITY_PRUNING_OFFSET[] = {0, 78, 48, 20, 10, 5};
   int FP_DEPTH = 5;
-  int FP_MARGIN = 82;
+  int FP_MARGIN = 64;
   
   
   /*╔══════════════════════════════╗
     ║ Reverse Futility Pruning     ║
     ╚══════════════════════════════╝*/
-  int RFP_MARGIN = 52;
-  int RFP_IMPROVING_MARGIN = 45;
+  int RFP_MARGIN = 54;
+  int RFP_IMPROVING_MARGIN = 40;
   int RFP_DEPTH = 11;
   
   
@@ -130,9 +130,9 @@
     ║ Razoring ║
     ╚══════════╝*/
   int RAZORING_DEPTH = 3;
-  int RAZORING_FULL_MARGIN = 200;    
+  int RAZORING_FULL_MARGIN = 222;    
   int RAZORING_DEPTH_SCALE = 15;
-  int RAZORING_VERIFY_MARGIN = 120;
+  int RAZORING_VERIFY_MARGIN = 134;
   int RAZORING_TRIM = 1;
   int RAZORING_FULL_D = 2;
   int RAZORING_VERIFY_D = 3;
@@ -162,9 +162,9 @@
   /*╔══════════════════════════════╗
     ║      Aspiration Windows      ║
     ╚══════════════════════════════╝*/
-  int ASP_WINDOW_BASE = 9;
+  int ASP_WINDOW_BASE = 3323;
   int ASP_WINDOW_MIN_DEPTH = 4;
-  double ASP_WINDOW_MULTIPLIER = 1.8;
+  double ASP_WINDOW_MULTIPLIER = 1.9990483818391827;
 
 
 /*╔═══════════════════════╗
@@ -172,47 +172,47 @@
   ╚═══════════════════════╝*/
 
   // Quiet History
-  int QUIET_HIST_BONUS_BASE = 10;
-  int QUIET_HIST_BONUS_DEPTH = 200;
-  int QUIET_HIST_BONUS_MAX = 4096;
+  int QUIET_HIST_BONUS_BASE = 6;
+  int QUIET_HIST_BONUS_DEPTH = 197;
+  int QUIET_HIST_BONUS_MAX = 4223;
   int QUIET_HIST_MALUS_BASE = 10;
-  int QUIET_HIST_MALUS_DEPTH = 200;
-  int QUIET_HIST_FAILED_LOW_BONUS = 200;
-  int QUIET_HIST_FAILED_LOW_MALUS = 200;
-  int QUIET_HIST_MALUS_MAX = 4096;
-  int HISTORY_RED_MULT = 1;
-  int CONTHIST_MULT = 1;
+  int QUIET_HIST_MALUS_DEPTH = 181;
+  int QUIET_HIST_FAILED_LOW_BONUS = 214;
+  int QUIET_HIST_FAILED_LOW_MALUS = 214;
+  int QUIET_HIST_MALUS_MAX = 3832;
+  int HISTORY_RED_MULT = 979;
+  int CONTHIST_MULT = 1084;
 
   // Continuation History
-  int CONTHIST_BONUS_BASE = 10;
-  int CONTHIST_BONUS_DEPTH = 200;
-  int CONTHIST_BONUS_MAX = 4096;
-  int CONTHIST_MALUS_BASE = 10;
-  int CONTHIST_MALUS_DEPTH = 200;
-  int CONTHIST_FAILED_LOW_BONUS = 200;
-  int CONTHIST_FAILED_LOW_MALUS = 200;
-  int CONTHIST_MALUS_MAX = 4096;
+  int CONTHIST_BONUS_BASE = 9;
+  int CONTHIST_BONUS_DEPTH = 167;
+  int CONTHIST_BONUS_MAX = 3993;
+  int CONTHIST_MALUS_BASE = 13;
+  int CONTHIST_MALUS_DEPTH = 214;
+  int CONTHIST_FAILED_LOW_BONUS = 213;
+  int CONTHIST_FAILED_LOW_MALUS = 208;
+  int CONTHIST_MALUS_MAX = 4157;
 
   // Pawn History
-  int PAWNHIST_BONUS_BASE = 10;
-  int PAWNHIST_BONUS_DEPTH = 200;
-  int PAWNHIST_BONUS_MAX = 4096;
-  int PAWNHIST_MALUS_BASE = 10;
-  int PAWNHIST_MALUS_DEPTH = 200;
-  int PAWNHIST_FAILED_LOW_BONUS = 200;
-  int PAWNHIST_FAILED_LOW_MALUS = 200;
-  int PAWNHIST_MALUS_MAX = 4096;
+  int PAWNHIST_BONUS_BASE = 9;
+  int PAWNHIST_BONUS_DEPTH = 208;
+  int PAWNHIST_BONUS_MAX = 4179;
+  int PAWNHIST_MALUS_BASE = 9;
+  int PAWNHIST_MALUS_DEPTH = 207;
+  int PAWNHIST_FAILED_LOW_BONUS = 157;
+  int PAWNHIST_FAILED_LOW_MALUS = 191;
+  int PAWNHIST_MALUS_MAX = 4008;
 
   // Capture History
-  int CAPTHIST_BONUS_BASE = 10;
-  int CAPTHIST_BONUS_DEPTH = 200;
-  int CAPTHIST_BONUS_MAX = 4096;
-  int CAPTHIST_MALUS_BASE = 10;
-  int CAPTHIST_MALUS_DEPTH = 200;
-  int CAPTHIST_MALUS_MAX = 4096;  
+  int CAPTHIST_BONUS_BASE = 12;
+  int CAPTHIST_BONUS_DEPTH = 170;
+  int CAPTHIST_BONUS_MAX = 3921;
+  int CAPTHIST_MALUS_BASE = 12;
+  int CAPTHIST_MALUS_DEPTH = 237;
+  int CAPTHIST_MALUS_MAX = 4486;  
 
   // Bad Quiet Index Scaling
-  int BAD_QUIET_INDEX_SCALE = 30;
+  int BAD_QUIET_INDEX_SCALE = 25;
 
 
   uint64_t nodes_spent_table[4096] = {0};  
