@@ -180,7 +180,6 @@ extern TUNE_INT CONT_CORRHIST_GRAIN;
 SPSAParam spsa_params[MAX_SPSA_PARAMS];
 int spsa_count = 0;
 
-
 static void spsa_add_int(const char *name, const void *ptr, int def, int min, int max, double c, double r) {
     spsa_params[spsa_count++] = (SPSAParam){name, 0, (void *)ptr, (double)def, (double)min, (double)max, c, r};
 }
