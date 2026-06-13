@@ -1,175 +1,174 @@
 #include "spsa.h"
 #include "search.h"
 
-bool SPSA_MODE = false;
 
 // ═══════════════════════════════════════════════════════════
 //  Time management parameters (defined in uci.c)
 // ═══════════════════════════════════════════════════════════
-extern double DEF_TIME_MULTIPLIER;
-extern double DEF_INC_MULTIPLIER;
-extern double MAX_TIME_MULTIPLIER;
-extern double HARD_LIMIT_MULTIPLIER;
-extern double SOFT_LIMIT_MULTIPLIER;
-extern int FP_HIST_MULT;
-extern int FP_HIST_DIVISOR;
-extern int LMP_HIST_MULT;
-extern int LMP_HIST_DIVISOR;
-extern double TM_BEST_MOVE_SCALE_0;
-extern double TM_BEST_MOVE_SCALE_1;
-extern double TM_BEST_MOVE_SCALE_2;
-extern double TM_BEST_MOVE_SCALE_3;
-extern double TM_BEST_MOVE_SCALE_4;
-extern double TM_EVAL_SCALE_0;
-extern double TM_EVAL_SCALE_1;
-extern double TM_EVAL_SCALE_2;
-extern double TM_EVAL_SCALE_3;
-extern double TM_EVAL_SCALE_4;
-extern double TM_COMPLEXITY_BASE;
-extern double TM_COMPLEXITY_DIVISOR;
-extern double TM_COMPLEXITY_MULT;
-extern double TM_NODE_FRACTION_BASE;
-extern double TM_NODE_MULTIPLIER;
+extern TUNE_DOUBLE DEF_TIME_MULTIPLIER;
+extern TUNE_DOUBLE DEF_INC_MULTIPLIER;
+extern TUNE_DOUBLE MAX_TIME_MULTIPLIER;
+extern TUNE_DOUBLE HARD_LIMIT_MULTIPLIER;
+extern TUNE_DOUBLE SOFT_LIMIT_MULTIPLIER;
+extern TUNE_INT FP_HIST_MULT;
+extern TUNE_INT FP_HIST_DIVISOR;
+extern TUNE_INT LMP_HIST_MULT;
+extern TUNE_INT LMP_HIST_DIVISOR;
+extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_0;
+extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_1;
+extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_2;
+extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_3;
+extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_4;
+extern TUNE_DOUBLE TM_EVAL_SCALE_0;
+extern TUNE_DOUBLE TM_EVAL_SCALE_1;
+extern TUNE_DOUBLE TM_EVAL_SCALE_2;
+extern TUNE_DOUBLE TM_EVAL_SCALE_3;
+extern TUNE_DOUBLE TM_EVAL_SCALE_4;
+extern TUNE_DOUBLE TM_COMPLEXITY_BASE;
+extern TUNE_DOUBLE TM_COMPLEXITY_DIVISOR;
+extern TUNE_DOUBLE TM_COMPLEXITY_MULT;
+extern TUNE_DOUBLE TM_NODE_FRACTION_BASE;
+extern TUNE_DOUBLE TM_NODE_MULTIPLIER;
 
 // ═══════════════════════════════════════════════════════════
 //  Search parameters (defined in search.c)
 // ═══════════════════════════════════════════════════════════
-extern int RFP_MARGIN;
-extern int RFP_IMPROVING_MARGIN;
-extern int NMP_BASE_REDUCTION;
-extern int NMP_DEPTH_MULTIPLIER;
-extern int NMP_REDUCTION_DEPTH_MULT;
-extern int NMP_EVAL_MULT;
-extern int NMP_FAILED_HIGH_HIST_BASE;
-extern int NMP_FAILED_HIGH_HIST_MULT;
-extern int NMP_EVAL_BETA_MARGIN;
-extern int NMP_VERIFICATION_MARGIN;
-extern int NMP_REDUCTION_DIVISOR;
-extern int NMP_EVAL_DIVISOR;
-extern int RFP_CORRPLEXITY_MULT;
-extern int ASP_WINDOW_BASE;
-extern double ASP_WINDOW_MULTIPLIER;
-extern double LMR_TABLE_BASE_NOISY;
-extern double LMR_TABLE_NOISY_MULT;
-extern double LMR_TABLE_BASE_QUIET;
-extern double LMR_TABLE_QUIET_MULT;
+extern TUNE_INT RFP_MARGIN;
+extern TUNE_INT RFP_IMPROVING_MARGIN;
+extern TUNE_INT NMP_BASE_REDUCTION;
+extern TUNE_INT NMP_DEPTH_MULTIPLIER;
+extern TUNE_INT NMP_REDUCTION_DEPTH_MULT;
+extern TUNE_INT NMP_EVAL_MULT;
+extern TUNE_INT NMP_FAILED_HIGH_HIST_BASE;
+extern TUNE_INT NMP_FAILED_HIGH_HIST_MULT;
+extern TUNE_INT NMP_EVAL_BETA_MARGIN;
+extern TUNE_INT NMP_VERIFICATION_MARGIN;
+extern TUNE_INT NMP_REDUCTION_DIVISOR;
+extern TUNE_INT NMP_EVAL_DIVISOR;
+extern TUNE_INT RFP_CORRPLEXITY_MULT;
+extern TUNE_INT ASP_WINDOW_BASE;
+extern TUNE_DOUBLE ASP_WINDOW_MULTIPLIER;
+extern TUNE_DOUBLE LMR_TABLE_BASE_NOISY;
+extern TUNE_DOUBLE LMR_TABLE_NOISY_MULT;
+extern TUNE_DOUBLE LMR_TABLE_BASE_QUIET;
+extern TUNE_DOUBLE LMR_TABLE_QUIET_MULT;
 
 // SEE
-extern int QS_SEE_THRESHOLD;
-extern int SEE_MOVE_ORDERING_THRESHOLD;
-extern int SEE_QUIET_THRESHOLD;
-extern int SEE_NOISY_THRESHOLD;
-extern int MOVE_ORDER_HIST_MULT;
-extern int SEE_PRUNING_HIST_MULT;
-extern int SEE_QUIET_HIST_MULT;
-extern int SEE_PIECE_VALUES[];
+extern TUNE_INT QS_SEE_THRESHOLD;
+extern TUNE_INT SEE_MOVE_ORDERING_THRESHOLD;
+extern TUNE_INT SEE_QUIET_THRESHOLD;
+extern TUNE_INT SEE_NOISY_THRESHOLD;
+extern TUNE_INT MOVE_ORDER_HIST_MULT;
+extern TUNE_INT SEE_PRUNING_HIST_MULT;
+extern TUNE_INT SEE_QUIET_HIST_MULT;
+extern TUNE_INT SEE_PIECE_VALUES[];
 
 // LMR Scalars
-extern int DEEPER_LMR_MARGIN;
-extern int QUIET_HISTORY_LMR_MULT;
-extern int QUIET_HISTORY_LMR_DIVISOR;
-extern int QUIET_HISTORY_LMR_MINIMUM_SCALAR;
-extern int QUIET_HISTORY_LMR_MAXIMUM_SCALAR;
-extern int PAWN_HISTORY_LMR_MULT;
-extern int PAWN_HISTORY_LMR_DIVISOR;
-extern int PAWN_HISTORY_LMR_MINIMUM_SCALAR;
-extern int PAWN_HISTORY_LMR_MAXIMUM_SCALAR;
-extern int NOISY_HISTORY_LMR_MULT;
-extern int NOISY_HISTORY_LMR_DIVISOR;
-extern int QUIET_NON_PV_LMR_SCALAR;
-extern int CUT_NODE_LMR_SCALAR;
-extern int TT_PV_LMR_SCALAR;
-extern int TT_PV_FAIL_LOW_LMR_SCALAR;
-extern int TT_CAPTURE_LMR_SCALAR;
-extern int GOOD_EVAL_LMR_SCALAR;
-extern int GOOD_EVAL_LMR_MARGIN;
-extern int FUTILITY_LMR_BASE;
-extern int FUTILITY_LMR_MULT;
-extern int FUTILITY_LMR_SCALAR;
-extern int IMPROVING_LMR_SCALAR;
-extern int IMPROVING_FAIL_HIGH_MARGIN;
-extern int GIVES_CHECK_LMR_SCALAR;
-extern int LMR_DEPTH_HIST_MULT;
+extern TUNE_INT DEEPER_LMR_MARGIN;
+extern TUNE_INT QUIET_HISTORY_LMR_MULT;
+extern TUNE_INT QUIET_HISTORY_LMR_DIVISOR;
+extern TUNE_INT QUIET_HISTORY_LMR_MINIMUM_SCALAR;
+extern TUNE_INT QUIET_HISTORY_LMR_MAXIMUM_SCALAR;
+extern TUNE_INT PAWN_HISTORY_LMR_MULT;
+extern TUNE_INT PAWN_HISTORY_LMR_DIVISOR;
+extern TUNE_INT PAWN_HISTORY_LMR_MINIMUM_SCALAR;
+extern TUNE_INT PAWN_HISTORY_LMR_MAXIMUM_SCALAR;
+extern TUNE_INT NOISY_HISTORY_LMR_MULT;
+extern TUNE_INT NOISY_HISTORY_LMR_DIVISOR;
+extern TUNE_INT QUIET_NON_PV_LMR_SCALAR;
+extern TUNE_INT CUT_NODE_LMR_SCALAR;
+extern TUNE_INT TT_PV_LMR_SCALAR;
+extern TUNE_INT TT_PV_FAIL_LOW_LMR_SCALAR;
+extern TUNE_INT TT_CAPTURE_LMR_SCALAR;
+extern TUNE_INT GOOD_EVAL_LMR_SCALAR;
+extern TUNE_INT GOOD_EVAL_LMR_MARGIN;
+extern TUNE_INT FUTILITY_LMR_BASE;
+extern TUNE_INT FUTILITY_LMR_MULT;
+extern TUNE_INT FUTILITY_LMR_SCALAR;
+extern TUNE_INT IMPROVING_LMR_SCALAR;
+extern TUNE_INT IMPROVING_FAIL_HIGH_MARGIN;
+extern TUNE_INT GIVES_CHECK_LMR_SCALAR;
+extern TUNE_INT LMR_DEPTH_HIST_MULT;
 
 
 
 // Probcut
-extern int PROBCUT_BETA_MARGIN;
-extern int PROBCUT_IMPROVING_MARGIN;
-extern int PROBCUT_SEE_NOISY_THRESHOLD;
-extern int PROBCUT_NOISY_HIST_MULT;
-extern int PROBCUT_FP_BASE;
-extern int PROBCUT_FP_MULT;
-extern int SPROBCUT_BETA_MARGIN;
+extern TUNE_INT PROBCUT_BETA_MARGIN;
+extern TUNE_INT PROBCUT_IMPROVING_MARGIN;
+extern TUNE_INT PROBCUT_SEE_NOISY_THRESHOLD;
+extern TUNE_INT PROBCUT_NOISY_HIST_MULT;
+extern TUNE_INT PROBCUT_FP_BASE;
+extern TUNE_INT PROBCUT_FP_MULT;
+extern TUNE_INT SPROBCUT_BETA_MARGIN;
 
 // Futility & Razoring
-extern int FP_MARGIN;
-extern int FUTILITY_PRUNING_OFFSET[];
-extern int BNFP_MARGIN;
-extern int QUIET_HISTORY_PRUNING_MARGIN;
-extern int RAZORING_FULL_MARGIN;
-extern int RAZORING_DEPTH_SCALE;
-extern int RAZORING_VERIFY_MARGIN;
+extern TUNE_INT FP_MARGIN;
+extern TUNE_INT FUTILITY_PRUNING_OFFSET[];
+extern TUNE_INT BNFP_MARGIN;
+extern TUNE_INT QUIET_HISTORY_PRUNING_MARGIN;
+extern TUNE_INT RAZORING_FULL_MARGIN;
+extern TUNE_INT RAZORING_DEPTH_SCALE;
+extern TUNE_INT RAZORING_VERIFY_MARGIN;
 
 // History Bonuses
-extern int QUIET_HIST_BONUS_BASE;
-extern int QUIET_HIST_BONUS_DEPTH;
-extern int QUIET_HIST_BONUS_MAX;
-extern int QUIET_HIST_MALUS_BASE;
-extern int QUIET_HIST_MALUS_DEPTH;
-extern int QUIET_HIST_FAILED_LOW_BONUS;
-extern int QUIET_HIST_FAILED_LOW_MALUS;
-extern int QUIET_HIST_MALUS_MAX;
-extern int HISTORY_RED_MULT;
-extern int HISTORY_RED_DIVISOR;
-extern int CONTHIST_MULT;
+extern TUNE_INT QUIET_HIST_BONUS_BASE;
+extern TUNE_INT QUIET_HIST_BONUS_DEPTH;
+extern TUNE_INT QUIET_HIST_BONUS_MAX;
+extern TUNE_INT QUIET_HIST_MALUS_BASE;
+extern TUNE_INT QUIET_HIST_MALUS_DEPTH;
+extern TUNE_INT QUIET_HIST_FAILED_LOW_BONUS;
+extern TUNE_INT QUIET_HIST_FAILED_LOW_MALUS;
+extern TUNE_INT QUIET_HIST_MALUS_MAX;
+extern TUNE_INT HISTORY_RED_MULT;
+extern TUNE_INT HISTORY_RED_DIVISOR;
+extern TUNE_INT CONTHIST_MULT;
 
-extern int CONTHIST_BONUS_BASE;
-extern int CONTHIST_BONUS_DEPTH;
-extern int CONTHIST_BONUS_MAX;
-extern int CONTHIST_MALUS_BASE;
-extern int CONTHIST_MALUS_DEPTH;
-extern int CONTHIST_FAILED_LOW_BONUS;
-extern int CONTHIST_FAILED_LOW_MALUS;
-extern int CONTHIST_MALUS_MAX;
+extern TUNE_INT CONTHIST_BONUS_BASE;
+extern TUNE_INT CONTHIST_BONUS_DEPTH;
+extern TUNE_INT CONTHIST_BONUS_MAX;
+extern TUNE_INT CONTHIST_MALUS_BASE;
+extern TUNE_INT CONTHIST_MALUS_DEPTH;
+extern TUNE_INT CONTHIST_FAILED_LOW_BONUS;
+extern TUNE_INT CONTHIST_FAILED_LOW_MALUS;
+extern TUNE_INT CONTHIST_MALUS_MAX;
 
-extern int LDSE_BASE_MARGIN;
-extern int LDSE_CORRECTION_MULT;
-extern int LDSE_CORRECTION_DIVISOR;
+extern TUNE_INT LDSE_BASE_MARGIN;
+extern TUNE_INT LDSE_CORRECTION_MULT;
+extern TUNE_INT LDSE_CORRECTION_DIVISOR;
 
-extern int PAWNHIST_BONUS_BASE;
-extern int PAWNHIST_BONUS_DEPTH;
-extern int PAWNHIST_BONUS_MAX;
-extern int PAWNHIST_MALUS_BASE;
-extern int PAWNHIST_MALUS_DEPTH;
-extern int PAWNHIST_FAILED_LOW_BONUS;
-extern int PAWNHIST_FAILED_LOW_MALUS;
-extern int PAWNHIST_MALUS_MAX;
+extern TUNE_INT PAWNHIST_BONUS_BASE;
+extern TUNE_INT PAWNHIST_BONUS_DEPTH;
+extern TUNE_INT PAWNHIST_BONUS_MAX;
+extern TUNE_INT PAWNHIST_MALUS_BASE;
+extern TUNE_INT PAWNHIST_MALUS_DEPTH;
+extern TUNE_INT PAWNHIST_FAILED_LOW_BONUS;
+extern TUNE_INT PAWNHIST_FAILED_LOW_MALUS;
+extern TUNE_INT PAWNHIST_MALUS_MAX;
 
-extern int CAPTHIST_BONUS_BASE;
-extern int CAPTHIST_BONUS_DEPTH;
-extern int CAPTHIST_BONUS_MAX;
-extern int CAPTHIST_MALUS_BASE;
-extern int CAPTHIST_MALUS_DEPTH;
-extern int CAPTHIST_MALUS_MAX;
+extern TUNE_INT CAPTHIST_BONUS_BASE;
+extern TUNE_INT CAPTHIST_BONUS_DEPTH;
+extern TUNE_INT CAPTHIST_BONUS_MAX;
+extern TUNE_INT CAPTHIST_MALUS_BASE;
+extern TUNE_INT CAPTHIST_MALUS_DEPTH;
+extern TUNE_INT CAPTHIST_MALUS_MAX;
 
-extern int BAD_QUIET_INDEX_SCALE;
+extern TUNE_INT BAD_QUIET_INDEX_SCALE;
 
 // ═══════════════════════════════════════════════════════════
 //  Correction History parameters (defined in history.c)
 // ═══════════════════════════════════════════════════════════
-extern int PAWN_CORRHIST_WEIGHT_SCALE;
-extern int PAWN_CORRHIST_GRAIN;
-extern int MINOR_CORRHIST_WEIGHT_SCALE;
-extern int MINOR_CORRHIST_GRAIN;
-extern int MAJOR_CORRHIST_WEIGHT_SCALE;
-extern int MAJOR_CORRHIST_GRAIN;
-extern int NON_PAWN_CORRHIST_WEIGHT_SCALE;
-extern int NON_PAWN_CORRHIST_GRAIN;
-extern int KRP_CORRHIST_WEIGHT_SCALE;
-extern int KRP_CORRHIST_GRAIN;
-extern int CONT_CORRHIST_WEIGHT_SCALE;
-extern int CONT_CORRHIST_GRAIN;
+extern TUNE_INT PAWN_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT PAWN_CORRHIST_GRAIN;
+extern TUNE_INT MINOR_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT MINOR_CORRHIST_GRAIN;
+extern TUNE_INT MAJOR_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT MAJOR_CORRHIST_GRAIN;
+extern TUNE_INT NON_PAWN_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT NON_PAWN_CORRHIST_GRAIN;
+extern TUNE_INT KRP_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT KRP_CORRHIST_GRAIN;
+extern TUNE_INT CONT_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT CONT_CORRHIST_GRAIN;
 
 /*██████████████████████████████████████████████████████████████*\
   ██                                                          ██
@@ -182,17 +181,17 @@ SPSAParam spsa_params[MAX_SPSA_PARAMS];
 int spsa_count = 0;
 
 
-static void spsa_add_int(const char *name, int *ptr, int def, int min, int max, double c, double r) {
-    spsa_params[spsa_count++] = (SPSAParam){name, 0, ptr, (double)def, (double)min, (double)max, c, r};
+static void spsa_add_int(const char *name, const void *ptr, int def, int min, int max, double c, double r) {
+    spsa_params[spsa_count++] = (SPSAParam){name, 0, (void *)ptr, (double)def, (double)min, (double)max, c, r};
 }
 
-static void spsa_add_double(const char *name, double *ptr, double def, double min, double max, double c, double r) {
+static void spsa_add_double(const char *name, const void *ptr, double def, double min, double max, double c, double r) {
     spsa_params[spsa_count++] = (SPSAParam){name, 1, ptr, def, min, max, c, r};
 }
 
 
 void spsa_init(void) {
-    if (!SPSA_MODE) return;
+    if (!SPSA_ACTIVE) return;
     spsa_count = 0;
 
     // ── Reverse Futility Pruning ──
@@ -381,7 +380,7 @@ void spsa_init(void) {
 
 
 void spsa_print_uci_options(void) {
-    if (!SPSA_MODE) return;
+    if (!SPSA_ACTIVE) return;
     for (int i = 0; i < spsa_count; i++) {
         SPSAParam *p = &spsa_params[i];
         if (p->is_double) {
@@ -396,7 +395,7 @@ void spsa_print_uci_options(void) {
 
 
 int spsa_set_option(const char *input) {
-    if (!SPSA_MODE) return 0;
+    if (!SPSA_ACTIVE) return 0;
     for (int i = 0; i < spsa_count; i++) {
         SPSAParam *p = &spsa_params[i];
         char prefix[512];
@@ -427,7 +426,7 @@ int spsa_set_option(const char *input) {
 
 
 void spsa_print_params(void) {
-    if (!SPSA_MODE) return;
+    if (!SPSA_ACTIVE) return;
     for (int i = 0; i < spsa_count; i++) {
         SPSAParam *p = &spsa_params[i];
         if (p->is_double) {

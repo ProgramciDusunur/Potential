@@ -1,3 +1,4 @@
+#include "spsa.h"
 //
 // Created by erena on 13.09.2024.
 //
@@ -18,11 +19,11 @@
 #include "utils.h"
 #include "see.h"
 
-extern int LMR_FULL_DEPTH_MOVES;
-extern int LMR_REDUCTION_LIMIT;
-extern int lateMovePruningBaseReduction;
-extern int NMP_DEPTH;
-extern int CONTHIST_MULT;
+extern TUNE_INT LMR_FULL_DEPTH_MOVES;
+extern TUNE_INT LMR_REDUCTION_LIMIT;
+extern TUNE_INT lateMovePruningBaseReduction;
+extern TUNE_INT NMP_DEPTH;
+extern TUNE_INT CONTHIST_MULT;
 
 extern int LMR_TABLE[2][maxPly][maxPly];
 

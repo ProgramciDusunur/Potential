@@ -6,7 +6,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-extern bool SPSA_MODE;
+// 0 = Normal Test, 1 = SPSA Tuning
+#define SPSA_ACTIVE 0
+
+#if SPSA_ACTIVE
+    #define TUNE_INT int
+    #define TUNE_DOUBLE double
+#else
+    #define TUNE_INT const int
+    #define TUNE_DOUBLE const double
+#endif
 
 #define MAX_SPSA_PARAMS 256
 
