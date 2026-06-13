@@ -536,10 +536,7 @@ Score get_psqt_score(const board* position) {
 
 int evaluate(board* position) {
     const int game_phase_score = position->phase_score;
-    Score score = position->psqt_score;
-    
-    const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
-    const int blackKingSquare = getLS1BIndex(position->bitboards[k]);
+    Score score = position->psqt_score;        
 
     // Interpolation
     int mg = mg_of(score);
