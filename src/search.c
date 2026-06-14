@@ -1769,6 +1769,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
 // search position for the best move
 int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
+    if (t->id == 0) {
+        tt_age++;
+    }
+
     SearchStack *ss = t->ss;
     int score = 0;
 
