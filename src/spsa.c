@@ -131,11 +131,17 @@ extern TUNE_INT LMP_BASE;
 extern TUNE_INT LMP_MULTIPLIER;
 
 // Singular Extensions
+extern TUNE_INT DOUBLE_EXTENSION_MARGIN;
+extern TUNE_INT TRIPLE_EXTENSION_MARGIN;
+extern TUNE_INT QUADRUPLE_EXTENSION_MARGIN;
+extern TUNE_INT DOUBLE_NEGATIVE_EXTENSION_MARGIN;
+extern TUNE_INT TRIPLE_NEGATIVE_EXTENSION_MARGIN;
 extern TUNE_INT TRIPLE_EXT_HIST_DIVISOR;
 extern TUNE_INT TRIPLE_EXT_NOISY_BONUS;
-extern TUNE_INT TRIPLE_EXT_QUIET_TT_BONUS;
 extern TUNE_INT MULTI_LOW_DEPTH_EXT_MARGIN;
 extern TUNE_INT QUADRUPLE_EXT_NOISY_BONUS;
+extern TUNE_INT SE_CORRECTION_MULT;
+extern TUNE_INT SE_CORRECTION_DIVISOR;
 
 
 // Probcut
@@ -208,16 +214,22 @@ extern TUNE_INT BAD_QUIET_INDEX_SCALE;
 // ═══════════════════════════════════════════════════════════
 extern TUNE_INT PAWN_CORRHIST_WEIGHT_SCALE;
 extern TUNE_INT PAWN_CORRHIST_GRAIN;
+extern TUNE_INT PAWN_CORRHIST_MULT;
 extern TUNE_INT MINOR_CORRHIST_WEIGHT_SCALE;
 extern TUNE_INT MINOR_CORRHIST_GRAIN;
+extern TUNE_INT MINOR_CORRHIST_MULT;
 extern TUNE_INT MAJOR_CORRHIST_WEIGHT_SCALE;
 extern TUNE_INT MAJOR_CORRHIST_GRAIN;
+extern TUNE_INT MAJOR_CORRHIST_MULT;
 extern TUNE_INT NON_PAWN_CORRHIST_WEIGHT_SCALE;
 extern TUNE_INT NON_PAWN_CORRHIST_GRAIN;
+extern TUNE_INT NON_PAWN_CORRHIST_MULT;
 extern TUNE_INT KRP_CORRHIST_WEIGHT_SCALE;
 extern TUNE_INT KRP_CORRHIST_GRAIN;
+extern TUNE_INT KRP_CORRHIST_MULT;
 extern TUNE_INT CONT_CORRHIST_WEIGHT_SCALE;
 extern TUNE_INT CONT_CORRHIST_GRAIN;
+extern TUNE_INT CONT_CORRHIST_MULT;
 
 /*██████████████████████████████████████████████████████████████*\
   ██                                                          ██
@@ -398,21 +410,27 @@ void spsa_init(void) {
     // ── Correction History ──
     spsa_add_int("PAWN_CORRHIST_WEIGHT_SCALE",       &PAWN_CORRHIST_WEIGHT_SCALE,          250,     64,    512,  25.00, 0.002);
     spsa_add_int("PAWN_CORRHIST_GRAIN",              &PAWN_CORRHIST_GRAIN,                 236,     64,    512,  25.00, 0.002);
+    spsa_add_int("PAWN_CORRHIST_MULT",               &PAWN_CORRHIST_MULT,                 1024,    256,   4096, 100.00, 0.002);
     
     spsa_add_int("MINOR_CORRHIST_WEIGHT_SCALE",      &MINOR_CORRHIST_WEIGHT_SCALE,         266,     64,    512,  25.00, 0.002);
     spsa_add_int("MINOR_CORRHIST_GRAIN",             &MINOR_CORRHIST_GRAIN,                256,     64,    512,  25.00, 0.002);
+    spsa_add_int("MINOR_CORRHIST_MULT",              &MINOR_CORRHIST_MULT,                1024,    256,   4096, 100.00, 0.002);
     
     spsa_add_int("MAJOR_CORRHIST_WEIGHT_SCALE",      &MAJOR_CORRHIST_WEIGHT_SCALE,         241,     64,    512,  25.00, 0.002);
     spsa_add_int("MAJOR_CORRHIST_GRAIN",             &MAJOR_CORRHIST_GRAIN,                292,     64,    512,  25.00, 0.002);
+    spsa_add_int("MAJOR_CORRHIST_MULT",              &MAJOR_CORRHIST_MULT,                1024,    256,   4096, 100.00, 0.002);
     
     spsa_add_int("NON_PAWN_CORRHIST_WEIGHT_SCALE",   &NON_PAWN_CORRHIST_WEIGHT_SCALE,      246,     64,    512,  25.00, 0.002);
     spsa_add_int("NON_PAWN_CORRHIST_GRAIN",          &NON_PAWN_CORRHIST_GRAIN,             296,     64,    512,  25.00, 0.002);
+    spsa_add_int("NON_PAWN_CORRHIST_MULT",           &NON_PAWN_CORRHIST_MULT,             1024,    256,   4096, 100.00, 0.002);
     
     spsa_add_int("KRP_CORRHIST_WEIGHT_SCALE",        &KRP_CORRHIST_WEIGHT_SCALE,           255,     64,    512,  25.00, 0.002);
     spsa_add_int("KRP_CORRHIST_GRAIN",               &KRP_CORRHIST_GRAIN,                  276,     64,    512,  25.00, 0.002);
+    spsa_add_int("KRP_CORRHIST_MULT",                &KRP_CORRHIST_MULT,                  1024,    256,   4096, 100.00, 0.002);
     
     spsa_add_int("CONT_CORRHIST_WEIGHT_SCALE",       &CONT_CORRHIST_WEIGHT_SCALE,          259,     64,    512,  25.00, 0.002);
     spsa_add_int("CONT_CORRHIST_GRAIN",              &CONT_CORRHIST_GRAIN,                 223,     64,    512,  25.00, 0.002);
+    spsa_add_int("CONT_CORRHIST_MULT",               &CONT_CORRHIST_MULT,                 1024,    256,   4096, 100.00, 0.002);
 
     // ── Move Ordering ──
     spsa_add_int("MAIN_HIST_WEIGHT",            &MAIN_HIST_WEIGHT,           1024,      0,   2048, 100.00, 0.002);
@@ -430,11 +448,17 @@ void spsa_init(void) {
     spsa_add_int("LMP_HIST_LIMIT",              &LMP_HIST_LIMIT,             6144,   1024,  16384, 500.00, 0.002);
 
     // ── Singular Extensions ──
+    spsa_add_int("DOUBLE_EXTENSION_MARGIN",     &DOUBLE_EXTENSION_MARGIN,       0,   -100,    200,  15.00, 0.002);
+    spsa_add_int("TRIPLE_EXTENSION_MARGIN",     &TRIPLE_EXTENSION_MARGIN,      40,   -100,    200,  15.00, 0.002);
+    spsa_add_int("QUADRUPLE_EXTENSION_MARGIN",  &QUADRUPLE_EXTENSION_MARGIN,   85,   -100,    200,  15.00, 0.002);
+    spsa_add_int("DOUBLE_NEGATIVE_EXTENSION_MARGIN", &DOUBLE_NEGATIVE_EXTENSION_MARGIN, 60, 0, 200, 15.00, 0.002);
+    spsa_add_int("TRIPLE_NEGATIVE_EXTENSION_MARGIN", &TRIPLE_NEGATIVE_EXTENSION_MARGIN, 90, 0, 200, 15.00, 0.002);
     spsa_add_int("TRIPLE_EXT_HIST_DIVISOR",     &TRIPLE_EXT_HIST_DIVISOR,   16384,   4096,  65536, 2000.0, 0.002);
     spsa_add_int("TRIPLE_EXT_NOISY_BONUS",      &TRIPLE_EXT_NOISY_BONUS,       80,      0,    300,  15.00, 0.002);
-    spsa_add_int("TRIPLE_EXT_QUIET_TT_BONUS",   &TRIPLE_EXT_QUIET_TT_BONUS,  100,      0,    300,  15.00, 0.002);
-    spsa_add_int("MULTI_LOW_DEPTH_EXT_MARGIN",  &MULTI_LOW_DEPTH_EXT_MARGIN,    0,      0,    200,  10.00, 0.002);
+    spsa_add_int("MULTI_LOW_DEPTH_EXT_MARGIN",  &MULTI_LOW_DEPTH_EXT_MARGIN,    0,   -100,    200,  10.00, 0.002);
     spsa_add_int("QUADRUPLE_EXT_NOISY_BONUS",   &QUADRUPLE_EXT_NOISY_BONUS,  170,      0,    500,  25.00, 0.002);
+    spsa_add_int("SE_CORRECTION_MULT",          &SE_CORRECTION_MULT,         1024,   256,   4096, 100.00, 0.002);
+    spsa_add_int("SE_CORRECTION_DIVISOR",       &SE_CORRECTION_DIVISOR,   2944000, 500000, 10000000, 100000.0, 0.002);
     // ── Time Management ──
     spsa_add_double("DEF_TIME_MULTIPLIER",      &DEF_TIME_MULTIPLIER,          0.04938995246391795,  0.020,  0.120,  0.005, 0.002);
     spsa_add_double("DEF_INC_MULTIPLIER",       &DEF_INC_MULTIPLIER,           0.8405102606746936,  0.400,  1.500,  0.050, 0.002);

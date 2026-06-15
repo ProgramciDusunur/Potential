@@ -217,13 +217,15 @@
   TUNE_INT QUADRUPLE_EXTENSION_MARGIN = 85;
   TUNE_INT MULTI_LOW_DEPTH_EXT_MARGIN = 0;
   TUNE_INT QUADRUPLE_EXT_NOISY_BONUS = 170;
+  TUNE_INT SE_CORRECTION_MULT = 1024;
+  TUNE_INT SE_CORRECTION_DIVISOR = 2944000;
   // Negative Extensions
   TUNE_INT DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
   TUNE_INT TRIPLE_NEGATIVE_EXTENSION_MARGIN = 90;
   TUNE_INT TRIPLE_EXT_HIST_MULT = 32;
   TUNE_INT TRIPLE_EXT_HIST_DIVISOR = 16384;
   TUNE_INT TRIPLE_EXT_NOISY_BONUS = 80;
-  TUNE_INT TRIPLE_EXT_QUIET_TT_BONUS = 100;
+  const int TRIPLE_EXT_QUIET_TT_BONUS = 100;
   
   /*╔═══════════════════════════════╗
     ║ Internal Iterative Reductions ║
@@ -1391,7 +1393,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if (singularScore < singularBeta) {
                 extensions++;
 
-                int correction_adj = abs(correction_value) / 2875;                
+                int correction_adj = (abs(correction_value) * SE_CORRECTION_MULT) / SE_CORRECTION_DIVISOR;
 
                 // Double Extension                
                 /*int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
