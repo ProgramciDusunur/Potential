@@ -229,6 +229,9 @@ extern TUNE_INT KRP_CORRHIST_MULT;
 extern TUNE_INT CONT_CORRHIST_WEIGHT_SCALE;
 extern TUNE_INT CONT_CORRHIST_GRAIN;
 extern TUNE_INT CONT_CORRHIST_MULT;
+extern TUNE_INT KING_SHIELD_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT KING_SHIELD_CORRHIST_GRAIN;
+extern TUNE_INT KING_SHIELD_CORRHIST_MULT;
 
 /*██████████████████████████████████████████████████████████████*\
   ██                                                          ██
@@ -429,7 +432,11 @@ void spsa_init(void) {
     
     spsa_add_int("CONT_CORRHIST_WEIGHT_SCALE",       &CONT_CORRHIST_WEIGHT_SCALE,          272,     64,    512,  25.00, 0.002);
     spsa_add_int("CONT_CORRHIST_GRAIN",              &CONT_CORRHIST_GRAIN,                 218,     64,    512,  25.00, 0.002);
-    spsa_add_int("CONT_CORRHIST_MULT",               &CONT_CORRHIST_MULT,                 960,    256,   4096, 100.00, 0.002);
+    spsa_add_int("CONT_CORRHIST_MULT",               &CONT_CORRHIST_MULT,                  960,    256,   4096, 100.00, 0.002);
+    
+    spsa_add_int("KING_SHIELD_CORRHIST_WEIGHT_SCALE",&KING_SHIELD_CORRHIST_WEIGHT_SCALE,   256,     64,    512,  25.00, 0.002);
+    spsa_add_int("KING_SHIELD_CORRHIST_GRAIN",       &KING_SHIELD_CORRHIST_GRAIN,          256,     64,    512,  25.00, 0.002);
+    spsa_add_int("KING_SHIELD_CORRHIST_MULT",        &KING_SHIELD_CORRHIST_MULT,          1024,    256,   4096, 100.00, 0.002);
 
     // ── Move Ordering ──
     spsa_add_int("MAIN_HIST_WEIGHT",            &MAIN_HIST_WEIGHT,           977,      0,   2048, 100.00, 0.002);

@@ -725,6 +725,15 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         else if (strncmp(input, "eval", 4) == 0) {
             printf("Evaluation: %d\n", evaluate(position));
         } 
+        else if (strncmp(input, "print_king_shield", 17) == 0) {
+            printf("--- King Shield Learned Weights ---\n");
+            for (int shield = 0; shield <= 8; shield++) {
+                int w_val = thread_pool.shared_histories[0]->king_shield_corrhist[white][shield];
+                int b_val = thread_pool.shared_histories[0]->king_shield_corrhist[black][shield];
+                printf("Shield Size %d: White = %4d | Black = %4d\n", shield, w_val, b_val);
+            }
+            printf("-----------------------------------\n");
+        }
 
         else if (strncmp(input, "perftsuite", 10) == 0) {
             perftSuite();
