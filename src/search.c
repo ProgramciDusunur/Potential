@@ -99,7 +99,9 @@
   TUNE_INT IMPROVING_LMR_SCALAR = 1079;
   TUNE_INT IMPROVING_FAIL_HIGH_MARGIN = 90;
   TUNE_INT GIVES_CHECK_LMR_SCALAR = 1031;
-  TUNE_INT LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
+  TUNE_INT CUT_NODE_LMR_NO_TT_SCALAR = 1024;
+  TUNE_INT TT_PV_LMR_PV_NODE_SCALAR = 512;
+  TUNE_INT TT_PV_LMR_IMPROVING_SCALAR = 256;  
   TUNE_INT LMR_DEPTH_HIST_MULT = 2016;
   
   
@@ -1496,7 +1498,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // Reduce More
         if (predicted_cut_node) {
-            lmrReduction += CUT_NODE_LMR_SCALAR + !tt_move * 1024;
+            lmrReduction += CUT_NODE_LMR_SCALAR + !tt_move * CUT_NODE_LMR_NO_TT_SCALAR;
         }
 
         if (tt_pv && tt_hit && tt_score <= alpha) {
@@ -1555,7 +1557,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // Reduce Less
         if (tt_pv) {
-            lmrReduction -= TT_PV_LMR_SCALAR + (512 * pvNode) + (256 * improving);
+            lmrReduction -= TT_PV_LMR_SCALAR + (TT_PV_LMR_PV_NODE_SCALAR * pvNode) + (TT_PV_LMR_IMPROVING_SCALAR * improving);
         }
 
         if (gives_check) {
