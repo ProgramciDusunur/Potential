@@ -37,6 +37,7 @@
   ╚═══════════════════════════════╝*/
   TUNE_INT SEE_PIECE_VALUES[] = {100, 300, 300, 500, 1200, 0, 0};
   TUNE_INT QS_SEE_THRESHOLD = 6;
+  TUNE_INT QS_FP_SEE_THRESHOLD = 1;
   TUNE_INT SEE_MOVE_ORDERING_THRESHOLD = -61;
   TUNE_INT SEE_QUIET_THRESHOLD = -66;
   TUNE_INT SEE_NOISY_THRESHOLD = -31;
@@ -44,6 +45,7 @@
   TUNE_INT MOVE_ORDER_HIST_MULT = 478;
   TUNE_INT SEE_PRUNING_HIST_MULT = 526;
   TUNE_INT SEE_QUIET_HIST_MULT = 128;
+  TUNE_INT SEE_QUIET_HIST_DIVISOR = 12288;
   
   
   /*╔═══════════════════════╗
@@ -118,6 +120,9 @@
   TUNE_INT PROBCUT_IMPROVING_MARGIN = 38;
   TUNE_INT PROBCUT_SEE_NOISY_THRESHOLD = 104;
   TUNE_INT PROBCUT_NOISY_HIST_MULT = 101;
+  TUNE_INT PROBCUT_NOISY_HIST_DIVISOR = 1310720;
+  TUNE_INT PROBCUT_REDUCTION_MULTIPLIER = 256;
+  TUNE_INT PROBCUT_CUTNODE_SCALAR = 1024;
   TUNE_INT PROBCUT_FP_BASE = 162;
   TUNE_INT PROBCUT_FP_MULT = 101;
 
@@ -795,7 +800,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
                 continue;
             }
 
-            if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
+            if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, QS_FP_SEE_THRESHOLD)) {
                 bestScore = myMAX(bestScore, futilityValue);
                 continue;
             }
@@ -1197,9 +1202,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     int adjusted_probcut_depth = probcut_depth * 1024;
 
                     // Capture History based reduction
-                    adjusted_probcut_depth += (move_history * PROBCUT_NOISY_HIST_MULT) / 1310720 * 256;
+                    adjusted_probcut_depth += (move_history * PROBCUT_NOISY_HIST_MULT) / PROBCUT_NOISY_HIST_DIVISOR * PROBCUT_REDUCTION_MULTIPLIER;
 
-                    adjusted_probcut_depth -= 1024 * predicted_cut_node;
+                    adjusted_probcut_depth -= PROBCUT_CUTNODE_SCALAR * predicted_cut_node;
 
                     adjusted_probcut_depth /= 1024;
 
@@ -1332,7 +1337,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // SEE PVS Pruning
         int seeThreshold =
-                notTactical ? SEE_QUIET_THRESHOLD * lmrDepth - (moveHistory * SEE_QUIET_HIST_MULT) / 12288 : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
+                notTactical ? SEE_QUIET_THRESHOLD * lmrDepth - (moveHistory * SEE_QUIET_HIST_MULT) / SEE_QUIET_HIST_DIVISOR : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
         if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
