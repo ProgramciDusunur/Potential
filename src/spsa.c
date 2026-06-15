@@ -111,7 +111,31 @@ extern TUNE_INT CUT_NODE_LMR_NO_TT_SCALAR;
 extern TUNE_INT TT_PV_LMR_PV_NODE_SCALAR;
 extern TUNE_INT TT_PV_LMR_IMPROVING_SCALAR;
 extern TUNE_INT LMR_DEPTH_HIST_MULT;
+extern TUNE_INT LMR_DEPTH_HIST_DIVISOR;
 
+// Move Ordering
+extern TUNE_INT MAIN_HIST_WEIGHT;
+extern TUNE_INT MAIN_HIST_DIVISOR;
+extern TUNE_INT CONTHIST_1_WEIGHT;
+extern TUNE_INT CONTHIST_1_DIVISOR;
+extern TUNE_INT CONTHIST_2_WEIGHT;
+extern TUNE_INT CONTHIST_2_DIVISOR;
+extern TUNE_INT CONTHIST_4_WEIGHT;
+extern TUNE_INT CONTHIST_4_DIVISOR;
+extern TUNE_INT PAWN_HIST_WEIGHT;
+extern TUNE_INT PAWN_HIST_DIVISOR;
+
+// LMP
+extern TUNE_INT LMP_HIST_LIMIT;
+extern TUNE_INT LMP_BASE;
+extern TUNE_INT LMP_MULTIPLIER;
+
+// Singular Extensions
+extern TUNE_INT TRIPLE_EXT_HIST_DIVISOR;
+extern TUNE_INT TRIPLE_EXT_NOISY_BONUS;
+extern TUNE_INT TRIPLE_EXT_QUIET_TT_BONUS;
+extern TUNE_INT MULTI_LOW_DEPTH_EXT_MARGIN;
+extern TUNE_INT QUADRUPLE_EXT_NOISY_BONUS;
 
 
 // Probcut
@@ -288,9 +312,15 @@ void spsa_init(void) {
     spsa_add_int("IMPROVING_LMR_SCALAR",              &IMPROVING_LMR_SCALAR,          1079,    256,   2048,  50.00, 0.002);
     spsa_add_int("IMPROVING_FAIL_HIGH_MARGIN",        &IMPROVING_FAIL_HIGH_MARGIN,     90,     50,    200,  15.00, 0.002);
     spsa_add_int("GIVES_CHECK_LMR_SCALAR",            &GIVES_CHECK_LMR_SCALAR,        1031,    256,   2048,  50.00, 0.002);
+    spsa_add_int("CUT_NODE_LMR_NO_TT_SCALAR",         &CUT_NODE_LMR_NO_TT_SCALAR,     1024,    256,   2048,  50.00, 0.002);
+    spsa_add_int("TT_PV_LMR_PV_NODE_SCALAR",          &TT_PV_LMR_PV_NODE_SCALAR,      1024,    256,   2048,  50.00, 0.002);
+    spsa_add_int("TT_PV_LMR_IMPROVING_SCALAR",        &TT_PV_LMR_IMPROVING_SCALAR,    1024,    256,   2048,  50.00, 0.002);
     spsa_add_int("LMR_DEPTH_HIST_MULT",               &LMR_DEPTH_HIST_MULT,           2016,   1024,   8192,  50.00, 0.002);
+    spsa_add_int("LMR_DEPTH_HIST_DIVISOR",      &LMR_DEPTH_HIST_DIVISOR,   16777216, 4194304, 67108864, 50000.00, 0.002);
     spsa_add_int("LMP_HIST_MULT",                     &LMP_HIST_MULT,                  257,     64,   1024,  25.00, 0.002);
     spsa_add_int("LMP_HIST_DIVISOR",                  &LMP_HIST_DIVISOR,             16984,   8192,  32768, 1000.0, 0.002);
+    spsa_add_int("LMP_BASE",                           &LMP_BASE,                      4096,   1024,  16384, 200.00, 0.002);
+    spsa_add_int("LMP_MULTIPLIER",                     &LMP_MULTIPLIER,                3072,   1024,  16384, 200.00, 0.002);
 
 
 
@@ -384,6 +414,27 @@ void spsa_init(void) {
     spsa_add_int("CONT_CORRHIST_WEIGHT_SCALE",       &CONT_CORRHIST_WEIGHT_SCALE,          259,     64,    512,  25.00, 0.002);
     spsa_add_int("CONT_CORRHIST_GRAIN",              &CONT_CORRHIST_GRAIN,                 223,     64,    512,  25.00, 0.002);
 
+    // ── Move Ordering ──
+    spsa_add_int("MAIN_HIST_WEIGHT",            &MAIN_HIST_WEIGHT,           1024,      0,   2048, 100.00, 0.002);
+    spsa_add_int("MAIN_HIST_DIVISOR",           &MAIN_HIST_DIVISOR,          1024,    256,   4096, 200.00, 0.002);
+    spsa_add_int("CONTHIST_1_WEIGHT",           &CONTHIST_1_WEIGHT,          1024,      0,   2048, 100.00, 0.002);
+    spsa_add_int("CONTHIST_1_DIVISOR",          &CONTHIST_1_DIVISOR,         1024,    256,   4096, 200.00, 0.002);
+    spsa_add_int("CONTHIST_2_WEIGHT",           &CONTHIST_2_WEIGHT,          1024,      0,   2048, 100.00, 0.002);
+    spsa_add_int("CONTHIST_2_DIVISOR",          &CONTHIST_2_DIVISOR,         1024,    256,   4096, 200.00, 0.002);
+    spsa_add_int("CONTHIST_4_WEIGHT",           &CONTHIST_4_WEIGHT,          1024,      0,   2048, 100.00, 0.002);
+    spsa_add_int("CONTHIST_4_DIVISOR",          &CONTHIST_4_DIVISOR,         1024,    256,   4096, 200.00, 0.002);
+    spsa_add_int("PAWN_HIST_WEIGHT",            &PAWN_HIST_WEIGHT,           1024,      0,   2048, 100.00, 0.002);
+    spsa_add_int("PAWN_HIST_DIVISOR",           &PAWN_HIST_DIVISOR,          1024,    256,   4096, 200.00, 0.002);
+
+    // ── LMP ──
+    spsa_add_int("LMP_HIST_LIMIT",              &LMP_HIST_LIMIT,             6144,   1024,  16384, 500.00, 0.002);
+
+    // ── Singular Extensions ──
+    spsa_add_int("TRIPLE_EXT_HIST_DIVISOR",     &TRIPLE_EXT_HIST_DIVISOR,   16384,   4096,  65536, 2000.0, 0.002);
+    spsa_add_int("TRIPLE_EXT_NOISY_BONUS",      &TRIPLE_EXT_NOISY_BONUS,       80,      0,    300,  15.00, 0.002);
+    spsa_add_int("TRIPLE_EXT_QUIET_TT_BONUS",   &TRIPLE_EXT_QUIET_TT_BONUS,  100,      0,    300,  15.00, 0.002);
+    spsa_add_int("MULTI_LOW_DEPTH_EXT_MARGIN",  &MULTI_LOW_DEPTH_EXT_MARGIN,    0,      0,    200,  10.00, 0.002);
+    spsa_add_int("QUADRUPLE_EXT_NOISY_BONUS",   &QUADRUPLE_EXT_NOISY_BONUS,  170,      0,    500,  25.00, 0.002);
     // ── Time Management ──
     spsa_add_double("DEF_TIME_MULTIPLIER",      &DEF_TIME_MULTIPLIER,          0.04938995246391795,  0.020,  0.120,  0.005, 0.002);
     spsa_add_double("DEF_INC_MULTIPLIER",       &DEF_INC_MULTIPLIER,           0.8405102606746936,  0.400,  1.500,  0.050, 0.002);

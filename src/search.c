@@ -103,13 +103,29 @@
   TUNE_INT TT_PV_LMR_PV_NODE_SCALAR = 512;
   TUNE_INT TT_PV_LMR_IMPROVING_SCALAR = 256;  
   TUNE_INT LMR_DEPTH_HIST_MULT = 2016;
+  TUNE_INT LMR_DEPTH_HIST_DIVISOR = 16777216;
+
+  /*╔═══════════════════════╗
+    ║     Move Ordering     ║
+    ╚═══════════════════════╝*/
+  TUNE_INT MAIN_HIST_WEIGHT = 1024;
+  TUNE_INT CONTHIST_1_WEIGHT = 1024;
+  TUNE_INT CONTHIST_2_WEIGHT = 1024;
+  TUNE_INT CONTHIST_4_WEIGHT = 1024;
+  TUNE_INT PAWN_HIST_WEIGHT = 1024;
+  TUNE_INT MAIN_HIST_DIVISOR = 1024;
+  TUNE_INT CONTHIST_1_DIVISOR = 1024;
+  TUNE_INT CONTHIST_2_DIVISOR = 1024;
+  TUNE_INT CONTHIST_4_DIVISOR = 1024;
+  TUNE_INT PAWN_HIST_DIVISOR = 1024;
   
   
   /*╔═══════════════════════╗
     ║ Late Move Pruning     ║
     ╚═══════════════════════╝*/
-  TUNE_INT LMP_BASE = 4;
-  TUNE_INT LMP_MULTIPLIER = 3;
+  TUNE_INT LMP_BASE = 4096;
+  TUNE_INT LMP_MULTIPLIER = 3072;
+  TUNE_INT LMP_HIST_LIMIT = 6144;
   TUNE_INT LMP_HIST_MULT = 257;
   TUNE_INT LMP_HIST_DIVISOR = 16984;
 
@@ -197,12 +213,17 @@
   TUNE_INT SE_TT_DEPTH_SUBTRACTOR = 3;
   // Positive Extensions
   TUNE_INT DOUBLE_EXTENSION_MARGIN = 0;
-  TUNE_INT TRIPLE_EXTENSION_MARGIN = -60;
+  TUNE_INT TRIPLE_EXTENSION_MARGIN = 40;
   TUNE_INT QUADRUPLE_EXTENSION_MARGIN = 85;
+  TUNE_INT MULTI_LOW_DEPTH_EXT_MARGIN = 0;
+  TUNE_INT QUADRUPLE_EXT_NOISY_BONUS = 170;
   // Negative Extensions
   TUNE_INT DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
   TUNE_INT TRIPLE_NEGATIVE_EXTENSION_MARGIN = 90;
   TUNE_INT TRIPLE_EXT_HIST_MULT = 32;
+  TUNE_INT TRIPLE_EXT_HIST_DIVISOR = 16384;
+  TUNE_INT TRIPLE_EXT_NOISY_BONUS = 80;
+  TUNE_INT TRIPLE_EXT_QUIET_TT_BONUS = 100;
   
   /*╔═══════════════════════════════╗
     ║ Internal Iterative Reductions ║
@@ -433,17 +454,17 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         int quiet_score = 0;
         quiet_score +=
             // quiet main history 
-            t->search_d.quietHistory[t->pos.side][getMoveSource(move)][getMoveTarget(move)]
-            [is_square_threatened(&t->pos, getMoveSource(move))][is_square_threatened(&t->pos, getMoveTarget(move))];
+            (t->search_d.quietHistory[t->pos.side][getMoveSource(move)][getMoveTarget(move)]
+            [is_square_threatened(&t->pos, getMoveSource(move))][is_square_threatened(&t->pos, getMoveTarget(move))] * MAIN_HIST_WEIGHT) / MAIN_HIST_DIVISOR;
 
         // 1 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 1, move, ss);
+        quiet_score += (getContinuationHistoryScore(t, 1, move, ss) * CONTHIST_1_WEIGHT) / CONTHIST_1_DIVISOR;
         // 2 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 2, move, ss);
+        quiet_score += (getContinuationHistoryScore(t, 2, move, ss) * CONTHIST_2_WEIGHT) / CONTHIST_2_DIVISOR;
         // 4 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 4, move, ss);
+        quiet_score += (getContinuationHistoryScore(t, 4, move, ss) * CONTHIST_4_WEIGHT) / CONTHIST_4_DIVISOR;
         // pawn history
-        quiet_score += t->shared_history->pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
+        quiet_score += (t->shared_history->pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] * PAWN_HIST_WEIGHT) / PAWN_HIST_DIVISOR;
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
@@ -1294,16 +1315,19 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 getContinuationHistoryScore(t, 1, currentMove, ss) + getContinuationHistoryScore(t, 4, currentMove, ss): 
                 t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
-        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + ((moveHistory * LMR_DEPTH_HIST_MULT) / 16777216 * notTactical));
+        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + ((moveHistory * LMR_DEPTH_HIST_MULT) / LMR_DEPTH_HIST_DIVISOR * notTactical));
 
         bool isNotMated = bestScore > -mateFound;
 
         if (!rootNode && isNotMated && !gives_check) {
             if (notTactical) {
-                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
-                int history_adj = (moveHistory * LMP_HIST_MULT) / LMP_HIST_DIVISOR;
-                history_adj = clamp(history_adj, -6, 6);
-                lmpThreshold += history_adj;
+                int scaled_lmpThreshold = LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth;
+                int lmpThreshold = (scaled_lmpThreshold / 1024) / (2 - improving);
+
+                int history_adj_scaled = ((int64_t)moveHistory * LMP_HIST_MULT * 1024) / LMP_HIST_DIVISOR;
+                history_adj_scaled = clamp(history_adj_scaled, -LMP_HIST_LIMIT, LMP_HIST_LIMIT);
+                
+                lmpThreshold += history_adj_scaled / 1024;
 
                 // Late Move Pruning
                 if (legal_moves>= lmpThreshold) {
@@ -1382,15 +1406,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     extensions++;
                 }
 
-                // Low Depth Extension
-                depth += depth < 10 && !pvNode;
+                // Multi Low Depth Extension
+                depth += depth < 10 && !pvNode && singularScore <= singularBeta - MULTI_LOW_DEPTH_EXT_MARGIN;
 
                 // Triple Extension
-                int tripleMargin = TRIPLE_EXTENSION_MARGIN - ((moveHistory * TRIPLE_EXT_HIST_MULT) / 16384 * notTactical);
+                int tripleMargin = TRIPLE_EXTENSION_MARGIN + TRIPLE_EXT_NOISY_BONUS * !notTactical;
+                tripleMargin -= ((moveHistory * TRIPLE_EXT_HIST_MULT) / TRIPLE_EXT_HIST_DIVISOR * notTactical);
                 tripleMargin -= correction_adj;
-                tripleMargin += isCapture * 100;
-                tripleMargin += isPromotion * 0;
-                tripleMargin += tactical * 80;
+                tripleMargin -= !tt_capture * TRIPLE_EXT_QUIET_TT_BONUS;
                 
 
                 if (singularScore <= singularBeta - tripleMargin) {
@@ -1410,7 +1433,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 // ╚═══════════════════════════╝
 
                 // ~~~~ Quadruple Extension ~~~~ //
-                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + 170 * !notTactical;
+                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + QUADRUPLE_EXT_NOISY_BONUS * !notTactical;
 
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
