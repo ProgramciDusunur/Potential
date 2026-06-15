@@ -126,7 +126,8 @@ extern TUNE_INT PAWN_HIST_WEIGHT;
 extern TUNE_INT PAWN_HIST_DIVISOR;
 
 // LMP
-extern TUNE_INT LMP_HIST_LIMIT;
+extern TUNE_INT LMP_HIST_LIMIT_NEG;
+extern TUNE_INT LMP_HIST_LIMIT_POS;
 extern TUNE_INT LMP_BASE;
 extern TUNE_INT LMP_MULTIPLIER;
 
@@ -322,9 +323,9 @@ void spsa_init(void) {
     spsa_add_int("IMPROVING_LMR_SCALAR",              &IMPROVING_LMR_SCALAR,          1079,    256,   2048,  50.00, 0.002);
     spsa_add_int("IMPROVING_FAIL_HIGH_MARGIN",        &IMPROVING_FAIL_HIGH_MARGIN,     90,     50,    200,  15.00, 0.002);
     spsa_add_int("GIVES_CHECK_LMR_SCALAR",            &GIVES_CHECK_LMR_SCALAR,        1031,    256,   2048,  50.00, 0.002);
-    spsa_add_int("CUT_NODE_LMR_NO_TT_SCALAR",         &CUT_NODE_LMR_NO_TT_SCALAR,     1024,    256,   2048,  50.00, 0.002);
-    spsa_add_int("TT_PV_LMR_PV_NODE_SCALAR",          &TT_PV_LMR_PV_NODE_SCALAR,      1024,    256,   2048,  50.00, 0.002);
-    spsa_add_int("TT_PV_LMR_IMPROVING_SCALAR",        &TT_PV_LMR_IMPROVING_SCALAR,    1024,    256,   2048,  50.00, 0.002);
+    spsa_add_int("CUT_NODE_LMR_NO_TT_SCALAR",         &CUT_NODE_LMR_NO_TT_SCALAR,     1009,    256,   2048,  50.00, 0.002);
+    spsa_add_int("TT_PV_LMR_PV_NODE_SCALAR",          &TT_PV_LMR_PV_NODE_SCALAR,       512,    128,   1024,  25.00, 0.002);
+    spsa_add_int("TT_PV_LMR_IMPROVING_SCALAR",        &TT_PV_LMR_IMPROVING_SCALAR,     256,     64,    512,  15.00, 0.002);
     spsa_add_int("LMR_DEPTH_HIST_MULT",               &LMR_DEPTH_HIST_MULT,           2016,   1024,   8192,  50.00, 0.002);
     spsa_add_int("LMR_DEPTH_HIST_DIVISOR",      &LMR_DEPTH_HIST_DIVISOR,   16777216, 4194304, 67108864, 50000.00, 0.002);
     spsa_add_int("LMP_HIST_MULT",                     &LMP_HIST_MULT,                  257,     64,   1024,  25.00, 0.002);
@@ -443,7 +444,8 @@ void spsa_init(void) {
     spsa_add_int("PAWN_HIST_DIVISOR",           &PAWN_HIST_DIVISOR,          1024,    256,   4096, 200.00, 0.002);
 
     // ── LMP ──
-    spsa_add_int("LMP_HIST_LIMIT",              &LMP_HIST_LIMIT,             6144,   1024,  16384, 500.00, 0.002);
+    spsa_add_int("LMP_HIST_LIMIT_NEG",           &LMP_HIST_LIMIT_NEG,          6144,   1024,  16384, 500.00, 0.002);
+    spsa_add_int("LMP_HIST_LIMIT_POS",           &LMP_HIST_LIMIT_POS,          6144,   1024,  16384, 500.00, 0.002);
 
     // ── Singular Extensions ──
     spsa_add_int("DOUBLE_EXTENSION_MARGIN",     &DOUBLE_EXTENSION_MARGIN,       0,   -100,    200,  15.00, 0.002);
@@ -468,14 +470,14 @@ void spsa_init(void) {
     spsa_add_double("TM_BEST_MOVE_SCALE_4",     &TM_BEST_MOVE_SCALE_4,         0.7738562009710757,   0.20,   1.00,  0.08, 0.002);
     spsa_add_double("TM_EVAL_SCALE_0",          &TM_EVAL_SCALE_0,              1.128557318263815,   0.80,   1.80,  0.10, 0.002);
     spsa_add_double("TM_EVAL_SCALE_1",          &TM_EVAL_SCALE_1,              1.0420180311672922,   0.70,   1.60,  0.09, 0.002);
-    spsa_add_double("TM_EVAL_SCALE_2",          &TM_EVAL_SCALE_2,              1.002343849632795,   0.50,   1.50,  0.10, 0.002);
-    spsa_add_double("TM_EVAL_SCALE_3",          &TM_EVAL_SCALE_3,              0.8968381433793842,   0.40,   1.40,  0.10, 0.002);
-    spsa_add_double("TM_EVAL_SCALE_4",          &TM_EVAL_SCALE_4,              0.7774009861966706,   0.40,   1.40,  0.10, 0.002);
-    spsa_add_double("TM_COMPLEXITY_BASE",       &TM_COMPLEXITY_BASE,           0.7486596930255364,   0.30,   1.20,  0.08, 0.002);
-    spsa_add_double("TM_COMPLEXITY_DIVISOR",    &TM_COMPLEXITY_DIVISOR,      427.2484226337165, 200.00, 800.00, 40.00, 0.002);
-    spsa_add_double("TM_COMPLEXITY_MULT",       &TM_COMPLEXITY_MULT,           0.7452172363887481,   0.20,   1.50,  0.10, 0.002);
-    spsa_add_double("TM_NODE_FRACTION_BASE",    &TM_NODE_FRACTION_BASE,        1.5568874256577494,   1.00,   2.50,  0.15, 0.002);
-    spsa_add_double("TM_NODE_MULTIPLIER",       &TM_NODE_MULTIPLIER,           1.255447002486582,   0.80,   2.20,  0.10, 0.002);
+    spsa_add_double("TM_EVAL_SCALE_2",          &TM_EVAL_SCALE_2,              1.0069948281618474,   0.50,   1.50,  0.10, 0.002);
+    spsa_add_double("TM_EVAL_SCALE_3",          &TM_EVAL_SCALE_3,              0.8947458818296685,   0.40,   1.40,  0.10, 0.002);
+    spsa_add_double("TM_EVAL_SCALE_4",          &TM_EVAL_SCALE_4,              0.7383826127985555,   0.40,   1.40,  0.10, 0.002);
+    spsa_add_double("TM_COMPLEXITY_BASE",       &TM_COMPLEXITY_BASE,           0.7144459541553825,   0.30,   1.20,  0.08, 0.002);
+    spsa_add_double("TM_COMPLEXITY_DIVISOR",    &TM_COMPLEXITY_DIVISOR,      414.30479791785544, 200.00, 800.00, 40.00, 0.002);
+    spsa_add_double("TM_COMPLEXITY_MULT",       &TM_COMPLEXITY_MULT,           0.7589770397472419,   0.20,   1.50,  0.10, 0.002);
+    spsa_add_double("TM_NODE_FRACTION_BASE",    &TM_NODE_FRACTION_BASE,        1.5084783411116127,   1.00,   2.50,  0.15, 0.002);
+    spsa_add_double("TM_NODE_MULTIPLIER",       &TM_NODE_MULTIPLIER,           1.3022455362375497,   0.80,   2.20,  0.10, 0.002);
 
     // ── Material Evaluation ──
     spsa_add_int("MG_PAWN_MAT", &MG_PAWN_MAT, 67, 50, 200, 10.0, 0.002);

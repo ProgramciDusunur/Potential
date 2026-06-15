@@ -99,7 +99,7 @@
   TUNE_INT IMPROVING_LMR_SCALAR = 1079;
   TUNE_INT IMPROVING_FAIL_HIGH_MARGIN = 90;
   TUNE_INT GIVES_CHECK_LMR_SCALAR = 1031;
-  TUNE_INT CUT_NODE_LMR_NO_TT_SCALAR = 1024;
+  TUNE_INT CUT_NODE_LMR_NO_TT_SCALAR = 1009;
   TUNE_INT TT_PV_LMR_PV_NODE_SCALAR = 512;
   TUNE_INT TT_PV_LMR_IMPROVING_SCALAR = 256;  
   TUNE_INT LMR_DEPTH_HIST_MULT = 2016;
@@ -125,7 +125,8 @@
     ╚═══════════════════════╝*/
   TUNE_INT LMP_BASE = 4096;
   TUNE_INT LMP_MULTIPLIER = 3072;
-  TUNE_INT LMP_HIST_LIMIT = 6144;
+  TUNE_INT LMP_HIST_LIMIT_NEG = 6144;
+  TUNE_INT LMP_HIST_LIMIT_POS = 6144;
   TUNE_INT LMP_HIST_MULT = 257;
   TUNE_INT LMP_HIST_DIVISOR = 16984;
 
@@ -1325,7 +1326,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 int lmpThreshold = (scaled_lmpThreshold / 1024) / (2 - improving);
 
                 int history_adj_scaled = ((int64_t)moveHistory * LMP_HIST_MULT * 1024) / LMP_HIST_DIVISOR;
-                history_adj_scaled = clamp(history_adj_scaled, -LMP_HIST_LIMIT, LMP_HIST_LIMIT);
+                history_adj_scaled = clamp(history_adj_scaled, -LMP_HIST_LIMIT_NEG, LMP_HIST_LIMIT_POS);
                 
                 lmpThreshold += history_adj_scaled / 1024;
 
@@ -1387,6 +1388,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             
             ss->singular_move = 0;
 
+            // Multi Low Depth Extension
+            depth += depth < 10 && !pvNode && singularScore < singularBeta - MULTI_LOW_DEPTH_EXT_MARGIN;
+
             // Singular Extension
             if (singularScore < singularBeta) {
                 extensions++;
@@ -1404,10 +1408,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN;
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
-                }
-
-                // Multi Low Depth Extension
-                depth += depth < 10 && !pvNode && singularScore <= singularBeta - MULTI_LOW_DEPTH_EXT_MARGIN;
+                }                
 
                 // Triple Extension
                 int tripleMargin = TRIPLE_EXTENSION_MARGIN + TRIPLE_EXT_NOISY_BONUS * !notTactical;
