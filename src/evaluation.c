@@ -536,37 +536,7 @@ Score get_psqt_score(const board* position) {
 
 int evaluate(board* position) {
     const int game_phase_score = position->phase_score;
-    Score score = position->psqt_score;
-    
-    const int whiteKingSquare = getLS1BIndex(position->bitboards[K]);
-    const int blackKingSquare = getLS1BIndex(position->bitboards[k]);    
-    
-    
-    U64 rookBB = position->bitboards[R];
-    while (rookBB) {
-        int sq = getLS1BIndex(rookBB);
-        if ((position->bitboards[P] & fileMasks[sq]) == 0)
-            score += S(semi_open_file_score, semi_open_file_score);
-        popBit(rookBB, sq);
-    }
-    rookBB = position->bitboards[r];
-    while (rookBB) {
-        int sq = getLS1BIndex(rookBB);
-        if ((position->bitboards[p] & fileMasks[sq]) == 0)
-            score -= S(semi_open_file_score, semi_open_file_score);
-        popBit(rookBB, sq);
-    }
-    
-    // King safety
-    int w_shield = countBits(kingAttacks[whiteKingSquare] & position->occupancies[white]);
-    score += S(w_shield * king_shield_bonus_middlegame, w_shield * king_shield_bonus_endgame);
-    int b_shield = countBits(kingAttacks[blackKingSquare] & position->occupancies[black]);
-    score -= S(b_shield * king_shield_bonus_middlegame, b_shield * king_shield_bonus_endgame);
-    
-    if ((position->bitboards[P] & fileMasks[whiteKingSquare]) == 0)
-        score -= S(king_semi_open_file_score, king_semi_open_file_score);
-    if ((position->bitboards[p] & fileMasks[blackKingSquare]) == 0)
-        score += S(king_semi_open_file_score, king_semi_open_file_score);
+    Score score = position->psqt_score;       
 
     // Interpolation
     int mg = mg_of(score);
