@@ -3,6 +3,7 @@
 //
 
 #include "search.h"
+#include "spsa.h"
 #include "movepicker.h"
 #include <ctype.h>
 #include <stdint.h>
@@ -34,137 +35,210 @@
 /*╔═══════════════════════════════╗
   ║ Static Exchange Evaluation    ║
   ╚═══════════════════════════════╝*/
-  int SEE_PIECE_VALUES[] = {100, 300, 300, 500, 1200, 0, 0};
-  int QS_SEE_THRESHOLD = 0;
-  int SEE_MOVE_ORDERING_THRESHOLD = -82;
-  int SEE_QUIET_THRESHOLD = -67;
-  int SEE_NOISY_THRESHOLD = -32;
-  int SEE_DEPTH = 10;
-  int MOVE_ORDER_HIST_MULT = 512;
-  int SEE_PRUNING_HIST_MULT = 512;
-  int SEE_QUIET_HIST_MULT = 128;
+  TUNE_INT SEE_PIECE_VALUES[] = {100, 300, 300, 500, 1200, 0, 0};
+  TUNE_INT QS_SEE_THRESHOLD = 5;
+  TUNE_INT QS_FP_SEE_THRESHOLD = 1;
+  TUNE_INT SEE_MOVE_ORDERING_THRESHOLD = -65;
+  TUNE_INT SEE_QUIET_THRESHOLD = -70;
+  TUNE_INT SEE_NOISY_THRESHOLD = -31;
+  TUNE_INT SEE_DEPTH = 10;
+  TUNE_INT MOVE_ORDER_HIST_MULT = 435;
+  TUNE_INT SEE_PRUNING_HIST_MULT = 527;
+  TUNE_INT SEE_QUIET_HIST_MULT = 108;
+  TUNE_INT SEE_QUIET_HIST_DIVISOR = 12556;
   
   
   /*╔═══════════════════════╗
     ║ Null Move Pruning     ║
     ╚═══════════════════════╝*/
-  int NMP_DEPTH = 3;  
-  int NMP_BASE_REDUCTION = 5120;
-  int NMP_DEPTH_MULTIPLIER = 256;
-  int NMP_REDUCTION_DEPTH_MULT = 16;
-  int NMP_EVAL_MULT = 128;
-  
+  TUNE_INT NMP_DEPTH = 3;  
+  TUNE_INT NMP_BASE_REDUCTION = 5097;
+  TUNE_INT NMP_DEPTH_MULTIPLIER = 274;
+  TUNE_INT NMP_REDUCTION_DEPTH_MULT = 8705;
+  TUNE_INT NMP_EVAL_MULT = 133;
+  TUNE_INT NMP_FAILED_HIGH_HIST_BASE = 99;
+  TUNE_INT NMP_FAILED_HIGH_HIST_MULT = 28767;
+  TUNE_INT NMP_FAILED_HIGH_HIST_DIVISOR = 637;
+  TUNE_INT NMP_EVAL_BETA_MARGIN = 80;
+  TUNE_INT NMP_VERIFICATION_MARGIN = 26;
+  TUNE_INT NMP_REDUCTION_DIVISOR = 8680415;
+  TUNE_INT NMP_EVAL_DIVISOR = 49109;
+  TUNE_INT NMP_EVAL_MAX_REDUCTION = 3;
   
   /*╔═══════════════════════╗
     ║ Late Move Reduction   ║
     ╚═══════════════════════╝*/
   int LMR_TABLE[2][maxPly][maxPly];
-  double LMR_TABLE_BASE_NOISY = 0.38;
-  double LMR_TABLE_NOISY_MULT = 128.0;
-  double LMR_TABLE_BASE_QUIET = 1.01;
-  double LMR_TABLE_QUIET_MULT = 128.0;
-  int LMR_FULL_DEPTH_MOVES = 2;
-  int LMR_REDUCTION_LIMIT = 3;
-  int DEEPER_LMR_MARGIN = 35;  
-  int QUIET_HISTORY_LMR_MULT = 4;
-  int QUIET_HISTORY_LMR_MINIMUM_SCALAR = 3072;
-  int QUIET_HISTORY_LMR_MAXIMUM_SCALAR = 3072;
-  int PAWN_HISTORY_LMR_MULT = 4;
-  int PAWN_HISTORY_LMR_MINIMUM_SCALAR = 3072;
-  int PAWN_HISTORY_LMR_MAXIMUM_SCALAR = 3072;
-  int NOISY_HISTORY_LMR_MULT = 128;  
-  int QUIET_NON_PV_LMR_SCALAR = 1024;
-  int CUT_NODE_LMR_SCALAR = 2048;
-  int TT_PV_LMR_SCALAR = 1024;
-  int TT_PV_FAIL_LOW_LMR_SCALAR = 1024;
-  int TT_CAPTURE_LMR_SCALAR = 1024;
-  int GOOD_EVAL_LMR_SCALAR = 1024;
-  int IMPROVING_LMR_SCALAR = 1024;
-  int GIVES_CHECK_LMR_SCALAR = 1024;
-  int LMR_FUTILITY_OFFSET[] = {0, 164, 82, 41, 20, 10};
-  int LMR_DEPTH_HIST_MULT = 2;
+  TUNE_DOUBLE LMR_TABLE_BASE_NOISY = 0.3882773483825136;
+  TUNE_DOUBLE LMR_TABLE_NOISY_MULT = 125.61850220089423;
+  TUNE_DOUBLE LMR_TABLE_BASE_QUIET = 0.9189958947978205;
+  TUNE_DOUBLE LMR_TABLE_QUIET_MULT = 125.0375407133182;
+  TUNE_INT LMR_FULL_DEPTH_MOVES = 2;
+  TUNE_INT LMR_REDUCTION_LIMIT = 3;
+  TUNE_INT DEEPER_LMR_MARGIN = 38;  
+  TUNE_INT QUIET_HISTORY_LMR_MULT = 1978;
+  TUNE_INT QUIET_HISTORY_LMR_DIVISOR = 7803589;
+  TUNE_INT QUIET_HISTORY_LMR_MINIMUM_SCALAR = 3287;
+  TUNE_INT QUIET_HISTORY_LMR_MAXIMUM_SCALAR = 3181;
+  TUNE_INT PAWN_HISTORY_LMR_MULT = 904;
+  TUNE_INT PAWN_HISTORY_LMR_DIVISOR = 8774563;
+  TUNE_INT PAWN_HISTORY_LMR_MINIMUM_SCALAR = 3034;
+  TUNE_INT PAWN_HISTORY_LMR_MAXIMUM_SCALAR = 3186;
+  TUNE_INT NOISY_HISTORY_LMR_MULT = 108;  
+  TUNE_INT NOISY_HISTORY_LMR_DIVISOR = 1310523;
+  TUNE_INT QUIET_NON_PV_LMR_SCALAR = 987;
+  TUNE_INT CUT_NODE_LMR_SCALAR = 1846;
+  TUNE_INT TT_PV_LMR_SCALAR = 1059;
+  TUNE_INT TT_PV_FAIL_LOW_LMR_SCALAR = 1128;
+  TUNE_INT TT_CAPTURE_LMR_SCALAR = 931;
+  TUNE_INT GOOD_EVAL_LMR_SCALAR = 1017;
+  TUNE_INT GOOD_EVAL_LMR_MARGIN = 332;
+  TUNE_INT FUTILITY_LMR_BASE = 172;
+  TUNE_INT FUTILITY_LMR_MULT = 82;
+  TUNE_INT FUTILITY_LMR_SCALAR = 989;
+  TUNE_INT IMPROVING_LMR_SCALAR = 1071;
+  TUNE_INT IMPROVING_FAIL_HIGH_MARGIN = 95;
+  TUNE_INT GIVES_CHECK_LMR_SCALAR = 1022;
+  TUNE_INT CUT_NODE_LMR_NO_TT_SCALAR = 1031;
+  TUNE_INT TT_PV_LMR_PV_NODE_SCALAR = 510;
+  TUNE_INT TT_PV_LMR_IMPROVING_SCALAR = 253;  
+  TUNE_INT LMR_DEPTH_HIST_MULT = 2007;
+  TUNE_INT LMR_DEPTH_HIST_DIVISOR = 16762950;
+
+  /*╔═══════════════════════╗
+    ║     Move Ordering     ║
+    ╚═══════════════════════╝*/
+  TUNE_INT MAIN_HIST_WEIGHT = 964;
+  TUNE_INT CONTHIST_1_WEIGHT = 1021;
+  TUNE_INT CONTHIST_2_WEIGHT = 1039;
+  TUNE_INT CONTHIST_4_WEIGHT = 1108;
+  TUNE_INT PAWN_HIST_WEIGHT = 1060;
+  TUNE_INT MAIN_HIST_DIVISOR = 1044;
+  TUNE_INT CONTHIST_1_DIVISOR = 1046;
+  TUNE_INT CONTHIST_2_DIVISOR = 1125;
+  TUNE_INT CONTHIST_4_DIVISOR = 1000;
+  TUNE_INT PAWN_HIST_DIVISOR = 1077;
   
   
   /*╔═══════════════════════╗
     ║ Late Move Pruning     ║
     ╚═══════════════════════╝*/
-  int LMP_BASE = 4;
-  int LMP_MULTIPLIER = 3;
-  int LMP_HIST_MULT = 256;
+  TUNE_INT LMP_BASE = 4240;
+  TUNE_INT LMP_MULTIPLIER = 2990;
+  TUNE_INT LMP_HIST_LIMIT_NEG = 6345;
+  TUNE_INT LMP_HIST_LIMIT_POS = 6215;
+  TUNE_INT LMP_HIST_MULT = 258;
+  TUNE_INT LMP_HIST_DIVISOR = 17523;
 
 /*╔═════════════╗
   ║   Probcut   ║
   ╚═════════════╝*/
-  int PROBCUT_BETA_MARGIN = 150;
-  int PROBCUT_DEPTH = 5;
-  int PROBCUT_DEPTH_SUBTRACTOR = 4;
-  int PROBCUT_IMPROVING_MARGIN = 30;
-  int PROBCUT_SEE_NOISY_THRESHOLD = 100;
-  int PROBCUT_NOISY_HIST_MULT = 128;
+  TUNE_INT PROBCUT_BETA_MARGIN = 155;
+  TUNE_INT PROBCUT_DEPTH = 5;
+  TUNE_INT PROBCUT_DEPTH_SUBTRACTOR = 4;
+  TUNE_INT PROBCUT_IMPROVING_MARGIN = 39;
+  TUNE_INT PROBCUT_SEE_NOISY_THRESHOLD = 107;
+  TUNE_INT PROBCUT_NOISY_HIST_MULT = 92;
+  TUNE_INT PROBCUT_NOISY_HIST_DIVISOR = 1233884;
+  TUNE_INT PROBCUT_REDUCTION_MULTIPLIER = 260;
+  TUNE_INT PROBCUT_CUTNODE_SCALAR = 1016;
+  TUNE_INT PROBCUT_FP_BASE = 158;
+  TUNE_INT PROBCUT_FP_MULT = 100;
 
 
 /*╔═══════════════════╗
   ║   Small Probcut   ║
   ╚═══════════════════╝*/
-  int SPROBCUT_BETA_MARGIN = 350;
-  int SPROBCUT_TT_DEPTH_SUBTRACTOR = 4;
+  TUNE_INT SPROBCUT_BETA_MARGIN = 389;
+  TUNE_INT SPROBCUT_TT_DEPTH_SUBTRACTOR = 4;
   
   
   /*╔════════════════════╗
     ║ Futility Pruning   ║
     ╚════════════════════╝*/
-  int FUTILITY_PRUNING_OFFSET[] = {0, 82, 41, 20, 10, 5};
-  int FP_DEPTH = 5;
-  int FP_MARGIN = 82;
+  TUNE_INT FUTILITY_PRUNING_OFFSET[] = {0, 92, 47, 22, 11, 5};
+  TUNE_INT FP_DEPTH = 5;
+  TUNE_INT FP_MARGIN = 71;
+  TUNE_INT BNFP_MARGIN = 72;
+  TUNE_INT QUIET_HISTORY_PRUNING_MARGIN = 1679;
+  TUNE_INT FP_HIST_MULT = 483;
+  TUNE_INT FP_HIST_DIVISOR = 14595;
   
   
   /*╔══════════════════════════════╗
     ║ Reverse Futility Pruning     ║
     ╚══════════════════════════════╝*/
-  int RFP_MARGIN = 52;
-  int RFP_IMPROVING_MARGIN = 45;
-  int RFP_DEPTH = 11;
+  TUNE_INT RFP_MARGIN = 57;
+  TUNE_INT RFP_IMPROVING_MARGIN = 42;
+  TUNE_INT RFP_CORRPLEXITY_MULT = 9625;
+  TUNE_INT RFP_CORRPLEXITY_DIVISOR = 622;
+  TUNE_INT RFP_DEPTH = 11;
   
   
   /*╔══════════╗
     ║ Razoring ║
     ╚══════════╝*/
-  int RAZORING_DEPTH = 3;
-  int RAZORING_FULL_MARGIN = 200;    
-  int RAZORING_DEPTH_SCALE = 15;
-  int RAZORING_VERIFY_MARGIN = 120;
-  int RAZORING_TRIM = 1;
-  int RAZORING_FULL_D = 2;
-  int RAZORING_VERIFY_D = 3;
-  int RAZORING_MARGIN[] = {0, 100, 200, 300, 400};
+  TUNE_INT RAZORING_DEPTH = 3;
+  TUNE_INT RAZORING_FULL_MARGIN = 220;    
+  TUNE_INT RAZORING_DEPTH_SCALE = 17;
+  TUNE_INT RAZORING_VERIFY_MARGIN = 122;
+  
+  extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_0;
+  extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_1;
+  extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_2;
+  extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_3;
+  extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_4;
+  extern TUNE_DOUBLE TM_EVAL_SCALE_0;
+  extern TUNE_DOUBLE TM_EVAL_SCALE_1;
+  extern TUNE_DOUBLE TM_EVAL_SCALE_2;
+  extern TUNE_DOUBLE TM_EVAL_SCALE_3;
+  extern TUNE_DOUBLE TM_EVAL_SCALE_4;
+  extern TUNE_DOUBLE TM_COMPLEXITY_BASE;
+  extern TUNE_DOUBLE TM_COMPLEXITY_DIVISOR;
+  extern TUNE_DOUBLE TM_COMPLEXITY_MULT;
+  extern TUNE_DOUBLE TM_NODE_FRACTION_BASE;
+  extern TUNE_DOUBLE TM_NODE_MULTIPLIER;
+  TUNE_INT RAZORING_TRIM = 1;
+  TUNE_INT RAZORING_FULL_D = 2;
+  TUNE_INT RAZORING_VERIFY_D = 3;
+  TUNE_INT RAZORING_MARGIN[] = {0, 100, 200, 300, 400};
   
   
   /*╔═════════════════════╗
     ║ Singular Extensions ║
     ╚═════════════════════╝*/
-  int SE_DEPTH = 5;
-  int SE_TT_DEPTH_SUBTRACTOR = 3;
+  TUNE_INT SE_DEPTH = 5;
+  TUNE_INT LDSE_BASE_MARGIN = 22;
+  TUNE_INT LDSE_CORRECTION_MULT = 693;
+  TUNE_INT LDSE_CORRECTION_DIVISOR = 98192;
+  TUNE_INT SE_TT_DEPTH_SUBTRACTOR = 3;
   // Positive Extensions
-  int DOUBLE_EXTENSION_MARGIN = 0;
-  int TRIPLE_EXTENSION_MARGIN = -60;
-  int QUADRUPLE_EXTENSION_MARGIN = 85;
+  TUNE_INT DOUBLE_EXTENSION_MARGIN = -8;
+  TUNE_INT TRIPLE_EXTENSION_MARGIN = 34;
+  TUNE_INT QUADRUPLE_EXTENSION_MARGIN = 89;
+  TUNE_INT MULTI_LOW_DEPTH_EXT_MARGIN = 1;
+  TUNE_INT QUADRUPLE_EXT_NOISY_BONUS = 155;
+  TUNE_INT SE_CORRECTION_MULT = 984;
+  TUNE_INT SE_CORRECTION_DIVISOR = 2867339;
   // Negative Extensions
-  int DOUBLE_NEGATIVE_EXTENSION_MARGIN = 60;
-  int TRIPLE_NEGATIVE_EXTENSION_MARGIN = 90;
-  int TRIPLE_EXT_HIST_MULT = 32;
+  TUNE_INT TRIPLE_EXT_HIST_MULT = 32;
+  TUNE_INT TRIPLE_EXT_HIST_DIVISOR = 15510;
+  TUNE_INT TRIPLE_EXT_NOISY_BONUS = 84;
+  const int TRIPLE_EXT_QUIET_TT_BONUS = 100;
   
   /*╔═══════════════════════════════╗
     ║ Internal Iterative Reductions ║
     ╚═══════════════════════════════╝*/
-  int IIR_DEPTH = 8;
-  int IIR_TT_DEPTH_SUBTRACTOR = 3;
+  TUNE_INT IIR_DEPTH = 8;
+  TUNE_INT IIR_TT_DEPTH_SUBTRACTOR = 3;
 
   /*╔══════════════════════════════╗
     ║      Aspiration Windows      ║
     ╚══════════════════════════════╝*/
-  int ASP_WINDOW_BASE = 9;
-  int ASP_WINDOW_MIN_DEPTH = 4;
-  double ASP_WINDOW_MULTIPLIER = 1.8;
+  TUNE_INT ASP_WINDOW_BASE = 2121;
+  TUNE_INT ASP_WINDOW_DIVISOR = 562;
+  TUNE_INT ASP_WINDOW_MIN_DEPTH = 4;
+  TUNE_DOUBLE ASP_WINDOW_MULTIPLIER = 1.9402401156777849;
 
 
 /*╔═══════════════════════╗
@@ -172,47 +246,48 @@
   ╚═══════════════════════╝*/
 
   // Quiet History
-  int QUIET_HIST_BONUS_BASE = 10;
-  int QUIET_HIST_BONUS_DEPTH = 200;
-  int QUIET_HIST_BONUS_MAX = 4096;
-  int QUIET_HIST_MALUS_BASE = 10;
-  int QUIET_HIST_MALUS_DEPTH = 200;
-  int QUIET_HIST_FAILED_LOW_BONUS = 200;
-  int QUIET_HIST_FAILED_LOW_MALUS = 200;
-  int QUIET_HIST_MALUS_MAX = 4096;
-  int HISTORY_RED_MULT = 1;
-  int CONTHIST_MULT = 1;
+  TUNE_INT QUIET_HIST_BONUS_BASE = 8;
+  TUNE_INT QUIET_HIST_BONUS_DEPTH = 160;
+  TUNE_INT QUIET_HIST_BONUS_MAX = 4032;
+  TUNE_INT QUIET_HIST_MALUS_BASE = 10;
+  TUNE_INT QUIET_HIST_MALUS_DEPTH = 211;
+  TUNE_INT QUIET_HIST_FAILED_LOW_BONUS = 226;
+  TUNE_INT QUIET_HIST_FAILED_LOW_MALUS = 203;
+  TUNE_INT QUIET_HIST_MALUS_MAX = 3792;
+  TUNE_INT HISTORY_RED_MULT = 1076;
+  TUNE_INT HISTORY_RED_DIVISOR = 16805046;
+  TUNE_INT CONTHIST_MULT = 1125;
 
   // Continuation History
-  int CONTHIST_BONUS_BASE = 10;
-  int CONTHIST_BONUS_DEPTH = 200;
-  int CONTHIST_BONUS_MAX = 4096;
-  int CONTHIST_MALUS_BASE = 10;
-  int CONTHIST_MALUS_DEPTH = 200;
-  int CONTHIST_FAILED_LOW_BONUS = 200;
-  int CONTHIST_FAILED_LOW_MALUS = 200;
-  int CONTHIST_MALUS_MAX = 4096;
+  TUNE_INT CONTHIST_BONUS_BASE = 8;
+  TUNE_INT CONTHIST_BONUS_DEPTH = 172;
+  TUNE_INT CONTHIST_BONUS_MAX = 3837;
+  TUNE_INT CONTHIST_MALUS_BASE = 11;
+  TUNE_INT CONTHIST_MALUS_DEPTH = 209;
+  TUNE_INT CONTHIST_FAILED_LOW_BONUS = 206;
+  TUNE_INT CONTHIST_FAILED_LOW_MALUS = 178;
+  TUNE_INT CONTHIST_MALUS_MAX = 4216;
 
   // Pawn History
-  int PAWNHIST_BONUS_BASE = 10;
-  int PAWNHIST_BONUS_DEPTH = 200;
-  int PAWNHIST_BONUS_MAX = 4096;
-  int PAWNHIST_MALUS_BASE = 10;
-  int PAWNHIST_MALUS_DEPTH = 200;
-  int PAWNHIST_FAILED_LOW_BONUS = 200;
-  int PAWNHIST_FAILED_LOW_MALUS = 200;
-  int PAWNHIST_MALUS_MAX = 4096;
+  TUNE_INT PAWNHIST_BONUS_BASE = 7;
+  TUNE_INT PAWNHIST_BONUS_DEPTH = 216;
+  TUNE_INT PAWNHIST_BONUS_MAX = 4294;
+  TUNE_INT PAWNHIST_MALUS_BASE = 9;
+  TUNE_INT PAWNHIST_MALUS_DEPTH = 240;
+  TUNE_INT PAWNHIST_FAILED_LOW_BONUS = 174;
+  TUNE_INT PAWNHIST_FAILED_LOW_MALUS = 208;
+  TUNE_INT PAWNHIST_MALUS_MAX = 3484;
 
   // Capture History
-  int CAPTHIST_BONUS_BASE = 10;
-  int CAPTHIST_BONUS_DEPTH = 200;
-  int CAPTHIST_BONUS_MAX = 4096;
-  int CAPTHIST_MALUS_BASE = 10;
-  int CAPTHIST_MALUS_DEPTH = 200;
-  int CAPTHIST_MALUS_MAX = 4096;  
+  TUNE_INT CAPTHIST_BONUS_BASE = 7;
+  TUNE_INT CAPTHIST_BONUS_DEPTH = 180;
+  TUNE_INT CAPTHIST_BONUS_MAX = 3985;
+  TUNE_INT CAPTHIST_MALUS_BASE = 12;
+  TUNE_INT CAPTHIST_MALUS_DEPTH = 239;
+  TUNE_INT CAPTHIST_MALUS_MAX = 4076;  
 
   // Bad Quiet Index Scaling
-  int BAD_QUIET_INDEX_SCALE = 30;
+  TUNE_INT BAD_QUIET_INDEX_SCALE = 26;
 
 
   uint64_t nodes_spent_table[4096] = {0};  
@@ -380,17 +455,17 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         int quiet_score = 0;
         quiet_score +=
             // quiet main history 
-            t->search_d.quietHistory[t->pos.side][getMoveSource(move)][getMoveTarget(move)]
-            [is_square_threatened(&t->pos, getMoveSource(move))][is_square_threatened(&t->pos, getMoveTarget(move))];
+            (t->search_d.quietHistory[t->pos.side][getMoveSource(move)][getMoveTarget(move)]
+            [is_square_threatened(&t->pos, getMoveSource(move))][is_square_threatened(&t->pos, getMoveTarget(move))] * MAIN_HIST_WEIGHT) / MAIN_HIST_DIVISOR;
 
         // 1 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 1, move, ss);
+        quiet_score += (getContinuationHistoryScore(t, 1, move, ss) * CONTHIST_1_WEIGHT) / CONTHIST_1_DIVISOR;
         // 2 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 2, move, ss);
+        quiet_score += (getContinuationHistoryScore(t, 2, move, ss) * CONTHIST_2_WEIGHT) / CONTHIST_2_DIVISOR;
         // 4 ply continuation history
-        quiet_score += getContinuationHistoryScore(t, 4, move, ss);
+        quiet_score += (getContinuationHistoryScore(t, 4, move, ss) * CONTHIST_4_WEIGHT) / CONTHIST_4_DIVISOR;
         // pawn history
-        quiet_score += t->shared_history->pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)];
+        quiet_score += (t->shared_history->pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] * PAWN_HIST_WEIGHT) / PAWN_HIST_DIVISOR;
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
@@ -622,13 +697,13 @@ uint8_t isMaterialDraw(board *pos) {
 }
 
 void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, uint16_t move, double complexity, ThreadData *t) {
-    double bestMoveScale[5] = {2.43, 1.35, 1.09, 0.88, 0.68};
-    double evalScale[5] = {1.25, 1.15, 1.00, 0.94, 0.88};
-    double complexityScale = my_max_double(0.77 + clamp_double(complexity, 0.0, 200.0) / 400.0, 1.0);
+    double bestMoveScale[5] = {TM_BEST_MOVE_SCALE_0, TM_BEST_MOVE_SCALE_1, TM_BEST_MOVE_SCALE_2, TM_BEST_MOVE_SCALE_3, TM_BEST_MOVE_SCALE_4};
+    double evalScale[5] = {TM_EVAL_SCALE_0, TM_EVAL_SCALE_1, TM_EVAL_SCALE_2, TM_EVAL_SCALE_3, TM_EVAL_SCALE_4};
+    double complexityScale = my_max_double(TM_COMPLEXITY_BASE + clamp_double(complexity, 0.0, 200.0) / TM_COMPLEXITY_DIVISOR, 1.0);
     uint64_t total = load_rlx(t->search_i.nodes_searched);
     double not_bm_nodes_fraction = total > 0 ?
        (double)nodes_spent_table[move & 4095] / (double)total : 0.5;
-    double node_scaling_factor = (1.5f - not_bm_nodes_fraction) * 1.35f;
+    double node_scaling_factor = (TM_NODE_FRACTION_BASE - not_bm_nodes_fraction) * TM_NODE_MULTIPLIER;
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
                 evalScale[evalStability] * node_scaling_factor * complexityScale, time->maxTime + time->starttime);    
@@ -749,7 +824,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
                 continue;
             }
 
-            if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, 1)) {
+            if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, QS_FP_SEE_THRESHOLD)) {
                 bestScore = myMAX(bestScore, futilityValue);
                 continue;
             }
@@ -950,7 +1025,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         ttAdjustedEval = tt_score;
     }
 
-    improving |= ss->staticEval >= beta + 100;
+    improving |= ss->staticEval >= beta + IMPROVING_FAIL_HIGH_MARGIN;
 
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
@@ -961,12 +1036,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // Reverse Futility Pruning
     if (!ss->singular_move && rfp_tt_pv_decision &&
         depth <= RFP_DEPTH && !pvNode && !in_check && (!tt_hit || ttAdjustedEval != static_eval) &&
-        ttAdjustedEval - rfpMargin >= beta + corrplexity * 20)
+        ttAdjustedEval - rfpMargin >= beta + (corrplexity * RFP_CORRPLEXITY_MULT) / RFP_CORRPLEXITY_DIVISOR)
         return ttAdjustedEval;
 
     // Null Move Pruning
     if (!ss->singular_move && depth >= NMP_DEPTH && !in_check && !rootNode &&
-            ttAdjustedEval >= beta + 75 &&
+            ttAdjustedEval >= beta + NMP_EVAL_BETA_MARGIN &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
         struct copyposition copyPosition;
@@ -996,9 +1071,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         prefetch_hash_entry(pos->hashKey, pos->fifty);        
         prefetch_corrhist(pos, t);
 
-        int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) * NMP_REDUCTION_DEPTH_MULT / 16384;
+        int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) * NMP_REDUCTION_DEPTH_MULT / NMP_REDUCTION_DIVISOR;
 
-        R += myMIN(((ttAdjustedEval - beta) * NMP_EVAL_MULT) / 51200, 3);        
+        R += myMIN(((ttAdjustedEval - beta) * NMP_EVAL_MULT) / NMP_EVAL_DIVISOR, NMP_EVAL_MAX_REDUCTION);        
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
@@ -1030,7 +1105,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 return score;
             }
 
-            if (score >= beta + 30) {
+            if (score >= beta + NMP_VERIFICATION_MARGIN) {
                 ss->move = 0;
                 ss->piece = 0;
                 return score;
@@ -1056,7 +1131,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             int nmp_depth = depth - R;
 
             if (!isTactical(nmp_ref_move)) {
-                int refutation_bonus = 100 + 50 * nmp_depth;
+                int refutation_bonus = NMP_FAILED_HIGH_HIST_BASE + (NMP_FAILED_HIGH_HIST_MULT * nmp_depth) / NMP_FAILED_HIGH_HIST_DIVISOR;
                 adjust_single_quiet_hist_entry(t, pos->side, nmp_ref_move, refutation_bonus);
             }
         }
@@ -1125,7 +1200,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 }
 
                 // Noisy Futility Pruning
-                int noisyFPMargin = static_eval + 164 + 100 * depth;
+                int noisyFPMargin = static_eval + PROBCUT_FP_BASE + PROBCUT_FP_MULT * depth;
                 if (!pvNode && !in_check && noisyFPMargin <= alpha) {
                     continue;
                 }
@@ -1151,9 +1226,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     int adjusted_probcut_depth = probcut_depth * 1024;
 
                     // Capture History based reduction
-                    adjusted_probcut_depth += (move_history * PROBCUT_NOISY_HIST_MULT) / 1310720 * 256;
+                    adjusted_probcut_depth += (move_history * PROBCUT_NOISY_HIST_MULT) / PROBCUT_NOISY_HIST_DIVISOR * PROBCUT_REDUCTION_MULTIPLIER;
 
-                    adjusted_probcut_depth -= 1024 * predicted_cut_node;
+                    adjusted_probcut_depth -= PROBCUT_CUTNODE_SCALAR * predicted_cut_node;
 
                     adjusted_probcut_depth /= 1024;
 
@@ -1241,16 +1316,19 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 getContinuationHistoryScore(t, 1, currentMove, ss) + getContinuationHistoryScore(t, 4, currentMove, ss): 
                 t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
-        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + ((moveHistory * LMR_DEPTH_HIST_MULT) / 16384 * notTactical));
+        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + ((moveHistory * LMR_DEPTH_HIST_MULT) / LMR_DEPTH_HIST_DIVISOR * notTactical));
 
         bool isNotMated = bestScore > -mateFound;
 
         if (!rootNode && isNotMated && !gives_check) {
             if (notTactical) {
-                int lmpThreshold = (LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth) / (2 - improving);
-                int history_adj = (moveHistory * LMP_HIST_MULT) / 16384;
-                history_adj = clamp(history_adj, -6, 6);
-                lmpThreshold += history_adj;
+                int scaled_lmpThreshold = LMP_BASE + LMP_MULTIPLIER * lmrDepth * lmrDepth;
+                int lmpThreshold = (scaled_lmpThreshold / 1024) / (2 - improving);
+
+                int history_adj_scaled = ((int64_t)moveHistory * LMP_HIST_MULT * 1024) / LMP_HIST_DIVISOR;
+                history_adj_scaled = clamp(history_adj_scaled, -LMP_HIST_LIMIT_NEG, LMP_HIST_LIMIT_POS);
+                
+                lmpThreshold += history_adj_scaled / 1024;
 
                 // Late Move Pruning
                 if (legal_moves>= lmpThreshold) {
@@ -1260,7 +1338,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     static_eval + 
                     FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
                     FP_MARGIN * lmrDepth + 
-                    (moveHistory * SEE_PRUNING_HIST_MULT) / 16384;
+                    (moveHistory * FP_HIST_MULT) / FP_HIST_DIVISOR;
                 
 
                 // Futility Pruning
@@ -1268,13 +1346,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     continue;
                 }
                 // Quiet History Pruning
-                if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -2048) {
+                if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -QUIET_HISTORY_PRUNING_MARGIN) {
                     break;
                 }
             } 
 
             else {
-                int noisy_futility_margin = static_eval + 71 * depth;
+                int noisy_futility_margin = static_eval + BNFP_MARGIN * depth;
                 if (!in_check && depth <= 4 && mp.CURRENT_STAGE == STAGE_BAD_NOISY && noisy_futility_margin <= alpha) {
                     if (!is_decisive(bestScore) && bestScore < noisy_futility_margin) {
                         bestScore = noisy_futility_margin;
@@ -1286,7 +1364,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // SEE PVS Pruning
         int seeThreshold =
-                notTactical ? SEE_QUIET_THRESHOLD * lmrDepth - (moveHistory * SEE_QUIET_HIST_MULT) / 12288 : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
+                notTactical ? SEE_QUIET_THRESHOLD * lmrDepth - (moveHistory * SEE_QUIET_HIST_MULT) / SEE_QUIET_HIST_DIVISOR : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
         if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
@@ -1310,11 +1388,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             
             ss->singular_move = 0;
 
+            // Multi Low Depth Extension
+            depth += depth < 10 && !pvNode && singularScore < singularBeta - MULTI_LOW_DEPTH_EXT_MARGIN;
+
             // Singular Extension
             if (singularScore < singularBeta) {
                 extensions++;
 
-                int correction_adj = abs(correction_value) / 2875;                
+                int correction_adj = (abs(correction_value) * SE_CORRECTION_MULT) / SE_CORRECTION_DIVISOR;
 
                 // Double Extension                
                 /*int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
@@ -1327,17 +1408,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN;
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
-                }
-
-                // Low Depth Extension
-                depth += depth < 10 && !pvNode;
+                }                
 
                 // Triple Extension
-                int tripleMargin = TRIPLE_EXTENSION_MARGIN - ((moveHistory * TRIPLE_EXT_HIST_MULT) / 16384 * notTactical);
+                int tripleMargin = TRIPLE_EXTENSION_MARGIN + TRIPLE_EXT_NOISY_BONUS * !notTactical;
+                tripleMargin -= ((moveHistory * TRIPLE_EXT_HIST_MULT) / TRIPLE_EXT_HIST_DIVISOR * notTactical);
                 tripleMargin -= correction_adj;
-                tripleMargin += isCapture * 100;
-                tripleMargin += isPromotion * 0;
-                tripleMargin += tactical * 80;
+                tripleMargin -= !tt_capture * TRIPLE_EXT_QUIET_TT_BONUS;
                 
 
                 if (singularScore <= singularBeta - tripleMargin) {
@@ -1357,7 +1434,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 // ╚═══════════════════════════╝
 
                 // ~~~~ Quadruple Extension ~~~~ //
-                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + 170 * !notTactical;
+                int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + QUADRUPLE_EXT_NOISY_BONUS * !notTactical;
 
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
@@ -1395,8 +1472,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         } 
         // Low Depth Singular Extensions        
         else if (depth <= 7 && !in_check && predicted_cut_node) {
-            int ldse_margin = alpha - 25;
-            ldse_margin += 768 * abs(correction_value) / 98304;
+            int ldse_margin = alpha - LDSE_BASE_MARGIN;
+            ldse_margin += LDSE_CORRECTION_MULT * abs(correction_value) / LDSE_CORRECTION_DIVISOR;
             if (ttAdjustedEval <= ldse_margin) {
                 extensions++;
             }            
@@ -1445,7 +1522,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // Reduce More
         if (predicted_cut_node) {
-            lmrReduction += CUT_NODE_LMR_SCALAR + !tt_move * 1024;
+            lmrReduction += CUT_NODE_LMR_SCALAR + !tt_move * CUT_NODE_LMR_NO_TT_SCALAR;
         }
 
         if (tt_pv && tt_hit && tt_score <= alpha) {
@@ -1456,7 +1533,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction += TT_CAPTURE_LMR_SCALAR;
         }
 
-        if (enemy_has_no_threats && !in_check && static_eval - 365 > beta) {
+        if (enemy_has_no_threats && !in_check && static_eval - GOOD_EVAL_LMR_MARGIN > beta) {
             lmrReduction += GOOD_EVAL_LMR_SCALAR;
         }
 
@@ -1485,26 +1562,26 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
 
             // Futility LMR
-            lmrReduction += (static_eval + 164 + 82 * depth <= alpha && !in_check) * 1024;
+            lmrReduction += (static_eval + FUTILITY_LMR_BASE + FUTILITY_LMR_MULT * depth <= alpha && !in_check) * FUTILITY_LMR_SCALAR;
 
 
             // if the move have good history decrease reduction other hand the move have bad history then reduce more
-            int moveHistoryReduction = (moveHistory * QUIET_HISTORY_LMR_MULT) / 16384;
+            int moveHistoryReduction = (moveHistory * QUIET_HISTORY_LMR_MULT) / QUIET_HISTORY_LMR_DIVISOR;
             lmrReduction -= clamp(moveHistoryReduction * 1024, -QUIET_HISTORY_LMR_MINIMUM_SCALAR, QUIET_HISTORY_LMR_MAXIMUM_SCALAR);
 
             // pawn history based reduction, same logic as the quiet history
-            int pawnHistoryReduction = (pawnHistoryValue * PAWN_HISTORY_LMR_MULT) / 16384;            
+            int pawnHistoryReduction = (pawnHistoryValue * PAWN_HISTORY_LMR_MULT) / PAWN_HISTORY_LMR_DIVISOR;            
             lmrReduction -= clamp(pawnHistoryReduction * 1024, -PAWN_HISTORY_LMR_MINIMUM_SCALAR, PAWN_HISTORY_LMR_MAXIMUM_SCALAR);
         }
         // Noisy Moves
         else { 
             // capture history based reduction, same logic as the quiet history
-            lmrReduction -= (moveHistory * NOISY_HISTORY_LMR_MULT) / 1310720;
+            lmrReduction -= (moveHistory * NOISY_HISTORY_LMR_MULT) / NOISY_HISTORY_LMR_DIVISOR;
         }
 
         // Reduce Less
         if (tt_pv) {
-            lmrReduction -= TT_PV_LMR_SCALAR + (512 * pvNode) + (256 * improving);
+            lmrReduction -= TT_PV_LMR_SCALAR + (TT_PV_LMR_PV_NODE_SCALAR * pvNode) + (TT_PV_LMR_IMPROVING_SCALAR * improving);
         }
 
         if (gives_check) {
@@ -1529,7 +1606,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
-                bool historyReduction = notTactical ? (moveHistory * HISTORY_RED_MULT) / 16384 : 0;
+                bool historyReduction = notTactical ? (moveHistory * HISTORY_RED_MULT) / HISTORY_RED_DIVISOR : 0;
                 bool doShallower = score < bestScore + new_depth;
                 new_depth -= doShallower;
                 new_depth += doDeeper;
@@ -1778,7 +1855,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         int startTime = getTimeMiliSecond();        
 
-        int window = ASP_WINDOW_BASE;
+        int window = ASP_WINDOW_BASE / ASP_WINDOW_DIVISOR;
         int aspirationWindowDepth = current_depth;
 
         while (true) {
@@ -1863,7 +1940,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         // Complexity TM
         double complexity = 0;
         if (abs(score) < mateValue) {
-            complexity = 0.6 * abs(baseSearchScore - score) * log(depth);
+            complexity = TM_COMPLEXITY_MULT * abs(baseSearchScore - score) * log(depth);
         }
 
         if (t->id == 0 && time->timeset && current_depth > 6) {

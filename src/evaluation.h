@@ -50,7 +50,7 @@ typedef int64_t Score;
 extern const int mirrorScore[128];
 
 // Material Scores
-extern const int material_score[2][12];
+extern int material_score[2][12];
 
 // SEE Material Array
 extern const int seeMaterial[12];

@@ -2,7 +2,9 @@
 // Created by erena on 3.07.2024.
 //
 
+
 #include "uci.h"
+#include "spsa.h"
 #include "perft.h"
 #include "timeman.h"
 #include "datagen.h"
@@ -32,11 +34,29 @@ extern uint64_t global_start_time;
 
 int thread_count = 1;
 
-double DEF_TIME_MULTIPLIER = 0.054;
-double DEF_INC_MULTIPLIER = 0.85;
-double MAX_TIME_MULTIPLIER = 0.76;
-double HARD_LIMIT_MULTIPLIER = 3.04;
-double SOFT_LIMIT_MULTIPLIER = 0.76;
+TUNE_DOUBLE DEF_TIME_MULTIPLIER = 0.04938995246391795;
+TUNE_DOUBLE DEF_INC_MULTIPLIER = 0.8405102606746936;
+TUNE_DOUBLE MAX_TIME_MULTIPLIER = 0.7246779074876138;
+TUNE_DOUBLE HARD_LIMIT_MULTIPLIER = 3.053871909473535;
+TUNE_DOUBLE SOFT_LIMIT_MULTIPLIER = 0.7196915470792545;
+
+TUNE_DOUBLE TM_BEST_MOVE_SCALE_0 = 2.5555571922259923;
+TUNE_DOUBLE TM_BEST_MOVE_SCALE_1 = 1.1955498737991779;
+TUNE_DOUBLE TM_BEST_MOVE_SCALE_2 = 1.0760960818994232;
+TUNE_DOUBLE TM_BEST_MOVE_SCALE_3 = 0.7526356909041305;
+TUNE_DOUBLE TM_BEST_MOVE_SCALE_4 = 0.7738562009710757;
+
+TUNE_DOUBLE TM_EVAL_SCALE_0 = 1.128557318263815;
+TUNE_DOUBLE TM_EVAL_SCALE_1 = 1.0420180311672922;
+TUNE_DOUBLE TM_EVAL_SCALE_2 = 1.002343849632795;
+TUNE_DOUBLE TM_EVAL_SCALE_3 = 0.8968381433793842;
+TUNE_DOUBLE TM_EVAL_SCALE_4 = 0.7774009861966706;
+
+TUNE_DOUBLE TM_COMPLEXITY_BASE = 0.7486596930255364;
+TUNE_DOUBLE TM_COMPLEXITY_DIVISOR = 427.2484226337165;
+TUNE_DOUBLE TM_COMPLEXITY_MULT = 0.7452172363887481;
+TUNE_DOUBLE TM_NODE_FRACTION_BASE = 1.5568874256577494;
+TUNE_DOUBLE TM_NODE_MULTIPLIER = 1.255447002486582;
 
 // parse user/GUI move string input (e.g. "e7e8q")
 uint16_t parse_move(char *move_string, board* position) {
@@ -681,6 +701,9 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             init_threads(thread_count);
             printf("info string set Threads to value %d\n", thread_count);
         }
+        else if (!strncmp(input, "setoption name ", 15)) {
+            spsa_set_option(input);
+        }
         // parse UCI "quit" command
         else if (strncmp(input, "quit", 4) == 0) {
             // quit from the chess engine program executions
@@ -695,6 +718,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             printf("option name Hash type spin default %d min 4 max %d\n",
                    default_hash_size, max_hash);
             printf("option name Threads type spin default 1 min 1 max %d\n", MAX_THREADS);
+            spsa_print_uci_options();
             printf("uciok\n");
         } 
         
@@ -719,6 +743,10 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
 
         else if (strncmp(input, "bench", 5) == 0) {
             benchmark(BENCH_DEPTH, thread_pool.threads[0], time_ctrl);
+        }
+
+        else if (strncmp(input, "tune", 4) == 0) {
+            spsa_print_params();
         }
     }    
 }

@@ -1,3 +1,4 @@
+#include "spsa.h"
 //
 // Created by erena on 13.09.2024.
 //
@@ -22,13 +23,23 @@ enum {
     maxCaptureHistory = 16384
 };
 
-extern int CORRHIST_WEIGHT_SCALE;
-extern int CORRHIST_GRAIN;
+extern TUNE_INT PAWN_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT PAWN_CORRHIST_GRAIN;
+extern TUNE_INT MINOR_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT MINOR_CORRHIST_GRAIN;
+extern TUNE_INT MAJOR_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT MAJOR_CORRHIST_GRAIN;
+extern TUNE_INT NON_PAWN_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT NON_PAWN_CORRHIST_GRAIN;
+extern TUNE_INT KRP_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT KRP_CORRHIST_GRAIN;
+extern TUNE_INT CONT_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT CONT_CORRHIST_GRAIN;
 extern int CORRHIST_LIMIT;
 extern int BASE_CORRHIST_SIZE;
 extern int BASE_CONT_CORRHIST_SIZE;
 extern int CORRHIST_MAX;
-extern int BAD_QUIET_INDEX_SCALE;
+extern TUNE_INT BAD_QUIET_INDEX_SCALE;
 
 int scaledBonus(int score, int bonus, int gravity);
 void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int bonus);
