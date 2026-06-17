@@ -2,7 +2,6 @@
 #include "search.h"
 #include "evaluation.h"
 
-
 // ═══════════════════════════════════════════════════════════
 //  Time management parameters (defined in uci.c)
 // ═══════════════════════════════════════════════════════════
