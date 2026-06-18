@@ -488,6 +488,13 @@ uint8_t justPawns(board *pos) {
     return 0;
 }
 
+void update_pv(board *pos, uint16_t move) {
+    pos->pvTable[pos->ply][pos->ply] = move;
+    for (int next_ply = pos->ply + 1; next_ply < pos->pvLength[pos->ply + 1]; next_ply++)
+        pos->pvTable[pos->ply][next_ply] = pos->pvTable[pos->ply + 1][next_ply];
+    pos->pvLength[pos->ply] = pos->pvLength[pos->ply + 1];
+}
+
 
 int move_estimated_value(board *pos, uint16_t move) {
 
@@ -1171,8 +1178,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
     }
 
-    // legal moves counter
-    int legal_moves = 0;
+    // moves seen counter
+    int moves_seen = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
     if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !ss->singular_move &&
@@ -1217,7 +1224,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 prefetch_corrhist(pos, t);
                 
                 inc_rlx(t->search_i.nodes_searched);
-                legal_moves++;
+                moves_seen++;
 
 
                 int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, t, time, ss + 1);
@@ -1280,8 +1287,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     int bestScore = -infinity;    
 
-    // legal moves counter
-    legal_moves = 0;
+    // moves seen counter
+    moves_seen = 0;
 
     // quiet move counter
     int quietMoves = 0;
@@ -1316,7 +1323,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 getContinuationHistoryScore(t, 1, currentMove, ss) + getContinuationHistoryScore(t, 4, currentMove, ss): 
                 t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
 
-        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, legal_moves, notTactical) + ((moveHistory * LMR_DEPTH_HIST_MULT) / LMR_DEPTH_HIST_DIVISOR * notTactical));
+        int lmrDepth = myMAX(0, depth - getLmrReduction(depth, moves_seen, notTactical) + ((moveHistory * LMR_DEPTH_HIST_MULT) / LMR_DEPTH_HIST_DIVISOR * notTactical));
 
         bool isNotMated = bestScore > -mateFound;
 
@@ -1331,7 +1338,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 lmpThreshold += history_adj_scaled / 1024;
 
                 // Late Move Pruning
-                if (legal_moves>= lmpThreshold) {
+                if (moves_seen >= lmpThreshold) {
                     continue;
                 }            
                 int futility_margin = 
@@ -1365,7 +1372,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // SEE PVS Pruning
         int seeThreshold =
                 notTactical ? SEE_QUIET_THRESHOLD * lmrDepth - (moveHistory * SEE_QUIET_HIST_MULT) / SEE_QUIET_HIST_DIVISOR : SEE_NOISY_THRESHOLD * lmrDepth * lmrDepth;
-        if (lmrDepth <= SEE_DEPTH && legal_moves > 0 && !SEE(pos, currentMove, seeThreshold))
+        if (lmrDepth <= SEE_DEPTH && moves_seen > 0 && !SEE(pos, currentMove, seeThreshold))
             continue;
 
         int previous_move_target_square = getMoveTarget((ss - 1)->move);
@@ -1497,8 +1504,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         prefetch_hash_entry(pos->hashKey, pos->fifty);    
         prefetch_corrhist(pos, t);
 
-        // increment legal moves
-        legal_moves++;
+        // increment moves seen
+        moves_seen++;
 
         if (notTactical) {
             (ss + 1)->move = currentMove;
@@ -1516,7 +1523,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         int new_depth = depth - 1 + extensions;
 
-        int lmrReduction = getLmrReduction(depth, legal_moves, notTactical) * 1024;
+        int lmrReduction = getLmrReduction(depth, moves_seen, notTactical) * 1024;
 
         /* All Moves */
 
@@ -1614,7 +1621,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !predicted_cut_node);
             }
         }
-        else if (!pvNode || legal_moves > 1) {
+        else if (!pvNode || moves_seen > 1) {
             int nonpv_reduction = new_depth * 1024;
 
             // if we have chance about to dive into quiescence search then extend
@@ -1634,7 +1641,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             score = -negamax(-alpha - 1, -alpha, nonpv_reduction, t, time, ss + 1, !predicted_cut_node);
         }
 
-        if (pvNode && (legal_moves == 1 || score > alpha)) {
+        if (pvNode && (moves_seen == 1 || score > alpha)) {
             if (!rootNode && currentMove == tt_move && tt_score < alpha && tt_flag == hashFlagBeta) {
                 new_depth -= 1;
             }
@@ -1659,6 +1666,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         if (rootNode && t->id == 0) {
             nodes_spent_table[currentMove & 4095] += load_rlx(t->search_i.nodes_searched) - nodes_before_search;
+
+            if ((score > alpha || (pos->ply == 0 && moves_seen == 1)) && pvNode) {
+                update_pv(pos, currentMove);
+            }        
         }
 
         if (time->stopped == 1) return 0;
@@ -1678,16 +1689,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 alpha = score;
 
                 if (pvNode) {
-                    // write PV move
-                    pos->pvTable[pos->ply][pos->ply] = currentMove;
-
-                    // loop over the next ply
-                    for (int next_ply = pos->ply + 1; next_ply < pos->pvLength[pos->ply + 1]; next_ply++)
-                        // copy move from deeper ply into a current ply's line
-                        pos->pvTable[pos->ply][next_ply] = pos->pvTable[pos->ply + 1][next_ply];
-
-                    // adjust PV length
-                    pos->pvLength[pos->ply] = pos->pvLength[pos->ply + 1];
+                    update_pv(pos, currentMove);
                 }
 
                 // fail-hard beta cutoff
@@ -1757,8 +1759,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
     }
 
-    // we don't have any legal moves to make in the current postion
-    if (legal_moves == 0) {
+    // we don't have any moves to make in the current postion
+    if (moves_seen == 0) {
         // king is in check
         if (in_check)
             // return mating score (assuming closest distance to mating pos)
@@ -1893,11 +1895,19 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                 break;
             }
             if (score <= alpha) {
+                if (t->id == 0 && !benchmark && !time->stopped) {
+                    int endTime = getTimeMiliSecond();
+                    print_info(t, current_depth, score, totalTime + (endTime - startTime), 2);
+                }
                 alpha = myMAX(-infinity, alpha - window);
                 aspirationWindowDepth = current_depth;
             }
 
             else if (score >= beta) {
+                if (t->id == 0 && !benchmark && !time->stopped) {
+                    int endTime = getTimeMiliSecond();
+                    print_info(t, current_depth, score, totalTime + (endTime - startTime), 1);
+                }
                 int exceed = score - beta;
 
                 beta = myMIN(infinity, beta + window);
@@ -1951,7 +1961,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         totalTime += endTime - startTime;
 
         if (t->id == 0 && t->pos.pvLength[0] && !benchmark && !time->stopped) {
-            print_info(t, current_depth, score, totalTime);
+            print_info(t, current_depth, score, totalTime, 0);
         }
 
     }
@@ -1960,7 +1970,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         ThreadData *bt = thread_pool.threads[best_thread];
 
         if (best_thread != 0 && bt->pos.pvLength[0] > 0) {            
-            print_info(bt, bt->search_i.depthCompleted, bt->search_i.score, totalTime);
+            print_info(bt, bt->search_i.depthCompleted, bt->search_i.score, totalTime, 0);
         }
 
         // best move from the best thread
