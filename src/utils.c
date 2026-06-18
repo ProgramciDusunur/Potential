@@ -189,7 +189,21 @@ void print_info(ThreadData *t, int depth, int score, int totalTime, int bound) {
         printf("score cp %d %snodes %llu nps %llu hashfull %d time %d pv ",
                score, boundStr, (unsigned long long)nodes, nps, hash_full(), totalTime);
 
-    for (int count = 0; count < t->pos.pvLength[0]; count++) {
+    int len = t->pos.pvLength[0];
+    
+    // lowerbound: we want see full PV
+    if (bound == 1 && t->pos.pvTable[0][0] != 0) {
+        len = 0;
+        while (len < maxPly && t->pos.pvTable[0][len] != 0) {
+            len++;
+        }
+    } 
+    // upperbound: we want see only the first moves of PV
+    else if (bound == 2 && t->pos.pvTable[0][0] != 0) {
+        len = 2;
+    }
+
+    for (int count = 0; count < len; count++) {
         printMove(t->pos.pvTable[0][count]);
         printf(" ");
     }
