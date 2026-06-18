@@ -173,19 +173,21 @@ bool is_decisive(int score) {
   return abs(score) > mateValue;
 }
 
-void print_info(ThreadData *t, int depth, int score, int totalTime) {
+void print_info(ThreadData *t, int depth, int score, int totalTime, int bound) {
     uint64_t nodes = total_nodes();
     unsigned long long nps = (totalTime > 0) ? (nodes * 1000) / totalTime : 0;
 
     printf("info depth %d seldepth %d ", depth, t->pos.seldepth);
 
+    const char* boundStr = bound == 1 ? "lowerbound " : (bound == 2 ? "upperbound " : "");
+
     if (is_mate_score(score))
-        printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
+        printf("score mate %d %snodes %llu nps %llu hashfull %d time %d pv ",
                (score > 0 ? mateValue - score + 1 : -mateValue - score) / 2,
-               (unsigned long long)nodes, nps, hash_full(), totalTime);            
+               boundStr, (unsigned long long)nodes, nps, hash_full(), totalTime);            
     else
-        printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
-               score, (unsigned long long)nodes, nps, hash_full(), totalTime);
+        printf("score cp %d %snodes %llu nps %llu hashfull %d time %d pv ",
+               score, boundStr, (unsigned long long)nodes, nps, hash_full(), totalTime);
 
     for (int count = 0; count < t->pos.pvLength[0]; count++) {
         printMove(t->pos.pvTable[0][count]);
