@@ -1666,10 +1666,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         if (rootNode && t->id == 0) {
             nodes_spent_table[currentMove & 4095] += load_rlx(t->search_i.nodes_searched) - nodes_before_search;
-
-            if ((score > alpha || (pos->ply == 0 && moves_seen == 1)) && pvNode) {
-                update_pv(pos, currentMove);
-            }        
         }
 
         if (time->stopped == 1) return 0;
