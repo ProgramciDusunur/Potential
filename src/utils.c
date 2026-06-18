@@ -203,3 +203,29 @@ uint32_t next_power_of_2(uint32_t x) {
     x |= x >> 16;
     return x + 1;
 }
+
+uint64_t murmur_64(uint64_t h) {
+    h ^= h >> 33;
+    h *= 0xff51afd7ed558ccdULL;
+    h ^= h >> 33;
+    h *= 0xc4ceb9fe1a85ec53ULL;
+    h ^= h >> 33;
+    return h;
+}
+
+uint64_t get_material_hash(const board *pos) {
+    uint64_t hash = 0;
+    hash |= (uint64_t)countBits(pos->bitboards[P]);
+    hash |= (uint64_t)countBits(pos->bitboards[N]) << 6;
+    hash |= (uint64_t)countBits(pos->bitboards[B]) << 12;
+    hash |= (uint64_t)countBits(pos->bitboards[R]) << 18;
+    hash |= (uint64_t)countBits(pos->bitboards[Q]) << 24;
+
+    hash |= (uint64_t)countBits(pos->bitboards[p]) << 30;
+    hash |= (uint64_t)countBits(pos->bitboards[n]) << 36;
+    hash |= (uint64_t)countBits(pos->bitboards[b]) << 42;
+    hash |= (uint64_t)countBits(pos->bitboards[r]) << 48;
+    hash |= (uint64_t)countBits(pos->bitboards[q]) << 54;
+    
+    return murmur_64(hash);
+}

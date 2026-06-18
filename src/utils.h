@@ -32,6 +32,7 @@ double clamp_double(const double d, const double min, const double max);
 void printBoard(board* position);
 void printMailbox(const board *position);
 char* get_move_string(uint16_t move);
+uint64_t get_material_hash(const board *pos);
 int clamp(const int d, const int min, const int max);
 void print_info(ThreadData *t, int depth, int score, int totalTime);
 uint32_t next_power_of_2(uint32_t x);
