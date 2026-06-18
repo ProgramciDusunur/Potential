@@ -1897,7 +1897,8 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             if (score <= alpha) {
                 if (t->id == 0 && !benchmark && !time->stopped) {
                     int endTime = getTimeMiliSecond();
-                    print_info(t, current_depth, score, totalTime + (endTime - startTime), 2);
+                    int elapsed = totalTime + (endTime - startTime);
+                    if (elapsed > 1000) print_info(t, current_depth, score, elapsed, 2);
                 }
                 alpha = myMAX(-infinity, alpha - window);
                 aspirationWindowDepth = current_depth;
@@ -1906,7 +1907,8 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             else if (score >= beta) {
                 if (t->id == 0 && !benchmark && !time->stopped) {
                     int endTime = getTimeMiliSecond();
-                    print_info(t, current_depth, score, totalTime + (endTime - startTime), 1);
+                    int elapsed = totalTime + (endTime - startTime);
+                    if (elapsed > 1000) print_info(t, current_depth, score, elapsed, 1);
                 }
                 int exceed = score - beta;
 
