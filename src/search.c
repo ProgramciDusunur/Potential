@@ -1485,7 +1485,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
 
 
-
         // increment ply
         pos->ply++;
 
