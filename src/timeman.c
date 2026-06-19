@@ -31,7 +31,8 @@ void check_time_limit(my_time *time, int startTime, ThreadData *t, int score) {
             if (((time->timeset && startTime >= time->softLimit) || (time->isNodeLimit && total_nodes() >= time->node_limit))) {
                 time->stopped = 1;
                 store_rlx(thread_pool.stop, true);
-            } else if (score >= mateValue - 3 || score == -mateValue + 2) {
+            } else if ((score >= mateValue - 3 && t->pos.rootDepth >= mateValue - score) || 
+                       (score == -mateValue + 2 && t->pos.rootDepth >= score + mateValue)) {
                 time->stopped = 1;
                 store_rlx(thread_pool.stop, true);
             } else if (load_rlx(thread_pool.stop)) {
