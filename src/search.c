@@ -1469,6 +1469,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             else if (pvNode && !notTactical && getMoveTarget(tt_move) == previous_move_target_square) {
                 extensions += 1;
             }
+
+            // Direct Check Extension
+            else if (gives_check) {
+                extensions += 1;
+            }
             
             // Cut Node Extension
             else if (predicted_cut_node) {
