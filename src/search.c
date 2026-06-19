@@ -35,7 +35,7 @@
 /*╔═══════════════════════════════╗
   ║ Static Exchange Evaluation    ║
   ╚═══════════════════════════════╝*/
-  TUNE_INT SEE_PIECE_VALUES[] = {100, 300, 300, 500, 1200, 0, 0};
+  TUNE_INT SEE_PIECE_VALUES[] = {79, 317, 319, 499, 1272, 0, 0};
   TUNE_INT QS_SEE_THRESHOLD = 5;
   TUNE_INT QS_FP_SEE_THRESHOLD = 1;
   TUNE_INT SEE_MOVE_ORDERING_THRESHOLD = -65;
