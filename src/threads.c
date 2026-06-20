@@ -59,6 +59,8 @@ static void free_threads(void) {
 void init_threads(int requested_count) {
     if (requested_count < 1) requested_count = 1;
     if (requested_count > MAX_THREADS) requested_count = MAX_THREADS;
+    
+    thread_pool.multithread_search = (requested_count > 1) ? 1 : 0;
 
     // Free existing threads first
     free_threads();

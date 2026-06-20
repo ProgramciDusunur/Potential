@@ -1230,6 +1230,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                     adjusted_probcut_depth -= PROBCUT_CUTNODE_SCALAR * predicted_cut_node;
 
+                    // noise to provide diversity among helper threads
+                    adjusted_probcut_depth += ((int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 17) % 512) - 256) * thread_pool.multithread_search;
+
                     adjusted_probcut_depth /= 1024;
 
                     probcut_value = -negamax(-probcut_beta, -probcut_beta + 1, adjusted_probcut_depth, t, time, ss + 1, !predicted_cut_node);
@@ -1594,10 +1597,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         // Dynamic helper thread reduction bias
         // ~5% chance of tipping the reduced depth by ±1 ply
-        bool multithreaded_search = thread_pool.thread_count > 1;
-        if (multithreaded_search) {
-            lmrReduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 102) - 51;
-        }
+        lmrReduction += ((int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 102) - 51) * thread_pool.multithread_search;
 
         lmrReduction /= 1024;
 
@@ -1628,10 +1628,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             // Dynamic helper thread depth bias for non-PV zero-window search
             // ~5% chance of ±1 ply depth change
-            bool multithreaded_search = thread_pool.thread_count > 1;
-            if (multithreaded_search) {                
-                nonpv_reduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 1078) - 27;
-            }
+            nonpv_reduction += ((int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 1078) - 27) * thread_pool.multithread_search;
 
             nonpv_reduction /= 1024;
             

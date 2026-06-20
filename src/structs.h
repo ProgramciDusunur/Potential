@@ -267,6 +267,7 @@ typedef struct {
 typedef struct {
     ThreadData *threads[MAX_THREADS];
     int thread_count;
+    int multithread_search;
 
     SharedHistory **shared_histories;
     int shared_history_count;
