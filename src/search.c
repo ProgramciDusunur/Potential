@@ -73,6 +73,18 @@
   TUNE_DOUBLE LMR_TABLE_NOISY_MULT = 125.61850220089423;
   TUNE_DOUBLE LMR_TABLE_BASE_QUIET = 0.9189958947978205;
   TUNE_DOUBLE LMR_TABLE_QUIET_MULT = 125.0375407133182;
+
+  // Depth-based noise tables for search diversity
+  int LMR_NOISE_LIMIT[maxPly];
+  TUNE_INT LMR_NOISE_MULT = 100;
+  TUNE_INT LMR_NOISE_DIV = 500;
+
+  int NONPV_NOISE_LIMIT[maxPly];
+  int NONPV_NOISE_OFFSET[maxPly];
+  TUNE_INT NONPV_NOISE_MULT = 2105;
+  TUNE_INT NONPV_NOISE_DIV = 500;
+  TUNE_INT NONPV_NOISE_OFFSET_MULT = 53;
+  TUNE_INT NONPV_NOISE_OFFSET_DIV = 500;
   TUNE_INT LMR_FULL_DEPTH_MOVES = 2;
   TUNE_INT LMR_REDUCTION_LIMIT = 3;
   TUNE_INT DEEPER_LMR_MARGIN = 38;  
@@ -312,6 +324,11 @@ int isRepetition(board* position) {
 // [depth][moveNumber]
 void initializeLMRTable(void) {
     for (int depth = 1; depth < maxPly; ++depth) {
+        // Initialize quadratic noise limits
+        LMR_NOISE_LIMIT[depth] = (depth * depth * LMR_NOISE_MULT) / LMR_NOISE_DIV;
+        NONPV_NOISE_LIMIT[depth] = (depth * depth * NONPV_NOISE_MULT) / NONPV_NOISE_DIV;
+        NONPV_NOISE_OFFSET[depth] = (depth * depth * NONPV_NOISE_OFFSET_MULT) / NONPV_NOISE_OFFSET_DIV;
+        
         for (int moves = 1; moves < maxPly; ++moves) {
             if (moves == 0 || depth == 0) {
                 LMR_TABLE[0][depth][moves] = 0;
@@ -1592,12 +1609,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction -= GIVES_CHECK_LMR_SCALAR;
         }
 
-        // Dynamic helper thread reduction bias
-        // ~5% chance of tipping the reduced depth by ±1 ply
-        bool multithreaded_search = thread_pool.thread_count > 1;
-        if (multithreaded_search) {
-            lmrReduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 102) - 51;
-        }
+        // Dynamic helper thread reduction bias        
+        int lmr_limit = myMAX(1, LMR_NOISE_LIMIT[myMIN(maxPly - 1, myMAX(0, depth))]);
+        lmrReduction += (((int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % (lmr_limit * 2 + 1)) - lmr_limit) * thread_pool.multithread_search);
 
         lmrReduction /= 1024;
 
@@ -1627,11 +1641,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
 
             // Dynamic helper thread depth bias for non-PV zero-window search
-            // ~5% chance of ±1 ply depth change
-            bool multithreaded_search = thread_pool.thread_count > 1;
-            if (multithreaded_search) {                
-                nonpv_reduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 1078) - 27;
-            }
+            // ~5% chance of ±1 ply depth change            
+            int nonpv_limit = myMAX(1, NONPV_NOISE_LIMIT[myMIN(maxPly - 1, myMAX(0, depth))]);
+            int nonpv_offset = NONPV_NOISE_OFFSET[myMIN(maxPly - 1, myMAX(0, depth))];
+            nonpv_reduction += (((int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % nonpv_limit) - nonpv_offset) * thread_pool.multithread_search);
 
             nonpv_reduction /= 1024;
             

@@ -69,6 +69,13 @@ extern TUNE_DOUBLE LMR_TABLE_NOISY_MULT;
 extern TUNE_DOUBLE LMR_TABLE_BASE_QUIET;
 extern TUNE_DOUBLE LMR_TABLE_QUIET_MULT;
 
+extern TUNE_INT LMR_NOISE_MULT;
+extern TUNE_INT LMR_NOISE_DIV;
+extern TUNE_INT NONPV_NOISE_MULT;
+extern TUNE_INT NONPV_NOISE_DIV;
+extern TUNE_INT NONPV_NOISE_OFFSET_MULT;
+extern TUNE_INT NONPV_NOISE_OFFSET_DIV;
+
 // SEE
 extern TUNE_INT QS_SEE_THRESHOLD;
 extern TUNE_INT QS_FP_SEE_THRESHOLD;
@@ -456,6 +463,14 @@ void spsa_init(void) {
     spsa_add_int("QUADRUPLE_EXT_NOISY_BONUS",   &QUADRUPLE_EXT_NOISY_BONUS,  155,      0,    500,  25.00, 0.002);
     spsa_add_int("SE_CORRECTION_MULT",          &SE_CORRECTION_MULT,         984,   256,   4096, 100.00, 0.002);
     spsa_add_int("SE_CORRECTION_DIVISOR",       &SE_CORRECTION_DIVISOR,   2867339, 500000, 10000000, 100000.0, 0.002);
+
+    // ── Search Diversity Noise ──
+    spsa_add_int("LMR_NOISE_MULT",              &LMR_NOISE_MULT,               100,      0,    500,  20.00, 0.002);
+    spsa_add_int("LMR_NOISE_DIV",               &LMR_NOISE_DIV,                500,    100,   2000,  50.00, 0.002);
+    spsa_add_int("NONPV_NOISE_MULT",            &NONPV_NOISE_MULT,            2105,      0,   5000, 200.00, 0.002);
+    spsa_add_int("NONPV_NOISE_DIV",             &NONPV_NOISE_DIV,              500,    100,   2000,  50.00, 0.002);
+    spsa_add_int("NONPV_NOISE_OFFSET_MULT",     &NONPV_NOISE_OFFSET_MULT,       53,      0,    500,  10.00, 0.002);
+    spsa_add_int("NONPV_NOISE_OFFSET_DIV",      &NONPV_NOISE_OFFSET_DIV,       500,    100,   2000,  50.00, 0.002);
     // ── Time Management ──
     spsa_add_double("DEF_TIME_MULTIPLIER",      &DEF_TIME_MULTIPLIER,          0.04960322314255747,  0.020,  0.120,  0.005, 0.002);
     spsa_add_double("DEF_INC_MULTIPLIER",       &DEF_INC_MULTIPLIER,           0.836566109235868,  0.400,  1.500,  0.050, 0.002);
