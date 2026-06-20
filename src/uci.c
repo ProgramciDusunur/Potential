@@ -298,10 +298,7 @@ void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time) {
 
     // print debug info
     printf("time:%d start:%d stop:%d depth:%d timeset:%d\n",
-           time->time, time->starttime, time->stoptime, depth, time->timeset);
-
-    // start helper threads
-    start_helpers(root_pos, depth, time);
+           time->time, time->starttime, time->stoptime, depth, time->timeset);    
 
     // search position
     searchPosition(depth, false, t, time);

@@ -3,6 +3,7 @@
 //
 
 #include "search.h"
+#include "threads.h"
 #include "spsa.h"
 #include "movepicker.h"
 #include <ctype.h>
@@ -1844,6 +1845,10 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     for (int current_depth = 1; current_depth <= depth; current_depth++) {        
         if (time->stopped || time->quit) {
             break;
+        }
+
+        if (t->id == 0 && current_depth == 2) {
+            start_helpers(&t->pos, depth, time);
         }
 
         for (int i = 0; i < maxPly; ++i) {
