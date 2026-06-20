@@ -24,9 +24,28 @@ void setup_main_thread(board *board) {
     memcpy(&thread_pool.threads[0]->pos, board, sizeof(*board));
 }
 
+static void *thread_entry(void *arg);
+
 static void free_threads(void) {
+    // Wake up sleeping threads and join them
+    for (int i = 1; i < thread_pool.thread_count; i++) {
+        if (thread_pool.threads[i] != NULL) {
+            ThreadData *t = thread_pool.threads[i];
+            pthread_mutex_lock(&t->mutex);
+            t->exit_thread = true;
+            pthread_cond_signal(&t->sleep_cond);
+            pthread_mutex_unlock(&t->mutex);
+            pthread_join(t->native_handle, NULL);
+        }
+    }
+
     for (int i = 0; i < thread_pool.thread_count; i++) {
         if (thread_pool.threads[i] != NULL) {
+            if (i > 0) {
+                pthread_mutex_destroy(&thread_pool.threads[i]->mutex);
+                pthread_cond_destroy(&thread_pool.threads[i]->sleep_cond);
+                pthread_cond_destroy(&thread_pool.threads[i]->finished_cond);
+            }
             free(thread_pool.threads[i]);
             thread_pool.threads[i] = NULL;
         }
@@ -106,6 +125,17 @@ void init_threads(int requested_count) {
         thread_pool.threads[i]->shared_history = thread_pool.shared_histories[i / threads_per_l3];
         thread_pool.threads[i]->ss = thread_pool.threads[i]->ss_base + STACK_OFFSET;
         clearStaticEvaluationHistory(thread_pool.threads[i]->ss);
+
+        if (i > 0) {
+            pthread_mutex_init(&thread_pool.threads[i]->mutex, NULL);
+            pthread_cond_init(&thread_pool.threads[i]->sleep_cond, NULL);
+            pthread_cond_init(&thread_pool.threads[i]->finished_cond, NULL);
+            thread_pool.threads[i]->searching = false;
+            thread_pool.threads[i]->exit_thread = false;
+            
+            // Launch thread once during initialization
+            pthread_create(&thread_pool.threads[i]->native_handle, NULL, thread_entry, thread_pool.threads[i]);
+        }
     }
 }
 
@@ -137,7 +167,25 @@ static void *thread_entry(void *arg) {
     pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
 #endif
 
-    searchPosition(t->search_depth, false, t, t->time);
+    while (1) {
+        pthread_mutex_lock(&t->mutex);
+        while (!t->searching && !t->exit_thread) {
+            pthread_cond_wait(&t->sleep_cond, &t->mutex);
+        }
+        pthread_mutex_unlock(&t->mutex);
+
+        if (t->exit_thread) {
+            break;
+        }
+
+        searchPosition(t->search_depth, false, t, t->time);
+
+        pthread_mutex_lock(&t->mutex);
+        t->searching = false;
+        pthread_cond_signal(&t->finished_cond);
+        pthread_mutex_unlock(&t->mutex);
+    }
+    
     return NULL;
 }
 
@@ -163,8 +211,11 @@ void start_helpers(board *root_pos, int depth, my_time *time) {
         t->search_depth = depth;
         t->time = time;
 
-        // Launch thread
-        pthread_create(&t->native_handle, NULL, thread_entry, t);
+        // Wake up sleeping thread
+        pthread_mutex_lock(&t->mutex);
+        t->searching = true;
+        pthread_cond_signal(&t->sleep_cond);
+        pthread_mutex_unlock(&t->mutex);
     }
 }
 
@@ -173,7 +224,12 @@ void wait_helpers(void) {
     store_rlx(thread_pool.stop, true);
 
     for (int i = 1; i < thread_pool.thread_count; i++) {
-        pthread_join(thread_pool.threads[i]->native_handle, NULL);
+        ThreadData *t = thread_pool.threads[i];
+        pthread_mutex_lock(&t->mutex);
+        while (t->searching) {
+            pthread_cond_wait(&t->finished_cond, &t->mutex);
+        }
+        pthread_mutex_unlock(&t->mutex);
     }
 }
 

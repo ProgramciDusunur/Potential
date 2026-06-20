@@ -254,6 +254,11 @@ typedef struct {
 typedef struct {
     int16_t id;
     pthread_t native_handle;
+    pthread_mutex_t mutex;
+    pthread_cond_t sleep_cond;
+    pthread_cond_t finished_cond;
+    _Atomic bool searching;
+    _Atomic bool exit_thread;
     SearchInfo search_i;
     SearchData search_d;
     SharedHistory *shared_history;
