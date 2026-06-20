@@ -187,6 +187,10 @@ bool isKRP(int piece) {
     return piece == K || piece == k || piece == R || piece == r || piece == P || piece == p;
 }
 
+bool isValuable(int piece) {
+    return piece == N || piece == n || piece == B || piece == b || piece == R || piece == r || piece == Q || piece == q;
+}
+
 inline static void toggleHashesForPiece(board* position, int piece, int square) {
     for (int i = 0; i < 8; i++) {
         position->zinfo.raw[i] ^= pieceKeys[piece][square].raw[i];

@@ -68,6 +68,7 @@ inline int pieceColor(int piece) {
 bool isMinor(int piece);
 bool isMajor(int piece);
 bool isKRP(int piece);
+bool isValuable(int piece);
 
 extern char *squareToCoordinates[];
 extern char asciiPieces[];
