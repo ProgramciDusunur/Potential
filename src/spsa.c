@@ -29,6 +29,7 @@ extern TUNE_DOUBLE TM_COMPLEXITY_DIVISOR;
 extern TUNE_DOUBLE TM_COMPLEXITY_MULT;
 extern TUNE_DOUBLE TM_NODE_FRACTION_BASE;
 extern TUNE_DOUBLE TM_NODE_MULTIPLIER;
+extern TUNE_DOUBLE TM_NODE_MIN_MULTIPLIER;
 
 // ═══════════════════════════════════════════════════════════
 //  Material Evaluation parameters (defined in evaluation.c)
@@ -475,8 +476,9 @@ void spsa_init(void) {
     spsa_add_double("TM_COMPLEXITY_BASE",       &TM_COMPLEXITY_BASE,           0.7450760074292611,   0.30,   1.20,  0.08, 0.002);
     spsa_add_double("TM_COMPLEXITY_DIVISOR",    &TM_COMPLEXITY_DIVISOR,      393.84290539109946, 200.00, 800.00, 40.00, 0.002);
     spsa_add_double("TM_COMPLEXITY_MULT",       &TM_COMPLEXITY_MULT,           0.7159794746913765,   0.20,   1.50,  0.10, 0.002);
-    spsa_add_double("TM_NODE_FRACTION_BASE",    &TM_NODE_FRACTION_BASE,        1.506701004280064,   1.00,   2.50,  0.15, 0.002);
-    spsa_add_double("TM_NODE_MULTIPLIER",       &TM_NODE_MULTIPLIER,           1.3182823025630248,   0.80,   2.20,  0.10, 0.002);
+    spsa_add_double("TM_NODE_FRACTION_BASE",    &TM_NODE_FRACTION_BASE,        1.301772,   1.00,   2.50,  0.15, 0.002);
+    spsa_add_double("TM_NODE_MULTIPLIER",       &TM_NODE_MULTIPLIER,           1.897314,   0.80,   2.50,  0.10, 0.002);
+    spsa_add_double("TM_NODE_MIN_MULTIPLIER",   &TM_NODE_MIN_MULTIPLIER,       0.5630,     0.10,   1.00,  0.05, 0.002);
 
     // ── Material Evaluation ──
     spsa_add_int("MG_PAWN_MAT", &MG_PAWN_MAT, 68, 50, 200, 10.0, 0.002);
