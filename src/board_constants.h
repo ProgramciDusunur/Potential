@@ -118,6 +118,8 @@ extern ZobristInfo pieceKeys[12][64];
 extern U64 enpassantKeys[64];
 // random castling keys
 extern U64 castleKeys[16];
+// random material count keys
+extern U64 materialKeys[12][32];
 
 
 #endif //-POTENTIAL_BOARD_CONSTANTS_H

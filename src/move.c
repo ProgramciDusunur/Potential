@@ -193,7 +193,18 @@ inline static void toggleHashesForPiece(board* position, int piece, int square) 
     }
 }
 
+inline static void updateMaterialHash(board* position, int piece, int countDelta) {
+    if (piece == K || piece == k) return;
+    int count = countBits(position->bitboards[piece]);
+    int newCount = count + countDelta;
+    if (count >= 0 && count < 32 && newCount >= 0 && newCount < 32) {
+        position->zinfo.materialKey ^= materialKeys[piece][count];
+        position->zinfo.materialKey ^= materialKeys[piece][newCount];
+    }
+}
+
 inline static void addPiece(board* position, int piece, int square) {    
+    updateMaterialHash(position, piece, 1);
     position->phase_score += get_piece_phase_score(piece);
     position->psqt_score += packed_table[piece][square];
     setBit(position->bitboards[piece], square);
@@ -205,6 +216,7 @@ inline static void addPiece(board* position, int piece, int square) {
 
 inline static void removePiece(board* position, int piece, int square) {
     assert(position->mailbox[square] == piece);    
+    updateMaterialHash(position, piece, -1);
     position->phase_score -= get_piece_phase_score(piece);
     position->psqt_score -= packed_table[piece][square];
     popBit(position->bitboards[piece], square);
@@ -212,7 +224,6 @@ inline static void removePiece(board* position, int piece, int square) {
     popBit(position->occupancies[both], square);    
     position->mailbox[square] = NO_PIECE;
     toggleHashesForPiece(position, piece, square);
-    
 }
 
 bool is_pseudo_legal(uint16_t move, board *pos) {

@@ -67,6 +67,16 @@ U64 generateHashKey(board* position) {
     return finalKey;
 }
 
+U64 generate_material_key(board *position) {
+    U64 finalKey = 0ULL;
+    for (int p = P; p <= k; p++) {
+        if (p == K || p == k) continue;
+        int count = countBits(position->bitboards[p]);
+        finalKey ^= materialKeys[p][count];
+    }
+    return finalKey;
+}
+
 U64 generatePawnKey(board* position) {
 
     uint64_t final_key = 0ULL;
@@ -407,7 +417,10 @@ void initRandomKeys(void) {
             pieceKeys[piece][square].whiteNonPawnKey = (piece != P && piece != p && pieceColor(piece) == white) ? key : 0;
             pieceKeys[piece][square].blackNonPawnKey = (piece != P && piece != p && pieceColor(piece) == black) ? key : 0;
             pieceKeys[piece][square].krpKey = (isKRP(piece) && piece != P && piece != p) ? key : 0;
-            pieceKeys[piece][square].padding_key = 0;
+            pieceKeys[piece][square].materialKey = 0;
+        }
+        for (int count = 0; count < 32; count++) {
+            materialKeys[piece][count] = get_random_uint64_number();
         }
     }
     // loop over board squares

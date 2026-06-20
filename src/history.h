@@ -39,6 +39,7 @@ extern int CORRHIST_LIMIT;
 extern int BASE_CORRHIST_SIZE;
 extern int BASE_CONT_CORRHIST_SIZE;
 extern int CORRHIST_MAX;
+extern int BASE_MATERIAL_CORRHIST_SIZE;
 extern TUNE_INT BAD_QUIET_INDEX_SCALE;
 
 int scaledBonus(int score, int bonus, int gravity);
@@ -60,6 +61,7 @@ void update_non_pawn_corrhist(ThreadData *t, const int depth, const int diff);
 void update_continuation_corrhist(ThreadData *t, const int depth, const int diff, SearchStack *ss);
 void update_single_cont_corrhist_entry(ThreadData *t, const int pliesBack, const int scaledDiff, const int newWeight, SearchStack *ss);
 void update_king_rook_pawn_corrhist(ThreadData *t, const int depth, const int diff);
+void update_material_correction_hist(ThreadData *t, const int depth, const int diff);
 int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss);
 int get_correction_value(ThreadData *t, SearchStack *ss);
 void clear_histories(void);

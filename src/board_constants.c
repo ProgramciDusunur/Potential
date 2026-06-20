@@ -11,6 +11,7 @@ ZobristInfo pieceKeys[12][64];
 U64 enpassantKeys[64];
 // random castling keys
 U64 castleKeys[16];
+U64 materialKeys[12][32];
 
 int8_t enPassantSquares[] = {
         8, -8

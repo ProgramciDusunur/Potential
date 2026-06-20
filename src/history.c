@@ -28,11 +28,15 @@ TUNE_INT NON_PAWN_CORRHIST_MULT = 1110;
 TUNE_INT KRP_CORRHIST_WEIGHT_SCALE = 256;
 TUNE_INT KRP_CORRHIST_GRAIN = 281;
 TUNE_INT KRP_CORRHIST_MULT = 971;
+TUNE_INT MATERIAL_CORRHIST_WEIGHT_SCALE = 256;
+TUNE_INT MATERIAL_CORRHIST_GRAIN = 256;
+TUNE_INT MATERIAL_CORRHIST_MULT = 512;
 TUNE_INT CONT_CORRHIST_WEIGHT_SCALE = 269;
 TUNE_INT CONT_CORRHIST_GRAIN = 202;
 TUNE_INT CONT_CORRHIST_MULT = 977;
 int CORRHIST_LIMIT = 1024;
 int BASE_CORRHIST_SIZE = 16384;
+int BASE_MATERIAL_CORRHIST_SIZE = 2048;
 int CORRHIST_MAX = 16384;
 
 /* Update History */
@@ -177,6 +181,14 @@ void update_pawn_correction_hist(ThreadData *t, const int depth, const int diff)
     apply_corrhist_update(entry, scaledDiff, newWeight, PAWN_CORRHIST_WEIGHT_SCALE);
 }
 
+void update_material_correction_hist(ThreadData *t, const int depth, const int diff) {
+    const int scaledDiff = diff * MATERIAL_CORRHIST_GRAIN;
+    const int newWeight = 4 * myMIN(depth + 1, 16);
+    
+    int16_t *entry = &t->search_d.material_corrhist[t->pos.side][t->pos.materialKey & 2047];
+    apply_corrhist_update(entry, scaledDiff, newWeight, MATERIAL_CORRHIST_WEIGHT_SCALE);
+}
+
 void update_minor_correction_hist(ThreadData *t, const int depth, const int diff) {
     const int scaledDiff = diff * MINOR_CORRHIST_GRAIN;
     const int newWeight = 4 * myMIN(depth + 1, 16);
@@ -271,6 +283,7 @@ int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss) {
                + t->shared_history->minor_corrhist[side][t->pos.minorKey & mask] * 256 / MINOR_CORRHIST_GRAIN
                + t->shared_history->major_corrhist[side][t->pos.majorKey & mask] * 256 / MAJOR_CORRHIST_GRAIN
                + t->shared_history->krp_corrhist[side][t->pos.krpKey & mask] * 256 / KRP_CORRHIST_GRAIN
+               + t->search_d.material_corrhist[side][t->pos.materialKey & 2047] * 256 / MATERIAL_CORRHIST_GRAIN
                + (t->shared_history->non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask]
                + t->shared_history->non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask]) * 256 / NON_PAWN_CORRHIST_GRAIN
                + (adjust_single_cont_corrhist_entry(t, 1, ss)
@@ -297,13 +310,14 @@ int get_correction_value(ThreadData *t, SearchStack *ss) {
     const int minor_correction = t->shared_history->minor_corrhist[side][t->pos.minorKey & mask] * MINOR_CORRHIST_MULT / (MINOR_CORRHIST_GRAIN * 4);
     const int major_correction = t->shared_history->major_corrhist[side][t->pos.majorKey & mask] * MAJOR_CORRHIST_MULT / (MAJOR_CORRHIST_GRAIN * 4);
     const int krp_correction = t->shared_history->krp_corrhist[side][t->pos.krpKey & mask] * KRP_CORRHIST_MULT / (KRP_CORRHIST_GRAIN * 4);
+    const int material_correction = t->search_d.material_corrhist[side][t->pos.materialKey & 2047] * MATERIAL_CORRHIST_MULT / (MATERIAL_CORRHIST_GRAIN * 4);
     const int white_non_pawn_correction = t->shared_history->non_pawn_corrhist[white][side][t->pos.whiteNonPawnKey & mask];
     const int black_non_pawn_correction = t->shared_history->non_pawn_corrhist[black][side][t->pos.blackNonPawnKey & mask];
     const int np_correction = (white_non_pawn_correction + black_non_pawn_correction) * NON_PAWN_CORRHIST_MULT / (NON_PAWN_CORRHIST_GRAIN * 4);
     const int continuation_correction = adjust_single_cont_corrhist_entry(t, 2, ss) * CONT_CORRHIST_MULT / (CONT_CORRHIST_GRAIN * 4);
     
     int correction = pawn_correction + minor_correction + major_correction +
-                    krp_correction + np_correction +
+                    krp_correction + material_correction + np_correction +
                     continuation_correction;
 
     return correction;
@@ -315,6 +329,7 @@ void clear_histories(void) {
     for (int i = 0; i < how_many_threads; i++) {
         memset(thread_pool.threads[i]->search_d.quietHistory, 0, sizeof(thread_pool.threads[i]->search_d.quietHistory));
         memset(thread_pool.threads[i]->search_d.captureHistory, 0, sizeof(thread_pool.threads[i]->search_d.captureHistory));        
+        memset(thread_pool.threads[i]->search_d.material_corrhist, 0, sizeof(thread_pool.threads[i]->search_d.material_corrhist));        
     }
     
     for (int i = 0; i < thread_pool.shared_history_count; i++) {
