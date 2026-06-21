@@ -1778,8 +1778,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     uint16_t prior_move = (ss - 1)->move;
     if (!rootNode && tt_flag == hashFlagBeta && prior_move && !isTactical(prior_move) &&
         (predicted_cut_node || pvNode)) {
-        int factor = 25
-            + 120 * (!in_check && bestScore <= ttAdjustedEval - 60);
+        int factor = 75;
 
 
         int scaled_bonus = factor * (150 * depth - 50) / 128;
