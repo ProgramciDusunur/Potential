@@ -1391,24 +1391,25 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             // Multi Low Depth Extension
             depth += depth < 10 && !pvNode && singularScore < singularBeta - MULTI_LOW_DEPTH_EXT_MARGIN;
 
+            // Double Extension
+            /*int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);                
+            doubleMargin += isCapture * 75;
+            doubleMargin += isPromotion * 0; 
+            doubleMargin += tactical * 40;
+            doubleMargin -= ss->singular_ply * 25;*/
+
+            int correction_adj = (abs(correction_value) * SE_CORRECTION_MULT) / SE_CORRECTION_DIVISOR;
+
+            int doubleMargin = DOUBLE_EXTENSION_MARGIN;
+            doubleMargin -= correction_adj;
+            if (!pvNode && singularScore <= singularBeta - doubleMargin) {
+                extensions++;
+            }                
+
             // Singular Extension
             if (singularScore < singularBeta) {
-                extensions++;
-
-                int correction_adj = (abs(correction_value) * SE_CORRECTION_MULT) / SE_CORRECTION_DIVISOR;
-
-                // Double Extension                
-                /*int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
-                doubleMargin -= correction_adj;
-                doubleMargin += isCapture * 75;
-                doubleMargin += isPromotion * 0; 
-                doubleMargin += tactical * 40;
-                doubleMargin -= ss->singular_ply * 25;*/
-
-                int doubleMargin = DOUBLE_EXTENSION_MARGIN;
-                if (!pvNode && singularScore <= singularBeta - doubleMargin) {
-                    extensions++;
-                }                
+                extensions++;                
+                
 
                 // Triple Extension
                 int tripleMargin = TRIPLE_EXTENSION_MARGIN + TRIPLE_EXT_NOISY_BONUS * !notTactical;
