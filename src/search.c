@@ -1776,7 +1776,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     // Prior Counter Move Bonus
     uint16_t prior_move = (ss - 1)->move;
-    if (!rootNode && tt_flag == hashFlagBeta && prior_move && !isTactical(prior_move) &&
+    if (!rootNode && !bestMove && tt_flag == hashFlagBeta && prior_move && !isTactical(prior_move) &&
         (predicted_cut_node || pvNode)) {
         int factor = 25;
 
@@ -1784,8 +1784,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         //pcm_bonus = myMIN(pcm_bonus, 2048);
 
-        adjust_single_quiet_hist_entry(t, pos->side, prior_move, scaled_bonus);
-        updateSingleCHScore(t, prior_move, 1, scaled_bonus, scaled_bonus, ss);
+        adjust_single_quiet_hist_entry(t, pos->side, prior_move, scaled_bonus);        
     }
 
     if (!ss->singular_move) {
