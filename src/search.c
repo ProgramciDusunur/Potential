@@ -1574,7 +1574,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 lmrReduction += QUIET_NON_PV_LMR_SCALAR;
             }
 
-            if (!is_decisive(alpha) && moves_seen > 1) {
+            if (!is_decisive(alpha) && moves_seen > 3) {
                 lmrReduction += 3 * clamp(alpha - ttAdjustedEval, -64, 96);
             }
 
