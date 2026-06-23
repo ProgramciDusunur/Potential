@@ -5,7 +5,7 @@
 #include "evaluation.h"
 #include "spsa.h"
 #include "utils.h"
-
+#include <stdint.h>
 
 // Mirror Score Array
 const int mirrorScore[128] =
@@ -26,6 +26,10 @@ const int piece_scores[13] = {0, 337, 365, 477, 1025, 0, 0, -337, -365, -477, -1
 
 // SEE Material Array
 const int seeMaterial[12] = {88, 322, 284, 479, 1346, 12000, -88, -322, -284, -479, -1346, -12000};
+
+// Game Phase Scores
+const int opening_phase_score = 7740;
+const int endgame_phase_score = 518;
 
 TUNE_INT MG_PAWN_MAT = 67;
 TUNE_INT MG_KNIGHT_MAT = 365;
@@ -168,24 +172,6 @@ const int positional_score[2][6][64] = {
         }
     }
 };
-
-// File and Mobility Scores
-const int semi_open_file_score = 10;
-const int open_file_score = 15;
-const int king_semi_open_file_score = 10;
-const int king_open_file_score = 20;
-const int rook_open_file = 10;
-
-// King's Bonuses
-const int king_shield_bonus_middlegame = 6;
-const int king_shield_bonus_endgame = 2;
-const int king_distance_bonus = 2;
-
-// Game Phase Scores
-const int opening_phase_score = 7740;
-const int endgame_phase_score = 518;
-
-#include <stdint.h>
 
 #define S(mg, eg) make_score(mg, eg)
 

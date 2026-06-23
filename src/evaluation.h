@@ -14,26 +14,6 @@
 #include <stdbool.h>
 
 
-/**********************************\
- ==================================
-
-             Evaluation
-
- ==================================
-\**********************************/
-
-
-/*
-    ♙ =   100   = ♙
-    ♘ =   300   = ♙ * 3
-    ♗ =   350   = ♙ * 3 + ♙ * 0.5
-    ♖ =   500   = ♙ * 5
-    ♕ =   1000  = ♙ * 10
-    ♔ =   10000 = ♙ * 100
-
-*/
-
-
 // game phases
 enum {
     opening, endgame, middlegame
@@ -57,18 +37,6 @@ extern const int seeMaterial[12];
 
 // Positional Piece Scores
 extern const int positional_score[2][6][64];
-
-// File and Mobility Scores
-extern const int semi_open_file_score;
-extern const int open_file_score;
-extern const int king_semi_open_file_score;
-extern const int king_open_file_score;
-extern const int rook_file_score;
-
-// King's Bonuses
-extern const int king_shield_bonus_middlegame ;
-extern const int king_shield_bonus_endgame;
-extern const int king_distance_bonus;
 
 // Game Phase Scores
 extern const int opening_phase_score;
