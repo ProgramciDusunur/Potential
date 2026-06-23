@@ -173,21 +173,37 @@ bool is_decisive(int score) {
   return abs(score) > mateValue;
 }
 
-void print_info(ThreadData *t, int depth, int score, int totalTime) {
+void print_info(ThreadData *t, int depth, int score, int totalTime, int bound) {
     uint64_t nodes = total_nodes();
     unsigned long long nps = (totalTime > 0) ? (nodes * 1000) / totalTime : 0;
 
     printf("info depth %d seldepth %d ", depth, t->pos.seldepth);
 
-    if (is_mate_score(score))
-        printf("score mate %d nodes %llu nps %llu hashfull %d time %d pv ",
-               (score > 0 ? mateValue - score + 1 : -mateValue - score) / 2,
-               (unsigned long long)nodes, nps, hash_full(), totalTime);            
-    else
-        printf("score cp %d nodes %llu nps %llu hashfull %d time %d pv ",
-               score, (unsigned long long)nodes, nps, hash_full(), totalTime);
+    const char* boundStr = bound == 1 ? "lowerbound " : (bound == 2 ? "upperbound " : "");
 
-    for (int count = 0; count < t->pos.pvLength[0]; count++) {
+    if (is_mate_score(score))
+        printf("score mate %d %snodes %llu nps %llu hashfull %d time %d pv ",
+               (score > 0 ? mateValue - score + 1 : -mateValue - score) / 2,
+               boundStr, (unsigned long long)nodes, nps, hash_full(), totalTime);            
+    else
+        printf("score cp %d %snodes %llu nps %llu hashfull %d time %d pv ",
+               score, boundStr, (unsigned long long)nodes, nps, hash_full(), totalTime);
+
+    int len = t->pos.pvLength[0];
+    
+    // lowerbound: we want see full PV
+    if (bound == 1 && t->pos.pvTable[0][0] != 0) {
+        len = 0;
+        while (len < maxPly && t->pos.pvTable[0][len] != 0) {
+            len++;
+        }
+    } 
+    // upperbound: we want see only the first moves of PV
+    else if (bound == 2 && t->pos.pvTable[0][0] != 0) {
+        len = 2;
+    }
+
+    for (int count = 0; count < len; count++) {
         printMove(t->pos.pvTable[0][count]);
         printf(" ");
     }
