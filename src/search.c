@@ -1779,7 +1779,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     if (!rootNode && !bestMove && tt_flag == hashFlagBeta && prior_move && !isTactical(prior_move)) {
         int factor = 100;
 
-        int scaled_bonus = factor * (128 * depth) / 256;
+        int scaled_bonus = factor;
 
         //pcm_bonus = myMIN(pcm_bonus, 2048);
 
