@@ -198,6 +198,7 @@
   extern TUNE_DOUBLE TM_COMPLEXITY_MULT;
   extern TUNE_DOUBLE TM_NODE_FRACTION_BASE;
   extern TUNE_DOUBLE TM_NODE_MULTIPLIER;
+  extern TUNE_DOUBLE TM_NODE_MIN_MULTIPLIER;
   TUNE_INT RAZORING_TRIM = 1;
   TUNE_INT RAZORING_FULL_D = 2;
   TUNE_INT RAZORING_VERIFY_D = 3;
@@ -711,6 +712,7 @@ void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, 
     double not_bm_nodes_fraction = total > 0 ?
        (double)nodes_spent_table[move & 4095] / (double)total : 0.5;
     double node_scaling_factor = (TM_NODE_FRACTION_BASE - not_bm_nodes_fraction) * TM_NODE_MULTIPLIER;
+    node_scaling_factor = my_max_double(node_scaling_factor, TM_NODE_MIN_MULTIPLIER);
     time->softLimit =
             myMIN(time->starttime + time->baseSoft * bestMoveScale[bestMoveStability] * 
                 evalScale[evalStability] * node_scaling_factor * complexityScale, time->maxTime + time->starttime);    
