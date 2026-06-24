@@ -450,7 +450,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
     initTimeControl(time_ctrl);
 
     // max hash MB
-    int max_hash = 32768;
+    int max_hash = 1048576;
 
     // default hash MB
     int default_hash_size = 64;
