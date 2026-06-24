@@ -209,7 +209,8 @@ typedef struct {
 
 typedef struct {
     // pawnHistory [pawnKey][piece][to]
-    int16_t pawnHistory[2048][12][64];
+    int16_t (*pawnHistory)[12][64];
+    int pawn_history_mask;
 
     // continuationCorrectionHistory 4D array
     int16_t contCorrhist[12][64][12][64];
