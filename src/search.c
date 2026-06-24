@@ -941,6 +941,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int pvNode = beta - alpha > 1;
 
     int rootNode = pos->ply == 0;
+    
+    if (pos->ply == 1) {
+        t->search_i.root_move_depth = depth;
+    }
 
     uint16_t bestMove = 0;
     uint64_t pos_key = 0;

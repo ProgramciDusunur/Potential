@@ -40,6 +40,8 @@ extern int BASE_CORRHIST_SIZE;
 extern int BASE_CONT_CORRHIST_SIZE;
 extern int CORRHIST_MAX;
 extern TUNE_INT BAD_QUIET_INDEX_SCALE;
+extern TUNE_INT ROOT_CORRHIST_SCALE;
+extern TUNE_INT ROOT_CORRHIST_DIVISOR;
 
 int scaledBonus(int score, int bonus, int gravity);
 void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int bonus);

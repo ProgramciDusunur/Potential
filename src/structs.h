@@ -248,6 +248,7 @@ typedef struct {
     int16_t rootDepth;
     int score;
     int depthCompleted;
+    int16_t root_move_depth;
     _Atomic bool stopped;
 } SearchInfo;
 
