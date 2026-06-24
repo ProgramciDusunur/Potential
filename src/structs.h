@@ -121,7 +121,7 @@ struct copyposition {
 
 // transposition table data structure
 typedef struct {
-    uint64_t hashKey;    // "almost" unique chess position identifier
+    uint32_t hashKey;    // "almost" unique chess position identifier
     uint16_t bestMove;        // best move from the search
     int16_t score;       // score (alpha/beta/PV)
     uint8_t depth;       // current search depth
