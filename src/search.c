@@ -25,6 +25,7 @@
 
 
 
+
 /*███████████████████████████████████████████████████████████████████████████████*\
   ██                                                                           ██
   ██          T U N A B L E    S E A R C H    P A R A M E T E R S              ██
@@ -846,6 +847,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         position->repetitionIndex++;
         position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
+        prefetch_tt_early(position, move);
         legal_make_move(move, position);
 
         //legal_moves++;
@@ -853,7 +855,6 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         // increment nodes count
         inc_rlx(t->search_i.nodes_searched);
 
-        prefetch_hash_entry(position->hashKey, position->fifty);        
         prefetch_corrhist(position, t);
 
         // score current move
@@ -1077,7 +1078,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         init_threats(pos);
 
-        prefetch_hash_entry(pos->hashKey, pos->fifty);        
         prefetch_corrhist(pos, t);
 
         int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) * NMP_REDUCTION_DEPTH_MULT / NMP_REDUCTION_DIVISOR;
@@ -1220,9 +1220,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 pos->repetitionIndex++;
                 pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
+                prefetch_tt_early(pos, move);
                 legal_make_move(move, pos);
 
-                prefetch_hash_entry(pos->hashKey, pos->fifty);                
                 prefetch_corrhist(pos, t);
                 
                 inc_rlx(t->search_i.nodes_searched);
@@ -1501,13 +1501,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         pos->repetitionIndex++;
         pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
+        prefetch_tt_early(pos, currentMove);
         legal_make_move(currentMove, pos);
 
 
         // increment nodes count
         inc_rlx(t->search_i.nodes_searched);
 
-        prefetch_hash_entry(pos->hashKey, pos->fifty);    
         prefetch_corrhist(pos, t);
 
         // increment moves seen
