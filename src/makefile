@@ -15,23 +15,31 @@ ifeq ($(COMMIT_SHA),)
 endif
 
 CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
-
 NAME        := Potential
 TMPDIR      := .tmp
 
-ifeq ($(CC), clang)
-	CFLAGS = -funroll-loops -O3 -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
+ifneq ($(wildcard C:/msys64/mingw64/bin/clang.exe),)
+    CLANG_CC = C:/msys64/mingw64/bin/clang.exe
+else
+    CLANG_CC = clang
 endif
 
+COMPILER_DIR := $(dir $(CLANG_CC))
+ifeq ($(COMPILER_DIR),./)
+    LLVM_PROFDATA := llvm-profdata
+else
+    LLVM_PROFDATA := $(COMPILER_DIR)llvm-profdata
+endif
+
+CFLAGS += -funroll-loops -O3 -flto -fno-exceptions -DIS_64BIT -DNDEBUG
+LDFLAGS += -fuse-ld=lld
+
 ifeq ($(OS), Windows_NT)
-    CC      = gcc
     MKDIR   := mkdir
 else
 ifeq ($(COMP), MINGW)
-    CC      = gcc
     MKDIR   := mkdir
 else
-    CC      ?= cc
     MKDIR   := mkdir -p
 endif
 endif
@@ -53,7 +61,7 @@ ifeq ($(uname_S), Darwin)
 endif
 
 ARCH_DETECTED =
-PROPERTIES = $(shell echo | $(CC) -march=native -E -dM -)
+PROPERTIES = $(shell echo | $(CLANG_CC) -march=native -E -dM -)
 ifneq ($(findstring __AVX512F__, $(PROPERTIES)),)
 	ifneq ($(findstring __AVX512BW__, $(PROPERTIES)),)
 		ARCH_DETECTED = AVX512
@@ -177,16 +185,16 @@ clean:
 	@rm -rf $(TMPDIR) *.o *.d $(TARGET) tuner$(SUFFIX) *.gcda
 
 $(TARGET): $(OBJECTS)
-	$(CC) $(CFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS) $(LDFLAGS)
+	$(CLANG_CC) $(CFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS) $(LDFLAGS)
 
 $(TMPDIR)/%.o: %.c | $(TMPDIR)
-	$(CC) $(CFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
+	$(CLANG_CC) $(CFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
 
 $(TMPDIR):
 	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/Source"
 
 tuner: tuner.c
-	$(CC) -O3 -o tuner$(SUFFIX) tuner.c -lm
+	$(CLANG_CC) -O3 -o tuner$(SUFFIX) tuner.c -lm
 
 pgo:
 ifeq ($(uname_S), Darwin)
@@ -199,11 +207,12 @@ ifeq ($(uname_S), Darwin)
 	@rm -f $(TMPDIR)/default.profraw $(TMPDIR)/default.profdata
 else
 	@$(MAKE) clean
-	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-generate -fprofile-update=atomic"
-	./$(EXE) bench
+	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-generate"
+	LLVM_PROFILE_FILE="$(TMPDIR)/default.profraw" ./$(EXE) bench
+	$(LLVM_PROFDATA) merge -output=$(TMPDIR)/default.profdata $(TMPDIR)/default.profraw
 	@rm -f $(OBJECTS) $(EXE)
-	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-use -fprofile-correction -fprofile-partial-training"
-	@rm -f $(TMPDIR)/*.gcda *.gcda
+	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-use=$(TMPDIR)/default.profdata"
+	@rm -f $(TMPDIR)/default.profraw $(TMPDIR)/default.profdata
 endif
 
 fast:

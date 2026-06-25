@@ -817,7 +817,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     int futilityValue = bestScore + 100;
 
     // legal moves counter
-    int legal_moves = 0;
+    //int legal_moves = 0;    
     
     struct copyposition copyPosition;
     // preserve board state once before move loop
@@ -848,7 +848,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
         legal_make_move(move, position);
 
-        legal_moves++;
+        //legal_moves++;
 
         // increment nodes count
         inc_rlx(t->search_i.nodes_searched);
