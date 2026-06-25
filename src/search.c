@@ -1418,7 +1418,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 doubleMargin -= ss->singular_ply * 25;*/
 
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN;
-                doubleMargin += 10 * (pvNode && !tt_was_pv);
+                doubleMargin += 5 * (pvNode && !tt_was_pv);
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
                 }                
@@ -1428,7 +1428,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 tripleMargin -= ((moveHistory * TRIPLE_EXT_HIST_MULT) / TRIPLE_EXT_HIST_DIVISOR * notTactical);
                 tripleMargin -= correction_adj;
                 tripleMargin -= !tt_capture * TRIPLE_EXT_QUIET_TT_BONUS;
-                tripleMargin += 20 * (pvNode && !tt_was_pv);
+                tripleMargin += 10 * (pvNode && !tt_was_pv);
                 
 
                 if (singularScore <= singularBeta - tripleMargin) {
@@ -1449,7 +1449,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 // ~~~~ Quadruple Extension ~~~~ //
                 int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + QUADRUPLE_EXT_NOISY_BONUS * !notTactical;
-                quadrupleMargin += 40 * (pvNode && !tt_was_pv);
+                quadrupleMargin += 20 * (pvNode && !tt_was_pv);
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
