@@ -4,6 +4,13 @@ TARGET      := Potential
 WARNINGS    = -Wall -Wextra -Wno-unused-variable
 CFLAGS      := -funroll-loops -fomit-frame-pointer -O3 -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
 NATIVE      = -march=native
+uname_M := $(shell uname -m 2>/dev/null || echo unknown)
+ifneq (,$(findstring aarch64,$(uname_M)))
+    NATIVE = -mcpu=native
+endif
+ifneq (,$(findstring arm64,$(uname_M)))
+    NATIVE = -mcpu=native
+endif
 AVX2FLAGS   = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi
 BMI2FLAGS   = -DUSE_AVX2 -DUSE_SIMD -mavx2 -mbmi -mbmi2
 AVX512FLAGS = -DUSE_AVX512 -DUSE_SIMD -mavx512f -mavx512bw
@@ -61,7 +68,7 @@ ifeq ($(uname_S), Darwin)
 endif
 
 ARCH_DETECTED =
-PROPERTIES = $(shell echo | $(CLANG_CC) -march=native -E -dM -)
+PROPERTIES = $(shell echo | $(CLANG_CC) $(NATIVE) -E -dM -)
 ifneq ($(findstring __AVX512F__, $(PROPERTIES)),)
 	ifneq ($(findstring __AVX512BW__, $(PROPERTIES)),)
 		ARCH_DETECTED = AVX512
