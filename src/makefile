@@ -15,23 +15,35 @@ ifeq ($(COMMIT_SHA),)
 endif
 
 CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
-
 NAME        := Potential
 TMPDIR      := .tmp
 
-ifeq ($(CC), clang)
+ifeq ($(CC), cc)
+    ifneq ($(wildcard C:/msys64/mingw64/bin/clang.exe),)
+        CC = C:/msys64/mingw64/bin/clang.exe
+    else
+        CC = clang
+    endif
+endif
+
+COMPILER_DIR := $(dir $(CC))
+ifeq ($(COMPILER_DIR),./)
+    LLVM_PROFDATA := llvm-profdata
+else
+    LLVM_PROFDATA := $(COMPILER_DIR)llvm-profdata
+endif
+
+ifneq ($(findstring clang,$(CC)),)
 	CFLAGS = -funroll-loops -O3 -flto -fno-exceptions -DIS_64BIT -DNDEBUG $(WARNINGS)
+	LDFLAGS += -fuse-ld=lld
 endif
 
 ifeq ($(OS), Windows_NT)
-    CC      = gcc
     MKDIR   := mkdir
 else
 ifeq ($(COMP), MINGW)
-    CC      = gcc
     MKDIR   := mkdir
 else
-    CC      ?= cc
     MKDIR   := mkdir -p
 endif
 endif
@@ -194,6 +206,14 @@ ifeq ($(uname_S), Darwin)
 	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-generate"
 	LLVM_PROFILE_FILE="$(TMPDIR)/default.profraw" ./$(EXE) bench
 	xcrun llvm-profdata merge -output=$(TMPDIR)/default.profdata $(TMPDIR)/default.profraw
+	@rm -f $(OBJECTS) $(EXE)
+	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-use=$(TMPDIR)/default.profdata"
+	@rm -f $(TMPDIR)/default.profraw $(TMPDIR)/default.profdata
+else ifneq ($(findstring clang,$(CC)),)
+	@$(MAKE) clean
+	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-generate"
+	LLVM_PROFILE_FILE="$(TMPDIR)/default.profraw" ./$(EXE) bench
+	$(LLVM_PROFDATA) merge -output=$(TMPDIR)/default.profdata $(TMPDIR)/default.profraw
 	@rm -f $(OBJECTS) $(EXE)
 	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-use=$(TMPDIR)/default.profdata"
 	@rm -f $(TMPDIR)/default.profraw $(TMPDIR)/default.profdata

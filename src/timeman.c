@@ -63,7 +63,7 @@ int input_waiting(void) {
 
             return (FD_ISSET(fileno(stdin), &readfds));
     #else
-        int init = 0, pipe;
+        int init = 0, pipe = 0;
         HANDLE inh;
         DWORD dw;
 
