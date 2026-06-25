@@ -364,7 +364,6 @@ int areSubStringsEqual(char *command, char *uciCommand, int stringSize) {
 
 
 
-
 // read GUI/user input
 void read_input(my_time* time, board* pos) {
     // bytes to read holder
