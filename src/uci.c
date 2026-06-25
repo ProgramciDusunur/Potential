@@ -21,7 +21,7 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "3.46.92"
+#define VERSION "3.46.93"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -450,7 +450,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
     initTimeControl(time_ctrl);
 
     // max hash MB
-    int max_hash = 32768;
+    int max_hash = 1048576;
 
     // default hash MB
     int default_hash_size = 64;

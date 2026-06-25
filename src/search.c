@@ -1838,7 +1838,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     uint8_t evalStability = 0;
     int baseSearchScore = -infinity;
 
-    quiet_history_aging();    
+    quiet_history_aging(t);    
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; current_depth++) {        

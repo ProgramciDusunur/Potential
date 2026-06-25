@@ -342,14 +342,9 @@ void clear_histories(void) {
     }
 }
 
-void quiet_history_aging(void) {
-    int how_many_threads = thread_pool.thread_count;
-
-    for (int i = 0;i < how_many_threads;i++) {
-        int16_t *p = (int16_t *)thread_pool.threads[i]->search_d.quietHistory;
-
-        for (int j = 0; j < 32768; j++) {
-            p[j] >>= 1;
-        }
-    }            
+void quiet_history_aging(ThreadData *t) {
+    int16_t *p = (int16_t *)t->search_d.quietHistory;
+    for (int j = 0; j < 32768; j++) {
+        p[j] >>= 1;
+    }
 }
