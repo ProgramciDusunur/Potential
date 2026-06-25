@@ -33,6 +33,7 @@ TUNE_INT CONT_CORRHIST_GRAIN = 202;
 TUNE_INT CONT_CORRHIST_MULT = 977;
 int CORRHIST_LIMIT = 1024;
 int BASE_CORRHIST_SIZE = 16384;
+int BASE_PAWNHIST_SIZE = 2048;
 int CORRHIST_MAX = 16384;
 
 /* Update History */
@@ -81,17 +82,19 @@ void updatePawnHistory(ThreadData *t, uint16_t bestMove, int bonus, int malus, m
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
 
-    int score = t->shared_history->pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[from]][to];
+    int mask = t->shared_history->pawn_history_mask;
+    int score = t->shared_history->pawnHistory[t->pos.pawnKey & mask][t->pos.mailbox[from]][to];
 
-    t->shared_history->pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
+    t->shared_history->pawnHistory[t->pos.pawnKey & mask][t->pos.mailbox[from]][to] += scaledBonus(score, bonus, maxPawnHistory);
 
-    for (int index = 0; index < badQuiets->count; index++) {
-        if (badQuiets->moves[index] == bestMove) continue;
+    for (int i = 0; i < badQuiets->count; i++) {
+        uint16_t badQuietMove = badQuiets->moves[i];
+        if (badQuietMove == bestMove) continue;
 
-        int badQuietFrom = getMoveSource(badQuiets->moves[index]);
-        int badQuietTo = getMoveTarget(badQuiets->moves[index]);
+        int badQuietFrom = getMoveSource(badQuietMove);
+        int badQuietTo = getMoveTarget(badQuietMove);
 
-        t->shared_history->pawnHistory[t->pos.pawnKey % 2048][t->pos.mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -malus, maxPawnHistory);
+        t->shared_history->pawnHistory[t->pos.pawnKey & mask][t->pos.mailbox[badQuietFrom]][badQuietTo] += scaledBonus(score, -malus, maxPawnHistory);
     }
 }
 
@@ -319,7 +322,7 @@ void clear_histories(void) {
     
     for (int i = 0; i < thread_pool.shared_history_count; i++) {
         SharedHistory *sh = thread_pool.shared_histories[i];
-        memset(sh->pawnHistory, 0, sizeof(sh->pawnHistory));
+        memset(sh->pawnHistory, 0, (sh->pawn_history_mask + 1) * sizeof(int16_t[12][64]));
         memset(sh->contCorrhist, 0, sizeof(sh->contCorrhist));
         memset(sh->continuationHistory, 0, sizeof(sh->continuationHistory));
         for (int c = 0; c < 2; c++) {
