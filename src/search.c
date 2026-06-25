@@ -157,7 +157,7 @@
     ║ Futility Pruning   ║
     ╚════════════════════╝*/
   TUNE_INT FUTILITY_PRUNING_OFFSET[] = {0, 92, 47, 22, 11, 5};
-  TUNE_INT FP_DEPTH = 5;
+  TUNE_INT FP_DEPTH = 7;
   TUNE_INT FP_MARGIN = 71;
   TUNE_INT BNFP_MARGIN = 72;
   TUNE_INT QUIET_HISTORY_PRUNING_MARGIN = 1679;
