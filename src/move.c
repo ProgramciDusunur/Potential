@@ -1674,3 +1674,18 @@ void printMove(uint16_t move) {
     }
 }
 
+
+void prefetch_tt_early(board *pos, uint16_t move) {
+    int sourceSquare = getMoveSource(move);
+    int targetSquare = getMoveTarget(move);
+    int piece = pos->mailbox[sourceSquare];
+    int capturedPiece = pos->mailbox[targetSquare];
+
+    uint64_t key = pos->hashKey ^ sideKey ^ pieceKeys[piece][sourceSquare].hashKey ^ pieceKeys[piece][targetSquare].hashKey;
+    if (capturedPiece != NO_PIECE) {
+        key ^= pieceKeys[capturedPiece][targetSquare].hashKey;
+    }
+
+    uint8_t fifty = (capturedPiece != NO_PIECE || piece == P || piece == p) ? 0 : pos->fifty + 1;
+    prefetch_hash_entry(key, fifty);
+}
