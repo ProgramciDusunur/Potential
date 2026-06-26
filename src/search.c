@@ -447,7 +447,7 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         captureScore += recapture_bonus;
         
         // NMP refutation move
-        //captureScore += getMoveTarget(move) == getMoveSource(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+        //captureScore += getMoveTarget(move) == getMoveSource(((ss)->move)) ? 500000 : 0;
 
         return captureScore;
 
@@ -469,7 +469,7 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         // pawn history
         quiet_score += (t->shared_history->pawnHistory[t->pos.pawnKey & t->shared_history->pawn_history_mask][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] * PAWN_HIST_WEIGHT) / PAWN_HIST_DIVISOR;
         // NMP refutation move
-        //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
+        //quiet_score += getMoveSource(move) == getMoveTarget(((ss)->move)) ? 500000 : 0;
 
         return quiet_score;
     }
@@ -1134,9 +1134,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // Refutation, our opponent has an argument
         if (score < beta) {
             // store null move refutation move
-            ss->nmp_refutation_move = ss->move;
 
-            uint16_t nmp_ref_move = ss->nmp_refutation_move;
+            uint16_t nmp_ref_move = ss->move;
             int nmp_depth = depth - R;
 
             if (!isTactical(nmp_ref_move)) {
