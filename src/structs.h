@@ -263,6 +263,7 @@ typedef struct {
     SearchStack *ss;                   // points to ss_base + STACK_OFFSET (10)
     int search_depth;                  // depth for this thread's search
     my_time *time;                     // pointer to shared time control
+    int generation;
 } ThreadData;
 
 typedef struct {
@@ -273,7 +274,14 @@ typedef struct {
     int shared_history_count;
 
     _Atomic bool stop;    
-    board root_pos;    
+    board root_pos;
+
+    pthread_mutex_t mutex;
+    pthread_cond_t  start_cond;
+    pthread_cond_t  done_cond;
+    int helpers_running;
+    bool threads_alive;
+    int search_generation;
 } ThreadPool;
 
 /* DATAGEN */

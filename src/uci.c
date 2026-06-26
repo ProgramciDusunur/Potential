@@ -20,7 +20,7 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "3.48.93"
+#define VERSION "3.49.93"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -705,7 +705,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         }
         // parse UCI "quit" command
         else if (strncmp(input, "quit", 4) == 0) {
-            // quit from the chess engine program executions
+            destroy_threads();
             break;
         }
             
