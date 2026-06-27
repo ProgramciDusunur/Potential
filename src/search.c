@@ -1460,6 +1460,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 extensions -= 2 + !pvNode;
             }
 
+            else if (tt_score <= alpha) {
+                extensions -= 1;
+            }
+
             // ╔══════════════════════════════╗
             // ║              /\              ║
             // ║             /  \             ║
