@@ -24,7 +24,7 @@ void setup_main_thread(board *board) {
     memcpy(&thread_pool.threads[0]->pos, board, sizeof(*board));
 }
 
-static void free_threads(void) {
+void free_threads(void) {
     for (int i = 0; i < thread_pool.thread_count; i++) {
         if (thread_pool.threads[i] != NULL) {
             free(thread_pool.threads[i]);
@@ -57,17 +57,99 @@ static void free_threads(void) {
     thread_pool.shared_history_count = 0;
 }
 
+uint64_t total_nodes(void) {
+    uint64_t nodes = 0;
+    for (int i = 0; i < thread_pool.thread_count; i++) {        
+        nodes += load_rlx(thread_pool.threads[i]->search_i.nodes_searched);
+    }
+    return nodes;
+}
+
+void *thread_entry(void *arg) {
+    ThreadData *t = (ThreadData *)arg;
+
+#if defined(_WIN32)
+    // Pin thread to specific logical processor for NUMA-awareness (Windows)
+    HANDLE native_thread = GetCurrentThread();
+    GROUP_AFFINITY affinity;
+    memset(&affinity, 0, sizeof(GROUP_AFFINITY));
+    affinity.Group = t->id / 64;
+    affinity.Mask = 1ULL << (t->id % 64);
+    SetThreadGroupAffinity(native_thread, &affinity, NULL);
+#elif defined(__linux__)
+    // Pin thread to specific logical processor for NUMA-awareness (Linux)
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(t->id, &cpuset);
+    pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+#endif
+
+    while (true) {
+        pthread_mutex_lock(&thread_pool.mutex);
+        while (t->generation == thread_pool.search_generation
+               && thread_pool.threads_alive) {
+            pthread_cond_wait(&thread_pool.start_cond, &thread_pool.mutex);
+        }
+
+        if (!thread_pool.threads_alive) {
+            pthread_mutex_unlock(&thread_pool.mutex);
+            break;
+        }
+
+        t->generation = thread_pool.search_generation;
+        pthread_mutex_unlock(&thread_pool.mutex);
+
+        searchPosition(t->search_depth, false, t, t->time);
+
+        pthread_mutex_lock(&thread_pool.mutex);
+        thread_pool.helpers_running--;
+        if (thread_pool.helpers_running == 0) {
+            pthread_cond_signal(&thread_pool.done_cond);
+        }
+        pthread_mutex_unlock(&thread_pool.mutex);
+    }
+    return NULL;
+}
+
+void destroy_threads(void) {
+    if (thread_pool.thread_count <= 0) return;
+
+    if (thread_pool.thread_count > 1) {
+        store_rlx(thread_pool.stop, true);
+
+        pthread_mutex_lock(&thread_pool.mutex);
+        thread_pool.threads_alive = false;
+        pthread_cond_broadcast(&thread_pool.start_cond);
+        pthread_mutex_unlock(&thread_pool.mutex);
+
+        for (int i = 1; i < thread_pool.thread_count; i++) {
+            pthread_join(thread_pool.threads[i]->native_handle, NULL);
+        }
+    }
+
+    free_threads();
+
+    pthread_mutex_destroy(&thread_pool.mutex);
+    pthread_cond_destroy(&thread_pool.start_cond);
+    pthread_cond_destroy(&thread_pool.done_cond);
+}
+
 void init_threads(int requested_count) {
     if (requested_count < 1) requested_count = 1;
     if (requested_count > MAX_THREADS) requested_count = MAX_THREADS;
 
-    // Free existing threads first
-    free_threads();
+    destroy_threads();
 
     thread_pool.thread_count = requested_count;
     store_rlx(thread_pool.stop, false);
 
-    // Default to 8 threads per L3 Cache domain
+    pthread_mutex_init(&thread_pool.mutex, NULL);
+    pthread_cond_init(&thread_pool.start_cond, NULL);
+    pthread_cond_init(&thread_pool.done_cond, NULL);
+    thread_pool.threads_alive = true;
+    thread_pool.helpers_running = 0;
+    thread_pool.search_generation = 0;
+
     int threads_per_l3 = 8;
     thread_pool.shared_history_count = (requested_count + threads_per_l3 - 1) / threads_per_l3;
     thread_pool.shared_histories = (SharedHistory **)malloc(thread_pool.shared_history_count * sizeof(SharedHistory *));
@@ -110,40 +192,13 @@ void init_threads(int requested_count) {
         thread_pool.threads[i]->id = i;
         thread_pool.threads[i]->shared_history = thread_pool.shared_histories[i / threads_per_l3];
         thread_pool.threads[i]->ss = thread_pool.threads[i]->ss_base + STACK_OFFSET;
+        thread_pool.threads[i]->generation = 0;
         clearStaticEvaluationHistory(thread_pool.threads[i]->ss);
     }
-}
 
-uint64_t total_nodes(void) {
-    uint64_t nodes = 0;
-    for (int i = 0; i < thread_pool.thread_count; i++) {        
-        nodes += load_rlx(thread_pool.threads[i]->search_i.nodes_searched);
+    for (int i = 1; i < requested_count; i++) {
+        pthread_create(&thread_pool.threads[i]->native_handle, NULL, thread_entry, thread_pool.threads[i]);
     }
-    return nodes;
-}
-
-// Thread entry function for helper threads
-static void *thread_entry(void *arg) {
-    ThreadData *t = (ThreadData *)arg;
-
-#if defined(_WIN32)
-    // Pin thread to specific logical processor for NUMA-awareness (Windows)
-    HANDLE native_thread = GetCurrentThread();
-    GROUP_AFFINITY affinity;
-    memset(&affinity, 0, sizeof(GROUP_AFFINITY));
-    affinity.Group = t->id / 64;
-    affinity.Mask = 1ULL << (t->id % 64);
-    SetThreadGroupAffinity(native_thread, &affinity, NULL);
-#elif defined(__linux__)
-    // Pin thread to specific logical processor for NUMA-awareness (Linux)
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(t->id, &cpuset);
-    pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-#endif
-
-    searchPosition(t->search_depth, false, t, t->time);
-    return NULL;
 }
 
 void start_helpers(board *root_pos, int depth, my_time *time) {
@@ -167,9 +222,14 @@ void start_helpers(board *root_pos, int depth, my_time *time) {
         // Set search parameters
         t->search_depth = depth;
         t->time = time;
+    }
 
-        // Launch thread
-        pthread_create(&t->native_handle, NULL, thread_entry, t);
+    if (thread_pool.thread_count > 1) {
+        pthread_mutex_lock(&thread_pool.mutex);
+        thread_pool.helpers_running = thread_pool.thread_count - 1;
+        thread_pool.search_generation++;
+        pthread_cond_broadcast(&thread_pool.start_cond);
+        pthread_mutex_unlock(&thread_pool.mutex);
     }
 }
 
@@ -177,8 +237,12 @@ void wait_helpers(void) {
     // Signal all helpers to stop
     store_rlx(thread_pool.stop, true);
 
-    for (int i = 1; i < thread_pool.thread_count; i++) {
-        pthread_join(thread_pool.threads[i]->native_handle, NULL);
+    if (thread_pool.thread_count > 1) {
+        pthread_mutex_lock(&thread_pool.mutex);
+        while (thread_pool.helpers_running > 0) {
+            pthread_cond_wait(&thread_pool.done_cond, &thread_pool.mutex);
+        }
+        pthread_mutex_unlock(&thread_pool.mutex);
     }
 }
 
