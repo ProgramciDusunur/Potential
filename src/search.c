@@ -492,6 +492,10 @@ uint8_t justPawns(board *pos) {
 
 void update_pv(board *pos, uint16_t move) {
     pos->pvTable[pos->ply][pos->ply] = move;
+    if (pos->ply + 1 == maxPly) {
+        pos->pvLength[pos->ply] = pos->ply + 1;
+        return;
+    }
     for (int next_ply = pos->ply + 1; next_ply < pos->pvLength[pos->ply + 1]; next_ply++)
         pos->pvTable[pos->ply][next_ply] = pos->pvTable[pos->ply + 1][next_ply];
     pos->pvLength[pos->ply] = pos->pvLength[pos->ply + 1];

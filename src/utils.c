@@ -191,9 +191,8 @@ void print_info(ThreadData *t, int depth, int score, int totalTime, int bound) {
 
     int len = t->pos.pvLength[0];
 
-    // upperbound: we want see only the first moves of PV
-    if (bound == 2 && t->pos.pvTable[0][0] != 0) {
-        len = 2;
+    if (bound == 2) {
+        len = myMIN(len, 2);
     }
 
     for (int count = 0; count < len; count++) {
