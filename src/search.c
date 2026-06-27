@@ -1256,13 +1256,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 if (probcut_value >= probcut_beta) {
                     // Update capture history according to probcut result
 
-                    // capture history bonus based on depth
-                    int prob_capthist_bonus = 30 * depth;
-
-                    // clamp capture history bonus
-                    //prob_capthist_bonus = myMIN(prob_capthist_bonus, CAPTHIST_BONUS_MAX);
-
-                    updateCaptureHistory(t, tt_move, prob_capthist_bonus);                    
+                    updateCaptureHistory(t, tt_move, probcut_depth);
 
                     writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos, pos->fifty);
                     return probcut_value;
