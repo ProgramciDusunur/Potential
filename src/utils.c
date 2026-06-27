@@ -190,17 +190,9 @@ void print_info(ThreadData *t, int depth, int score, int totalTime, int bound) {
                score, boundStr, (unsigned long long)nodes, nps, hash_full(), totalTime);
 
     int len = t->pos.pvLength[0];
-    
-    // lowerbound: we want see full PV
-    if (bound == 1 && t->pos.pvTable[0][0] != 0) {
-        len = 0;
-        while (len < maxPly && t->pos.pvTable[0][len] != 0) {
-            len++;
-        }
-    } 
-    // upperbound: we want see only the first moves of PV
-    else if (bound == 2 && t->pos.pvTable[0][0] != 0) {
-        len = 2;
+
+    if (bound == 2) {
+        len = myMIN(len, 2);
     }
 
     for (int count = 0; count < len; count++) {
