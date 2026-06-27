@@ -1257,7 +1257,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     // Update capture history according to probcut result
 
                     // capture history bonus based on depth
-                    int prob_capthist_bonus = 180 * depth;
+                    int prob_capthist_bonus = 30 * depth;
 
                     // clamp capture history bonus
                     //prob_capthist_bonus = myMIN(prob_capthist_bonus, CAPTHIST_BONUS_MAX);
