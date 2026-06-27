@@ -1488,6 +1488,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         else if (depth <= 7 && !in_check && predicted_cut_node) {
             int ldse_margin = alpha - LDSE_BASE_MARGIN;
             ldse_margin += LDSE_CORRECTION_MULT * abs(correction_value) / LDSE_CORRECTION_DIVISOR;
+            ldse_margin += (moveHistory * 512 / 1024) * notTactical;
             if (ttAdjustedEval <= ldse_margin) {
                 extensions++;
             }            
