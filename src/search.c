@@ -1644,7 +1644,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
 
             if (!improving && !in_check) {
-                nonpv_reduction -= IMPROVING_NON_PV_LMR_SCALAR;
+                nonpv_reduction -= IMPROVING_NON_PV_SCALAR;
             }
 
             nonpv_reduction /= 1024;
