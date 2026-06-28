@@ -98,6 +98,7 @@
   TUNE_INT FUTILITY_LMR_MULT = 82;
   TUNE_INT FUTILITY_LMR_SCALAR = 989;
   TUNE_INT IMPROVING_LMR_SCALAR = 1071;
+  TUNE_INT IMPROVING_NON_PV_SCALAR = 1024;
   TUNE_INT IMPROVING_FAIL_HIGH_MARGIN = 95;
   TUNE_INT GIVES_CHECK_LMR_SCALAR = 1022;
   TUNE_INT CUT_NODE_LMR_NO_TT_SCALAR = 1031;
@@ -1640,6 +1641,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             bool multithreaded_search = thread_pool.thread_count > 1;
             if (multithreaded_search) {                
                 nonpv_reduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 1078) - 27;
+            }
+
+            if (!improving && !in_check) {
+                nonpv_reduction -= IMPROVING_NON_PV_LMR_SCALAR;
             }
 
             nonpv_reduction /= 1024;
