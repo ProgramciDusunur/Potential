@@ -1185,6 +1185,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
     if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !ss->singular_move &&
+        (pos->ply - ss->last_pc_ply) % 2 == 0 &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1215,6 +1216,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 }
                 // increment ply
                 pos->ply++;
+                uint16_t previous_pc_ply = pos->ply;
 
                 // increment repetition index & store hash key
                 pos->repetitionIndex++;
@@ -1246,6 +1248,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 // decrement ply
                 pos->ply--;
+                ss->last_pc_ply = previous_pc_ply;
 
                 // decrement repetition index
                 pos->repetitionIndex--;
