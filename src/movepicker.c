@@ -10,7 +10,7 @@ void init_mp(MovePicker *mp, uint16_t tt_move) {
     mp->bad_noisy.count = 0;
 }
 
-uint16_t get_next_move(MovePicker *mp, int *move_scores, board *pos, ThreadData *t, SearchStack *ss) {
+uint16_t get_next_move(MovePicker *mp, int *move_scores, board *pos, ThreadData *t, SearchStack *ss, check_info_t *check_info) {
     switch (mp->CURRENT_STAGE) {
         case STAGE_TT:
             mp->CURRENT_STAGE = STAGE_GEN_NOISY;
@@ -21,7 +21,7 @@ uint16_t get_next_move(MovePicker *mp, int *move_scores, board *pos, ThreadData 
         case STAGE_GEN_NOISY:
             mp->CURRENT_STAGE = STAGE_GOOD_NOISY;
             legal_noisy_generator(&mp->good_noisy, pos);            
-            init_move_scores(&mp->good_noisy, move_scores, mp->tt_move, t, ss);
+            init_move_scores(&mp->good_noisy, move_scores, mp->tt_move, t, ss, check_info);
             mp->good_noisy_index = 0;
         // fallthrough
         case STAGE_GOOD_NOISY:
@@ -47,7 +47,7 @@ uint16_t get_next_move(MovePicker *mp, int *move_scores, board *pos, ThreadData 
         case STAGE_GEN_QUIET:
             mp->CURRENT_STAGE = STAGE_QUIET;
             legal_quiet_generator(&mp->quiet, pos);            
-            init_move_scores(&mp->quiet, move_scores, mp->tt_move, t, ss);
+            init_move_scores(&mp->quiet, move_scores, mp->tt_move, t, ss, check_info);
             mp->quiet_index = 0;
         // fallthrough
         case STAGE_QUIET:

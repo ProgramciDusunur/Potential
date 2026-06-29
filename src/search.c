@@ -348,14 +348,14 @@ void pick_next_move(int moveNum, moves *moveList, int *move_scores) {
     }
 }
 
-void init_move_scores(moves *moveList, int *move_scores, uint16_t tt_move, ThreadData *t, SearchStack *ss) {
+void init_move_scores(moves *moveList, int *move_scores, uint16_t tt_move, ThreadData *t, SearchStack *ss, check_info_t *check_info) {
     for (int count = 0; count < moveList->count; count++) {
         uint16_t current_move = moveList->moves[count];
         
         if (tt_move == current_move) {
             move_scores[count] = TT_SCORE;
         } else {
-            move_scores[count] = scoreMove(current_move, t, ss);
+            move_scores[count] = scoreMove(current_move, t, ss, check_info);
         }
     }
 }
@@ -391,7 +391,7 @@ void init_quiescence_scores(moves *moveList, int *move_scores, board* position) 
 */
 
 // score moves
-int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {    
+int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss, check_info_t *check_info) {    
     // score promotion move
     if (getMovePromote(move)) {
         switch (getMovePromotedPiece(t->pos.side, move)) {
@@ -468,6 +468,8 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         quiet_score += (getContinuationHistoryScore(t, 4, move, ss) * CONTHIST_4_WEIGHT) / CONTHIST_4_DIVISOR;
         // pawn history
         quiet_score += (t->shared_history->pawnHistory[t->pos.pawnKey & t->shared_history->pawn_history_mask][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] * PAWN_HIST_WEIGHT) / PAWN_HIST_DIVISOR;
+        // bonus for checks
+        quiet_score += (move_gives_check(move, &t->pos, check_info) && SEE(&t->pos, move, -100)) * 16384;
         // NMP refutation move
         //quiet_score += getMoveSource(move) == getMoveTarget(position->nmp_refutation_move[position->ply]) ? 500000 : 0;
 
@@ -806,10 +808,12 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     const bool should_do_evasions =
         !pvNode && tt_move && tt_flag != hashFlagBeta && !isTactical(tt_move);
 
+    check_info_t check_info = { .valid = 0 };
+
     // generate moves
     if (should_do_evasions) {
         legal_move_generator(moveList, position);
-        init_move_scores(moveList, move_scores, 0, t, ss);
+        init_move_scores(moveList, move_scores, 0, t, ss, &check_info);
     } else {
         legal_noisy_generator(moveList, position);
         init_quiescence_scores(moveList, move_scores, position);
@@ -1192,8 +1196,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             legal_noisy_generator(capture_promos, pos);
 
+            check_info_t check_info = { .valid = 0 };
+
             int move_scores[256];
-            init_move_scores(capture_promos, move_scores, tt_move, t, ss);
+            init_move_scores(capture_promos, move_scores, tt_move, t, ss, &check_info);
             struct copyposition probcutCopy;
             // preserve board state once before probcut loop
             copyBoard(pos, &probcutCopy);
@@ -1306,7 +1312,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     uint16_t currentMove = 0;
     // loop over moves within a movelist
-    while ((currentMove = get_next_move(&mp, move_scores, pos, t, ss)) != 0) {
+    while ((currentMove = get_next_move(&mp, move_scores, pos, t, ss, &check_info)) != 0) {
 
         if (currentMove == ss->singular_move) {
             continue;
