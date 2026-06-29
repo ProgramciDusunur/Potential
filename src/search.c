@@ -950,7 +950,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     bool tt_hit = false;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
-    bool tt_pv = pvNode;    
+    bool tt_pv = pvNode;
+    bool tt_was_pv = false;
 
     // Check for fifty-move rule
     if (pos->fifty >= 100) {
@@ -978,6 +979,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     // read hash entry
     tt_hit = !ss->singular_move && !rootNode && readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty);
+
+    tt_was_pv = tt_pv;
 
     // read hash entry
     if (tt_hit && !pvNode) {
@@ -1407,6 +1410,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 doubleMargin -= ss->singular_ply * 25;*/
 
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN;
+                doubleMargin += 3 * (pvNode && !tt_was_pv);
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
                 }                
@@ -1416,6 +1420,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 tripleMargin -= ((moveHistory * TRIPLE_EXT_HIST_MULT) / TRIPLE_EXT_HIST_DIVISOR * notTactical);
                 tripleMargin -= correction_adj;
                 tripleMargin -= !tt_capture * TRIPLE_EXT_QUIET_TT_BONUS;
+                tripleMargin += 6 * (pvNode && !tt_was_pv);
                 
 
                 if (singularScore <= singularBeta - tripleMargin) {
@@ -1436,7 +1441,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 // ~~~~ Quadruple Extension ~~~~ //
                 int quadrupleMargin = QUADRUPLE_EXTENSION_MARGIN + QUADRUPLE_EXT_NOISY_BONUS * !notTactical;
-
+                quadrupleMargin += 9 * (pvNode && !tt_was_pv);
                 if (singularScore <= singularBeta - quadrupleMargin) {
                     extensions++;
                 }
