@@ -1569,7 +1569,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
 
         if (allNode) {            
-            lmrReduction += lmrReduction * 272 / (256 * depth + 256 + 256 * tt_move);
+            lmrReduction += lmrReduction * 384 / (256 * depth + 256);
         }
 
         if (notTactical) {
