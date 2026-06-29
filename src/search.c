@@ -179,7 +179,7 @@
   /*╔══════════╗
     ║ Razoring ║
     ╚══════════╝*/
-  TUNE_INT RAZORING_DEPTH = 3;
+  TUNE_INT RAZORING_DEPTH = 5;
   TUNE_INT RAZORING_FULL_MARGIN = 220;    
   TUNE_INT RAZORING_DEPTH_SCALE = 17;
   TUNE_INT RAZORING_VERIFY_MARGIN = 122;
@@ -201,8 +201,8 @@
   extern TUNE_DOUBLE TM_NODE_MULTIPLIER;
   extern TUNE_DOUBLE TM_NODE_MIN_MULTIPLIER;
   TUNE_INT RAZORING_TRIM = 1;
-  TUNE_INT RAZORING_FULL_D = 2;
-  TUNE_INT RAZORING_VERIFY_D = 3;
+  TUNE_INT RAZORING_FULL_D = 4;
+  TUNE_INT RAZORING_VERIFY_D = 5;
   TUNE_INT RAZORING_MARGIN = 100;
   
   
@@ -1149,7 +1149,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // razoring
     const int razoring_margin = RAZORING_MARGIN * depth;
     if (!ss->singular_move && !pvNode && !in_check && depth <= RAZORING_DEPTH && ttAdjustedEval + razoring_margin <= alpha && tt_flag != hashFlagAlpha) {
-        
+
         const bool allow_full_razor = depth == 1 ||
             (depth <= RAZORING_FULL_D && ttAdjustedEval + razoring_margin + RAZORING_FULL_MARGIN <= alpha);
 
