@@ -204,6 +204,7 @@
   TUNE_INT RAZORING_FULL_D = 2;
   TUNE_INT RAZORING_VERIFY_D = 3;
   TUNE_INT RAZORING_MARGIN = 100;
+  TUNE_INT RAZORING_EXT_MARGIN = 250;
   
   
   /*╔═════════════════════╗
@@ -1167,8 +1168,13 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             return razor_score;
         }
 
-        if (razor_score >= razor_beta + RAZORING_VERIFY_MARGIN && depth <= RAZORING_VERIFY_D) {                    
-            depth -= myMIN(RAZORING_TRIM, depth - 1);
+        if (razor_score >= razor_beta + RAZORING_VERIFY_MARGIN && depth <= RAZORING_VERIFY_D) {
+            // We are failed high significantly, so should aware about tactical sequences, extend search
+            if (razor_score >= razor_beta + RAZORING_EXT_MARGIN) {
+                depth += 1;
+            } else {
+                depth -= myMIN(RAZORING_TRIM, depth - 1);
+            }
         }
     }
 

@@ -163,6 +163,7 @@ extern TUNE_INT QUIET_HISTORY_PRUNING_MARGIN;
 extern TUNE_INT RAZORING_FULL_MARGIN;
 extern TUNE_INT RAZORING_DEPTH_SCALE;
 extern TUNE_INT RAZORING_VERIFY_MARGIN;
+extern TUNE_INT RAZORING_EXT_MARGIN;
 
 // History Bonuses
 extern TUNE_INT QUIET_HIST_BONUS_BASE;
@@ -365,6 +366,7 @@ void spsa_init(void) {
     spsa_add_int("RAZORING_FULL_MARGIN",        &RAZORING_FULL_MARGIN,           220,     80,    400,  15.00, 0.002);
     spsa_add_int("RAZORING_DEPTH_SCALE",        &RAZORING_DEPTH_SCALE,            17,      5,     40,   2.00, 0.002);
     spsa_add_int("RAZORING_VERIFY_MARGIN",      &RAZORING_VERIFY_MARGIN,         122,     40,    250,  12.00, 0.002);
+    spsa_add_int("RAZORING_EXT_MARGIN",          &RAZORING_EXT_MARGIN,            250,    130,    500,  20.00, 0.002);
 
     // ── History Bonuses ──
     spsa_add_int("QUIET_HIST_BONUS_BASE",       &QUIET_HIST_BONUS_BASE,           8,      0,     50,   2.00, 0.002);
