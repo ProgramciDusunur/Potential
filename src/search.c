@@ -158,7 +158,7 @@
     ║ Futility Pruning   ║
     ╚════════════════════╝*/
   TUNE_INT FUTILITY_PRUNING_OFFSET[] = {0, 92, 47, 22, 11, 5};
-  TUNE_INT FP_DEPTH = 5;
+  TUNE_INT FP_DEPTH = 10;
   TUNE_INT FP_MARGIN = 71;
   TUNE_INT BNFP_MARGIN = 72;
   TUNE_INT QUIET_HISTORY_PRUNING_MARGIN = 1679;
@@ -1334,12 +1334,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 // Late Move Pruning
                 if (moves_seen >= lmpThreshold) {
                     continue;
-                }            
+                }
+                int sdepth = myMAX(0, lmrDepth - 5);
                 int futility_margin = 
                     static_eval + 
                     FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
                     FP_MARGIN * lmrDepth + 
-                    (moveHistory * FP_HIST_MULT) / FP_HIST_DIVISOR;
+                    (moveHistory * FP_HIST_MULT) / FP_HIST_DIVISOR +                    
+                    sdepth * sdepth * 50;
                 
 
                 // Futility Pruning
