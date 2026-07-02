@@ -1262,7 +1262,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     // Internal Iterative Deepening (IID)
     if (!rootNode && pvNode && depth >= 8 && !in_check && !ss->singular_move && !tt_move) {
-        int idd_depth = (768 * depth - 2048) / 1024;
+        int idd_depth = (768 * depth - 1280) / 1024;
         int idd_score = negamax(alpha, beta, idd_depth, t, time, ss, predicted_cut_node);
 
         int16_t iid_score; uint8_t iid_depth, iid_flag; bool iid_pv;
