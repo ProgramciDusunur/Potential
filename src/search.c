@@ -940,7 +940,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
 
     int pvNode = beta - alpha > 1;
-
+    bool allNode  = !(pvNode || predicted_cut_node);
     int rootNode = pos->ply == 0;
 
     uint16_t bestMove = 0;
@@ -1560,6 +1560,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         if (!improving && !in_check) {
             lmrReduction += IMPROVING_LMR_SCALAR;
+        }
+
+        if (allNode) {
+            lmrReduction += lmrReduction * 136 / (256 * depth + 256);
         }
 
         if (notTactical) {
