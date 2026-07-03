@@ -235,7 +235,7 @@ uint64_t get_king_key(const board *pos, int side) {
 
 void update_king_corrhist(ThreadData *t, const int depth, const int diff) {
     const int scaledDiff = diff * KING_CORRHIST_GRAIN;
-    const int newWeight = 4 * myMIN(depth + 1, 16);
+    const int newWeight = 6 * myMIN(depth + 1, 16);
     
     int16_t *entry = &t->shared_history->king_corrhist[t->pos.side][get_king_key(&t->pos, t->pos.side)];
     apply_corrhist_update(entry, scaledDiff, newWeight, KING_CORRHIST_WEIGHT_SCALE);
