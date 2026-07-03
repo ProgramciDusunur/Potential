@@ -229,6 +229,8 @@ typedef struct {
 
     int16_t *krp_corrhist[2];
     
+    int16_t *king_corrhist[2];
+    
     // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
     int16_t continuationHistory[12][64][12][64];
 

@@ -33,6 +33,8 @@ extern TUNE_INT NON_PAWN_CORRHIST_WEIGHT_SCALE;
 extern TUNE_INT NON_PAWN_CORRHIST_GRAIN;
 extern TUNE_INT KRP_CORRHIST_WEIGHT_SCALE;
 extern TUNE_INT KRP_CORRHIST_GRAIN;
+extern TUNE_INT KING_CORRHIST_WEIGHT_SCALE;
+extern TUNE_INT KING_CORRHIST_GRAIN;
 extern TUNE_INT CONT_CORRHIST_WEIGHT_SCALE;
 extern TUNE_INT CONT_CORRHIST_GRAIN;
 extern int CORRHIST_LIMIT;
@@ -60,7 +62,9 @@ void update_major_correction_hist(ThreadData *t, const int depth, const int diff
 void update_non_pawn_corrhist(ThreadData *t, const int depth, const int diff);
 void update_continuation_corrhist(ThreadData *t, const int depth, const int diff, SearchStack *ss);
 void update_single_cont_corrhist_entry(ThreadData *t, const int pliesBack, const int scaledDiff, const int newWeight, SearchStack *ss);
+uint64_t get_king_key(const board *pos, int side);
 void update_king_rook_pawn_corrhist(ThreadData *t, const int depth, const int diff);
+void update_king_corrhist(ThreadData *t, const int depth, const int diff);
 int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss);
 int get_correction_value(ThreadData *t, SearchStack *ss);
 void clear_histories(void);
