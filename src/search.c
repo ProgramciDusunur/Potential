@@ -1856,6 +1856,14 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         int window = ASP_WINDOW_BASE / ASP_WINDOW_DIVISOR;
         int aspirationWindowDepth = current_depth;
 
+        // Save the PV from the previous iteration for use in bound info
+        int savedPV[maxPly];
+        int savedPVLength = 0;
+        if (t->id == 0) {
+            savedPVLength = t->pos.pvLength[0];
+            memcpy(savedPV, t->pos.pvTable[0], savedPVLength * sizeof(int));
+        }
+
         while (true) {
 
             // check time and node limits (the check should done by the main thread)
@@ -1891,6 +1899,12 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                 break;
             }
             if (score <= alpha) {
+                // fail-low: restore the saved PV for printing (main thread only)
+                if (t->id == 0) {
+                    memcpy(t->pos.pvTable[0], savedPV, savedPVLength * sizeof(int));
+                    t->pos.pvLength[0] = savedPVLength;
+                }
+
                 if (t->id == 0 && !benchmark && !time->stopped) {
                     int endTime = getTimeMiliSecond();
                     int elapsed = totalTime + (endTime - startTime);
@@ -1901,6 +1915,12 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             }
 
             else if (score >= beta) {
+                // fail-high: update saved PV with current result (main thread only)
+                if (t->id == 0) {
+                    savedPVLength = t->pos.pvLength[0];
+                    memcpy(savedPV, t->pos.pvTable[0], savedPVLength * sizeof(int));
+                }
+
                 if (t->id == 0 && !benchmark && !time->stopped) {
                     int endTime = getTimeMiliSecond();
                     int elapsed = totalTime + (endTime - startTime);
