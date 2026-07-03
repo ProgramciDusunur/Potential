@@ -33,6 +33,15 @@
 \*███████████████████████████████████████████████████████████████████████████████*/
 
 
+/*╔════════════════════════════════╗
+  ║    Prior Counter Move Bonus    ║
+  ╚════════════════════════════════╝*/
+  TUNE_INT PCM_FACTOR = 0;
+  TUNE_INT PCM_DEPTH_MULT = 0;
+  TUNE_INT PCM_DEPTH_SUB = 0;
+  TUNE_INT PCM_LIMIT = 2400;
+  TUNE_INT PCM_DIVISOR = 128;
+
 /*╔═══════════════════════════════╗
   ║ Static Exchange Evaluation    ║
   ╚═══════════════════════════════╝*/
@@ -1771,9 +1780,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // Prior Counter Move Bonus
     uint16_t prior_move = (ss - 1)->move;
     if (!rootNode && !bestMove && tt_flag == hashFlagBeta && prior_move && !isTactical(prior_move)) {
-        int factor = 12;
-
-        int scaled_bonus = factor;
+        int scaled_bonus = PCM_FACTOR * myMIN((PCM_DEPTH_MULT * depth - PCM_DEPTH_SUB), PCM_LIMIT) / PCM_DIVISOR;
 
         //pcm_bonus = myMIN(pcm_bonus, 2048);
 
