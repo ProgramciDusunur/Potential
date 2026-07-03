@@ -259,11 +259,11 @@ void spsa_init(void) {
     spsa_count = 0;
 
     // ── Prior Counter Move Bonus ──
-    spsa_add_int("PCM_FACTOR", &PCM_FACTOR, 85, 10, 200, 10.0, 0.002);
-    spsa_add_int("PCM_DEPTH_MULT", &PCM_DEPTH_MULT, 185, 50, 400, 20.0, 0.002);
-    spsa_add_int("PCM_DEPTH_SUB", &PCM_DEPTH_SUB, 41, 0, 150, 10.0, 0.002);
-    spsa_add_int("PCM_LIMIT", &PCM_LIMIT, 2514, 1000, 4000, 200.0, 0.002);
-    spsa_add_int("PCM_DIVISOR", &PCM_DIVISOR, 134, 32, 512, 16.0, 0.002);
+    spsa_add_int("PCM_FACTOR", &PCM_FACTOR, 0, 0, 200, 10.0, 0.002);
+    spsa_add_int("PCM_DEPTH_MULT", &PCM_DEPTH_MULT, 0, 0, 400, 20.0, 0.002);
+    spsa_add_int("PCM_DEPTH_SUB", &PCM_DEPTH_SUB, 0, 0, 150, 10.0, 0.002);
+    spsa_add_int("PCM_LIMIT", &PCM_LIMIT, 2400, 1000, 4000, 200.0, 0.002);
+    spsa_add_int("PCM_DIVISOR", &PCM_DIVISOR, 128, 32, 512, 16.0, 0.002);
 
     printf("info string SPSA: %d parameters registered\n", spsa_count);
 }
