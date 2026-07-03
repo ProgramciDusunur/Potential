@@ -1021,7 +1021,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     improving = !in_check && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
 
     // Internal Iterative Reductions
-    if ((pvNode || predicted_cut_node) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
+    if ((pvNode || predicted_cut_node) && depth >= IIR_DEPTH && !tt_move) {
         depth--;
     }
 
