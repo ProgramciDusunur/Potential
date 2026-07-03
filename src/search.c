@@ -1355,8 +1355,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             } 
 
             else {
-                int noisy_futility_margin = static_eval + BNFP_MARGIN * depth;
-                if (!in_check && depth <= 4 && mp.CURRENT_STAGE == STAGE_BAD_NOISY && noisy_futility_margin <= alpha) {
+                int noisy_futility_margin = static_eval + BNFP_MARGIN * lmrDepth;
+                if (!in_check && depth <= lmrDepth && mp.CURRENT_STAGE == STAGE_BAD_NOISY && noisy_futility_margin <= alpha) {
                     if (!is_decisive(bestScore) && bestScore < noisy_futility_margin) {
                         bestScore = noisy_futility_margin;
                     }
