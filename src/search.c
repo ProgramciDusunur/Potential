@@ -36,11 +36,11 @@
 /*╔════════════════════════════════╗
   ║    Prior Counter Move Bonus    ║
   ╚════════════════════════════════╝*/
-  TUNE_INT PCM_FACTOR = 85;
-  TUNE_INT PCM_DEPTH_MULT = 185;
-  TUNE_INT PCM_DEPTH_SUB = 41;
-  TUNE_INT PCM_LIMIT = 2514;
-  TUNE_INT PCM_DIVISOR = 134;
+  TUNE_INT PCM_FACTOR = 0;
+  TUNE_INT PCM_DEPTH_MULT = 0;
+  TUNE_INT PCM_DEPTH_SUB = 0;
+  TUNE_INT PCM_LIMIT = 2400;
+  TUNE_INT PCM_DIVISOR = 128;
 
 
 
