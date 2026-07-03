@@ -254,6 +254,7 @@ static void spsa_add_double(const char *name, const void *ptr, double def, doubl
 }
 
 
+
 void spsa_init(void) {
     if (!SPSA_ACTIVE) return;
     spsa_count = 0;
