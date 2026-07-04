@@ -1620,7 +1620,21 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 new_depth -= doShallower;
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
+
                 score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !predicted_cut_node);
+                
+                // Post LMR Continuation History Update
+                if (notTactical && (score <= alpha || score >= beta)) {
+
+                    int conthist_bonus = score <= alpha ? 
+                    CONTHIST_MALUS_BASE + CONTHIST_MALUS_DEPTH * depth:
+                    CONTHIST_BONUS_BASE + CONTHIST_BONUS_DEPTH * depth;
+
+                    // we don't want to include quiet main history score, 
+                    // so just get one ply conthist score and it will be neutralized
+                    int quiet_history_score = getContinuationHistoryScore(t, 1, currentMove, ss);
+                    updateAllCH(t, currentMove, conthist_bonus, quiet_history_score, ss);
+                }
             }
         }
         else if (!pvNode || moves_seen > 1) {
