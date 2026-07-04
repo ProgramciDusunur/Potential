@@ -71,6 +71,7 @@ typedef struct {
     int64_t psqt_score;
 
     U64 pinned[2];
+    U64 pinners[2];
     //U64 check_squares[4];
     threats pieceThreats;
 
@@ -116,6 +117,7 @@ struct copyposition {
     int64_t psqt_score;
 
     U64 pinned[2];
+    U64 pinners[2];
     threats pieceThreats;
 };
 

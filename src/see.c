@@ -222,6 +222,7 @@ void update_pinned(board *pos) {
     int king_square = getLS1BIndex(pos->bitboards[pos->side == white ? K : k]);
 
     pos->pinned[pos->side] = 0ULL;
+    pos->pinners[!pos->side] = 0ULL;
 
     
     U64 potential_pinners_orth = (pos->bitboards[pos->side == white ? r : R] | pos->bitboards[pos->side == white ? q : Q]) &
@@ -234,6 +235,7 @@ void update_pinned(board *pos) {
         if (countBits(ray) == 1) {
             if (ray & my_pieces) {
                 pos->pinned[pos->side] |= ray;
+                pos->pinners[!pos->side] |= (1ULL << pinner_square);
             }
         }
         popBit(potential_pinners_orth, pinner_square);
@@ -249,6 +251,7 @@ void update_pinned(board *pos) {
         if (countBits(ray) == 1) {
             if (ray & my_pieces) {
                 pos->pinned[pos->side] |= ray;
+                pos->pinners[!pos->side] |= (1ULL << pinner_square);
             }
         }
         popBit(potential_pinners_diag, pinner_square);

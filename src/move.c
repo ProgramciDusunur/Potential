@@ -58,6 +58,8 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->psqt_score = p->psqt_score;
     cp->pinned[0] = p->pinned[0];
     cp->pinned[1] = p->pinned[1];
+    cp->pinners[0] = p->pinners[0];
+    cp->pinners[1] = p->pinners[1];
     cp->pieceThreats = p->pieceThreats;
 }
 
@@ -81,6 +83,8 @@ void takeBack(board *p, struct copyposition *cp) {
     p->psqt_score = cp->psqt_score;
     p->pinned[0] = cp->pinned[0];
     p->pinned[1] = cp->pinned[1];
+    p->pinners[0] = cp->pinners[0];
+    p->pinners[1] = cp->pinners[1];
     p->pieceThreats = cp->pieceThreats;
 }
 

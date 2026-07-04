@@ -586,8 +586,8 @@ int SEE(board *pos, uint16_t move, int threshold) {
     
     attackers = all_attackers_to_square(pos, occupied, to) & occupied;
     
-    U64 white_pinned = pos->pinned[white] & attackers;
-    U64 black_pinned = pos->pinned[black] & attackers;
+    U64 white_pinned = (pos->pinners[black] & occupied) ? (pos->pinned[white] & attackers) : 0ULL;
+    U64 black_pinned = (pos->pinners[white] & occupied) ? (pos->pinned[black] & attackers) : 0ULL;
     U64 pinned = white_pinned | black_pinned;
 
     
