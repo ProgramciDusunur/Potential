@@ -727,6 +727,10 @@ int get_draw_score(ThreadData *t) {
     return (load_rlx(t->search_i.nodes_searched) & 3) - 2; // Randomize between -2 and +2
 }
 
+int get_tt_cutoff_score(int tt_score, int beta) {
+    return tt_score >= beta && !is_decisive(tt_score) && !is_decisive(beta) ? (tt_score * 3 + beta) / 4 : tt_score;
+}
+
 // quiescence search
 int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *ss) {
     board *position = &t->pos;
@@ -773,8 +777,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
-             return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
-                                          tt_score;
+                return get_tt_cutoff_score(tt_score, beta);
         }
     }
 
@@ -986,8 +989,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if ((tt_flag == hashFlagExact) ||
                 ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
                 ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
-                return tt_score >= beta ? (tt_score * 3 + beta) / 4 :
-                                          tt_score;
+                    return get_tt_cutoff_score(tt_score, beta);
             }
         }
     }
