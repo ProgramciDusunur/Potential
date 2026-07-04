@@ -586,7 +586,10 @@ int SEE(board *pos, uint16_t move, int threshold) {
     
     attackers = all_attackers_to_square(pos, occupied, to) & occupied;
 
-           
+    U64 king_rays[2] = {
+        ray_pass[getLS1BIndex(pos->bitboards[K])][to],
+        ray_pass[getLS1BIndex(pos->bitboards[k])][to]
+    };
 
     // Now our opponents turn to recapture
     colour = pos->side ^ 1;
@@ -596,12 +599,8 @@ int SEE(board *pos, uint16_t move, int threshold) {
         myAttackers = attackers & pos->occupancies[colour];
         
         if (pos->pinners[!colour] & occupied) {
-            U64 my_pinned = pos->pinned[colour] & myAttackers;
-            if (my_pinned) {
-                int king_sq = getLS1BIndex(pos->bitboards[colour == white ? K : k]);
-                U64 mask = lineBB[king_sq][to] | rayBB[king_sq][to];
-                myAttackers &= ~my_pinned | mask;
-            }
+            U64 pinned_off_ray = pos->pinned[colour] & ~king_rays[colour];
+            myAttackers &= ~pinned_off_ray;
         }
         
         if (myAttackers == 0ull) {
