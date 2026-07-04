@@ -217,44 +217,46 @@ void init_helper_bb(void) {
 
 void update_pinned(board *pos) {
     U64 occupancy = pos->occupancies[both];
-    U64 my_pieces = pos->occupancies[pos->side];
-    U64 enemy_pieces = pos->occupancies[!pos->side];
-    int king_square = getLS1BIndex(pos->bitboards[pos->side == white ? K : k]);
 
-    pos->pinned[pos->side] = 0ULL;
-    pos->pinners[!pos->side] = 0ULL;
+    for (int side = 0; side <= 1; side++) {
+        U64 friendly = pos->occupancies[side];
+        U64 enemy = pos->occupancies[!side];
+        int king_square = getLS1BIndex(pos->bitboards[side == white ? K : k]);
 
-    
-    U64 potential_pinners_orth = (pos->bitboards[pos->side == white ? r : R] | pos->bitboards[pos->side == white ? q : Q]) &
-                                 getRookAttacks(king_square, enemy_pieces);
+        pos->pinned[side] = 0ULL;
+        pos->pinners[!side] = 0ULL;
 
-    while (potential_pinners_orth) {
-        int pinner_square = getLS1BIndex(potential_pinners_orth);
-        U64 ray = lineBB[king_square][pinner_square] & occupancy;
+        U64 potential_pinners_orth = (pos->bitboards[side == white ? r : R] | pos->bitboards[side == white ? q : Q]) &
+                                     getRookAttacks(king_square, enemy);
 
-        if (countBits(ray) == 1) {
-            if (ray & my_pieces) {
-                pos->pinned[pos->side] |= ray;
-                pos->pinners[!pos->side] |= (1ULL << pinner_square);
+        while (potential_pinners_orth) {
+            int pinner_square = getLS1BIndex(potential_pinners_orth);
+            U64 ray = lineBB[king_square][pinner_square] & occupancy;
+
+            if (countBits(ray) == 1) {
+                if (ray & friendly) {
+                    pos->pinned[side] |= ray;
+                    pos->pinners[!side] |= (1ULL << pinner_square);
+                }
             }
+            popBit(potential_pinners_orth, pinner_square);
         }
-        popBit(potential_pinners_orth, pinner_square);
-    }
-    
-    U64 potential_pinners_diag = (pos->bitboards[pos->side == white ? b : B] | pos->bitboards[pos->side == white ? q : Q]) &
-                                 getBishopAttacks(king_square, enemy_pieces);
 
-    while (potential_pinners_diag) {
-        int pinner_square = getLS1BIndex(potential_pinners_diag);
-        U64 ray = rayBB[king_square][pinner_square] & occupancy;
+        U64 potential_pinners_diag = (pos->bitboards[side == white ? b : B] | pos->bitboards[side == white ? q : Q]) &
+                                     getBishopAttacks(king_square, enemy);
 
-        if (countBits(ray) == 1) {
-            if (ray & my_pieces) {
-                pos->pinned[pos->side] |= ray;
-                pos->pinners[!pos->side] |= (1ULL << pinner_square);
+        while (potential_pinners_diag) {
+            int pinner_square = getLS1BIndex(potential_pinners_diag);
+            U64 ray = rayBB[king_square][pinner_square] & occupancy;
+
+            if (countBits(ray) == 1) {
+                if (ray & friendly) {
+                    pos->pinned[side] |= ray;
+                    pos->pinners[!side] |= (1ULL << pinner_square);
+                }
             }
+            popBit(potential_pinners_diag, pinner_square);
         }
-        popBit(potential_pinners_diag, pinner_square);
     }
 }
 
