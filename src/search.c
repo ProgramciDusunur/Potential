@@ -1447,8 +1447,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
 
             // Multicut
-            else if (singularBeta >= beta) {
-                return singularBeta;
+            else if (score >= beta) {
+                return is_decisive(score) ? score : (score + beta) / 2;
             }
 
             // Negative Extensions
