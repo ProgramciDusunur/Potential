@@ -1629,10 +1629,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     int conthist_bonus = score <= alpha ? 
                     CONTHIST_MALUS_BASE + CONTHIST_MALUS_DEPTH * depth:
                     CONTHIST_BONUS_BASE + CONTHIST_BONUS_DEPTH * depth;
-
-                    // we don't want to include quiet main history score, 
-                    // so just get one ply conthist score and it will be neutralized
-                    int quiet_history_score = getContinuationHistoryScore(t, 1, currentMove, ss);
+                    
+                    int quiet_history_score = 
+                    t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
+                                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))];
+                                        
                     updateAllCH(t, currentMove, conthist_bonus, quiet_history_score, ss);
                 }
             }
