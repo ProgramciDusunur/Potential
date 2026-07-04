@@ -585,21 +585,7 @@ int SEE(board *pos, uint16_t move, int threshold) {
         occupied ^= (1ull << pos->enpassant);
     
     attackers = all_attackers_to_square(pos, occupied, to) & occupied;
-    
-    U64 white_pinned = (pos->pinners[black] & occupied) ? (pos->pinned[white] & attackers) : 0ULL;
-    U64 black_pinned = (pos->pinners[white] & occupied) ? (pos->pinned[black] & attackers) : 0ULL;
-    U64 pinned = white_pinned | black_pinned;
 
-    
-    if (pinned) {
-        int white_king = getLS1BIndex(pos->bitboards[K]);
-        int black_king = getLS1BIndex(pos->bitboards[k]);
-
-        U64 white_mask = lineBB[white_king][to] | rayBB[white_king][to];
-        U64 black_mask = lineBB[black_king][to] | rayBB[black_king][to];
-
-        attackers &= ~pinned | (white_pinned & white_mask) | (black_pinned & black_mask);
-    }
            
 
     // Now our opponents turn to recapture
@@ -608,6 +594,16 @@ int SEE(board *pos, uint16_t move, int threshold) {
     while (1) {
         // If we have no more attackers left we lose
         myAttackers = attackers & pos->occupancies[colour];
+        
+        if (pos->pinners[!colour] & occupied) {
+            U64 my_pinned = pos->pinned[colour] & myAttackers;
+            if (my_pinned) {
+                int king_sq = getLS1BIndex(pos->bitboards[colour == white ? K : k]);
+                U64 mask = lineBB[king_sq][to] | rayBB[king_sq][to];
+                myAttackers &= ~my_pinned | mask;
+            }
+        }
+        
         if (myAttackers == 0ull) {
             break;
         }
