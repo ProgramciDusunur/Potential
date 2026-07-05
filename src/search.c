@@ -982,6 +982,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // read hash entry
     tt_hit = !ss->singular_move && !rootNode && readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty);
 
+    uint16_t tt_move_original = tt_move;
+
     // read hash entry
     if (tt_hit && !pvNode) {
         pos_key = pos->hashKey;
@@ -1405,6 +1407,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 int correction_adj = (abs(correction_value) * SE_CORRECTION_MULT) / SE_CORRECTION_DIVISOR;
 
+                int ttHistAdj = (t->search_d.ttMoveHistory * 75) / 16384;
+
                 // Double Extension                
                 /*int doubleMargin = DOUBLE_EXTENSION_MARGIN - (moveHistory / 512) - (pawnHistoryValue / 384) - (corrplexity_value / 16);
                 doubleMargin -= correction_adj;
@@ -1414,6 +1418,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 doubleMargin -= ss->singular_ply * 25;*/
 
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN;
+                doubleMargin -= ttHistAdj;
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
                 }                
@@ -1423,6 +1428,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 tripleMargin -= ((moveHistory * TRIPLE_EXT_HIST_MULT) / TRIPLE_EXT_HIST_DIVISOR * notTactical);
                 tripleMargin -= correction_adj;
                 tripleMargin -= !tt_capture * TRIPLE_EXT_QUIET_TT_BONUS;
+                tripleMargin -= ttHistAdj;
                 
 
                 if (singularScore <= singularBeta - tripleMargin) {
@@ -1451,6 +1457,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             // Multicut
             else if (singularBeta >= beta) {
+                if (!pvNode) {
+                    int bonus = -884 - 216 * depth;
+                    t->search_d.ttMoveHistory += bonus - t->search_d.ttMoveHistory * abs(bonus) / 16384;
+                }
                 return singularBeta;
             }
 
@@ -1771,6 +1781,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         else
             // return stalemate score
             return get_draw_score(t);
+    }
+
+    if (!pvNode) {
+        int bonus = (bestMove != 0 && bestMove == tt_move_original) ? 1584 : -1558;
+        t->search_d.ttMoveHistory += bonus - t->search_d.ttMoveHistory * abs(bonus) / 16384;
     }
 
     if (!ss->singular_move) {

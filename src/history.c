@@ -318,6 +318,7 @@ void clear_histories(void) {
     for (int i = 0; i < how_many_threads; i++) {
         memset(thread_pool.threads[i]->search_d.quietHistory, 0, sizeof(thread_pool.threads[i]->search_d.quietHistory));
         memset(thread_pool.threads[i]->search_d.captureHistory, 0, sizeof(thread_pool.threads[i]->search_d.captureHistory));        
+        thread_pool.threads[i]->search_d.ttMoveHistory = 0;
     }
     
     for (int i = 0; i < thread_pool.shared_history_count; i++) {

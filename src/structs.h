@@ -241,6 +241,9 @@ typedef struct {
 
     // captureHistory [piece][toSquare][capturedPiece]
     int16_t captureHistory[12][64][13];
+
+    // TT move history success tracking
+    int16_t ttMoveHistory;
 } SearchData;
 
 typedef struct {
