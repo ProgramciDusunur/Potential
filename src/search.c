@@ -979,6 +979,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             return alpha;
     }
 
+    int correction_value = get_correction_value(t, ss);
+
     // read hash entry
     tt_hit = !ss->singular_move && !rootNode && readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty);
 
@@ -1016,7 +1018,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     bool corrplexity = abs(raw_eval - static_eval) > 82;
     int corrplexity_value = abs(raw_eval - static_eval);
-    int correction_value = get_correction_value(t, ss);    
 
     ss->staticEval = static_eval;    
 
