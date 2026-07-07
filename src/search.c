@@ -1424,8 +1424,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 doubleMargin += tactical * 40;
                 doubleMargin -= ss->singular_ply * 25;*/
 
-                int doubleMargin = DOUBLE_EXTENSION_MARGIN;
-                doubleMargin -= ttHistAdj;
+                int doubleMargin = DOUBLE_EXTENSION_MARGIN;                
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
                     extensions++;
                 }                
@@ -1435,6 +1434,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 tripleMargin -= ((moveHistory * TRIPLE_EXT_HIST_MULT) / TRIPLE_EXT_HIST_DIVISOR * notTactical);
                 tripleMargin -= correction_adj;
                 tripleMargin -= !tt_capture * TRIPLE_EXT_QUIET_TT_BONUS;
+                tripleMargin -= ttHistAdj;
                 
 
                 if (singularScore <= singularBeta - tripleMargin) {
