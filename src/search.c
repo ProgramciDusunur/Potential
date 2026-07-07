@@ -1178,7 +1178,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int moves_seen = 0;
 
     int probcut_beta = beta + PROBCUT_BETA_MARGIN - PROBCUT_IMPROVING_MARGIN * improving;
-    if (!pvNode && !in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !ss->singular_move &&
+    if (!in_check && depth >= PROBCUT_DEPTH && abs(beta) < mateValue  && !ss->singular_move &&
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
@@ -1204,7 +1204,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 // Noisy Futility Pruning
                 int noisyFPMargin = static_eval + PROBCUT_FP_BASE + PROBCUT_FP_MULT * depth;
-                if (!pvNode && !in_check && noisyFPMargin <= alpha) {
+                if (!in_check && noisyFPMargin <= alpha) {
                     continue;
                 }
                 // increment ply
