@@ -78,7 +78,6 @@ extern TUNE_INT SEE_MOVE_ORDERING_THRESHOLD;
 extern TUNE_INT SEE_QUIET_THRESHOLD;
 extern TUNE_INT SEE_NOISY_THRESHOLD;
 extern TUNE_INT MOVE_ORDER_HIST_MULT;
-extern TUNE_INT SEE_PRUNING_HIST_MULT;
 extern TUNE_INT SEE_QUIET_HIST_MULT;
 extern TUNE_INT SEE_PIECE_VALUES[];
 
@@ -161,7 +160,6 @@ extern TUNE_INT FUTILITY_PRUNING_OFFSET[];
 extern TUNE_INT BNFP_MARGIN;
 extern TUNE_INT QUIET_HISTORY_PRUNING_MARGIN;
 extern TUNE_INT RAZORING_FULL_MARGIN;
-extern TUNE_INT RAZORING_DEPTH_SCALE;
 extern TUNE_INT RAZORING_VERIFY_MARGIN;
 
 // History Bonuses
@@ -289,7 +287,6 @@ void spsa_init(void) {
     spsa_add_int("SEE_QUIET_THRESHOLD",         &SEE_QUIET_THRESHOLD,       -70,  -120,    -20,   5.00, 0.002);
     spsa_add_int("SEE_NOISY_THRESHOLD",         &SEE_NOISY_THRESHOLD,       -31,   -80,      0,   4.00, 0.002);
     spsa_add_int("MOVE_ORDER_HIST_MULT",        &MOVE_ORDER_HIST_MULT,      435,   128,   1024,  40.00, 0.002);
-    spsa_add_int("SEE_PRUNING_HIST_MULT",       &SEE_PRUNING_HIST_MULT,     527,   128,   1024,  40.00, 0.002);
     spsa_add_int("SEE_QUIET_HIST_MULT",         &SEE_QUIET_HIST_MULT,       108,    32,    512,  15.00, 0.002);
     spsa_add_int("SEE_QUIET_HIST_DIVISOR",      &SEE_QUIET_HIST_DIVISOR,  12556,  4096,  32768, 1000.00, 0.002);
     spsa_add_int("SEE_PIECE_VALUE_PAWN",        &SEE_PIECE_VALUES[0],       86,    50,    200,  10.00, 0.002);
@@ -363,7 +360,6 @@ void spsa_init(void) {
     spsa_add_int("LDSE_CORRECTION_DIVISOR",     &LDSE_CORRECTION_DIVISOR,      98192,  49152, 196608, 1000.0, 0.002);
     
     spsa_add_int("RAZORING_FULL_MARGIN",        &RAZORING_FULL_MARGIN,           220,     80,    400,  15.00, 0.002);
-    spsa_add_int("RAZORING_DEPTH_SCALE",        &RAZORING_DEPTH_SCALE,            17,      5,     40,   2.00, 0.002);
     spsa_add_int("RAZORING_VERIFY_MARGIN",      &RAZORING_VERIFY_MARGIN,         122,     40,    250,  12.00, 0.002);
 
     // ── History Bonuses ──
