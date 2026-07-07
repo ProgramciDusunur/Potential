@@ -1463,10 +1463,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             // Multicut
             else if (singularBeta >= beta) {
-                if (!pvNode) {
+                /*if (!pvNode) {
                     int bonus = -TT_MOVE_HIST_MULTICUT_BASE - TT_MOVE_HIST_MULTICUT_DEPTH * depth;
                     t->search_d.ttMoveHistory += bonus - t->search_d.ttMoveHistory * abs(bonus) / 16384;
-                }
+                }*/
                 return singularBeta;
             }
 
