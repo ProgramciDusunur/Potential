@@ -159,7 +159,11 @@
   TUNE_INT FUTILITY_PRUNING_OFFSET[] = {0, 92, 47, 22, 11, 5};
   TUNE_INT FP_DEPTH = 10;
   TUNE_INT FP_MARGIN = 71;
+  TUNE_INT FP_QUAD_MULT = 51200;
+  TUNE_INT FP_QUAD_DIVISOR = 1024;
   TUNE_INT BNFP_MARGIN = 72;
+  TUNE_INT BNFP_QUAD_MULT = 51200;
+  TUNE_INT BNFP_QUAD_DIVISOR = 1024;
   TUNE_INT QUIET_HISTORY_PRUNING_MARGIN = 1679;
   TUNE_INT FP_HIST_MULT = 483;
   TUNE_INT FP_HIST_DIVISOR = 14595;
@@ -173,6 +177,12 @@
   TUNE_INT RFP_CORRPLEXITY_MULT = 9625;
   TUNE_INT RFP_CORRPLEXITY_DIVISOR = 622;
   TUNE_INT RFP_DEPTH = 11;
+  TUNE_INT RFP_TT_PV_BASE = 90;
+  TUNE_INT RFP_TT_PV_MULT = 15;
+  TUNE_INT RFP_TT_PV_TT_WEIGHT = 1024;
+  TUNE_INT RFP_TT_PV_DEPTH_WEIGHT = 1024;
+  TUNE_INT RFP_QUAD_MULT = 6144;
+  TUNE_INT RFP_QUAD_DIVISOR = 1024;
   
   
   /*╔══════════╗
@@ -221,8 +231,8 @@
   TUNE_INT SE_CORRECTION_MULT = 984;
   TUNE_INT SE_CORRECTION_DIVISOR = 2867339;
   // Negative Extensions
-  TUNE_INT TRIPLE_EXT_HIST_MULT = 32;
-  TUNE_INT TRIPLE_EXT_HIST_DIVISOR = 15510;
+  TUNE_INT TRIPLE_EXT_HIST_MULT = 1024;
+  TUNE_INT TRIPLE_EXT_HIST_DIVISOR = 496320;
   TUNE_INT TRIPLE_EXT_NOISY_BONUS = 84;
   const int TRIPLE_EXT_QUIET_TT_BONUS = 100;
   
@@ -1039,9 +1049,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     uint16_t rfpMargin = improving ? RFP_IMPROVING_MARGIN * (depth - 1) : RFP_MARGIN * depth;
 
-    rfpMargin += 6 * depth * depth;
+    rfpMargin += (RFP_QUAD_MULT * depth * depth) / RFP_QUAD_DIVISOR;
 
-    bool rfp_tt_pv_decision = !tt_pv || (tt_pv && tt_hit && tt_score >= beta + 90 - 15 * ((tt_depth + depth) / 2));    
+    bool rfp_tt_pv_decision = !tt_pv || (tt_pv && tt_hit && tt_score >= beta + RFP_TT_PV_BASE - RFP_TT_PV_MULT * (((RFP_TT_PV_TT_WEIGHT * tt_depth + RFP_TT_PV_DEPTH_WEIGHT * depth) / 1024) / 2));
 
     // Reverse Futility Pruning
     if (!ss->singular_move && rfp_tt_pv_decision &&
@@ -1341,7 +1351,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     FUTILITY_PRUNING_OFFSET[clamp(lmrDepth, 1, 5)] + 
                     FP_MARGIN * lmrDepth + 
                     (moveHistory * FP_HIST_MULT) / FP_HIST_DIVISOR +                    
-                    sdepth * sdepth * 50;
+                    (FP_QUAD_MULT * sdepth * sdepth) / FP_QUAD_DIVISOR;
                 
 
                 // Futility Pruning
@@ -1357,7 +1367,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             else {
                 int sdepth = myMAX(0, depth - 4);
                 int noisy_futility_margin = static_eval + BNFP_MARGIN * depth +
-                    sdepth * sdepth * 50;
+                    (BNFP_QUAD_MULT * sdepth * sdepth) / BNFP_QUAD_DIVISOR;
 
                 if (!in_check && depth <= 8 && mp.CURRENT_STAGE == STAGE_BAD_NOISY && noisy_futility_margin <= alpha) {
                     if (!is_decisive(bestScore) && bestScore < noisy_futility_margin) {

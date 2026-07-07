@@ -62,6 +62,12 @@ extern TUNE_INT NMP_REDUCTION_DIVISOR;
 extern TUNE_INT NMP_EVAL_DIVISOR;
 extern TUNE_INT RFP_CORRPLEXITY_MULT;
 extern TUNE_INT RFP_CORRPLEXITY_DIVISOR;
+extern TUNE_INT RFP_TT_PV_BASE;
+extern TUNE_INT RFP_TT_PV_MULT;
+extern TUNE_INT RFP_TT_PV_TT_WEIGHT;
+extern TUNE_INT RFP_TT_PV_DEPTH_WEIGHT;
+extern TUNE_INT RFP_QUAD_MULT;
+extern TUNE_INT RFP_QUAD_DIVISOR;
 extern TUNE_INT ASP_WINDOW_BASE;
 extern TUNE_INT ASP_WINDOW_DIVISOR;
 extern TUNE_DOUBLE ASP_WINDOW_MULTIPLIER;
@@ -135,6 +141,7 @@ extern TUNE_INT DOUBLE_EXTENSION_MARGIN;
 extern TUNE_INT TRIPLE_EXTENSION_MARGIN;
 extern TUNE_INT QUADRUPLE_EXTENSION_MARGIN;
 extern TUNE_INT TRIPLE_EXT_HIST_DIVISOR;
+extern TUNE_INT TRIPLE_EXT_HIST_MULT;
 extern TUNE_INT TRIPLE_EXT_NOISY_BONUS;
 extern TUNE_INT MULTI_LOW_DEPTH_EXT_MARGIN;
 extern TUNE_INT QUADRUPLE_EXT_NOISY_BONUS;
@@ -158,8 +165,13 @@ extern TUNE_INT SPROBCUT_BETA_MARGIN;
 extern TUNE_INT FP_MARGIN;
 extern TUNE_INT FUTILITY_PRUNING_OFFSET[];
 extern TUNE_INT BNFP_MARGIN;
+extern TUNE_INT FP_QUAD_MULT;
+extern TUNE_INT FP_QUAD_DIVISOR;
+extern TUNE_INT BNFP_QUAD_MULT;
+extern TUNE_INT BNFP_QUAD_DIVISOR;
 extern TUNE_INT QUIET_HISTORY_PRUNING_MARGIN;
 extern TUNE_INT RAZORING_FULL_MARGIN;
+extern TUNE_INT RAZORING_MARGIN;
 extern TUNE_INT RAZORING_VERIFY_MARGIN;
 
 // History Bonuses
@@ -256,6 +268,12 @@ void spsa_init(void) {
     spsa_add_int("RFP_IMPROVING_MARGIN",        &RFP_IMPROVING_MARGIN,      42,     15,     80,   4.00, 0.002);
     spsa_add_int("RFP_CORRPLEXITY_MULT",        &RFP_CORRPLEXITY_MULT,      9625,   2560,  25600, 2048.0, 0.002);
     spsa_add_int("RFP_CORRPLEXITY_DIVISOR",     &RFP_CORRPLEXITY_DIVISOR,    622,    128,   2048,  128.0, 0.002);
+    spsa_add_int("RFP_TT_PV_BASE",              &RFP_TT_PV_BASE,              90,     30,    200,   8.00, 0.002);
+    spsa_add_int("RFP_TT_PV_MULT",              &RFP_TT_PV_MULT,              15,      5,     50,   2.00, 0.002);
+    spsa_add_int("RFP_TT_PV_TT_WEIGHT",         &RFP_TT_PV_TT_WEIGHT,       1024,    256,   4096,  50.00, 0.002);
+    spsa_add_int("RFP_TT_PV_DEPTH_WEIGHT",      &RFP_TT_PV_DEPTH_WEIGHT,    1024,    256,   4096,  50.00, 0.002);
+    spsa_add_int("RFP_QUAD_MULT",               &RFP_QUAD_MULT,             6144,   1024,  16384, 120.00, 0.002);
+    spsa_add_int("RFP_QUAD_DIVISOR",            &RFP_QUAD_DIVISOR,          1024,    256,   4096,  30.00, 0.002);
 
     // ── Null Move Pruning ──
     spsa_add_int("NMP_BASE_REDUCTION",          &NMP_BASE_REDUCTION,      5097,   3000,   7000,  50.00, 0.002);
@@ -283,6 +301,7 @@ void spsa_init(void) {
 
     // ── SEE ──
     spsa_add_int("QS_SEE_THRESHOLD",            &QS_SEE_THRESHOLD,            5,   -50,     50,   5.00, 0.002);
+    spsa_add_int("QS_FP_SEE_THRESHOLD",         &QS_FP_SEE_THRESHOLD,          1,   -50,     50,   5.00, 0.002);
     spsa_add_int("SEE_MOVE_ORDERING_THRESHOLD", &SEE_MOVE_ORDERING_THRESHOLD,-65, -150,      0,   8.00, 0.002);
     spsa_add_int("SEE_QUIET_THRESHOLD",         &SEE_QUIET_THRESHOLD,       -70,  -120,    -20,   5.00, 0.002);
     spsa_add_int("SEE_NOISY_THRESHOLD",         &SEE_NOISY_THRESHOLD,       -31,   -80,      0,   4.00, 0.002);
@@ -346,12 +365,16 @@ void spsa_init(void) {
 
     // ── Futility & Razoring ──
     spsa_add_int("FP_MARGIN",                   &FP_MARGIN,                       71,     30,    150,   8.00, 0.002);
+    spsa_add_int("FP_QUAD_MULT",                &FP_QUAD_MULT,                 51200,   8192, 131072, 800.00, 0.002);
+    spsa_add_int("FP_QUAD_DIVISOR",             &FP_QUAD_DIVISOR,               1024,    256,   4096,  30.00, 0.002);
     spsa_add_int("FUTILITY_PRUNING_OFFSET_1",   &FUTILITY_PRUNING_OFFSET[1],      92,     30,    150,   8.00, 0.002);
     spsa_add_int("FUTILITY_PRUNING_OFFSET_2",   &FUTILITY_PRUNING_OFFSET[2],      47,     10,    100,   4.00, 0.002);
     spsa_add_int("FUTILITY_PRUNING_OFFSET_3",   &FUTILITY_PRUNING_OFFSET[3],      22,      5,     50,   2.00, 0.002);
     spsa_add_int("FUTILITY_PRUNING_OFFSET_4",   &FUTILITY_PRUNING_OFFSET[4],      11,      0,     30,   1.00, 0.002);
     spsa_add_int("FUTILITY_PRUNING_OFFSET_5",   &FUTILITY_PRUNING_OFFSET[5],       5,      0,     20,   1.00, 0.002);
     spsa_add_int("BNFP_MARGIN",                 &BNFP_MARGIN,                     72,     20,    150,   7.00, 0.002);
+    spsa_add_int("BNFP_QUAD_MULT",              &BNFP_QUAD_MULT,               51200,   8192, 131072, 800.00, 0.002);
+    spsa_add_int("BNFP_QUAD_DIVISOR",           &BNFP_QUAD_DIVISOR,             1024,    256,   4096,  30.00, 0.002);
     spsa_add_int("QUIET_HISTORY_PRUNING_MARGIN",&QUIET_HISTORY_PRUNING_MARGIN,  1679,   1024,   4096, 200.00, 0.002);
     spsa_add_int("FP_HIST_MULT",                &FP_HIST_MULT,                   483,    128,   2048,  50.00, 0.002);
     spsa_add_int("FP_HIST_DIVISOR",             &FP_HIST_DIVISOR,              14595,   8192,  32768, 1000.0, 0.002);
@@ -360,6 +383,7 @@ void spsa_init(void) {
     spsa_add_int("LDSE_CORRECTION_DIVISOR",     &LDSE_CORRECTION_DIVISOR,      98192,  49152, 196608, 1000.0, 0.002);
     
     spsa_add_int("RAZORING_FULL_MARGIN",        &RAZORING_FULL_MARGIN,           220,     80,    400,  15.00, 0.002);
+    spsa_add_int("RAZORING_MARGIN",             &RAZORING_MARGIN,                100,     30,    200,   8.00, 0.002);
     spsa_add_int("RAZORING_VERIFY_MARGIN",      &RAZORING_VERIFY_MARGIN,         122,     40,    250,  12.00, 0.002);
 
     // ── History Bonuses ──
@@ -447,7 +471,8 @@ void spsa_init(void) {
     spsa_add_int("DOUBLE_EXTENSION_MARGIN",     &DOUBLE_EXTENSION_MARGIN,       -8,   -100,    200,  15.00, 0.002);
     spsa_add_int("TRIPLE_EXTENSION_MARGIN",     &TRIPLE_EXTENSION_MARGIN,      34,   -100,    200,  15.00, 0.002);
     spsa_add_int("QUADRUPLE_EXTENSION_MARGIN",  &QUADRUPLE_EXTENSION_MARGIN,   89,   -100,    200,  15.00, 0.002);
-    spsa_add_int("TRIPLE_EXT_HIST_DIVISOR",     &TRIPLE_EXT_HIST_DIVISOR,   15510,   4096,  65536, 2000.0, 0.002);
+    spsa_add_int("TRIPLE_EXT_HIST_DIVISOR",     &TRIPLE_EXT_HIST_DIVISOR, 496320, 131072, 2097152, 50000.0, 0.002);
+    spsa_add_int("TRIPLE_EXT_HIST_MULT",        &TRIPLE_EXT_HIST_MULT,       1024,    256,   4096, 100.00, 0.002);
     spsa_add_int("TRIPLE_EXT_NOISY_BONUS",      &TRIPLE_EXT_NOISY_BONUS,       84,      0,    300,  15.00, 0.002);
     spsa_add_int("MULTI_LOW_DEPTH_EXT_MARGIN",  &MULTI_LOW_DEPTH_EXT_MARGIN,    1,   -100,    200,  10.00, 0.002);
     spsa_add_int("QUADRUPLE_EXT_NOISY_BONUS",   &QUADRUPLE_EXT_NOISY_BONUS,  155,      0,    500,  25.00, 0.002);
@@ -475,6 +500,10 @@ void spsa_init(void) {
     spsa_add_double("TM_NODE_FRACTION_BASE",    &TM_NODE_FRACTION_BASE,        1.301772,   1.00,   2.50,  0.15, 0.002);
     spsa_add_double("TM_NODE_MULTIPLIER",       &TM_NODE_MULTIPLIER,           1.897314,   0.80,   2.50,  0.10, 0.002);
     spsa_add_double("TM_NODE_MIN_MULTIPLIER",   &TM_NODE_MIN_MULTIPLIER,       0.5630,     0.10,   1.00,  0.05, 0.002);
+
+    // ── Phase Scores ──
+    spsa_add_int("opening_phase_score", &opening_phase_score, 7740, 5000, 10000, 20.0, 0.002);
+    spsa_add_int("endgame_phase_score", &endgame_phase_score,  518,    0,  2000, 10.0, 0.002);
 
     // ── Material Evaluation ──
     spsa_add_int("MG_PAWN_MAT", &MG_PAWN_MAT, 68, 50, 200, 10.0, 0.002);

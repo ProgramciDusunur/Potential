@@ -12,6 +12,7 @@
 #include "move.h"
 #include "values.h"
 #include <stdbool.h>
+#include "spsa.h"
 
 
 // game phases
@@ -39,8 +40,8 @@ extern const int seeMaterial[12];
 extern const int positional_score[2][6][64];
 
 // Game Phase Scores
-extern const int opening_phase_score;
-extern const int endgame_phase_score;
+extern TUNE_INT opening_phase_score;
+extern TUNE_INT endgame_phase_score;
 
 extern int mg_table[12][64]; // [piece][square] -> midgame score
 extern int eg_table[12][64]; // [piece][square] -> endgame score

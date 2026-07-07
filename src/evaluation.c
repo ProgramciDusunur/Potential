@@ -28,8 +28,8 @@ const int piece_scores[13] = {0, 337, 365, 477, 1025, 0, 0, -337, -365, -477, -1
 const int seeMaterial[12] = {88, 322, 284, 479, 1346, 12000, -88, -322, -284, -479, -1346, -12000};
 
 // Game Phase Scores
-const int opening_phase_score = 7740;
-const int endgame_phase_score = 518;
+TUNE_INT opening_phase_score = 7740;
+TUNE_INT endgame_phase_score = 518;
 
 TUNE_INT MG_PAWN_MAT = 67;
 TUNE_INT MG_KNIGHT_MAT = 365;
