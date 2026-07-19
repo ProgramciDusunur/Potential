@@ -7,7 +7,7 @@
 #include <stdbool.h>
 
 // 0 = Normal Test, 1 = SPSA Tuning
-#define SPSA_ACTIVE 1
+#define SPSA_ACTIVE 0
 
 #if SPSA_ACTIVE
     #define TUNE_INT int
