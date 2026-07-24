@@ -219,7 +219,7 @@ void prefetch_hash_entry(uint64_t hash_key, uint8_t fmr_key) {
     __builtin_prefetch(&hashTable[index]);
 }
 
-void prefetch_corrhist(board *pos, ThreadData *t) { 
+void prefetch_corrhist(board *pos, ThreadData *t, uint16_t child_move, uint16_t child_piece) { 
     const int mask = t->shared_history->corrhist_mask;
     const int side = pos->side;
 
@@ -229,6 +229,27 @@ void prefetch_corrhist(board *pos, ThreadData *t) {
     __builtin_prefetch(&t->shared_history->non_pawn_corrhist[white][side][pos->whiteNonPawnKey & mask]);
     __builtin_prefetch(&t->shared_history->non_pawn_corrhist[black][side][pos->blackNonPawnKey & mask]);
     __builtin_prefetch(&t->shared_history->krp_corrhist[side][pos->krpKey & mask]);
+
+    // Prefetch contCorrhist for plies 1 and 2
+    if (child_move) {
+        int child_target = getMoveTarget(child_move);        
+        if (pos->ply >= 1) {
+            SearchStack *parent_ss = &t->ss[pos->ply - 1];
+            if (parent_ss->move) {
+                __builtin_prefetch(&t->shared_history->contCorrhist
+                    [parent_ss->piece][getMoveTarget(parent_ss->move)]
+                    [child_piece][child_target]);
+            }
+        }        
+        if (pos->ply >= 2) {
+            SearchStack *grandparent_ss = &t->ss[pos->ply - 2];
+            if (grandparent_ss->move) {
+                __builtin_prefetch(&t->shared_history->contCorrhist
+                    [grandparent_ss->piece][getMoveTarget(grandparent_ss->move)]
+                    [child_piece][child_target]);
+            }
+        }
+    }
 }
 
 void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key) {
