@@ -104,6 +104,10 @@
   TUNE_INT TT_PV_LMR_IMPROVING_SCALAR = 268;  
   TUNE_INT LMR_DEPTH_HIST_MULT = 1966;
   TUNE_INT LMR_DEPTH_HIST_DIVISOR = 16859499;
+  TUNE_INT TT_MOVE_HIST_LMR_MULT = 1024;
+  TUNE_INT TT_MOVE_HIST_LMR_DIVISOR = 16384;
+  TUNE_INT TT_MOVE_HIST_BONUS = 1584;
+  TUNE_INT TT_MOVE_HIST_MALUS = 1558;
 
   /*╔═══════════════════════╗
     ║     Move Ordering     ║
@@ -989,6 +993,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     // read hash entry
     tt_hit = !ss->singular_move && !rootNode && readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty);
+    
+    uint16_t tt_move_original = tt_move;
 
     // read hash entry
     if (tt_hit && !pvNode) {
@@ -1615,6 +1621,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction += (int)((load_rlx(t->search_i.nodes_searched) + (uint64_t)t->id * 23) % 102) - 51;
         }
 
+        int ttHistAdj = (t->ttMoveHistory * TT_MOVE_HIST_LMR_MULT) / TT_MOVE_HIST_LMR_DIVISOR;
+        lmrReduction += ttHistAdj;
+
         lmrReduction /= 1024;
 
         int reduced_depth = myMAX(1, myMIN(new_depth - lmrReduction, new_depth)) + pvNode;
@@ -1782,6 +1791,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     }
 
     if (!ss->singular_move) {
+        if (!pvNode) {
+            int bonus = (bestMove == tt_move_original) ? TT_MOVE_HIST_BONUS : -TT_MOVE_HIST_MALUS;
+            t->ttMoveHistory += bonus - t->ttMoveHistory * abs(bonus) / 16384;
+        }
+
         uint8_t hashFlag = hashFlagExact;
         if (alpha >= beta) {
             hashFlag = hashFlagAlpha;

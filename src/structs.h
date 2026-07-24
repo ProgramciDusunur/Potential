@@ -264,6 +264,7 @@ typedef struct {
     int search_depth;                  // depth for this thread's search
     my_time *time;                     // pointer to shared time control
     int generation;
+    int16_t ttMoveHistory;
 } ThreadData;
 
 typedef struct {

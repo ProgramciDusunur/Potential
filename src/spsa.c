@@ -117,6 +117,10 @@ extern TUNE_INT TT_PV_LMR_PV_NODE_SCALAR;
 extern TUNE_INT TT_PV_LMR_IMPROVING_SCALAR;
 extern TUNE_INT LMR_DEPTH_HIST_MULT;
 extern TUNE_INT LMR_DEPTH_HIST_DIVISOR;
+extern TUNE_INT TT_MOVE_HIST_LMR_MULT;
+extern TUNE_INT TT_MOVE_HIST_LMR_DIVISOR;
+extern TUNE_INT TT_MOVE_HIST_BONUS;
+extern TUNE_INT TT_MOVE_HIST_MALUS;
 
 // Move Ordering
 extern TUNE_INT MAIN_HIST_WEIGHT;
@@ -344,6 +348,10 @@ void spsa_init(void) {
     spsa_add_int("TT_PV_LMR_IMPROVING_SCALAR",        &TT_PV_LMR_IMPROVING_SCALAR,     253,     64,    512,  15.00, 0.002);
     spsa_add_int("LMR_DEPTH_HIST_MULT",               &LMR_DEPTH_HIST_MULT,           2007,   1024,   8192,  50.00, 0.002);
     spsa_add_int("LMR_DEPTH_HIST_DIVISOR",      &LMR_DEPTH_HIST_DIVISOR,   16762950, 4194304, 67108864, 50000.00, 0.002);
+    spsa_add_int("TT_MOVE_HIST_LMR_MULT",             &TT_MOVE_HIST_LMR_MULT,         1024,    256,   4096,  50.00, 0.002);
+    spsa_add_int("TT_MOVE_HIST_LMR_DIVISOR",          &TT_MOVE_HIST_LMR_DIVISOR,     16384,   4096,  65536, 1000.0, 0.002);
+    spsa_add_int("TT_MOVE_HIST_BONUS",                &TT_MOVE_HIST_BONUS,            1584,    512,   4096,  50.00, 0.002);
+    spsa_add_int("TT_MOVE_HIST_MALUS",                &TT_MOVE_HIST_MALUS,            1558,    512,   4096,  50.00, 0.002);
     spsa_add_int("LMP_HIST_MULT",                     &LMP_HIST_MULT,                  258,     64,   1024,  25.00, 0.002);
     spsa_add_int("LMP_HIST_DIVISOR",                  &LMP_HIST_DIVISOR,             17523,   8192,  32768, 1000.0, 0.002);
     spsa_add_int("LMP_BASE",                           &LMP_BASE,                      4240,   1024,  16384, 200.00, 0.002);
