@@ -866,7 +866,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         // increment nodes count
         inc_rlx(t->search_i.nodes_searched);
 
-        prefetch_corrhist(position, t, move, copyPosition.mailbox[getMoveSource(move)]);
+        prefetch_corrhist(position, t);
 
         // score current move
         score = -quiescence(-beta, -alpha, t, time, ss + 1);
@@ -1088,7 +1088,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         init_threats(pos);
 
-        prefetch_corrhist(pos, t, 0, 0);
+        prefetch_corrhist(pos, t);
 
         int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) * NMP_REDUCTION_DEPTH_MULT / NMP_REDUCTION_DIVISOR;
 
@@ -1225,7 +1225,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 prefetch_tt_early(pos, move);
                 legal_make_move(move, pos);
 
-                prefetch_corrhist(pos, t, move, probcutCopy.mailbox[getMoveSource(move)]);
+                prefetch_corrhist(pos, t);
                 
                 inc_rlx(t->search_i.nodes_searched);
                 moves_seen++;
@@ -1515,19 +1515,20 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // increment nodes count
         inc_rlx(t->search_i.nodes_searched);
 
-        prefetch_corrhist(pos, t, currentMove, copyPosition.mailbox[getMoveSource(currentMove)]);
+        prefetch_corrhist(pos, t);
 
         // increment moves seen
         moves_seen++;
 
+        (ss + 1)->move = currentMove;
+        (ss + 1)->piece = copyPosition.mailbox[getMoveSource(currentMove)];
+
+        prefetch_cont_corrhist(t, ss + 1);
+
         if (notTactical) {
-            (ss + 1)->move = currentMove;
-            (ss + 1)->piece = copyPosition.mailbox[getMoveSource(currentMove)];
             addMoveToHistoryList(badQuiets, currentMove);
             quietMoves++;
         } else {
-            (ss + 1)->move = currentMove;
-            (ss + 1)->piece = copyPosition.mailbox[getMoveSource(currentMove)];
             //captureMoves++;
             addMoveToHistoryList(noisyMoves, currentMove);
         }
