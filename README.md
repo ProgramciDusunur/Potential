@@ -37,79 +37,31 @@ The search function explores possible moves and evaluates their outcomes to find
 
 - Static Exchange Evaluation
 
-- Null Move Pruning
-  ➔ Eval Margin  
-  ➔ Depth-based Reduction
-  ➔ Eval-based Reduction
-  ➔ Verification Search
-  ➔ Refutation Move History Bonus
+- Null Move Pruning<br>➔ Eval Margin  <br>➔ Depth-based Reduction<br>➔ Eval-based Reduction<br>➔ Verification Search<br>➔ Refutation Move History Bonus
 
-- Late Move Reduction
-  ➔ Cut Node LMR
-  ➔ TT PV Fail Low LMR
-  ➔ TT Capture LMR
-  ➔ Good Eval LMR
-  ➔ Improving LMR
-  ➔ Quiet Non-PV LMR
-  ➔ Futility LMR
-  ➔ Quiet History LMR
-  ➔ Pawn History LMR
-  ➔ Capture History LMR
-  ➔ TT PV LMR
-  ➔ Gives Check LMR
-  ➔ Dynamic Helper Thread Reduction Bias
+- Late Move Reduction<br>➔ Cut Node LMR<br>➔ TT PV Fail Low LMR<br>➔ TT Capture LMR<br>➔ Good Eval LMR<br>➔ Improving LMR<br>➔ Quiet Non-PV LMR<br>➔ Futility LMR<br>➔ Quiet History LMR<br>➔ Pawn History LMR<br>➔ Capture History LMR<br>➔ TT PV LMR<br>➔ Gives Check LMR<br>➔ Dynamic Helper Thread Reduction Bias
 
-- Late Move Pruning
-  ➔ History-based Threshold
-  ➔ Improving Threshold
+- Late Move Pruning<br>➔ History-based Threshold<br>➔ Improving Threshold
 
-- ProbCut
-  ➔ Improving Margin
-  ➔ SEE Threshold
-  ➔ Noisy Futility Margin
-  ➔ Capture History Margin
-  ➔ Cut Node Scalar
+- ProbCut<br>➔ Improving Margin<br>➔ SEE Threshold<br>➔ Noisy Futility Margin<br>➔ Capture History Margin<br>➔ Cut Node Scalar
 
-- Reverse Futility Pruning
-  ➔ Improving RFP
-  ➔ Quadratic Depth Margin
-  ➔ TT PV RFP Decision
-  ➔ Corrplexity RFP
+- Reverse Futility Pruning<br>➔ Improving RFP<br>➔ Quadratic Depth Margin<br>➔ TT PV RFP Decision<br>➔ Corrplexity RFP
 
 - Razoring
 
-- Singular Extensions
-  ➔ Double Extension
-  ➔ Triple Extension
-  ➔ Quadruple Extension
-  ➔ Multi Low Depth Extension
-  ➔ Multicut
-  ➔ Negative Extensions
-  ➔ Cut Node Extension
-  ➔ Recapture Extension
+- Singular Extensions<br>➔ Double Extension<br>➔ Triple Extension<br>➔ Quadruple Extension<br>➔ Multi Low Depth Extension<br>➔ Multicut<br>➔ Negative Extensions<br>➔ Cut Node Extension<br>➔ Recapture Extension
 
-- Low Depth Singular Extensions
-  ➔ Correction Based Margin
+- Low Depth Singular Extensions<br>➔ Correction Based Margin
 
-- Futility Pruning
-  ➔ History-based Margin
-  ➔ Quadratic Depth Margin
-  ➔ Offset Margin
+- Futility Pruning<br>➔ History-based Margin<br>➔ Quadratic Depth Margin<br>➔ Offset Margin
 
-- Move Ordering
-  ➔ TT Move
-  ➔ Static Exchange Evaluation (SEE)
-  ➔ Quiet History
-  ➔ Pawn History
-  ➔ Continuation History
-  ➔ Capture History
+- Move Ordering<br>➔ TT Move<br>➔ Static Exchange Evaluation (SEE)<br>➔ Quiet History<br>➔ Pawn History<br>➔ Continuation History<br>➔ Capture History
 
 - SEE PVS Pruning
 
 - Quiet History Pruning
 
-- Bad Noisy Futility Pruning
-  ➔ Quadratic Depth Margin
+- Bad Noisy Futility Pruning<br>➔ Quadratic Depth Margin
 
 - Small Probcut
 
