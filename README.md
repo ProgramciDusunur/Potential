@@ -2,15 +2,23 @@
   <img src="https://github.com/user-attachments/assets/55a93dd1-7479-477b-94b2-f9dcd234c1e9" width="300" height="300" style="display: block; object-fit: contain;">
 </div>
 
-<h4 align="center">Strong UCI chess engine.</h4>
+<h4 align="center">World's strongest PSQT / Material-only UCI chess engine.</h4>
 
 ## Strength
 
-| Version | [CCRL 40/15][ccrl-4015] | [CCRL Blitz][ccrl-blitz] | [UBC][ubc] |
-|:-------:|:-----------------------:|:------------------------:|:----------:|
-| [3.0.0] |           3083          |            3056          |    ----    |
-| [2.0.0] |           2889          |            2923          |    2966    |
-| [1.0.0] |           2641          |            ----          |    2719    |
+| Version    | [CCRL 40/15][ccrl-4015] | [CCRL Blitz][ccrl-blitz] | [UBC][ubc] |
+|:----------:|:-----------------------:|:------------------------:|:----------:|
+| [Unlocked] |          ----           |           ----           |    ----    |
+|  [3.0.0]   |          3083           |           3056           |    ----    |
+|  [2.0.0]   |          2889           |           2923           |    2966    |
+|  [1.0.0]   |          2641           |           ----           |    2719    |
+---
+
+## Evaluation
+
+- Material
+- Piece-Square Tables (PSQT / Selfgen)
+
 ---
 
 ## Search
@@ -18,33 +26,101 @@
 The search function explores possible moves and evaluates their outcomes to find the best one. Core techniques include:
 
 - Negamax with Fail-Soft Framework
-- Principle Variation Search
+
+- Principal Variation Search
+
 - Iterative Deepening
-- Transposition Table (TT)
+
 - Aspiration Windows
-- Late Move Pruning
-- Mate Distance Pruning
-- Late Move Reduction
+
+- Transposition Table
+
+- Static Exchange Evaluation
+
 - Null Move Pruning
-- Futility Pruning
+  ➔ Eval Margin  
+  ➔ Depth-based Reduction
+  ➔ Eval-based Reduction
+  ➔ Verification Search
+  ➔ Refutation Move History Bonus
+
+- Late Move Reduction
+  ➔ Cut Node LMR
+  ➔ TT PV Fail Low LMR
+  ➔ TT Capture LMR
+  ➔ Good Eval LMR
+  ➔ Improving LMR
+  ➔ Quiet Non-PV LMR
+  ➔ Futility LMR
+  ➔ Quiet History LMR
+  ➔ Pawn History LMR
+  ➔ Capture History LMR
+  ➔ TT PV LMR
+  ➔ Gives Check LMR
+  ➔ Dynamic Helper Thread Reduction Bias
+
+- Late Move Pruning
+  ➔ History-based Threshold
+  ➔ Improving Threshold
+
+- ProbCut
+  ➔ Improving Margin
+  ➔ SEE Threshold
+  ➔ Noisy Futility Margin
+  ➔ Capture History Margin
+  ➔ Cut Node Scalar
+
 - Reverse Futility Pruning
-- Quiescence SEE Pruning
-- PVS SEE Pruning
-- Improving Heuristic
-- Singular Extensions
+  ➔ Improving RFP
+  ➔ Quadratic Depth Margin
+  ➔ TT PV RFP Decision
+  ➔ Corrplexity RFP
+
 - Razoring
-- Cut Node
-- Quiescence Search
+
+- Singular Extensions
+  ➔ Double Extension
+  ➔ Triple Extension
+  ➔ Quadruple Extension
+  ➔ Multi Low Depth Extension
+  ➔ Multicut
+  ➔ Negative Extensions
+  ➔ Cut Node Extension
+  ➔ Recapture Extension
+
+- Low Depth Singular Extensions
+  ➔ Correction Based Margin
+
+- Futility Pruning
+  ➔ History-based Margin
+  ➔ Quadratic Depth Margin
+  ➔ Offset Margin
+
 - Move Ordering
-- Corrplexity Extension
+  ➔ TT Move
+  ➔ Static Exchange Evaluation (SEE)
+  ➔ Quiet History
+  ➔ Pawn History
+  ➔ Continuation History
+  ➔ Capture History
+
+- SEE PVS Pruning
+
+- Quiet History Pruning
+
+- Bad Noisy Futility Pruning
+  ➔ Quadratic Depth Margin
+
+- Small Probcut
+
 ---
 
-## Time Control
+## Time Management
 
-- **Hard Limit**
-- **Soft Limit**
-- **Best Move TM**
-- **Evaluation TM**
+- Hard Limit
+- Soft Limit
+- Complexity TM
+- Node Limits
 
 ---
 
