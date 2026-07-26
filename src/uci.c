@@ -32,7 +32,7 @@ extern uint64_t global_start_time;
 #endif
 
 int thread_count = 1;
-int move_overhead = 10;
+int move_overhead = 50;
 
 TUNE_DOUBLE DEF_TIME_MULTIPLIER = 0.056007720906188156;
 TUNE_DOUBLE DEF_INC_MULTIPLIER = 0.8315915134408788;
