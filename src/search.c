@@ -320,7 +320,7 @@ int isRepetition(board* position) {
 }
 
 // [depth][moveNumber]
-void initializeLMRTable(void) {
+void init_lmr_table(void) {
     for (int depth = 1; depth < maxPly; ++depth) {
         for (int moves = 1; moves < maxPly; ++moves) {
             if (moves == 0 || depth == 0) {

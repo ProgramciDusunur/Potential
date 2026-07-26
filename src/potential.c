@@ -18,19 +18,19 @@
 
 
 
-void initAll(void) {
-    initLeaperAttacks();
+void init_all(void) {
+    init_leaper_attacks();
     // init random keys for tranposition table
-    initRandomKeys();
-    initMagicNumbers();
-    initSlidersAttacks(bishop);
-    initSlidersAttacks(rook);    
+    init_random_keys();
+    init_magic_numbers();
+    init_sliders_attacks(bishop);
+    init_sliders_attacks(rook);    
     // clear hash table
-    clearHashTable();
+    clear_hash_table();
     // init mask
-    initEvaluationMasks();
+    init_evaluation_masks();
     // init Late Move Reduction Table
-    initializeLMRTable();
+    init_lmr_table();
     // init tranposition table
     init_hash_table(64);
     init_tables();
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     // init main thread
     init_threads(1);
 
-    initAll();
+    init_all();
     int debug = 0;
     if (debug) {
         board position;

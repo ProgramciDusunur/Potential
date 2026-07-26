@@ -28,7 +28,7 @@ unsigned int getRandom32BitNumber(void);
 uint64_t get_random_uint64_number(void);
 U64 generateMagicNumber(void);
 U64 findMagicNumber(int square, int relevantBits, int bishop);
-U64 initMagicNumbers(void);
+U64 init_magic_numbers(void);
 
 
 #endif //POTENTIAL_MAGIC_H
