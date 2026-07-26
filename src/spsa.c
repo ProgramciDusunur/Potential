@@ -561,7 +561,7 @@ int spsa_set_option(const char *input) {
 
             // update evaluation tables and LMR table
             init_tables();
-            initializeLMRTable();
+            init_lmr_table();
             return 1;
         }
     }

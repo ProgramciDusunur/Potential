@@ -287,7 +287,8 @@ bool readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
 }
 
 
-void clearHashTable(void) {
+void clear_hash_table(void) {
+    if (hashTable == NULL) return;
     // init hash table entry pointer
     tt *hash_entry;
 
@@ -385,7 +386,7 @@ void init_hash_table(int mb) {
             hashTable = (tt*)ptr;
             current_allocated_bytes = bytes;
             hash_entries = bytes / sizeof(tt);
-            clearHashTable();
+            clear_hash_table();
             printf("info string Hash: %d MB | Huge Pages: %s\n", mb, status_msg);
             return;
         }
@@ -394,7 +395,7 @@ void init_hash_table(int mb) {
 }
 
 // init random hash keys
-void initRandomKeys(void) {    
+void init_random_keys(void) {    
     // loop over piece codes
     for (int piece = P; piece <= k; piece++) {
         // loop over board squares

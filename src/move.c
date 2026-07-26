@@ -1584,7 +1584,7 @@ void legal_quiet_generator(moves *moveList, board* pos) {
     }
 }
 
-void initSlidersAttacks(int bishop) {
+void init_sliders_attacks(int bishop) {
     for (int square = 0; square < 64; square++) {
         bishopMask[square] = maskBishopAttacks(square);
         rookMask[square] = maskRookAttacks(square);
@@ -1620,7 +1620,7 @@ void initSlidersAttacks(int bishop) {
     }
 }
 
-void initLeaperAttacks(void) {
+void init_leaper_attacks(void) {
     for (int square = 0; square < 64; square++) {
         // init pawn attacks
         pawnAttacks[white][square] = maskPawnAttacks(white, square);

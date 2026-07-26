@@ -20,7 +20,7 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "3.49.98"
+#define VERSION "3.50.98"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -665,7 +665,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             clear_histories();
 
             // clear hash table
-            clearHashTable();
+            clear_hash_table();
 
             //clear static eval history
             clearStaticEvaluationHistory(thread_pool.threads[0]->ss);    

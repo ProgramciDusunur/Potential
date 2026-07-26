@@ -121,7 +121,7 @@ U64 findMagicNumber(int square, int relevantBits, int bishop) {
 }
 
 // init magic numbers
-U64 initMagicNumbers(void) {
+U64 init_magic_numbers(void) {
     // loop over 64 board squares
     for (int square = 0; square < 64; square++) {
         // init rook magic numbers

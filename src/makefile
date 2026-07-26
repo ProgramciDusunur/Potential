@@ -23,7 +23,7 @@ endif
 
 CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
-TMPDIR      := .tmp
+OBJDIR      := .tmp
 
 ifneq ($(wildcard C:/msys64/mingw64/bin/clang.exe),)
     CLANG_CC = C:/msys64/mingw64/bin/clang.exe
@@ -179,8 +179,8 @@ ifeq ($(build), debug)
 endif
 
 SOURCES := $(filter-out tuner.c,$(wildcard *.c))
-OBJECTS := $(patsubst %.c,$(TMPDIR)/%.o,$(SOURCES))
-DEPENDS := $(patsubst %.c,$(TMPDIR)/%.d,$(SOURCES))
+OBJECTS := $(patsubst %.c,$(OBJDIR)/%.o,$(SOURCES))
+DEPENDS := $(patsubst %.c,$(OBJDIR)/%.d,$(SOURCES))
 
 EXE     := $(NAME)$(SUFFIX)
 
@@ -189,16 +189,16 @@ default: pgo
 build_core: $(TARGET)
 
 clean:
-	@rm -rf $(TMPDIR) *.o *.d $(TARGET) tuner$(SUFFIX) *.gcda
+	@rm -rf $(OBJDIR) *.o *.d $(TARGET) tuner$(SUFFIX) *.gcda
 
 $(TARGET): $(OBJECTS)
 	$(CLANG_CC) $(CFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS) $(LDFLAGS)
 
-$(TMPDIR)/%.o: %.c | $(TMPDIR)
+$(OBJDIR)/%.o: %.c | $(OBJDIR)
 	$(CLANG_CC) $(CFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
 
-$(TMPDIR):
-	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/Source"
+$(OBJDIR):
+	$(MKDIR) "$(OBJDIR)" "$(OBJDIR)/Source"
 
 tuner: tuner.c
 	$(CLANG_CC) -O3 -o tuner$(SUFFIX) tuner.c -lm
@@ -207,20 +207,40 @@ pgo:
 ifeq ($(uname_S), Darwin)
 	@$(MAKE) clean
 	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-generate"
-	LLVM_PROFILE_FILE="$(TMPDIR)/default.profraw" ./$(EXE) bench
-	xcrun llvm-profdata merge -output=$(TMPDIR)/default.profdata $(TMPDIR)/default.profraw
+	LLVM_PROFILE_FILE="$(OBJDIR)/default.profraw" ./$(EXE) bench
+	xcrun llvm-profdata merge -output=$(OBJDIR)/default.profdata $(OBJDIR)/default.profraw
 	@rm -f $(OBJECTS) $(EXE)
-	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-use=$(TMPDIR)/default.profdata"
-	@rm -f $(TMPDIR)/default.profraw $(TMPDIR)/default.profdata
+	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-use=$(OBJDIR)/default.profdata"
+	@rm -f $(OBJDIR)/default.profraw $(OBJDIR)/default.profdata
 else
 	@$(MAKE) clean
 	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-generate"
-	LLVM_PROFILE_FILE="$(TMPDIR)/default.profraw" ./$(EXE) bench
-	$(LLVM_PROFDATA) merge -output=$(TMPDIR)/default.profdata $(TMPDIR)/default.profraw
+	LLVM_PROFILE_FILE="$(OBJDIR)/default.profraw" ./$(EXE) bench
+	$(LLVM_PROFDATA) merge -output=$(OBJDIR)/default.profdata $(OBJDIR)/default.profraw
 	@rm -f $(OBJECTS) $(EXE)
-	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-use=$(TMPDIR)/default.profdata"
-	@rm -f $(TMPDIR)/default.profraw $(TMPDIR)/default.profdata
+	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-use=$(OBJDIR)/default.profdata"
+	@rm -f $(OBJDIR)/default.profraw $(OBJDIR)/default.profdata
 endif
 
 fast:
 	@$(MAKE) build_core
+
+release-avx2:
+	@$(MAKE) pgo build=x86-64-avx2
+	@mv $(EXE) $(NAME)-$(COMMIT_SHA)-zen2$(SUFFIX)
+	@echo "Built: $(NAME)-$(COMMIT_SHA)-zen2$(SUFFIX)"
+
+release-haswell:
+	@$(MAKE) pgo build=haswell
+	@mv $(EXE) $(NAME)-$(COMMIT_SHA)-avx2-pext$(SUFFIX)
+	@echo "Built: $(NAME)-$(COMMIT_SHA)-avx2-pext$(SUFFIX)"
+
+release-avx512:
+	@$(MAKE) pgo build=x86-64-avx512
+	@mv $(EXE) $(NAME)-$(COMMIT_SHA)-avx512$(SUFFIX)
+	@echo "Built: $(NAME)-$(COMMIT_SHA)-avx512$(SUFFIX)"
+
+release: release-avx2 release-haswell release-avx512
+	@echo "All release binaries ready."
+
+.PHONY: release release-avx2 release-haswell release-avx512

@@ -74,7 +74,7 @@ void benchmark(int depth, ThreadData *t, my_time* time) {
         
         searchPosition(depth, true, t, time);
         // clear hash table
-        clearHashTable();
+        clear_hash_table();
 
         //clear history
         clear_histories();        
