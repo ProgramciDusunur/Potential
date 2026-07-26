@@ -306,8 +306,9 @@ typedef struct {
 } MovePicker;
 
 typedef struct {
-    int thread_id;
-    int total_threads;
-} tt_clear_arg;
+    size_t id;
+    size_t chunk_size;
+    pthread_t thread;
+} tt_clear_thread;
 
 #endif //POTENTIAL_STRUCTS_H

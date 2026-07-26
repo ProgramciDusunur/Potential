@@ -708,6 +708,20 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             destroy_threads();
             break;
         }
+        else if (strncmp(input, "ttbench", 7) == 0) {
+            int mb = 0, max_threads = 0;
+            sscanf(input, "%*s %d %d", &mb, &max_threads);
+            if (mb <= 0) {
+                mb = (hash_entries * sizeof(tt)) / (1024 * 1024);
+                if (mb == 0) mb = default_hash_size;
+            }
+            if (max_threads <= 0) {
+                max_threads = thread_pool.thread_count;
+            }
+            if (max_threads > MAX_THREADS) max_threads = MAX_THREADS;
+            
+            run_tt_benchmark(mb, max_threads);
+        }
             
         // parse UCI "uci" command
         else if (strncmp(input, "uci", 3) == 0) {        
