@@ -20,7 +20,7 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "3.51.98"
+#define VERSION "3.51.99"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -32,6 +32,7 @@ extern uint64_t global_start_time;
 #endif
 
 int thread_count = 1;
+int move_overhead = 50;
 
 TUNE_DOUBLE DEF_TIME_MULTIPLIER = 0.056007720906188156;
 TUNE_DOUBLE DEF_INC_MULTIPLIER = 0.8315915134408788;
@@ -271,7 +272,7 @@ void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time) {
         time->timeset = 1;
 
         // Engine <--> GUI communication safety margin
-        time->time -= myMIN(time->time / 2, 50);
+        time->time -= myMIN(time->time / 2, move_overhead);
 
         int64_t baseTime = 0;
 
@@ -700,6 +701,12 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             init_threads(thread_count);
             printf("info string set Threads to value %d\n", thread_count);
         }
+        else if (!strncmp(input, "setoption name Move Overhead value ", 35)) {
+            sscanf(input, "%*s %*s %*s %*s %*s %d", &move_overhead);
+            if (move_overhead < 0)    move_overhead = 0;
+            if (move_overhead > 5000) move_overhead = 5000;
+            printf("info string set Move Overhead to value %d\n", move_overhead);
+        }
         else if (!strncmp(input, "setoption name ", 15)) {
             spsa_set_option(input);
         }
@@ -731,6 +738,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             printf("option name Hash type spin default %d min 4 max %d\n",
                    default_hash_size, max_hash);
             printf("option name Threads type spin default 1 min 1 max %d\n", MAX_THREADS);
+            printf("option name Move Overhead type spin default 10 min 0 max 5000\n");
             spsa_print_uci_options();
             printf("uciok\n");
         } 
