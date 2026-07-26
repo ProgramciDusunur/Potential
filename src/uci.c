@@ -20,7 +20,7 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "3.50.99"
+#define VERSION "3.51.99"
 #define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
@@ -714,6 +714,20 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         else if (strncmp(input, "quit", 4) == 0) {
             destroy_threads();
             break;
+        }
+        else if (strncmp(input, "ttbench", 7) == 0) {
+            int mb = 0, max_threads = 0;
+            sscanf(input, "%*s %d %d", &mb, &max_threads);
+            if (mb <= 0) {
+                mb = (hash_entries * sizeof(tt)) / (1024 * 1024);
+                if (mb == 0) mb = default_hash_size;
+            }
+            if (max_threads <= 0) {
+                max_threads = thread_pool.thread_count;
+            }
+            if (max_threads > MAX_THREADS) max_threads = MAX_THREADS;
+            
+            run_tt_benchmark(mb, max_threads);
         }
             
         // parse UCI "uci" command

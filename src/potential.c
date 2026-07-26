@@ -89,7 +89,6 @@ int main(int argc, char* argv[]) {
         }
         return 0;*/
         
-
     } else {
         board *position = (board *)malloc(sizeof(board));
         my_time *time_ctrl = (my_time *)malloc(sizeof(my_time));

@@ -3,6 +3,10 @@
 //
 
 #include "table.h"
+#include "timeman.h"
+#include <pthread.h>
+
+extern ThreadPool thread_pool;
 
 U64 sideKey;
 U64 FMR[100 / 10 + 1];
@@ -289,20 +293,46 @@ bool readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
 
 void clear_hash_table(void) {
     if (hashTable == NULL) return;
-    // init hash table entry pointer
-    tt *hash_entry;
+    memset(hashTable, 0, hash_entries * sizeof(tt));
+}
 
-    // loop over TT elements
-    for (hash_entry = hashTable; hash_entry < hashTable + hash_entries; hash_entry++)
-    {
-        // reset TT inner fields
-        hash_entry->hashKey = 0;
-        hash_entry->depth = 0;
-        hash_entry->flag = 0;
-        hash_entry->score = 0;
-        hash_entry->bestMove = 0;
-        hash_entry->ttPv = 0;
+void *tt_clear_worker(void *arg) {
+    tt_clear_thread *thread = (tt_clear_thread *)arg;
+    
+    size_t start = thread->id * thread->chunk_size;
+    size_t end   = start + thread->chunk_size;
+    
+    if (end > hash_entries) {
+        end = hash_entries;
     }
+    
+    memset(hashTable + start, 0, (end - start) * sizeof(tt));
+    return NULL;
+}
+
+void clear_hash_table_mt(int num_threads) {
+    if (hashTable == NULL) return;
+    if (num_threads <= 1) { clear_hash_table(); return; }
+
+    size_t chunk_size = (hash_entries + num_threads - 1) / num_threads;
+    
+    tt_clear_thread* threads = calloc(num_threads, sizeof(tt_clear_thread));
+    if (!threads) {
+        clear_hash_table();
+        return;
+    }
+
+    for (size_t id = 0; id < (size_t)num_threads; id++) {
+        threads[id].id = id;
+        threads[id].chunk_size = chunk_size;
+        pthread_create(&threads[id].thread, NULL, tt_clear_worker, &threads[id]);
+    }
+    
+    for (size_t id = 0; id < (size_t)num_threads; id++) {
+        pthread_join(threads[id].thread, NULL);
+    }
+    
+    free(threads);
 }
 
 size_t current_allocated_bytes = 0;
@@ -386,12 +416,45 @@ void init_hash_table(int mb) {
             hashTable = (tt*)ptr;
             current_allocated_bytes = bytes;
             hash_entries = bytes / sizeof(tt);
-            clear_hash_table();
+            clear_hash_table_mt(thread_pool.thread_count);
             printf("info string Hash: %d MB | Huge Pages: %s\n", mb, status_msg);
             return;
         }
     }
     exit(1);
+}
+
+void run_tt_benchmark(int hash_mb, int max_threads) {
+    static const int repeats = 3;
+
+    if (max_threads < 1) max_threads = 1;
+
+    printf("\n=== TT Clear Benchmark (Hash: %d MB, Max Threads: %d) ===\n", hash_mb, max_threads);
+    init_hash_table(hash_mb);
+
+    int n = 1;
+    while (true) {
+        int64_t best_ms = INT64_MAX;
+
+        for (int r = 0; r < repeats; r++) {
+            int start = getTimeMiliSecond();
+            if (n == 1)
+                clear_hash_table();
+            else
+                clear_hash_table_mt(n);
+            int elapsed = getTimeMiliSecond() - start;
+            if (elapsed < best_ms) best_ms = elapsed;
+        }
+
+        printf("  %2d thread(s): %lld ms (best of %d)\n",
+               n, (long long)best_ms, repeats);
+               
+        if (n == max_threads) break;
+        
+        n *= 2;
+        if (n > max_threads) n = max_threads;
+    }
+    printf("============================================================\n\n");
 }
 
 // init random hash keys
