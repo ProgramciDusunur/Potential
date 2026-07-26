@@ -305,4 +305,9 @@ typedef struct {
     moves quiet;
 } MovePicker;
 
+typedef struct {
+    int thread_id;
+    int total_threads;
+} tt_clear_arg;
+
 #endif //POTENTIAL_STRUCTS_H

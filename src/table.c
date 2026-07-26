@@ -289,19 +289,32 @@ bool readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
 
 void clear_hash_table(void) {
     if (hashTable == NULL) return;
-    // init hash table entry pointer
-    tt *hash_entry;
+    memset(hashTable, 0, hash_entries * sizeof(tt));
+}
 
-    // loop over TT elements
-    for (hash_entry = hashTable; hash_entry < hashTable + hash_entries; hash_entry++)
-    {
-        // reset TT inner fields
-        hash_entry->hashKey = 0;
-        hash_entry->depth = 0;
-        hash_entry->flag = 0;
-        hash_entry->score = 0;
-        hash_entry->bestMove = 0;
-        hash_entry->ttPv = 0;
+void *tt_clear_worker(void *arg) {
+    tt_clear_arg *a = (tt_clear_arg *)arg;
+    uint64_t start = (uint64_t)a->thread_id       * hash_entries / (uint64_t)a->total_threads;
+    uint64_t end   = (uint64_t)(a->thread_id + 1) * hash_entries / (uint64_t)a->total_threads;
+    memset(hashTable + start, 0, (end - start) * sizeof(tt));
+    return NULL;
+}
+
+void clear_hash_table_mt(int num_threads) {
+    if (hashTable == NULL) return;
+    if (num_threads <= 1) { clear_hash_table(); return; }
+    if (num_threads > MAX_THREADS) num_threads = MAX_THREADS;
+
+    pthread_t threads[MAX_THREADS];
+    tt_clear_arg args[MAX_THREADS];
+
+    for (int i = 0; i < num_threads; i++) {
+        args[i].thread_id    = i;
+        args[i].total_threads = num_threads;
+        pthread_create(&threads[i], NULL, tt_clear_worker, &args[i]);
+    }
+    for (int i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
     }
 }
 
