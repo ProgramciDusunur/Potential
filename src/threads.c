@@ -27,6 +27,8 @@ void setup_main_thread(board *board) {
 void free_threads(void) {
     for (int i = 0; i < thread_pool.thread_count; i++) {
         if (thread_pool.threads[i] != NULL) {
+            free(thread_pool.threads[i]->search_d.quietHistory);
+            free(thread_pool.threads[i]->search_d.captureHistory);
             free(thread_pool.threads[i]);
             thread_pool.threads[i] = NULL;
         }
@@ -193,6 +195,10 @@ void init_threads(int requested_count) {
         thread_pool.threads[i]->shared_history = thread_pool.shared_histories[i / threads_per_l3];
         thread_pool.threads[i]->ss = thread_pool.threads[i]->ss_base + STACK_OFFSET;
         thread_pool.threads[i]->generation = 0;
+        
+        thread_pool.threads[i]->search_d.quietHistory = calloc(2, sizeof(int16_t[64][64][2][2]));
+        thread_pool.threads[i]->search_d.captureHistory = calloc(12, sizeof(int16_t[64][13]));
+        
         clearStaticEvaluationHistory(thread_pool.threads[i]->ss);
     }
 
