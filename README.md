@@ -14,6 +14,14 @@
 |  [1.0.0]   |          2641           |           ----           |    2719    |
 ---
 
+## Discord
+Join Potential's Discord server:
+
+https://discord.gg/MMxUrna8wt
+
+
+---
+
 ## Evaluation
 
 - Material
