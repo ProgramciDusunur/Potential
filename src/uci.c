@@ -7,6 +7,7 @@
 #include "perft.h"
 #include "timeman.h"
 #include "datagen.h"
+#include "nnue.h"
 #include <stdatomic.h>
 #include <pthread.h>
 #ifdef _WIN32
