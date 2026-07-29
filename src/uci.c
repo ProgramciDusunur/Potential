@@ -707,6 +707,15 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             if (move_overhead > 5000) move_overhead = 5000;
             printf("info string set Move Overhead to value %d\n", move_overhead);
         }
+        else if (!strncmp(input, "setoption name EvalFile value ", 30)) {
+            char *evalFile = input + 30;
+            evalFile[strcspn(evalFile, "\r\n")] = 0; // trim newline
+            if (nnue_load(evalFile)) {
+                printf("info string Loaded NNUE from %s\n", evalFile);
+            } else {
+                printf("info string Failed to load NNUE from %s\n", evalFile);
+            }
+        }
         else if (!strncmp(input, "setoption name ", 15)) {
             spsa_set_option(input);
         }
@@ -739,6 +748,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
                    default_hash_size, max_hash);
             printf("option name Threads type spin default 1 min 1 max %d\n", MAX_THREADS);
             printf("option name Move Overhead type spin default 10 min 0 max 5000\n");
+            printf("option name EvalFile type string default beans.bin\n");
             spsa_print_uci_options();
             printf("uciok\n");
         } 

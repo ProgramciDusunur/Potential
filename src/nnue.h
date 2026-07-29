@@ -5,6 +5,7 @@
 #include "structs.h"
 #include "board_constants.h"
 
+extern bool is_nnue_loaded;
 
 bool nnue_load(const char* file_path);
 int nnue_evaluate_pos(board *pos);

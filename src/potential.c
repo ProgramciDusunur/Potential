@@ -37,11 +37,8 @@ void init_all(void) {
     init_tables();
     init_helper_bb();
     init_king_anti_diag_mask();
-    // load the net
-    if (!nnue_load("beans.bin")) {
-        fprintf(stderr, "Failed to load NNUE file: nnue.bin\n");
-        exit(EXIT_FAILURE);
-    }
+    // try loading the default net
+    nnue_load("beans.bin");
     // init SPSA tuning parameters (no-op in normal builds)
     spsa_init();    
 }

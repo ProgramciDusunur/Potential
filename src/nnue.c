@@ -10,6 +10,8 @@ int16_t feature_biases[64];
 int16_t output_weights[128];
 int16_t output_bias[1];
 
+bool is_nnue_loaded = false;
+
 int clamp_255(int val) {
     if (val < 0) return 0;
     if (val > 255) return 255;
@@ -27,10 +29,13 @@ bool nnue_load(const char* file_path) {
 
     fclose(f);
 
-    return (read_fw == 768 * 64) && (read_fb == 64) && (read_ow == 128) && (read_ob == 1);
+    is_nnue_loaded = (read_fw == 768 * 64) && (read_fb == 64) && (read_ow == 128) && (read_ob == 1);
+    return is_nnue_loaded;
 }
 
 int nnue_evaluate_pos(board *pos) {
+    if (!is_nnue_loaded) return 0;
+    
     int16_t accum_white[64];
     int16_t accum_black[64];
     
