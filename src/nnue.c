@@ -16,6 +16,14 @@ INCBIN(Net, STR(EVALFILE));
 #define QB 64
 #define SCALE 400
 
+#define HIDDEN_SIZE 8
+
+#define FT_SIZE (768 * HIDDEN_SIZE * 2)
+#define FB_SIZE (HIDDEN_SIZE * 2)
+#define OW_SIZE (2 * HIDDEN_SIZE * 2)
+#define OB_SIZE 2
+#define EXPECTED_NET_SIZE (FT_SIZE + FB_SIZE + OW_SIZE + OB_SIZE)
+
 const int16_t *feature_weights;
 const int16_t *feature_biases;
 const int16_t *output_weights;
@@ -31,13 +39,11 @@ int clamp_255(int val) {
 
 bool nnue_load(const char* file_path) {
     (void)file_path; // unused parameter when embedding
-    // 768*64*2 + 64*2 + 128*2 + 1*2 = 98690 bytes
-    // File size is actually 98752 bytes (contains 62 bytes of padding/header/footer)
-    if (gNetSize >= 98690) {
+    if (gNetSize >= EXPECTED_NET_SIZE) {
         feature_weights = (const int16_t *)gNetData;
-        feature_biases  = (const int16_t *)(gNetData + 98304);
-        output_weights  = (const int16_t *)(gNetData + 98432);
-        output_bias     = (const int16_t *)(gNetData + 98688);
+        feature_biases  = (const int16_t *)(gNetData + FT_SIZE);
+        output_weights  = (const int16_t *)(gNetData + FT_SIZE + FB_SIZE);
+        output_bias     = (const int16_t *)(gNetData + FT_SIZE + FB_SIZE + OW_SIZE);
         is_nnue_loaded = true;
         return true;
     }
@@ -47,10 +53,10 @@ bool nnue_load(const char* file_path) {
 int nnue_evaluate_pos(board *pos) {
     if (!is_nnue_loaded) return 0;
     
-    int16_t accum_white[64];
-    int16_t accum_black[64];
+    int16_t accum_white[HIDDEN_SIZE];
+    int16_t accum_black[HIDDEN_SIZE];
     
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < HIDDEN_SIZE; i++) {
         accum_white[i] = feature_biases[i];
         accum_black[i] = feature_biases[i];
     }
@@ -66,9 +72,9 @@ int nnue_evaluate_pos(board *pos) {
             int w_idx = (piece_color * 384) + (piece_type * 64) + std_sq;
             int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (std_sq ^ 56);
             
-            for (int i = 0; i < 64; i++) {
-                accum_white[i] += feature_weights[w_idx * 64 + i];
-                accum_black[i] += feature_weights[b_idx * 64 + i];
+            for (int i = 0; i < HIDDEN_SIZE; i++) {
+                accum_white[i] += feature_weights[w_idx * HIDDEN_SIZE + i];
+                accum_black[i] += feature_weights[b_idx * HIDDEN_SIZE + i];
             }
         }
     }
@@ -77,14 +83,14 @@ int nnue_evaluate_pos(board *pos) {
     int16_t *accum_stm  = (pos->side == white) ? accum_white : accum_black;
     int16_t *accum_nstm = (pos->side == white) ? accum_black : accum_white;
     
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < HIDDEN_SIZE; i++) {
         int act_stm = clamp_255(accum_stm[i]);
         act_stm *= act_stm;
         sum += act_stm * output_weights[i];
         
         int act_nstm = clamp_255(accum_nstm[i]);
         act_nstm *= act_nstm;
-        sum += act_nstm * output_weights[i + 64];
+        sum += act_nstm * output_weights[i + HIDDEN_SIZE];
     }
     
     int64_t out = (sum / QA) + output_bias[0];
