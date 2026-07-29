@@ -1,14 +1,22 @@
 #include "nnue.h"
 #include <stdio.h>
 
+#include "incbin.h"
+
+#ifndef EVALFILE
+#define EVALFILE "beans.bin"
+#endif
+
+INCBIN(Net, EVALFILE);
+
 #define QA 255
 #define QB 64
 #define SCALE 400
 
-int16_t feature_weights[768 * 64];
-int16_t feature_biases[64];
-int16_t output_weights[128];
-int16_t output_bias[1];
+const int16_t *feature_weights;
+const int16_t *feature_biases;
+const int16_t *output_weights;
+const int16_t *output_bias;
 
 bool is_nnue_loaded = false;
 
@@ -19,18 +27,18 @@ int clamp_255(int val) {
 }
 
 bool nnue_load(const char* file_path) {
-    FILE *f = fopen(file_path, "rb");
-    if (!f) return false;
-
-    size_t read_fw = fread(feature_weights, sizeof(int16_t), 768 * 64, f);
-    size_t read_fb = fread(feature_biases, sizeof(int16_t), 64, f);
-    size_t read_ow = fread(output_weights, sizeof(int16_t), 128, f);
-    size_t read_ob = fread(output_bias, sizeof(int16_t), 1, f);
-
-    fclose(f);
-
-    is_nnue_loaded = (read_fw == 768 * 64) && (read_fb == 64) && (read_ow == 128) && (read_ob == 1);
-    return is_nnue_loaded;
+    (void)file_path; // unused parameter when embedding
+    // 768*64*2 + 64*2 + 128*2 + 1*2 = 98690 bytes
+    // File size is actually 98752 bytes (contains 62 bytes of padding/header/footer)
+    if (gNetSize >= 98690) {
+        feature_weights = (const int16_t *)gNetData;
+        feature_biases  = (const int16_t *)(gNetData + 98304);
+        output_weights  = (const int16_t *)(gNetData + 98432);
+        output_bias     = (const int16_t *)(gNetData + 98688);
+        is_nnue_loaded = true;
+        return true;
+    }
+    return false;
 }
 
 int nnue_evaluate_pos(board *pos) {

@@ -23,7 +23,8 @@ endif
 
 CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
-EVALFILE    := beans.bin
+EVALFILE    ?= beans.bin
+CFLAGS      += -DEVALFILE=\"$(EVALFILE)\"
 NET_URL     := https://github.com/ProgramciDusunur/Potential-nets/releases/download/test-beans-64hl/beans.bin
 OBJDIR      := .tmp
 
@@ -188,7 +189,7 @@ EXE     := $(NAME)$(SUFFIX)
 
 default: pgo
 
-build_core: net $(TARGET)
+build_core: $(EVALFILE) $(TARGET)
 
 clean:
 	@rm -rf $(OBJDIR) *.o *.d $(TARGET) tuner$(SUFFIX) *.gcda
@@ -199,17 +200,17 @@ $(TARGET): $(OBJECTS)
 $(OBJDIR)/%.o: %.c | $(OBJDIR)
 	$(CLANG_CC) $(CFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
 
+$(OBJDIR)/nnue.o: $(EVALFILE)
+
 $(OBJDIR):
 	$(MKDIR) "$(OBJDIR)" "$(OBJDIR)/Source"
 
-net:
-	@if test -f $(EVALFILE); then \
-		echo "$(EVALFILE) already exists, skipping download."; \
-	else \
-		echo "Downloading $(EVALFILE)..."; \
-		curl -sL $(NET_URL) -o $(EVALFILE); \
-		echo "Downloaded $(EVALFILE)."; \
-	fi
+$(EVALFILE):
+	@echo "Downloading $(EVALFILE)..."
+	curl -sL $(NET_URL) -o $(EVALFILE)
+	@echo "Downloaded $(EVALFILE)."
+
+net: $(EVALFILE)
 
 tuner: tuner.c
 	$(CLANG_CC) -O3 -o tuner$(SUFFIX) tuner.c -lm
