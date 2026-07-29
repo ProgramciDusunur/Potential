@@ -504,15 +504,50 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             fprintf(stderr, "  Book: %s\n", book_path);*/
             sm64_state = seed;
             board position;
-            parseFEN(startPosition, &position);
+
+            // Load book if specified and not "None"
+            char **book_lines_local = NULL;
+            int book_count = 0;
+
+            if (strlen(book_path) > 0 && strcmp(book_path, "None") != 0) {
+                FILE *book_file = fopen(book_path, "r");
+                if (book_file) {
+                    int book_cap = 10000;
+                    book_lines_local = (char **)malloc(book_cap * sizeof(char *));
+                    char line[256];
+                    while (fgets(line, sizeof(line), book_file)) {
+                        line[strcspn(line, "\r\n")] = 0;
+                        if (strlen(line) > 5) {
+                            if (book_count >= book_cap) {
+                                book_cap *= 2;
+                                book_lines_local = (char **)realloc(book_lines_local, book_cap * sizeof(char *));
+                            }
+                            book_lines_local[book_count] = (char *)malloc(strlen(line) + 1);
+                            strcpy(book_lines_local[book_count], line);
+                            book_count++;
+                        }
+                    }
+                    fclose(book_file);
+                } else {
+                    fprintf(stderr, "Could not open book %s, using startpos.\n", book_path);
+                }
+            }
 
             for (uint64_t i = 0; i < how_many_fens_to_create; i++) {
+                if (book_count > 0) {
+                    int idx = get_random_uint64_number() % book_count;
+                    parseFEN(book_lines_local[idx], &position);
+                } else {
+                    parseFEN(startPosition, &position);
+                }
                 default_fen_generation(&position, 0, NULL);
             }
-        
-            if (items_scanned > 3) {
-                //fprintf(stderr, "  Extra Arguments = %s\n", extra_args);
+
+            // Free book memory
+            for (int i = 0; i < book_count; i++) {
+                free(book_lines_local[i]);
             }
+            free(book_lines_local);
 
             exit(0);
         } else {

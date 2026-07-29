@@ -76,6 +76,7 @@ void default_fen_generation(board *pos, int current_ply, FILE *out_file) {
             fprintf(out_file, "%s\n", get_fen(pos).str);
         } else {
             printf("info string genfens %s\n", get_fen(pos).str);
+            fflush(stdout);
         }
         return;
     }
