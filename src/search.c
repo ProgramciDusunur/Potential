@@ -1459,6 +1459,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             // Multicut
             else if (singularBeta >= beta) {
+
+                if (!in_check && singularBeta > static_eval) {
+                    const int bonus = clamp((singularBeta - static_eval) * singularDepth * 128 / 1024, -CORRHIST_LIMIT / 4, CORRHIST_LIMIT / 4);
+                    update_pawn_correction_hist(t, depth, bonus);
+                    update_minor_correction_hist(t, depth, bonus);
+                    update_major_correction_hist(t, depth, bonus);
+                    update_non_pawn_corrhist(t, depth, bonus);
+                }
                 return singularBeta;
             }
 
