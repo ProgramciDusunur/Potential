@@ -534,13 +534,16 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             }
 
             for (uint64_t i = 0; i < how_many_fens_to_create; i++) {
-                if (book_count > 0) {
-                    int idx = get_random_uint64_number() % book_count;
-                    parseFEN(book_lines_local[idx], &position);
-                } else {
-                    parseFEN(startPosition, &position);
+                int success = 0;
+                while (!success) {
+                    if (book_count > 0) {
+                        int idx = get_random_uint64_number() % book_count;
+                        parseFEN(book_lines_local[idx], &position);
+                    } else {
+                        parseFEN(startPosition, &position);
+                    }
+                    success = default_fen_generation(&position, 0, NULL);
                 }
-                default_fen_generation(&position, 0, NULL);
             }
 
             // Free book memory

@@ -70,7 +70,7 @@ FenString get_fen(board *pos) {
     return result;
 }
 
-void default_fen_generation(board *pos, int current_ply, FILE *out_file) {    
+int default_fen_generation(board *pos, int current_ply, FILE *out_file) {    
     if (current_ply == how_many_ply) {
         if (out_file) {
             fprintf(out_file, "%s\n", get_fen(pos).str);
@@ -78,7 +78,7 @@ void default_fen_generation(board *pos, int current_ply, FILE *out_file) {
             printf("info string genfens %s\n", get_fen(pos).str);
             fflush(stdout);
         }
-        return;
+        return 1;
     }
 
     moves moveList[1];
@@ -97,7 +97,7 @@ void default_fen_generation(board *pos, int current_ply, FILE *out_file) {
         takeBack(pos, &cp);
     }
     
-    if (legal_count == 0) return;
+    if (legal_count == 0) return 0;
     
     int random_idx = get_random_uint64_number() % legal_count;
     int selected_move = legal_moves[random_idx];
@@ -106,7 +106,8 @@ void default_fen_generation(board *pos, int current_ply, FILE *out_file) {
     copyBoard(pos, &cp_step);
     
     legal_make_move(selected_move, pos);
-    default_fen_generation(pos, current_ply + 1, out_file);
+    int result = default_fen_generation(pos, current_ply + 1, out_file);
         
     takeBack(pos, &cp_step);
+    return result;
 }
