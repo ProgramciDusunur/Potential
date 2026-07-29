@@ -3,11 +3,14 @@
 
 #include "incbin.h"
 
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
 #ifndef EVALFILE
-#define EVALFILE "beans.bin"
+#define EVALFILE beans.bin
 #endif
 
-INCBIN(Net, EVALFILE);
+INCBIN(Net, STR(EVALFILE));
 
 #define QA 255
 #define QB 64

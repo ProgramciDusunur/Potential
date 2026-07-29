@@ -24,7 +24,7 @@ endif
 CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
 EVALFILE    ?= beans.bin
-CFLAGS      += -DEVALFILE=\"$(EVALFILE)\"
+CFLAGS      += -DEVALFILE=$(EVALFILE)
 NET_URL     := https://github.com/ProgramciDusunur/Potential-nets/releases/download/test-beans-64hl/beans.bin
 OBJDIR      := .tmp
 
