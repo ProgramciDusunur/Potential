@@ -104,6 +104,7 @@ void default_fen_generation(board *pos, int current_ply, FILE *out_file) {
     struct copyposition cp_step;
     copyBoard(pos, &cp_step);
     
+    legal_make_move(selected_move, pos);
     default_fen_generation(pos, current_ply + 1, out_file);
         
     takeBack(pos, &cp_step);
