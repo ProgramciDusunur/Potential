@@ -23,9 +23,20 @@ endif
 
 CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
-EVALFILE    ?= beans.bin
+# Fetch the latest .bin release URL using standard shell tools (curl, grep, cut)
+LATEST_URL := $(shell curl -s https://api.github.com/repos/ProgramciDusunur/Potential-nets/releases/latest | grep "browser_download_url.*\.bin" | head -n 1 | cut -d '"' -f 4)
+LATEST_BIN := $(notdir $(LATEST_URL))
+
+# Fallback in case of API rate limit or offline
+ifeq ($(LATEST_BIN),)
+    EVALFILE ?= network.bin
+    NET_URL  := ""
+else
+    EVALFILE := $(LATEST_BIN)
+    NET_URL  := $(LATEST_URL)
+endif
+
 CFLAGS      += -DEVALFILE=$(EVALFILE)
-NET_URL     := https://github.com/ProgramciDusunur/Potential-nets/releases/download/test-beans-64hl/beans.bin
 OBJDIR      := .tmp
 
 ifneq ($(wildcard C:/msys64/mingw64/bin/clang.exe),)
@@ -192,7 +203,7 @@ default: pgo
 build_core: $(EVALFILE) $(TARGET)
 
 clean:
-	@rm -rf $(OBJDIR) *.o *.d $(TARGET) tuner$(SUFFIX) *.gcda
+	@rm -rf $(OBJDIR) *.o *.d $(TARGET) tuner$(SUFFIX) *.gcda *.bin
 
 $(TARGET): $(OBJECTS)
 	$(CLANG_CC) $(CFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS) $(LDFLAGS)
