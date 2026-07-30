@@ -1918,7 +1918,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                     t->pos.pvLength[0] = savedPVLength;
                 }
 
-                if (t->id == 0 && !benchmark && !time->stopped) {
+                if (t->id == 0 && !benchmark && !time->stopped && !uci_minimal) {
                     int endTime = getTimeMiliSecond();
                     int elapsed = totalTime + (endTime - startTime);
                     if (time->time > 8000 || time->time == -1) print_info(t, current_depth, score, elapsed, 2);
@@ -1934,7 +1934,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                     memcpy(savedPV, t->pos.pvTable[0], savedPVLength * sizeof(int));
                 }
 
-                if (t->id == 0 && !benchmark && !time->stopped) {
+                if (t->id == 0 && !benchmark && !time->stopped && !uci_minimal) {
                     int endTime = getTimeMiliSecond();
                     int elapsed = totalTime + (endTime - startTime);
                     if (time->time > 8000 || time->time == -1) print_info(t, current_depth, score, elapsed, 1);
@@ -1991,7 +1991,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         int endTime = getTimeMiliSecond();
         totalTime += endTime - startTime;
 
-        if (t->id == 0 && t->pos.pvLength[0] && !benchmark && !time->stopped) {
+        if (t->id == 0 && t->pos.pvLength[0] && !benchmark && !time->stopped && !uci_minimal) {
             print_info(t, current_depth, score, totalTime, 0);
         }
 
@@ -2000,7 +2000,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         int best_thread = select_thread();
         ThreadData *bt = thread_pool.threads[best_thread];
 
-        if (best_thread != 0 && bt->pos.pvLength[0] > 0) {            
+        if (best_thread != 0 || (uci_minimal && bt->pos.pvLength[0] > 0)) {            
             print_info(bt, bt->search_i.depthCompleted, bt->search_i.score, totalTime, 0);
         }
 

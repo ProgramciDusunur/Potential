@@ -18,6 +18,8 @@
 #include "magic.h"
 #include "threads.h"
 
+extern bool uci_minimal;
+
 
 #ifdef _WIN32
 #include <io.h>

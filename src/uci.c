@@ -21,7 +21,7 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "4.5.1"
+#define VERSION "4.5.2"
 #define BENCH_DEPTH 13
 #define MAX_THREADS 512
 
@@ -34,6 +34,7 @@ extern uint64_t global_start_time;
 
 int thread_count = 1;
 int move_overhead = 50;
+bool uci_minimal = false;
 
 TUNE_DOUBLE DEF_TIME_MULTIPLIER = 0.056007720906188156;
 TUNE_DOUBLE DEF_INC_MULTIPLIER = 0.8315915134408788;
@@ -746,6 +747,13 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             if (move_overhead > 5000) move_overhead = 5000;
             printf("info string set Move Overhead to value %d\n", move_overhead);
         }
+        else if (!strncmp(input, "setoption name Minimal value ", 29)) {
+            if (strstr(input, "true")) {
+                uci_minimal = true;
+            } else {
+                uci_minimal = false;
+            }
+        }
         else if (!strncmp(input, "setoption name EvalFile value ", 30)) {
             char *evalFile = input + 30;
             evalFile[strcspn(evalFile, "\r\n")] = 0; // trim newline
@@ -787,6 +795,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
                    default_hash_size, max_hash);
             printf("option name Threads type spin default 1 min 1 max %d\n", MAX_THREADS);
             printf("option name Move Overhead type spin default 10 min 0 max 5000\n");
+            printf("option name Minimal type check default false\n");
             printf("option name EvalFile type string default beans.bin\n");
             spsa_print_uci_options();
             printf("uciok\n");
@@ -820,3 +829,4 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         }
     }    
 }
+
