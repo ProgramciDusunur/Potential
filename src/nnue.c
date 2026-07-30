@@ -16,8 +16,6 @@ INCBIN(Net, STR(EVALFILE));
 #define QB 64
 #define SCALE 400
 
-#define HIDDEN_SIZE 8
-
 #define FT_SIZE (768 * HIDDEN_SIZE * 2)
 #define FB_SIZE (HIDDEN_SIZE * 2)
 #define OW_SIZE (2 * HIDDEN_SIZE * 2)
@@ -53,35 +51,9 @@ bool nnue_load(const char* file_path) {
 int nnue_evaluate_pos(board *pos) {
     if (!is_nnue_loaded) return 0;
     
-    int16_t accum_white[HIDDEN_SIZE];
-    int16_t accum_black[HIDDEN_SIZE];
-    
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        accum_white[i] = feature_biases[i];
-        accum_black[i] = feature_biases[i];
-    }
-    
-    for (int square = 0; square < 64; square++) {
-        int piece = pos->mailbox[square];
-        if (piece < 12) {
-            int piece_color = (piece >= 6) ? 1 : 0;
-            int piece_type  = piece % 6;
-            
-            int std_sq = square ^ 56;
-            
-            int w_idx = (piece_color * 384) + (piece_type * 64) + std_sq;
-            int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (std_sq ^ 56);
-            
-            for (int i = 0; i < HIDDEN_SIZE; i++) {
-                accum_white[i] += feature_weights[w_idx * HIDDEN_SIZE + i];
-                accum_black[i] += feature_weights[b_idx * HIDDEN_SIZE + i];
-            }
-        }
-    }
-    
-    int64_t sum = 0;
-    int16_t *accum_stm  = (pos->side == white) ? accum_white : accum_black;
-    int16_t *accum_nstm = (pos->side == white) ? accum_black : accum_white;
+    int32_t sum = 0;
+    int16_t *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
+    int16_t *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
     
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         int act_stm = clamp_255(accum_stm[i]);
@@ -93,7 +65,7 @@ int nnue_evaluate_pos(board *pos) {
         sum += act_nstm * output_weights[i + HIDDEN_SIZE];
     }
     
-    int64_t out = (sum / QA) + output_bias[0];
+    int32_t out = (sum / QA) + output_bias[0];
     int final_eval = (int)((out * SCALE) / (QA * QB));
     
     return final_eval;
@@ -124,3 +96,48 @@ void test_nnue_indicies(board *pos) {
     }
     printf("\n");
 }
+
+void nnue_add_feature(board *pos, int piece, int square) {
+    if (!is_nnue_loaded) return;
+    int piece_color = (piece >= 6) ? 1 : 0;
+    int piece_type  = piece % 6;
+    int std_sq = square ^ 56;
+    
+    int w_idx = (piece_color * 384) + (piece_type * 64) + std_sq;
+    int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (std_sq ^ 56);
+    
+    for (int i = 0; i < HIDDEN_SIZE; i++) {
+        pos->accum_white[i] += feature_weights[w_idx * HIDDEN_SIZE + i];
+        pos->accum_black[i] += feature_weights[b_idx * HIDDEN_SIZE + i];
+    }
+}
+
+void nnue_remove_feature(board *pos, int piece, int square) {
+    if (!is_nnue_loaded) return;
+    int piece_color = (piece >= 6) ? 1 : 0;
+    int piece_type  = piece % 6;
+    int std_sq = square ^ 56;
+    
+    int w_idx = (piece_color * 384) + (piece_type * 64) + std_sq;
+    int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (std_sq ^ 56);
+    
+    for (int i = 0; i < HIDDEN_SIZE; i++) {
+        pos->accum_white[i] -= feature_weights[w_idx * HIDDEN_SIZE + i];
+        pos->accum_black[i] -= feature_weights[b_idx * HIDDEN_SIZE + i];
+    }
+}
+
+void nnue_refresh_accumulator(board *pos) {
+    if (!is_nnue_loaded) return;
+    for (int i = 0; i < HIDDEN_SIZE; i++) {
+        pos->accum_white[i] = feature_biases[i];
+        pos->accum_black[i] = feature_biases[i];
+    }
+    for (int square = 0; square < 64; square++) {
+        int piece = pos->mailbox[square];
+        if (piece < 12) {
+            nnue_add_feature(pos, piece, square);
+        }
+    }
+}
+
