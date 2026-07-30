@@ -20,6 +20,8 @@
 #define maxPly 256
 #define MAX_THREADS 512
 
+#define HIDDEN_SIZE 8
+
 typedef struct  {
     uint64_t pawnThreats;
     uint64_t knightThreats;
@@ -88,6 +90,9 @@ typedef struct {
     bool benchmark;    
 
     int gamePhase;
+
+    int16_t accum_white[HIDDEN_SIZE];
+    int16_t accum_black[HIDDEN_SIZE];
 } board;
 
 struct copyposition {
@@ -117,6 +122,9 @@ struct copyposition {
 
     U64 pinned[2];
     threats pieceThreats;
+
+    int16_t accum_white[HIDDEN_SIZE];
+    int16_t accum_black[HIDDEN_SIZE];
 };
 
 // transposition table data structure

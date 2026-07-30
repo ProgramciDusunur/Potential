@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "move.h"
 #include "fen.h"
+#include "nnue.h"
 
 #if __AVX512VBMI2__
 #include <immintrin.h>
@@ -57,6 +58,8 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->pinned[0] = p->pinned[0];
     cp->pinned[1] = p->pinned[1];
     cp->pieceThreats = p->pieceThreats;
+    memcpy(cp->accum_white, p->accum_white, sizeof(cp->accum_white));
+    memcpy(cp->accum_black, p->accum_black, sizeof(cp->accum_black));
 }
 
 void takeBack(board *p, struct copyposition *cp) {
@@ -78,6 +81,8 @@ void takeBack(board *p, struct copyposition *cp) {
     p->pinned[0] = cp->pinned[0];
     p->pinned[1] = cp->pinned[1];
     p->pieceThreats = cp->pieceThreats;
+    memcpy(p->accum_white, cp->accum_white, sizeof(p->accum_white));
+    memcpy(p->accum_black, cp->accum_black, sizeof(p->accum_black));
 }
 
 // add move to the move list
@@ -195,6 +200,7 @@ inline static void addPiece(board* position, int piece, int square) {
     setBit(position->occupancies[both], square);    
     position->mailbox[square] = piece;
     toggleHashesForPiece(position, piece, square);    
+    nnue_add_feature(position, piece, square);
 }
 
 inline static void removePiece(board* position, int piece, int square) {
@@ -204,7 +210,7 @@ inline static void removePiece(board* position, int piece, int square) {
     popBit(position->occupancies[both], square);    
     position->mailbox[square] = NO_PIECE;
     toggleHashesForPiece(position, piece, square);
-    
+    nnue_remove_feature(position, piece, square);
 }
 
 bool is_pseudo_legal(uint16_t move, board *pos) {

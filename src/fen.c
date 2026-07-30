@@ -3,6 +3,7 @@
 //
 
 #include "fen.h"
+#include "nnue.h"
 
 // parse FEN string
 void parseFEN(char *fen, board* position) {
@@ -120,4 +121,5 @@ void parseFEN(char *fen, board* position) {
     
     init_threats(position);
     update_pinned(position);
+    nnue_refresh_accumulator(position);
 }
