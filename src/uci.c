@@ -829,3 +829,4 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
         }
     }    
 }
+
