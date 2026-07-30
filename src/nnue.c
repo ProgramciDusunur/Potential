@@ -99,8 +99,8 @@ void nnue_add_feature(board *pos, int piece, int square) {
     int piece_color = (piece >= 6) ? 1 : 0;
     int piece_type  = piece % 6;
     
-    int w_king_sq = getLS1BIndex(pos->bitboards[K]);
-    int b_king_sq = getLS1BIndex(pos->bitboards[k]);
+    int w_king_sq = (piece == K) ? square : getLS1BIndex(pos->bitboards[K]);
+    int b_king_sq = (piece == k) ? square : getLS1BIndex(pos->bitboards[k]);
     
     int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 7) : square;
     int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 7) : square;
@@ -122,8 +122,8 @@ void nnue_remove_feature(board *pos, int piece, int square) {
     int piece_color = (piece >= 6) ? 1 : 0;
     int piece_type  = piece % 6;
     
-    int w_king_sq = getLS1BIndex(pos->bitboards[K]);
-    int b_king_sq = getLS1BIndex(pos->bitboards[k]);
+    int w_king_sq = (piece == K) ? square : getLS1BIndex(pos->bitboards[K]);
+    int b_king_sq = (piece == k) ? square : getLS1BIndex(pos->bitboards[k]);
     
     int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 7) : square;
     int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 7) : square;
