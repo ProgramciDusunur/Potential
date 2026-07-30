@@ -5,6 +5,7 @@
 #include "evaluation.h"
 #include "spsa.h"
 #include "utils.h"
+#include "nnue.h"
 #include <stdint.h>
 
 // Mirror Score Array
@@ -555,18 +556,7 @@ Score get_psqt_score(const board* position) {
 }
 
 int evaluate(board* position) {
-    const int game_phase_score = position->phase_score;
-    Score score = position->psqt_score;        
-
-    // Interpolation
-    int mg = mg_of(score);
-    int eg = eg_of(score);
-    int final_score;
-    if (game_phase_score > opening_phase_score) final_score = mg;
-    else if (game_phase_score < endgame_phase_score) final_score = eg;
-    else final_score = (mg * game_phase_score + eg * (opening_phase_score - game_phase_score)) / opening_phase_score;
-
-    return (position->side == white) ? final_score : -final_score;
+    return nnue_evaluate_pos(position);
 }
 
 

@@ -23,6 +23,9 @@ endif
 
 CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
+EVALFILE    ?= beans.bin
+CFLAGS      += -DEVALFILE=$(EVALFILE)
+NET_URL     := https://github.com/ProgramciDusunur/Potential-nets/releases/download/test-beans-64hl/beans.bin
 OBJDIR      := .tmp
 
 ifneq ($(wildcard C:/msys64/mingw64/bin/clang.exe),)
@@ -186,7 +189,7 @@ EXE     := $(NAME)$(SUFFIX)
 
 default: pgo
 
-build_core: $(TARGET)
+build_core: $(EVALFILE) $(TARGET)
 
 clean:
 	@rm -rf $(OBJDIR) *.o *.d $(TARGET) tuner$(SUFFIX) *.gcda
@@ -197,8 +200,17 @@ $(TARGET): $(OBJECTS)
 $(OBJDIR)/%.o: %.c | $(OBJDIR)
 	$(CLANG_CC) $(CFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(FLAGS)
 
+$(OBJDIR)/nnue.o: $(EVALFILE)
+
 $(OBJDIR):
 	$(MKDIR) "$(OBJDIR)" "$(OBJDIR)/Source"
+
+$(EVALFILE):
+	@echo "Downloading $(EVALFILE)..."
+	curl -sL $(NET_URL) -o $(EVALFILE)
+	@echo "Downloaded $(EVALFILE)."
+
+net: $(EVALFILE)
 
 tuner: tuner.c
 	$(CLANG_CC) -O3 -o tuner$(SUFFIX) tuner.c -lm
@@ -243,4 +255,4 @@ release-avx512:
 release: release-avx2 release-haswell release-avx512
 	@echo "All release binaries ready."
 
-.PHONY: release release-avx2 release-haswell release-avx512
+.PHONY: release release-avx2 release-haswell release-avx512 net
