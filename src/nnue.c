@@ -1,14 +1,11 @@
 #include "nnue.h"
 #include <stdio.h>
+#include "bit_manipulation.h"
 
 #include "incbin.h"
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
-
-#ifndef EVALFILE
-#define EVALFILE beans.bin
-#endif
 
 INCBIN(Net, STR(EVALFILE));
 
@@ -101,10 +98,18 @@ void nnue_add_feature(board *pos, int piece, int square) {
     if (!is_nnue_loaded) return;
     int piece_color = (piece >= 6) ? 1 : 0;
     int piece_type  = piece % 6;
-    int std_sq = square ^ 56;
     
-    int w_idx = (piece_color * 384) + (piece_type * 64) + std_sq;
-    int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (std_sq ^ 56);
+    int w_king_sq = getLS1BIndex(pos->bitboards[K]);
+    int b_king_sq = getLS1BIndex(pos->bitboards[k]);
+    
+    int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 7) : square;
+    int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 7) : square;
+    
+    int w_std_sq = w_sq ^ 56;
+    int b_std_sq = b_sq ^ 56;
+    
+    int w_idx = (piece_color * 384) + (piece_type * 64) + w_std_sq;
+    int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (b_std_sq ^ 56);
     
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         pos->accum_white[i] += feature_weights[w_idx * HIDDEN_SIZE + i];
@@ -116,10 +121,18 @@ void nnue_remove_feature(board *pos, int piece, int square) {
     if (!is_nnue_loaded) return;
     int piece_color = (piece >= 6) ? 1 : 0;
     int piece_type  = piece % 6;
-    int std_sq = square ^ 56;
     
-    int w_idx = (piece_color * 384) + (piece_type * 64) + std_sq;
-    int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (std_sq ^ 56);
+    int w_king_sq = getLS1BIndex(pos->bitboards[K]);
+    int b_king_sq = getLS1BIndex(pos->bitboards[k]);
+    
+    int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 7) : square;
+    int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 7) : square;
+    
+    int w_std_sq = w_sq ^ 56;
+    int b_std_sq = b_sq ^ 56;
+    
+    int w_idx = (piece_color * 384) + (piece_type * 64) + w_std_sq;
+    int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (b_std_sq ^ 56);
     
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         pos->accum_white[i] -= feature_weights[w_idx * HIDDEN_SIZE + i];

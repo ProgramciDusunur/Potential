@@ -648,6 +648,15 @@ void legal_make_move(uint16_t move, board* position) {
     int piece = position->mailbox[sourceSquare];
     int capturedPiece = position->mailbox[targetSquare];
 
+    bool king_crossed_midline = false;
+    if (piece == K || piece == k) {
+        int old_file = sourceSquare % 8;
+        int new_file = targetSquare % 8;
+        if ((old_file > 3 && new_file <= 3) || (old_file <= 3 && new_file > 3)) {
+            king_crossed_midline = true;
+        }
+    }
+
     // increment fifty move rule counter
     position->fifty++;
 
@@ -755,6 +764,10 @@ void legal_make_move(uint16_t move, board* position) {
     position->full_moves += position->side == black;
 
     init_threats(position);
+    
+    if (king_crossed_midline) {
+        nnue_refresh_accumulator(position);
+    }
 }
 
 void legal_move_generator(moves *moveList, board* pos) {
