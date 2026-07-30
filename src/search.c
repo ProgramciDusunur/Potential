@@ -1896,7 +1896,11 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             // find best move within a given position
             int current_score = negamax(alpha, beta, myMAX(aspirationWindowDepth, 1), t, time, ss, false);
             
-            if (time->stopped == 1) {                
+            if (time->stopped == 1) {
+                if (t->id == 0 && savedPVLength > 0 && uci_minimal) {
+                    memcpy(t->pos.pvTable[0], savedPV, savedPVLength * sizeof(int));
+                    t->pos.pvLength[0] = savedPVLength;
+                }
                 break;
             }
 
@@ -2000,8 +2004,8 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         int best_thread = select_thread();
         ThreadData *bt = thread_pool.threads[best_thread];
 
-        if (best_thread != 0 || (uci_minimal && bt->pos.pvLength[0] > 0)) {            
-            print_info(bt, bt->search_i.depthCompleted, bt->search_i.score, totalTime, 0);
+        if (best_thread != 0 || uci_minimal) {            
+            print_info(bt, myMAX(1, bt->search_i.depthCompleted), bt->search_i.score, totalTime, 0);
         }
 
         // best move from the best thread
