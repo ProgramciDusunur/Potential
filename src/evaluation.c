@@ -562,13 +562,13 @@ int get_material_phase(const board* pos) {
     int rooks = countBits(pos->bitboards[R]) + countBits(pos->bitboards[r]);
     int queens = countBits(pos->bitboards[Q]) + countBits(pos->bitboards[q]);
     
-    return 100 * pawns + 300 * knights + 330 * bishops + 500 * rooks + 900 * queens;
+    return 100 * pawns + 300 * knights + 300 * bishops + 500 * rooks + 900 * queens;
 }
 
 int evaluate(board* position) {
     int eval = nnue_evaluate_pos(position);
     int phase = get_material_phase(position);
-    return eval * (14600 + phase) / 32768;
+    return eval * (25000 + phase) / 32768;
 }
 
 
