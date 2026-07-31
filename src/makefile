@@ -24,7 +24,7 @@ endif
 CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
 # Fetch the latest .bin release URL using standard shell tools (curl, grep, cut)
-LATEST_URL := $(shell curl -s https://api.github.com/repos/ProgramciDusunur/Potential-nets/releases/tags/64hl-2 | grep "browser_download_url.*\.bin" | head -n 1 | cut -d '"' -f 4)
+LATEST_URL := $(shell curl -s https://api.github.com/repos/ProgramciDusunur/Potential-nets/releases/tags/64hl-3 | grep "browser_download_url.*\.bin" | head -n 1 | cut -d '"' -f 4)
 LATEST_BIN := $(notdir $(LATEST_URL))
 
 # Fallback in case of API rate limit or offline
