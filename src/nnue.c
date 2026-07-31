@@ -11,7 +11,7 @@ INCBIN(Net, STR(EVALFILE));
 
 #define QA 255
 #define QB 64
-#define SCALE 315
+#define SCALE 316
 
 #define FT_SIZE (768 * HIDDEN_SIZE * 2)
 #define FB_SIZE (HIDDEN_SIZE * 2)
