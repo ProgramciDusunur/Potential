@@ -21,8 +21,8 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "4.6.4"
-#define BENCH_DEPTH 13
+#define VERSION "4.6.5"
+#define BENCH_DEPTH 14
 #define MAX_THREADS 512
 
 #define STR_HELPER(x) #x

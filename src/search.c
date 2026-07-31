@@ -1060,7 +1060,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         return ttAdjustedEval;
 
     // Null Move Pruning
-    if (!ss->singular_move && depth >= NMP_DEPTH && !in_check && !rootNode &&
+    if (!ss->singular_move && predicted_cut_node && depth >= NMP_DEPTH && !in_check && !rootNode &&
             ttAdjustedEval >= beta + NMP_EVAL_BETA_MARGIN &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos)) {
