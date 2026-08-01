@@ -555,8 +555,20 @@ Score get_psqt_score(const board* position) {
     return score;   
 }
 
+int get_material_phase(const board* pos) {
+    int pawns = countBits(pos->bitboards[P]) + countBits(pos->bitboards[p]);
+    int knights = countBits(pos->bitboards[N]) + countBits(pos->bitboards[n]);
+    int bishops = countBits(pos->bitboards[B]) + countBits(pos->bitboards[b]);
+    int rooks = countBits(pos->bitboards[R]) + countBits(pos->bitboards[r]);
+    int queens = countBits(pos->bitboards[Q]) + countBits(pos->bitboards[q]);
+    
+    return 100 * pawns + 300 * knights + 300 * bishops + 500 * rooks + 900 * queens;
+}
+
 int evaluate(board* position) {
-    return nnue_evaluate_pos(position);
+    int eval = nnue_evaluate_pos(position);
+    int phase = get_material_phase(position);
+    return eval * (25000 + phase) / 32768;
 }
 
 
