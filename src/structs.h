@@ -20,7 +20,7 @@
 #define maxPly 256
 #define MAX_THREADS 512
 
-#define HIDDEN_SIZE 64
+#define HIDDEN_SIZE 128
 
 typedef struct  {
     uint64_t pawnThreats;
