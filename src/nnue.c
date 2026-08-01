@@ -13,10 +13,12 @@ INCBIN(Net, STR(EVALFILE));
 #define QB 64
 #define SCALE 315
 
+#define OUTPUT_BUCKETS 8
+
 #define FT_SIZE (768 * HIDDEN_SIZE * 2)
 #define FB_SIZE (HIDDEN_SIZE * 2)
-#define OW_SIZE (2 * HIDDEN_SIZE * 2)
-#define OB_SIZE 2
+#define OW_SIZE (2 * HIDDEN_SIZE * 2 * OUTPUT_BUCKETS)
+#define OB_SIZE (2 * OUTPUT_BUCKETS)
 #define EXPECTED_NET_SIZE (FT_SIZE + FB_SIZE + OW_SIZE + OB_SIZE)
 
 const int16_t *feature_weights;
@@ -51,18 +53,22 @@ int nnue_evaluate_pos(board *pos) {
     int32_t sum = 0;
     int16_t *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
     int16_t *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
+
+    int piece_count = countBits(pos->occupancies[both]);
+    int bucket = (piece_count - 2) / 4;
+    int offset = bucket * 2 * HIDDEN_SIZE;
     
     for (int i = 0; i < HIDDEN_SIZE; i++) {
         int act_stm = clamp_255(accum_stm[i]);
         act_stm *= act_stm;
-        sum += act_stm * output_weights[i];
+        sum += act_stm * output_weights[i + offset];
         
         int act_nstm = clamp_255(accum_nstm[i]);
         act_nstm *= act_nstm;
-        sum += act_nstm * output_weights[i + HIDDEN_SIZE];
+        sum += act_nstm * output_weights[i + HIDDEN_SIZE + offset];
     }
     
-    int32_t out = (sum / QA) + output_bias[0];
+    int32_t out = (sum / QA) + output_bias[bucket];
     int final_eval = (int)((out * SCALE) / (QA * QB));
     
     return final_eval;
