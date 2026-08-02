@@ -1,8 +1,11 @@
 #include "nnue.h"
+#include <assert.h>
 #include <stdio.h>
+#include <string.h>
 #include "bit_manipulation.h"
 
 #include "incbin.h"
+#include "structs.h"
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
@@ -28,10 +31,61 @@ const int16_t *output_bias;
 
 bool is_nnue_loaded = false;
 
-int clamp_255(int val) {
-    if (val < 0) return 0;
-    if (val > 255) return 255;
-    return val;
+#if defined(__AVX512F__)
+#define VEC_BYTES 64
+#elif defined(__AVX2__)
+#define VEC_BYTES 32
+#else
+#define VEC_BYTES 16
+#endif
+#define VEC_ELEMENTS (VEC_BYTES / sizeof(int16_t))
+#define ELEMENTS (VEC_ELEMENTS < HIDDEN_SIZE ? VEC_ELEMENTS : HIDDEN_SIZE)
+
+static inline void barrier(void) { __asm__ volatile(""); }
+
+static inline int32_t forward_screlu(const int16_t *accum, const int16_t *weights) {
+    int32_t sum[ELEMENTS] = {0};
+
+    for (size_t i = 0; i < HIDDEN_SIZE; i += ELEMENTS) {
+        int16_t a[ELEMENTS], w[ELEMENTS];
+        for (int j = 0; j < ELEMENTS; ++j) {
+            a[j] = accum[i + j];
+            w[j] = weights[i + j];
+        }
+        barrier();
+
+        int16_t c[ELEMENTS];
+        for (int j = 0; j < ELEMENTS; ++j) {
+            int16_t v = a[j];
+            c[j] = v < 0 ? 0 : (v > 255 ? 255 : v);
+        }
+
+        int16_t intermediate[ELEMENTS];
+        for (int j = 0; j < ELEMENTS; ++j) {
+            intermediate[j] = (int16_t)(c[j] * w[j]);
+        }
+
+        for (int j = 0; j < ELEMENTS; ++j) {
+            sum[j] += intermediate[j] * c[j];
+        }
+    }
+
+    int32_t result = 0;
+    for (int j = 0; j < ELEMENTS; ++j) result += sum[j];
+
+    return result;
+}
+
+static inline void add_weights(int16_t *restrict accum, const int16_t *restrict weights) {
+    for (int i = 0; i < HIDDEN_SIZE; ++i) {
+        accum[i] += weights[i];
+    }
+}
+
+static inline void sub_weights(int16_t *restrict accum, const int16_t *restrict weights) {
+    for (int i = 0; i < HIDDEN_SIZE; ++i) {
+        accum[i] -= weights[i];
+    }
 }
 
 bool nnue_load(const char* file_path) {
@@ -48,7 +102,7 @@ bool nnue_load(const char* file_path) {
 }
 
 int nnue_evaluate_pos(board *pos) {
-    if (!is_nnue_loaded) return 0;
+    assert(is_nnue_loaded);
     
     int32_t sum = 0;
     int16_t *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
@@ -57,20 +111,13 @@ int nnue_evaluate_pos(board *pos) {
     int piece_count = countBits(pos->occupancies[both]);
     int bucket = (piece_count - 2) / 4;
     int offset = bucket * 2 * HIDDEN_SIZE;
-    
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        int act_stm = clamp_255(accum_stm[i]);
-        act_stm *= act_stm;
-        sum += act_stm * output_weights[i + offset];
-        
-        int act_nstm = clamp_255(accum_nstm[i]);
-        act_nstm *= act_nstm;
-        sum += act_nstm * output_weights[i + HIDDEN_SIZE + offset];
-    }
-    
+
+    sum += forward_screlu(accum_stm, output_weights + offset);
+    sum += forward_screlu(accum_nstm, output_weights + HIDDEN_SIZE + offset);
+
     int32_t out = (sum / QA) + output_bias[bucket];
     int final_eval = (int)((out * SCALE) / (QA * QB));
-    
+
     return final_eval;
 }
 
@@ -101,7 +148,7 @@ void test_nnue_indicies(board *pos) {
 }
 
 void nnue_add_feature(board *pos, int piece, int square) {
-    if (!is_nnue_loaded) return;
+    assert(is_nnue_loaded);
     int piece_color = (piece >= 6) ? 1 : 0;
     int piece_type  = piece % 6;
     
@@ -117,14 +164,12 @@ void nnue_add_feature(board *pos, int piece, int square) {
     int w_idx = (piece_color * 384) + (piece_type * 64) + w_std_sq;
     int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (b_std_sq ^ 56);
     
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        pos->accum_white[i] += feature_weights[w_idx * HIDDEN_SIZE + i];
-        pos->accum_black[i] += feature_weights[b_idx * HIDDEN_SIZE + i];
-    }
+    add_weights(pos->accum_white, feature_weights + w_idx * HIDDEN_SIZE);
+    add_weights(pos->accum_black, feature_weights + b_idx * HIDDEN_SIZE);
 }
 
 void nnue_remove_feature(board *pos, int piece, int square) {
-    if (!is_nnue_loaded) return;
+    assert(is_nnue_loaded);
     int piece_color = (piece >= 6) ? 1 : 0;
     int piece_type  = piece % 6;
     
@@ -140,18 +185,14 @@ void nnue_remove_feature(board *pos, int piece, int square) {
     int w_idx = (piece_color * 384) + (piece_type * 64) + w_std_sq;
     int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (b_std_sq ^ 56);
     
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        pos->accum_white[i] -= feature_weights[w_idx * HIDDEN_SIZE + i];
-        pos->accum_black[i] -= feature_weights[b_idx * HIDDEN_SIZE + i];
-    }
+    sub_weights(pos->accum_white, feature_weights + w_idx * HIDDEN_SIZE);
+    sub_weights(pos->accum_black, feature_weights + b_idx * HIDDEN_SIZE);
 }
 
 void nnue_refresh_accumulator(board *pos) {
-    if (!is_nnue_loaded) return;
-    for (int i = 0; i < HIDDEN_SIZE; i++) {
-        pos->accum_white[i] = feature_biases[i];
-        pos->accum_black[i] = feature_biases[i];
-    }
+    assert(is_nnue_loaded);
+    memcpy(pos->accum_white, feature_biases, HIDDEN_SIZE * sizeof(int16_t));
+    memcpy(pos->accum_black, feature_biases, HIDDEN_SIZE * sizeof(int16_t));
     for (int square = 0; square < 64; square++) {
         int piece = pos->mailbox[square];
         if (piece < 12) {
