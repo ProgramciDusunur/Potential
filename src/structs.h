@@ -130,10 +130,11 @@ struct copyposition {
 // transposition table data structure
 typedef struct {
     uint64_t hashKey;    // "almost" unique chess position identifier
-    uint16_t bestMove;        // best move from the search
+    uint16_t bestMove;   // best move from the search
     int16_t score;       // score (alpha/beta/PV)
+    int16_t staticEval;  // static evaluation
     uint8_t depth;       // current search depth
-    uint8_t flag;        // flag the type of node (fail-high(score >= beta)/fail-low(score < alpha))
+    uint8_t flag;        // flag the type of node
     bool ttPv;           // tt was pv node or not
 } tt;                    // transposition table (TT aka hash table)
 
