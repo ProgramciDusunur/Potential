@@ -1002,7 +1002,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
     }
 
-
     // recursion escapre condition
     if (depth <= 0)
         // run quiescence search
