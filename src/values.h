@@ -16,7 +16,8 @@ enum {
    mateValue = 31000,
    infinity = 32000,
    mateFound = mateValue - maxPly,
-   noEval = 200000
+   noEval = 200000,
+   NO_SCORE = -infinity
 };
 
 enum {

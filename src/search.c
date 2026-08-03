@@ -1015,9 +1015,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     
 
     // get static evaluation score
-    int raw_eval = evaluate(pos);
+    int raw_eval = in_check ? NO_SCORE : evaluate(pos);
 
-    int static_eval = adjust_eval_with_corrhist(t, raw_eval, ss);
+    int static_eval = in_check ? NO_SCORE : adjust_eval_with_corrhist(t, raw_eval, ss);
 
     bool improving = false;
     bool tt_capture = tt_move && getMoveCapture(tt_move);
