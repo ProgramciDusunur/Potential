@@ -1014,10 +1014,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                                     pos->side ^ 1, pos);
     
 
-    // get static evaluation score
-    int raw_eval = in_check ? NO_SCORE : evaluate(pos);
+    // get static evaluation score    
+    int raw_eval = evaluate(pos);
 
-    int static_eval = in_check ? NO_SCORE : adjust_eval_with_corrhist(t, raw_eval, ss);
+    int static_eval = adjust_eval_with_corrhist(t, raw_eval, ss);
 
     bool improving = false;
     bool tt_capture = tt_move && getMoveCapture(tt_move);
@@ -1043,6 +1043,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
          (tt_flag == hashFlagBeta && tt_score <= static_eval))) {
 
         ttAdjustedEval = tt_score;
+    }
+
+    // save the TT
+    if (!ss->singular_move && !in_check && !tt_hit) {
+        writeHashEntry(pos_key, NO_SCORE, 0, 0, hashFlagNone, tt_pv, pos, pos->fifty);
     }
 
     improving |= ss->staticEval >= beta + IMPROVING_FAIL_HIGH_MARGIN;
