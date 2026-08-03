@@ -14,7 +14,7 @@ INCBIN(Net, STR(EVALFILE));
 
 #define QA 255
 #define QB 64
-#define SCALE 315
+#define SCALE 283
 
 #define OUTPUT_BUCKETS 8
 
