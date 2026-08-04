@@ -73,7 +73,7 @@ U64 generateMinorKey(board *position);
 U64 generateMajorKey(board *position);
 U64 generate_white_np_hash_key(board *position);
 U64 generate_black_np_hash_key(board *position);
-U64 generate_krp_key(board *position);
+
 void clear_hash_table(void);
 void clear_hash_table_mt(int num_threads);
 void init_hash_table(int mb);

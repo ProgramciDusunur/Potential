@@ -187,27 +187,7 @@ U64 generate_black_np_hash_key(board *position) {
     return final_key;
 }
 
-U64 generate_krp_key(board *position) {
-    uint64_t final_key = 0ULL;
-    uint64_t bitboard;
 
-
-    for (int i = 0; i < 6; i++) {
-
-        int piece = krpPieces[i];
-        bitboard = position->bitboards[piece];
-
-        while (bitboard) {
-
-            int square = getLS1BIndex(bitboard);
-
-            final_key ^= pieceKeys[piece][square].hashKey;
-            popBit(bitboard, square);
-        }
-    }
-
-    return final_key;
-}
 
 uint64_t get_hash_index(uint64_t hash, uint8_t fmr_key) {
     hash ^= FMR[fmr_key / 10];
@@ -232,7 +212,7 @@ void prefetch_corrhist(board *pos, ThreadData *t) {
     __builtin_prefetch(&t->shared_history->major_corrhist[side][pos->majorKey & mask]);
     __builtin_prefetch(&t->shared_history->non_pawn_corrhist[white][side][pos->whiteNonPawnKey & mask]);
     __builtin_prefetch(&t->shared_history->non_pawn_corrhist[black][side][pos->blackNonPawnKey & mask]);
-    __builtin_prefetch(&t->shared_history->krp_corrhist[side][pos->krpKey & mask]);
+
 }
 
 void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key) {
@@ -470,8 +450,7 @@ void init_random_keys(void) {
             pieceKeys[piece][square].majorKey = (isMajor(piece)) ? key : 0;
             pieceKeys[piece][square].whiteNonPawnKey = (piece != P && piece != p && pieceColor(piece) == white) ? key : 0;
             pieceKeys[piece][square].blackNonPawnKey = (piece != P && piece != p && pieceColor(piece) == black) ? key : 0;
-            pieceKeys[piece][square].krpKey = (isKRP(piece) && piece != P && piece != p) ? key : 0;
-            pieceKeys[piece][square].padding_key = 0;
+
         }
     }
     // loop over board squares

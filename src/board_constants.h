@@ -67,7 +67,6 @@ inline int pieceColor(int piece) {
 
 bool isMinor(int piece);
 bool isMajor(int piece);
-bool isKRP(int piece);
 
 extern char *squareToCoordinates[];
 extern char asciiPieces[];
@@ -76,7 +75,6 @@ extern char *unicodePieces[12];
 extern char charPieces[];
 extern int minorPieces[6];
 extern int majorPieces[4];
-extern int krpPieces[6];
 extern int whiteNonPawnPieces[5];
 extern int blackNonPawnPieces[5];
 extern int mvvLva[12][12];

@@ -40,10 +40,8 @@ typedef union {
         U64 majorKey;
         U64 whiteNonPawnKey;
         U64 blackNonPawnKey;
-        U64 krpKey;
-        U64 padding_key;
     };
-    U64 raw[8];
+    U64 raw[6];
 } ZobristInfo;
 
 typedef struct {
@@ -58,8 +56,6 @@ typedef struct {
             U64 majorKey;
             U64 whiteNonPawnKey;
             U64 blackNonPawnKey;
-            U64 krpKey;
-            U64 padding_key;
         };
     };
     uint8_t mailbox[64];
@@ -107,8 +103,6 @@ struct copyposition {
             U64 majorKey;
             U64 whiteNonPawnKey;
             U64 blackNonPawnKey;
-            U64 krpKey;
-            U64 padding_key;
         };
     };
     uint8_t mailbox[64];
@@ -233,9 +227,7 @@ typedef struct {
     int16_t *major_corrhist[2];
 
     // non pawn correction history [side to move]
-    int16_t *non_pawn_corrhist[2][2];
-
-    int16_t *krp_corrhist[2];
+    int16_t *non_pawn_corrhist[2][2];    
     
     // continuationHistory[previousPiece][previousTargetSq][currentPiece][currentTargetSq]
     int16_t continuationHistory[12][64][12][64];
