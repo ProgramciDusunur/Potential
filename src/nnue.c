@@ -12,18 +12,7 @@
 
 INCBIN(Net, STR(EVALFILE));
 
-#define QA 255
-#define QB 64
-#define SCALE 315
-
-#define OUTPUT_BUCKETS 8
-#define INPUT_BUCKETS 4
-
-#define FT_SIZE (768 * INPUT_BUCKETS * HIDDEN_SIZE * 2)
-#define FB_SIZE (HIDDEN_SIZE * 2)
-#define OW_SIZE (2 * HIDDEN_SIZE * 2 * OUTPUT_BUCKETS)
-#define OB_SIZE (2 * OUTPUT_BUCKETS)
-#define EXPECTED_NET_SIZE (FT_SIZE + FB_SIZE + OW_SIZE + OB_SIZE)
+const struct Weights *const weights = (const struct Weights *) gNetData;
 
 const int white_king_bucket_layout[64] = {
     3, 3, 3, 3, 3, 3, 3, 3, // Rank 8 (a8..h8 -> index 0..7)
@@ -47,12 +36,6 @@ const int black_king_bucket_layout[64] = {
     3, 3, 3, 3, 3, 3, 3, 3
 };
 
-const int16_t *feature_weights;
-const int16_t *feature_biases;
-const int16_t *output_weights;
-const int16_t *output_bias;
-
-bool is_nnue_loaded = false;
 
 #if defined(__AVX512F__)
 #define VEC_BYTES 64
@@ -111,22 +94,7 @@ static inline void sub_weights(int16_t *restrict accum, const int16_t *restrict 
     }
 }
 
-bool nnue_load(const char* file_path) {
-    (void)file_path; // unused parameter when embedding
-    if (gNetSize >= EXPECTED_NET_SIZE) {
-        feature_weights = (const int16_t *)gNetData;
-        feature_biases  = (const int16_t *)(gNetData + FT_SIZE);
-        output_weights  = (const int16_t *)(gNetData + FT_SIZE + FB_SIZE);
-        output_bias     = (const int16_t *)(gNetData + FT_SIZE + FB_SIZE + OW_SIZE);
-        is_nnue_loaded = true;
-        return true;
-    }
-    return false;
-}
-
 int nnue_evaluate_pos(board *pos) {
-    assert(is_nnue_loaded);
-    
     int32_t sum = 0;
     int16_t *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
     int16_t *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
@@ -135,10 +103,10 @@ int nnue_evaluate_pos(board *pos) {
     int bucket = (piece_count - 2) / 4;
     int offset = bucket * 2 * HIDDEN_SIZE;
 
-    sum += forward_screlu(accum_stm, output_weights + offset);
-    sum += forward_screlu(accum_nstm, output_weights + HIDDEN_SIZE + offset);
+    sum += forward_screlu(accum_stm, weights->l1w[bucket][0]);
+    sum += forward_screlu(accum_nstm, weights->l1w[bucket][1]);
 
-    int32_t out = (sum / QA) + output_bias[bucket];
+    int32_t out = (sum / QA) + weights->l1b[bucket];
     int final_eval = (int)((out * SCALE) / (QA * QB));
 
     return final_eval;
@@ -171,7 +139,6 @@ void test_nnue_indicies(board *pos) {
 }
 
 void nnue_add_feature(board *pos, int piece, int square) {
-    assert(is_nnue_loaded);
     int piece_color = (piece >= 6) ? 1 : 0;
     int piece_type  = piece % 6;
     
@@ -187,15 +154,11 @@ void nnue_add_feature(board *pos, int piece, int square) {
     int w_bucket = white_king_bucket_layout[w_king_sq];
     int b_bucket = black_king_bucket_layout[b_king_sq];
 
-    int w_idx = (w_bucket * 768) + (piece_color * 384) + (piece_type * 64) + w_std_sq;
-    int b_idx = (b_bucket * 768) + ((1 - piece_color) * 384) + (piece_type * 64) + b_sq;
-    
-    add_weights(pos->accum_white, feature_weights + w_idx * HIDDEN_SIZE);
-    add_weights(pos->accum_black, feature_weights + b_idx * HIDDEN_SIZE);
+    add_weights(pos->accum_white, weights->ftw[w_bucket][piece_color][piece_type][w_std_sq]);
+    add_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
 }
 
 void nnue_remove_feature(board *pos, int piece, int square) {
-    assert(is_nnue_loaded);
     int piece_color = (piece >= 6) ? 1 : 0;
     int piece_type  = piece % 6;
     
@@ -207,21 +170,17 @@ void nnue_remove_feature(board *pos, int piece, int square) {
     
     int w_std_sq = w_sq ^ 56;
     int b_std_sq = b_sq ^ 56;
-
+    
     int w_bucket = white_king_bucket_layout[w_king_sq];
     int b_bucket = black_king_bucket_layout[b_king_sq];
 
-    int w_idx = (w_bucket * 768) + (piece_color * 384) + (piece_type * 64) + w_std_sq;
-    int b_idx = (b_bucket * 768) + ((1 - piece_color) * 384) + (piece_type * 64) + b_sq;
-    
-    sub_weights(pos->accum_white, feature_weights + w_idx * HIDDEN_SIZE);
-    sub_weights(pos->accum_black, feature_weights + b_idx * HIDDEN_SIZE);
+    sub_weights(pos->accum_white, weights->ftw[w_bucket][piece_color][piece_type][w_std_sq]);
+    sub_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
 }
 
 void nnue_refresh_accumulator(board *pos) {
-    assert(is_nnue_loaded);
-    memcpy(pos->accum_white, feature_biases, HIDDEN_SIZE * sizeof(int16_t));
-    memcpy(pos->accum_black, feature_biases, HIDDEN_SIZE * sizeof(int16_t));
+    memcpy(pos->accum_white, weights->ftb, HIDDEN_SIZE * sizeof(int16_t));
+    memcpy(pos->accum_black, weights->ftb, HIDDEN_SIZE * sizeof(int16_t));
     for (int square = 0; square < 64; square++) {
         int piece = pos->mailbox[square];
         if (piece < 12) {
