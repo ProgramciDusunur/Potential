@@ -21,7 +21,7 @@ extern _Atomic uint64_t total_fens_generated;
 extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
-#define VERSION "4.13.5"
+#define VERSION "4.13.6"
 #define BENCH_DEPTH 13
 #define MAX_THREADS 512
 
@@ -726,8 +726,8 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
 
             sscanf(input,"%*s %*s %*s %*s %d", &mb);
 
-            // adjust MB if going beyond the aloowed bounds
-            if(mb < 4) mb = 4;
+            // adjust MB if going beyond the allowed bounds
+            if(mb < 1) mb = 1;
             if(mb > max_hash) mb = max_hash;
 
             // set hash table size in MB
@@ -791,7 +791,7 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
             // print engine info
             printf("id name Potential %s\n", STR(COMMIT_SHA));
             printf("id author Eren Araz\n");
-            printf("option name Hash type spin default %d min 4 max %d\n",
+            printf("option name Hash type spin default %d min 1 max %d\n",
                    default_hash_size, max_hash);
             printf("option name Threads type spin default 1 min 1 max %d\n", MAX_THREADS);
             printf("option name Move Overhead type spin default 10 min 0 max 5000\n");
