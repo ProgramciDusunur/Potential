@@ -757,8 +757,8 @@ void legal_make_move(uint16_t move, board* position) {
     init_threats(position);
     
     if (piece == K || piece == k) {
-        int from_bucket = (piece == K) ? white_king_bucket_layout[sourceSquare] : black_king_bucket_layout[sourceSquare];
-        int to_bucket   = (piece == K) ? white_king_bucket_layout[targetSquare] : black_king_bucket_layout[targetSquare];
+        int from_bucket = king_bucket(pieceColor(piece), sourceSquare);
+        int to_bucket   = king_bucket(pieceColor(piece), targetSquare);
 
         bool from_mirror = (sourceSquare % 8) > 3;
         bool to_mirror   = (targetSquare % 8) > 3;

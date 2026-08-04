@@ -19,8 +19,7 @@ struct Weights {
     int16_t l1b[OUTPUT_BUCKETS];
 };
 
-extern const int white_king_bucket_layout[64];
-extern const int black_king_bucket_layout[64];
+int king_bucket(int perspective, int square);
 
 int nnue_evaluate_pos(board *pos);
 void test_nnue_indicies(board *pos);

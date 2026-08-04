@@ -14,7 +14,7 @@ INCBIN(Net, STR(EVALFILE));
 
 const struct Weights *const weights = (const struct Weights *) gNetData;
 
-const int white_king_bucket_layout[64] = {
+const int king_bucket_layout[64] = {
     3, 3, 3, 3, 3, 3, 3, 3, // Rank 8 (a8..h8 -> index 0..7)
     3, 3, 3, 3, 3, 3, 3, 3, // Rank 7 
     3, 3, 3, 3, 3, 3, 3, 3, // Rank 6 
@@ -25,16 +25,9 @@ const int white_king_bucket_layout[64] = {
     0, 0, 1, 1, 1, 1, 0, 0  // Rank 1 (a1..h1 -> index 56..63)
 };
 
-const int black_king_bucket_layout[64] = {
-    0, 0, 1, 1, 1, 1, 0, 0,
-    2, 2, 2, 2, 2, 2, 2, 2,
-    3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3
-};
+int king_bucket(int perspective, int square) {
+    return king_bucket_layout[square ^ 0b111000 * perspective];
+}
 
 
 #if defined(__AVX512F__)
@@ -151,8 +144,8 @@ void nnue_add_feature(board *pos, int piece, int square) {
     int w_std_sq = w_sq ^ 56;
     int b_std_sq = b_sq ^ 56;
     
-    int w_bucket = white_king_bucket_layout[w_king_sq];
-    int b_bucket = black_king_bucket_layout[b_king_sq];
+    int w_bucket = king_bucket(white, w_king_sq);
+    int b_bucket = king_bucket(black, b_king_sq);
 
     add_weights(pos->accum_white, weights->ftw[w_bucket][piece_color][piece_type][w_std_sq]);
     add_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
@@ -171,8 +164,8 @@ void nnue_remove_feature(board *pos, int piece, int square) {
     int w_std_sq = w_sq ^ 56;
     int b_std_sq = b_sq ^ 56;
     
-    int w_bucket = white_king_bucket_layout[w_king_sq];
-    int b_bucket = black_king_bucket_layout[b_king_sq];
+    int w_bucket = king_bucket(white, w_king_sq);
+    int b_bucket = king_bucket(black, b_king_sq);
 
     sub_weights(pos->accum_white, weights->ftw[w_bucket][piece_color][piece_type][w_std_sq]);
     sub_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
