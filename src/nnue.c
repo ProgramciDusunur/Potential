@@ -17,12 +17,35 @@ INCBIN(Net, STR(EVALFILE));
 #define SCALE 315
 
 #define OUTPUT_BUCKETS 8
+#define INPUT_BUCKETS 4
 
-#define FT_SIZE (768 * HIDDEN_SIZE * 2)
+#define FT_SIZE (768 * INPUT_BUCKETS * HIDDEN_SIZE * 2)
 #define FB_SIZE (HIDDEN_SIZE * 2)
 #define OW_SIZE (2 * HIDDEN_SIZE * 2 * OUTPUT_BUCKETS)
 #define OB_SIZE (2 * OUTPUT_BUCKETS)
 #define EXPECTED_NET_SIZE (FT_SIZE + FB_SIZE + OW_SIZE + OB_SIZE)
+
+const int white_king_bucket_layout[64] = {
+    3, 3, 3, 3, 3, 3, 3, 3, // Rank 8 (a8..h8 -> index 0..7)
+    3, 3, 3, 3, 3, 3, 3, 3, // Rank 7 
+    3, 3, 3, 3, 3, 3, 3, 3, // Rank 6 
+    3, 3, 3, 3, 3, 3, 3, 3, // Rank 5 
+    3, 3, 3, 3, 3, 3, 3, 3, // Rank 4 
+    3, 3, 3, 3, 3, 3, 3, 3, // Rank 3 
+    2, 2, 2, 2, 2, 2, 2, 2, // Rank 2 
+    0, 0, 1, 1, 1, 1, 0, 0  // Rank 1 (a1..h1 -> index 56..63)
+};
+
+const int black_king_bucket_layout[64] = {
+    0, 0, 1, 1, 1, 1, 0, 0,
+    2, 2, 2, 2, 2, 2, 2, 2,
+    3, 3, 3, 3, 3, 3, 3, 3,
+    3, 3, 3, 3, 3, 3, 3, 3,
+    3, 3, 3, 3, 3, 3, 3, 3,
+    3, 3, 3, 3, 3, 3, 3, 3,
+    3, 3, 3, 3, 3, 3, 3, 3,
+    3, 3, 3, 3, 3, 3, 3, 3
+};
 
 const int16_t *feature_weights;
 const int16_t *feature_biases;
@@ -161,8 +184,11 @@ void nnue_add_feature(board *pos, int piece, int square) {
     int w_std_sq = w_sq ^ 56;
     int b_std_sq = b_sq ^ 56;
     
-    int w_idx = (piece_color * 384) + (piece_type * 64) + w_std_sq;
-    int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (b_std_sq ^ 56);
+    int w_bucket = white_king_bucket_layout[w_king_sq];
+    int b_bucket = black_king_bucket_layout[b_king_sq];
+
+    int w_idx = (w_bucket * 768) + (piece_color * 384) + (piece_type * 64) + w_std_sq;
+    int b_idx = (b_bucket * 768) + ((1 - piece_color) * 384) + (piece_type * 64) + b_sq;
     
     add_weights(pos->accum_white, feature_weights + w_idx * HIDDEN_SIZE);
     add_weights(pos->accum_black, feature_weights + b_idx * HIDDEN_SIZE);
@@ -181,9 +207,12 @@ void nnue_remove_feature(board *pos, int piece, int square) {
     
     int w_std_sq = w_sq ^ 56;
     int b_std_sq = b_sq ^ 56;
-    
-    int w_idx = (piece_color * 384) + (piece_type * 64) + w_std_sq;
-    int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (b_std_sq ^ 56);
+
+    int w_bucket = white_king_bucket_layout[w_king_sq];
+    int b_bucket = black_king_bucket_layout[b_king_sq];
+
+    int w_idx = (w_bucket * 768) + (piece_color * 384) + (piece_type * 64) + w_std_sq;
+    int b_idx = (b_bucket * 768) + ((1 - piece_color) * 384) + (piece_type * 64) + b_sq;
     
     sub_weights(pos->accum_white, feature_weights + w_idx * HIDDEN_SIZE);
     sub_weights(pos->accum_black, feature_weights + b_idx * HIDDEN_SIZE);

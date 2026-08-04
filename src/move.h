@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include "utils.h"
 #include "see.h"
+#include "nnue.h"
 
 #if defined(__x86_64__) || defined(_M_X64)
     // Only x86 (Intel/AMD)

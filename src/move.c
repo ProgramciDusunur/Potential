@@ -647,16 +647,7 @@ void legal_make_move(uint16_t move, board* position) {
     int castling = getMoveCastling(move);
     int piece = position->mailbox[sourceSquare];
     int capturedPiece = position->mailbox[targetSquare];
-
-    bool king_crossed_midline = false;
-    if (piece == K || piece == k) {
-        int old_file = sourceSquare % 8;
-        int new_file = targetSquare % 8;
-        if ((old_file > 3 && new_file <= 3) || (old_file <= 3 && new_file > 3)) {
-            king_crossed_midline = true;
-        }
-    }
-
+   
     // increment fifty move rule counter
     position->fifty++;
 
@@ -765,8 +756,16 @@ void legal_make_move(uint16_t move, board* position) {
 
     init_threats(position);
     
-    if (king_crossed_midline) {
-        nnue_refresh_accumulator(position);
+    if (piece == K || piece == k) {
+        int from_bucket = (piece == K) ? white_king_bucket_layout[sourceSquare] : black_king_bucket_layout[sourceSquare];
+        int to_bucket   = (piece == K) ? white_king_bucket_layout[targetSquare] : black_king_bucket_layout[targetSquare];
+
+        bool from_mirror = (sourceSquare % 8) > 3;
+        bool to_mirror   = (targetSquare % 8) > 3;
+        
+        if (from_bucket != to_bucket || from_mirror != to_mirror) {            
+            nnue_refresh_accumulator(position);
+        }
     }
 }
 
