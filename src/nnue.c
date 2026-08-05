@@ -47,30 +47,30 @@ static inline int32_t forward_screlu(const int16_t *accum, const int16_t *weight
 
     for (size_t i = 0; i < HIDDEN_SIZE; i += ELEMENTS) {
         int16_t a[ELEMENTS], w[ELEMENTS];
-        for (int j = 0; j < ELEMENTS; ++j) {
+        for (size_t j = 0; j < ELEMENTS; ++j) {
             a[j] = accum[i + j];
             w[j] = weights[i + j];
         }
         barrier();
 
         int16_t c[ELEMENTS];
-        for (int j = 0; j < ELEMENTS; ++j) {
+        for (size_t j = 0; j < ELEMENTS; ++j) {
             int16_t v = a[j];
             c[j] = v < 0 ? 0 : (v > 255 ? 255 : v);
         }
 
         int16_t intermediate[ELEMENTS];
-        for (int j = 0; j < ELEMENTS; ++j) {
+        for (size_t j = 0; j < ELEMENTS; ++j) {
             intermediate[j] = (int16_t)(c[j] * w[j]);
         }
 
-        for (int j = 0; j < ELEMENTS; ++j) {
+        for (size_t j = 0; j < ELEMENTS; ++j) {
             sum[j] += intermediate[j] * c[j];
         }
     }
 
     int32_t result = 0;
-    for (int j = 0; j < ELEMENTS; ++j) result += sum[j];
+    for (size_t j = 0; j < ELEMENTS; ++j) result += sum[j];
 
     return result;
 }
