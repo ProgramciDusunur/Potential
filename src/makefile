@@ -23,18 +23,11 @@ endif
 
 CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
-# Fetch the latest .bin release URL using standard shell tools (curl, grep, cut)
-LATEST_URL := $(shell curl -s https://api.github.com/repos/ProgramciDusunur/Potential-nets/releases/tags/128hl-3 | grep "browser_download_url.*\.bin" | head -n 1 | cut -d '"' -f 4)
-LATEST_BIN := $(notdir $(LATEST_URL))
 
-# Fallback in case of API rate limit or offline
-ifeq ($(LATEST_BIN),)
-    EVALFILE ?= network.bin
-    NET_URL  := ""
-else
-    EVALFILE := $(LATEST_BIN)
-    NET_URL  := $(LATEST_URL)
-endif
+NET_TAG  := 128hl-3
+NET      := potential-128hl-3-4-input-buckets.bin
+NET_URL  := https://github.com/ProgramciDusunur/Potential-nets/releases/download/$(NET_TAG)/$(NET)
+EVALFILE ?= $(NET)
 
 CFLAGS      += -DEVALFILE=$(EVALFILE)
 OBJDIR      := .tmp
@@ -203,7 +196,7 @@ default: pgo
 build_core: $(EVALFILE) $(TARGET)
 
 clean:
-	@rm -rf $(OBJDIR) *.o *.d $(TARGET) tuner$(SUFFIX) *.gcda *.bin
+	@rm -rf $(OBJDIR) *.o *.d $(TARGET) tuner$(SUFFIX) *.gcda
 
 $(TARGET): $(OBJECTS)
 	$(CLANG_CC) $(CFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS) $(LDFLAGS)
@@ -216,12 +209,12 @@ $(OBJDIR)/nnue.o: $(EVALFILE)
 $(OBJDIR):
 	$(MKDIR) "$(OBJDIR)" "$(OBJDIR)/Source"
 
-$(EVALFILE):
-	@echo "Downloading $(EVALFILE)..."
-	curl -sL $(NET_URL) -o $(EVALFILE)
-	@echo "Downloaded $(EVALFILE)."
+$(NET):
+	@echo "Downloading $(NET)..."
+	curl -sfL $(NET_URL) -o $(NET)
+	@echo "Downloaded $(NET)."
 
-net: $(EVALFILE)
+net: $(NET)
 
 tuner: tuner.c
 	$(CLANG_CC) -O3 -o tuner$(SUFFIX) tuner.c -lm
