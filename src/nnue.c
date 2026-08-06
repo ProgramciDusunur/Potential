@@ -12,20 +12,9 @@
 
 INCBIN(Net, STR(EVALFILE));
 
-#define QA 255
-#define QB 64
-#define SCALE 315
+const struct Weights *const weights = (const struct Weights *) gNetData;
 
-#define OUTPUT_BUCKETS 8
-#define INPUT_BUCKETS 4
-
-#define FT_SIZE (768 * INPUT_BUCKETS * HIDDEN_SIZE * 2)
-#define FB_SIZE (HIDDEN_SIZE * 2)
-#define OW_SIZE (2 * HIDDEN_SIZE * 2 * OUTPUT_BUCKETS)
-#define OB_SIZE (2 * OUTPUT_BUCKETS)
-#define EXPECTED_NET_SIZE (FT_SIZE + FB_SIZE + OW_SIZE + OB_SIZE)
-
-const int white_king_bucket_layout[64] = {
+const int king_bucket_layout[64] = {
     3, 3, 3, 3, 3, 3, 3, 3, // Rank 8 (a8..h8 -> index 0..7)
     3, 3, 3, 3, 3, 3, 3, 3, // Rank 7 
     3, 3, 3, 3, 3, 3, 3, 3, // Rank 6 
@@ -36,23 +25,10 @@ const int white_king_bucket_layout[64] = {
     0, 0, 1, 1, 1, 1, 0, 0  // Rank 1 (a1..h1 -> index 56..63)
 };
 
-const int black_king_bucket_layout[64] = {
-    0, 0, 1, 1, 1, 1, 0, 0,
-    2, 2, 2, 2, 2, 2, 2, 2,
-    3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3
-};
+int king_bucket(int perspective, int square) {
+    return king_bucket_layout[square ^ 0b111000 * perspective];
+}
 
-const int16_t *feature_weights;
-const int16_t *feature_biases;
-const int16_t *output_weights;
-const int16_t *output_bias;
-
-bool is_nnue_loaded = false;
 
 #if defined(__AVX512F__)
 #define VEC_BYTES 64
@@ -71,30 +47,30 @@ static inline int32_t forward_screlu(const int16_t *accum, const int16_t *weight
 
     for (size_t i = 0; i < HIDDEN_SIZE; i += ELEMENTS) {
         int16_t a[ELEMENTS], w[ELEMENTS];
-        for (int j = 0; j < ELEMENTS; ++j) {
+        for (size_t j = 0; j < ELEMENTS; ++j) {
             a[j] = accum[i + j];
             w[j] = weights[i + j];
         }
         barrier();
 
         int16_t c[ELEMENTS];
-        for (int j = 0; j < ELEMENTS; ++j) {
+        for (size_t j = 0; j < ELEMENTS; ++j) {
             int16_t v = a[j];
             c[j] = v < 0 ? 0 : (v > 255 ? 255 : v);
         }
 
         int16_t intermediate[ELEMENTS];
-        for (int j = 0; j < ELEMENTS; ++j) {
+        for (size_t j = 0; j < ELEMENTS; ++j) {
             intermediate[j] = (int16_t)(c[j] * w[j]);
         }
 
-        for (int j = 0; j < ELEMENTS; ++j) {
+        for (size_t j = 0; j < ELEMENTS; ++j) {
             sum[j] += intermediate[j] * c[j];
         }
     }
 
     int32_t result = 0;
-    for (int j = 0; j < ELEMENTS; ++j) result += sum[j];
+    for (size_t j = 0; j < ELEMENTS; ++j) result += sum[j];
 
     return result;
 }
@@ -111,22 +87,7 @@ static inline void sub_weights(int16_t *restrict accum, const int16_t *restrict 
     }
 }
 
-bool nnue_load(const char* file_path) {
-    (void)file_path; // unused parameter when embedding
-    if (gNetSize >= EXPECTED_NET_SIZE) {
-        feature_weights = (const int16_t *)gNetData;
-        feature_biases  = (const int16_t *)(gNetData + FT_SIZE);
-        output_weights  = (const int16_t *)(gNetData + FT_SIZE + FB_SIZE);
-        output_bias     = (const int16_t *)(gNetData + FT_SIZE + FB_SIZE + OW_SIZE);
-        is_nnue_loaded = true;
-        return true;
-    }
-    return false;
-}
-
 int nnue_evaluate_pos(board *pos) {
-    assert(is_nnue_loaded);
-    
     int32_t sum = 0;
     int16_t *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
     int16_t *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
@@ -135,10 +96,10 @@ int nnue_evaluate_pos(board *pos) {
     int bucket = (piece_count - 2) / 4;
     int offset = bucket * 2 * HIDDEN_SIZE;
 
-    sum += forward_screlu(accum_stm, output_weights + offset);
-    sum += forward_screlu(accum_nstm, output_weights + HIDDEN_SIZE + offset);
+    sum += forward_screlu(accum_stm, weights->l1w[bucket][0]);
+    sum += forward_screlu(accum_nstm, weights->l1w[bucket][1]);
 
-    int32_t out = (sum / QA) + output_bias[bucket];
+    int32_t out = (sum / QA) + weights->l1b[bucket];
     int final_eval = (int)((out * SCALE) / (QA * QB));
 
     return final_eval;
@@ -171,7 +132,6 @@ void test_nnue_indicies(board *pos) {
 }
 
 void nnue_add_feature(board *pos, int piece, int square) {
-    assert(is_nnue_loaded);
     int piece_color = (piece >= 6) ? 1 : 0;
     int piece_type  = piece % 6;
     
@@ -184,18 +144,14 @@ void nnue_add_feature(board *pos, int piece, int square) {
     int w_std_sq = w_sq ^ 56;
     int b_std_sq = b_sq ^ 56;
     
-    int w_bucket = white_king_bucket_layout[w_king_sq];
-    int b_bucket = black_king_bucket_layout[b_king_sq];
+    int w_bucket = king_bucket(white, w_king_sq);
+    int b_bucket = king_bucket(black, b_king_sq);
 
-    int w_idx = (w_bucket * 768) + (piece_color * 384) + (piece_type * 64) + w_std_sq;
-    int b_idx = (b_bucket * 768) + ((1 - piece_color) * 384) + (piece_type * 64) + b_sq;
-    
-    add_weights(pos->accum_white, feature_weights + w_idx * HIDDEN_SIZE);
-    add_weights(pos->accum_black, feature_weights + b_idx * HIDDEN_SIZE);
+    add_weights(pos->accum_white, weights->ftw[w_bucket][piece_color][piece_type][w_std_sq]);
+    add_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
 }
 
 void nnue_remove_feature(board *pos, int piece, int square) {
-    assert(is_nnue_loaded);
     int piece_color = (piece >= 6) ? 1 : 0;
     int piece_type  = piece % 6;
     
@@ -207,21 +163,17 @@ void nnue_remove_feature(board *pos, int piece, int square) {
     
     int w_std_sq = w_sq ^ 56;
     int b_std_sq = b_sq ^ 56;
-
-    int w_bucket = white_king_bucket_layout[w_king_sq];
-    int b_bucket = black_king_bucket_layout[b_king_sq];
-
-    int w_idx = (w_bucket * 768) + (piece_color * 384) + (piece_type * 64) + w_std_sq;
-    int b_idx = (b_bucket * 768) + ((1 - piece_color) * 384) + (piece_type * 64) + b_sq;
     
-    sub_weights(pos->accum_white, feature_weights + w_idx * HIDDEN_SIZE);
-    sub_weights(pos->accum_black, feature_weights + b_idx * HIDDEN_SIZE);
+    int w_bucket = king_bucket(white, w_king_sq);
+    int b_bucket = king_bucket(black, b_king_sq);
+
+    sub_weights(pos->accum_white, weights->ftw[w_bucket][piece_color][piece_type][w_std_sq]);
+    sub_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
 }
 
 void nnue_refresh_accumulator(board *pos) {
-    assert(is_nnue_loaded);
-    memcpy(pos->accum_white, feature_biases, HIDDEN_SIZE * sizeof(int16_t));
-    memcpy(pos->accum_black, feature_biases, HIDDEN_SIZE * sizeof(int16_t));
+    memcpy(pos->accum_white, weights->ftb, HIDDEN_SIZE * sizeof(int16_t));
+    memcpy(pos->accum_black, weights->ftb, HIDDEN_SIZE * sizeof(int16_t));
     for (int square = 0; square < 64; square++) {
         int piece = pos->mailbox[square];
         if (piece < 12) {

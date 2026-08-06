@@ -5,11 +5,22 @@
 #include "structs.h"
 #include "board_constants.h"
 
-extern bool is_nnue_loaded;
-extern const int white_king_bucket_layout[64];
-extern const int black_king_bucket_layout[64];
+#define QA 255
+#define QB 64
+#define SCALE 315
 
-bool nnue_load(const char* file_path);
+#define OUTPUT_BUCKETS 8
+#define INPUT_BUCKETS 4
+
+struct Weights {
+    int16_t ftw[INPUT_BUCKETS][2][6][64][HIDDEN_SIZE];
+    int16_t ftb[HIDDEN_SIZE];
+    int16_t l1w[OUTPUT_BUCKETS][2][HIDDEN_SIZE];
+    int16_t l1b[OUTPUT_BUCKETS];
+};
+
+int king_bucket(int perspective, int square);
+
 int nnue_evaluate_pos(board *pos);
 void test_nnue_indicies(board *pos);
 

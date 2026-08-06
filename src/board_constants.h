@@ -50,7 +50,7 @@ enum {
     wk = 1, wq = 2, bk = 4, bq = 8
 };
 enum {
-    white, black, both
+    white = 0, black = 1, both
 };
 enum {
     rook, bishop

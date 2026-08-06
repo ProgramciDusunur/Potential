@@ -754,15 +754,6 @@ void uciProtocol(int argc, char *argv[], board *position, my_time *time_ctrl) {
                 uci_minimal = false;
             }
         }
-        else if (!strncmp(input, "setoption name EvalFile value ", 30)) {
-            char *evalFile = input + 30;
-            evalFile[strcspn(evalFile, "\r\n")] = 0; // trim newline
-            if (nnue_load(evalFile)) {
-                printf("info string Loaded NNUE from %s\n", evalFile);
-            } else {
-                printf("info string Failed to load NNUE from %s\n", evalFile);
-            }
-        }
         else if (!strncmp(input, "setoption name ", 15)) {
             spsa_set_option(input);
         }
