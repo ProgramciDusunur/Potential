@@ -1392,12 +1392,18 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // Singular Extensions
         if (pos->ply < depth * 2 && !rootNode && depth >= SE_DEPTH + tt_pv && currentMove == tt_move && !ss->singular_move &&
             tt_depth >= depth - SE_TT_DEPTH_SUBTRACTOR && tt_flag != hashFlagBeta &&
-            abs(tt_score) < mateValue) {
-            int singularMargin = depth * 5;            
+            abs(tt_score) < mateValue) {                
+            
+            int singularMargin = depth * 5;
+            const int singularDepth = (depth - 1) / 2;
+            int se_history_margin = clamp(moveHistory / 1024, -depth / 4, depth / 4);
+
             singularMargin += (tt_pv && !pvNode) * 10;
             singularMargin += (tt_flag == hashFlagExact ? depth * 5 / 10 : depth * 5);
-            const int singularBeta = tt_score - singularMargin / 8;
-            const int singularDepth = (depth - 1) / 2;
+            singularMargin += se_history_margin;
+
+
+            const int singularBeta = tt_score - singularMargin / 8;            
 
             ss->singular_move = currentMove;
 
