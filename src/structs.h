@@ -22,6 +22,12 @@
 
 #define HIDDEN_SIZE 128
 
+// Finny Table entries
+typedef struct {
+    int16_t  accum[HIDDEN_SIZE];   // the last computed accumulator for this bucket
+    uint64_t bitboard[12];         // the last known piece positions for this bucket    
+} FinnyEntry;
+
 typedef struct  {
     uint64_t pawnThreats;
     uint64_t knightThreats;
@@ -267,11 +273,12 @@ typedef struct {
     SearchData search_d;
     SharedHistory *shared_history;
     board pos;
-    SearchStack ss_base[maxPly + 20]; // 20 = STACK_SAFETY_MARGIN
+    SearchStack ss_base[maxPly + 20];  // 20 = STACK_SAFETY_MARGIN
     SearchStack *ss;                   // points to ss_base + STACK_OFFSET (10)
     int search_depth;                  // depth for this thread's search
     my_time *time;                     // pointer to shared time control
     int generation;
+    FinnyEntry finny_table[2][4][2];   // [stm][bucket][mirrored]
 } ThreadData;
 
 typedef struct {
