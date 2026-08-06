@@ -297,4 +297,3 @@ void reset_finny_table(void) {
         }   
     }    
 }
-
