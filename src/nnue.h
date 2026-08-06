@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "structs.h"
 #include "board_constants.h"
+#include "threads.h"
 
 #define QA 255
 #define QB 64
@@ -22,7 +23,7 @@ struct Weights {
 int king_bucket(int perspective, int square);
 
 void reset_finny_table(void);
-
+void nnue_update_finny(ThreadData *t, board *pos, int side);
 void reset_finny_table(void);
 
 bool nnue_load(const char* file_path);

@@ -113,7 +113,7 @@ U64 attacked_bb(board *pos);
 void legal_move_generator(moves *moveList, board* pos);
 void legal_noisy_generator(moves *moveList, board* pos);
 void legal_quiet_generator(moves *moveList, board* pos);
-void legal_make_move(uint16_t move, board* pos);
+void legal_make_move(uint16_t move, board* position, ThreadData *t);
 void prefetch_tt_early(board *pos, uint16_t move);
 
 // BISHOP ATTACKS

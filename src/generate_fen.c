@@ -1,4 +1,5 @@
 #include "generate_fen.h"
+#include "threads.h"
 
 // Default FEN generation settings
 const int how_many_ply = 8;
@@ -91,7 +92,7 @@ int default_fen_generation(board *pos, int current_ply, FILE *out_file) {
         struct copyposition cp;
         copyBoard(pos, &cp);
 
-        legal_make_move(moveList->moves[i], pos);
+        legal_make_move(moveList->moves[i], pos, thread_pool.threads[0]);
         legal_moves[legal_count++] = moveList->moves[i];
 
         takeBack(pos, &cp);
@@ -105,7 +106,7 @@ int default_fen_generation(board *pos, int current_ply, FILE *out_file) {
     struct copyposition cp_step;
     copyBoard(pos, &cp_step);
     
-    legal_make_move(selected_move, pos);
+    legal_make_move(selected_move, pos, thread_pool.threads[0]);
     int result = default_fen_generation(pos, current_ply + 1, out_file);
         
     takeBack(pos, &cp_step);
