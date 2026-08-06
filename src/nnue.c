@@ -181,3 +181,4 @@ void nnue_refresh_accumulator(board *pos) {
         }
     }
 }
+
