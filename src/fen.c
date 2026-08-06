@@ -119,7 +119,9 @@ void parseFEN(char *fen, board* position) {
     position->blackNonPawnKey = generate_black_np_hash_key(position);
     position->krpKey = generate_krp_key(position);
     
+
     init_threats(position);
     update_pinned(position);
+    reset_finny_table();
     nnue_refresh_accumulator(position);
 }
