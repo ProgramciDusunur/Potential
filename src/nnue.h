@@ -23,6 +23,8 @@ int king_bucket(int perspective, int square);
 
 void reset_finny_table(void);
 
+void reset_finny_table(void);
+
 bool nnue_load(const char* file_path);
 int nnue_evaluate_pos(board *pos);
 void test_nnue_indicies(board *pos);

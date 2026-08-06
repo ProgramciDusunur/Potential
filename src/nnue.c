@@ -208,6 +208,43 @@ void nnue_add_feature_black(board *pos, int piece, int square) {
     add_weights(pos->accum_black, feature_weights + b_idx * HIDDEN_SIZE);
 }
 
+void nnue_add_feature_white(board *pos, int piece, int square) {
+    assert(is_nnue_loaded);
+    int piece_color = (piece >= 6) ? 1 : 0;
+    int piece_type  = piece % 6;
+    
+    int w_king_sq = getLS1BIndex(pos->bitboards[K]);
+    
+    int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 7) : square;
+    
+    int w_std_sq = w_sq ^ 56;
+    
+    int w_bucket = white_king_bucket_layout[w_king_sq];
+
+    int w_idx = (w_bucket * 768) + (piece_color * 384) + (piece_type * 64) + w_std_sq;
+    
+    add_weights(pos->accum_white, feature_weights + w_idx * HIDDEN_SIZE);
+
+}
+
+void nnue_add_feature_black(board *pos, int piece, int square) {
+    assert(is_nnue_loaded);
+    int piece_color = (piece >= 6) ? 1 : 0;
+    int piece_type  = piece % 6;
+    
+    int b_king_sq = getLS1BIndex(pos->bitboards[k]);
+    
+    int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 7) : square;
+    
+    int b_std_sq = b_sq ^ 56;
+    
+    int b_bucket = black_king_bucket_layout[b_king_sq];
+
+    int b_idx = (b_bucket * 768) + ((1 - piece_color) * 384) + (piece_type * 64) + b_std_sq;
+    
+    add_weights(pos->accum_black, feature_weights + b_idx * HIDDEN_SIZE);
+}
+
 void nnue_refresh_accumulator(board *pos) {
     memcpy(pos->accum_white, weights->ftb, HIDDEN_SIZE * sizeof(int16_t));
     memcpy(pos->accum_black, weights->ftb, HIDDEN_SIZE * sizeof(int16_t));
