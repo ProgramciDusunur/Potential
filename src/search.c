@@ -859,7 +859,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
         prefetch_tt_early(position, move);
-        legal_make_move(move, position);
+        legal_make_move(move, position, t);
 
         //legal_moves++;
 
@@ -1222,7 +1222,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
                 prefetch_tt_early(pos, move);
-                legal_make_move(move, pos);
+                legal_make_move(move, pos, t);
 
                 prefetch_corrhist(pos, t);
                 
@@ -1508,7 +1508,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         pos->repetitionTable[pos->repetitionIndex] = pos->hashKey;
 
         prefetch_tt_early(pos, currentMove);
-        legal_make_move(currentMove, pos);
+        legal_make_move(currentMove, pos, t);
 
 
         // increment nodes count

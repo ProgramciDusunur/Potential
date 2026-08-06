@@ -3,6 +3,7 @@
 //
 
 #include "uci.h"
+#include "threads.h"
 #include "spsa.h"
 #include "perft.h"
 #include "timeman.h"
@@ -177,7 +178,7 @@ void parse_position(char *command, board* position) {
             position->repetitionTable[position->repetitionIndex] = position->hashKey;
 
             // make move on the chess board
-            legal_make_move(move, position);
+            legal_make_move(move, position, thread_pool.threads[0]);
 
             // move current character mointer to the end of current move
             while (*current_char && *current_char != ' ') current_char++;

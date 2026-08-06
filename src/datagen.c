@@ -94,7 +94,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         for (int j = 0; j < moveList->count; ++j) {
             struct copyposition cp;
             copyBoard(&pos, &cp);
-            legal_make_move(moveList->moves[j], &pos);
+            legal_make_move(moveList->moves[j], &pos, t);
             legal_moves_arr[legal_count++] = moveList->moves[j];
             takeBack(&pos, &cp);
         }
@@ -106,7 +106,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
 
         struct copyposition cp;
         copyBoard(&pos, &cp);
-        legal_make_move(selected_move, &pos);
+        legal_make_move(selected_move, &pos, t);
     }
     
     pos.repetitionIndex = 0;
@@ -136,7 +136,7 @@ int play_selfgen_game(FILE *out_file, FILE *illegal_file, int nodes_limit, int u
         for (int i = 0; i < moveList->count; i++) {
             struct copyposition cp;
             copyBoard(&pos, &cp);
-            legal_make_move(moveList->moves[i], &pos);
+            legal_make_move(moveList->moves[i], &pos, t);
             legal_moves++;
             takeBack(&pos, &cp);
         }

@@ -634,7 +634,7 @@ inline static void splatNormalMoves(moves *moveList, int sourceSquare, U64 targe
 
 #endif
 
-void legal_make_move(uint16_t move, board* position) {    
+void legal_make_move(uint16_t move, board* position, ThreadData *t) {    
 
     // parse move
     int sourceSquare = getMoveSource(move);
@@ -764,7 +764,8 @@ void legal_make_move(uint16_t move, board* position) {
         bool to_mirror   = (targetSquare % 8) > 3;
         
         if (from_bucket != to_bucket || from_mirror != to_mirror) {            
-            nnue_refresh_accumulator(position);
+            int king_side = piece == K ? white : black;
+            nnue_update_finny(t, position, king_side);
         }
     }
 }

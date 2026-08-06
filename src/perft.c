@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include "perft.h"
+#include "threads.h"
 
 U64 perftNodes = 0;
 U64 variant = 0;
@@ -19,7 +20,7 @@ void perft_child_legal(int depth, board* position) {
     for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
         struct copyposition copyPosition;
         copyBoard(position, &copyPosition);
-        legal_make_move(moveList->moves[moveCount], position);
+        legal_make_move(moveList->moves[moveCount], position, thread_pool.threads[0]);
         // call perft driver recursively
         perft_child_legal(depth - 1, position);
         takeBack(position, &copyPosition);
@@ -32,7 +33,7 @@ void perft_root_legal(int depth, board* position) {
     for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
         struct copyposition copyPosition;
         copyBoard(position, &copyPosition);
-        legal_make_move(moveList->moves[moveCount], position);
+        legal_make_move(moveList->moves[moveCount], position, thread_pool.threads[0]);
         // call perft driver recursively
         perft_child_legal(depth - 1, position);
 
@@ -60,7 +61,7 @@ void perft_legal(int depth, board* position) {
     for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
         struct copyposition copyPosition;
         copyBoard(position, &copyPosition);
-        legal_make_move(moveList->moves[moveCount], position);
+        legal_make_move(moveList->moves[moveCount], position, thread_pool.threads[0]);
         // call perft driver recursively
         perft_legal(depth - 1, position);
         takeBack(position, &copyPosition);
@@ -85,7 +86,7 @@ void perft_child_legal_bulk(int depth, board* position) {
     for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
         struct copyposition copyPosition;
         copyBoard(position, &copyPosition);
-        legal_make_move(moveList->moves[moveCount], position);
+        legal_make_move(moveList->moves[moveCount], position, thread_pool.threads[0]);
         perft_child_legal_bulk(depth - 1, position);
         takeBack(position, &copyPosition);
     }
@@ -97,7 +98,7 @@ void perft_root_legal_bulk(int depth, board* position) {
     for (int moveCount = 0; moveCount < moveList->count; moveCount++) {
         struct copyposition copyPosition;
         copyBoard(position, &copyPosition);
-        legal_make_move(moveList->moves[moveCount], position);
+        legal_make_move(moveList->moves[moveCount], position, thread_pool.threads[0]);
         perft_child_legal_bulk(depth - 1, position);
 
         if (depth == 2 &&

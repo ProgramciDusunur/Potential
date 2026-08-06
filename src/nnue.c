@@ -171,6 +171,68 @@ void nnue_remove_feature(board *pos, int piece, int square) {
     sub_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
 }
 
+void nnue_add_feature_white(board *pos, int piece, int square) {    
+    int piece_color = (piece >= 6) ? 1 : 0;
+    int piece_type  = piece % 6;
+    
+    int w_king_sq = getLS1BIndex(pos->bitboards[K]);
+    
+    int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 7) : square;
+    
+    int w_std_sq = w_sq ^ 56;
+    
+    int w_bucket = king_bucket(white, w_king_sq);    
+    
+    add_weights(pos->accum_white, weights->ftw[w_bucket][piece_color][piece_type][w_std_sq]);
+
+}
+
+void nnue_add_feature_black(board *pos, int piece, int square) {    
+    int piece_color = (piece >= 6) ? 1 : 0;
+    int piece_type  = piece % 6;
+    
+    int b_king_sq = getLS1BIndex(pos->bitboards[k]);
+    
+    int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 7) : square;
+    
+    int b_std_sq = b_sq ^ 56;
+    
+    int b_bucket = king_bucket(black, b_king_sq);    
+    
+    add_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
+}
+
+void nnue_sub_feature_white(board *pos, int piece, int square) {    
+    int piece_color = (piece >= 6) ? 1 : 0;
+    int piece_type  = piece % 6;
+    
+    int w_king_sq = getLS1BIndex(pos->bitboards[K]);
+    
+    int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 7) : square;
+    
+    int w_std_sq = w_sq ^ 56;
+    
+    int w_bucket = king_bucket(white, w_king_sq);    
+    
+    sub_weights(pos->accum_white, weights->ftw[w_bucket][piece_color][piece_type][w_std_sq]);
+
+}
+
+void nnue_sub_feature_black(board *pos, int piece, int square) {    
+    int piece_color = (piece >= 6) ? 1 : 0;
+    int piece_type  = piece % 6;
+    
+    int b_king_sq = getLS1BIndex(pos->bitboards[k]);
+    
+    int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 7) : square;
+    
+    int b_std_sq = b_sq ^ 56;
+    
+    int b_bucket = king_bucket(black, b_king_sq);    
+    
+    sub_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
+}
+
 void nnue_refresh_accumulator(board *pos) {
     memcpy(pos->accum_white, weights->ftb, HIDDEN_SIZE * sizeof(int16_t));
     memcpy(pos->accum_black, weights->ftb, HIDDEN_SIZE * sizeof(int16_t));
@@ -182,3 +244,56 @@ void nnue_refresh_accumulator(board *pos) {
     }
 }
 
+void nnue_update_finny(ThreadData *t, board *pos, int side) {
+    int king_sq = (side == white) ? getLS1BIndex(pos->bitboards[K]) : getLS1BIndex(pos->bitboards[k]);
+
+    int bucket = king_bucket(side, king_sq);
+    int mirrored = (king_sq % 8) > 3 ? 1 : 0;
+
+    FinnyEntry *entry = &t->finny_table[side][bucket][mirrored];
+    memcpy(side == white ? pos->accum_white : pos->accum_black, entry->accum, HIDDEN_SIZE * sizeof(int16_t));
+    
+    for (int piece = P; piece <= k; piece++) {
+        U64 bitboard = pos->bitboards[piece];
+        if (bitboard != entry->bitboard[piece]) {
+            U64 diff = bitboard ^ entry->bitboard[piece];
+            while (diff) {
+                int square = getLS1BIndex(diff);
+
+                if (getBit(bitboard, square)) {
+                    if (side == white) {
+                        nnue_add_feature_white(pos, piece, square);
+                    } else {
+                        nnue_add_feature_black(pos, piece, square);
+                    }
+                } else {
+                    if (side == white) {
+                        nnue_sub_feature_white(pos, piece, square);
+                    } else {
+                        nnue_sub_feature_black(pos, piece, square);
+                    }
+                }
+
+                diff &= diff - 1;
+            }
+            entry->bitboard[piece] = bitboard;
+        }
+    }
+
+    memcpy(entry->accum, side == white ? pos->accum_white : pos->accum_black, HIDDEN_SIZE * sizeof(int16_t));
+    memcpy(entry->bitboard, pos->bitboards, sizeof(uint64_t) * 12);
+}
+
+void reset_finny_table(void) {
+    for (int i = 0; i < thread_pool.thread_count; i++) {
+        for (int side = 0; side < 2; side++) {
+            for (int bucket = 0; bucket < 4; bucket++) {
+                for (int mirrored = 0; mirrored < 2; mirrored++) {
+                    FinnyEntry *entry = &thread_pool.threads[i]->finny_table[side][bucket][mirrored];
+                    memset(entry->bitboard, 0, sizeof(uint64_t) * 12);
+                    memcpy(entry->accum, weights->ftb, sizeof(int16_t) * HIDDEN_SIZE);
+                }
+            }
+        }   
+    }    
+}
