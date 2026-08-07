@@ -235,7 +235,7 @@ void prefetch_corrhist(board *pos, ThreadData *t) {
     __builtin_prefetch(&t->shared_history->krp_corrhist[side][pos->krpKey & mask]);
 }
 
-void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key) {
+void writeHashEntry(uint64_t key, int16_t score, int16_t static_eval, uint16_t bestMove, uint8_t depth, uint8_t hashFlag, bool ttPv, board* position, uint8_t fmr_key) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
     tt *hashEntry = &hashTable[get_hash_index(position->hashKey, fmr_key)];
@@ -253,6 +253,7 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
 
         hashEntry->hashKey = get_hash_low_bits(position->hashKey);
         hashEntry->score = score;
+        hashEntry->static_eval = static_eval;
         hashEntry->flag = hashFlag;
         hashEntry->depth = depth;        
         hashEntry->ttPv = ttPv;
@@ -260,7 +261,7 @@ void writeHashEntry(uint64_t key, int16_t score, uint16_t bestMove, uint8_t dept
 }
 
 // read hash entry data
-bool readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
+bool readHashEntry(board *position, uint16_t *move, int16_t *tt_score, int16_t *tt_static_eval,
                     uint8_t *tt_depth, uint8_t *tt_flag, bool *tt_pv, uint8_t fmr_key) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
@@ -279,6 +280,7 @@ bool readHashEntry(board *position, uint16_t *move, int16_t *tt_score,
 
         *move = hashEntry->bestMove;
         *tt_score = score;
+        *tt_static_eval = hashEntry->static_eval;
         *tt_depth = hashEntry->depth;
         *tt_flag = hashEntry->flag;
         *tt_pv = hashEntry->ttPv;

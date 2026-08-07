@@ -138,6 +138,7 @@ typedef struct {
     uint64_t hashKey;    // "almost" unique chess position identifier
     uint16_t bestMove;        // best move from the search
     int16_t score;       // score (alpha/beta/PV)
+    int16_t static_eval;
     uint8_t depth;       // current search depth
     uint8_t flag;        // flag the type of node (fail-high(score >= beta)/fail-low(score < alpha))
     bool ttPv;           // tt was pv node or not
