@@ -25,7 +25,7 @@ CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
 
 NET_TAG  := 256hl-3
-NET      := potential-256hl-3-fine-tune.bin
+NET      := potential-256hl-3-fine-tune-2.bin
 NET_URL  := https://github.com/ProgramciDusunur/Potential-nets/releases/download/$(NET_TAG)/$(NET)
 EVALFILE ?= $(NET)
 
