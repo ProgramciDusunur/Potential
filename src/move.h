@@ -91,7 +91,6 @@ extern const int rookRelevantBits[64];
 extern U64 rookMagic[64];
 extern U64 bishopMagic[64];
 
-
 void copyBoard(board *p, struct copyposition *cp);
 void takeBack(board *p, struct copyposition *cp);
 void addMove(moves *moveList, uint16_t move);
