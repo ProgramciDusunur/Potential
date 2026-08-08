@@ -773,6 +773,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     uint16_t bestMove = 0;
     uint16_t tt_move = 0;
     int16_t tt_score = 0;
+    int16_t tt_static_eval = noEval;
     uint8_t tt_hit = 0;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
@@ -781,7 +782,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     // read hash entry
     if (position->ply &&
         (tt_hit =
-                 readHashEntry(position, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, position->fifty)) && !pvNode) {
+                 readHashEntry(position, &tt_move, &tt_score, &tt_static_eval, &tt_depth, &tt_flag, &tt_pv, position->fifty)) && !pvNode) {
         if ((tt_flag == hashFlagExact) ||
             ((tt_flag == hashFlagBeta) && (tt_score <= alpha)) ||
             ((tt_flag == hashFlagAlpha) && (tt_score >= beta))) {
@@ -790,7 +791,8 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     }
 
     // evaluate position
-    int evaluation = evaluate(position);
+    int raw_eval = evaluate(position);
+    int evaluation = raw_eval;
 
     evaluation = adjust_eval_with_corrhist(t, evaluation, ss);
 
@@ -910,7 +912,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
 
     // store hash entry with the score equal to alpha
-    writeHashEntry(position->hashKey, bestScore, bestMove, 0, hashFlag, tt_pv, position, position->fifty);
+    writeHashEntry(position->hashKey, bestScore, raw_eval, bestMove, 0, hashFlag, tt_pv, position, position->fifty);
 
     // node (move) fails low
     return bestScore;
@@ -958,6 +960,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     uint64_t pos_key = 0;
     uint16_t tt_move = 0;
     int16_t tt_score = 0;
+    int16_t tt_static_eval = noEval;
     bool tt_hit = false;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
@@ -988,7 +991,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     }
 
     // read hash entry
-    tt_hit = !ss->singular_move && !rootNode && readHashEntry(pos, &tt_move, &tt_score, &tt_depth, &tt_flag, &tt_pv, pos->fifty);
+    tt_hit = !ss->singular_move && !rootNode && readHashEntry(pos, &tt_move, &tt_score, &tt_static_eval, &tt_depth, &tt_flag, &tt_pv, pos->fifty);
 
     // read hash entry
     if (tt_hit && !pvNode) {
@@ -1014,7 +1017,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     
 
     // get static evaluation score
-    int raw_eval = evaluate(pos);
+    int raw_eval = tt_static_eval != noEval ? tt_static_eval : evaluate(pos);
 
     int static_eval = adjust_eval_with_corrhist(t, raw_eval, ss);
 
@@ -1255,7 +1258,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 takeBack(pos, &probcutCopy);
 
                 if (probcut_value >= probcut_beta) {
-                    writeHashEntry(pos->hashKey, probcut_value, move, probcut_depth, hashFlagAlpha, tt_pv, pos, pos->fifty);
+                    writeHashEntry(pos->hashKey, probcut_value, raw_eval, move, probcut_depth, hashFlagAlpha, tt_pv, pos, pos->fifty);
                     return probcut_value;
                 }
             }
@@ -1806,7 +1809,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         }
 
         // store hash entry with the score equal to alpha
-        writeHashEntry(pos_key, bestScore, bestMove, depth, hashFlag, tt_pv, pos, pos->fifty);
+        writeHashEntry(pos_key, bestScore, raw_eval, bestMove, depth, hashFlag, tt_pv, pos, pos->fifty);
     }
     // node (move) fails low
     return bestScore;
