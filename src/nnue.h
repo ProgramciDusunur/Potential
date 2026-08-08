@@ -8,7 +8,7 @@
 
 #define QA 255
 #define QB 64
-#define SCALE 315
+#define SCALE 296
 
 #define OUTPUT_BUCKETS 8
 #define INPUT_BUCKETS 4
