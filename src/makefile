@@ -24,8 +24,8 @@ endif
 CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
 
-NET_TAG  := 256hl-2
-NET      := potential-256hl-2.bin
+NET_TAG  := 256hl-3
+NET      := potential-256hl-3-stage0.bin
 NET_URL  := https://github.com/ProgramciDusunur/Potential-nets/releases/download/$(NET_TAG)/$(NET)
 EVALFILE ?= $(NET)
 
