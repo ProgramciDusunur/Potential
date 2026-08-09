@@ -1272,6 +1272,17 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             return small_probcut_beta;            
     }
 
+    // Internal Iterative Deepening (IID)
+    if (!rootNode && pvNode && depth >= 8 && !in_check && !ss->singular_move && !tt_move) {
+        int idd_depth = (3 * depth - 7) / 4;
+        int idd_score = negamax(alpha, beta, idd_depth, t, time, ss, predicted_cut_node);
+
+        int16_t iid_score, iid_static_eval;
+        bool iid_pv;
+        uint8_t iid_flag, iid_depth;
+        readHashEntry(pos, &tt_move, &iid_score, &iid_static_eval, &iid_depth, &iid_flag, &iid_pv, pos->fifty);
+    }
+
     bool enemy_has_no_threats = !has_enemy_any_threat(pos);    
 
     // create move list instance
