@@ -1561,7 +1561,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction += GOOD_EVAL_LMR_SCALAR;
         }
 
-        if ((ss + 1)->cutoff_count > 1) {
+        if ((ss + 1)->cutoff_count >= 3) {
             lmrReduction += CUTOFF_LMR_SCALAR;
         }
 
