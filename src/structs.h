@@ -213,9 +213,9 @@ typedef struct {
     uint8_t valid;
 } check_info_t;
 
-typedef struct {
-    int cutoff_count;
+typedef struct {    
     int staticEval;
+    int16_t cutoff_count;
     uint16_t singular_move;
     uint16_t nmp_refutation_move;
     uint16_t move;
