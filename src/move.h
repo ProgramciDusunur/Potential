@@ -98,6 +98,7 @@ bool isTactical(uint16_t move);
 U64 getKingAttacks(int square);
 U64 getPawnAttacks(uint8_t side, int square);
 U64 getKnightAttacks(int square);
+bool isValuable(int piece);
 int isSquareAttacked(int square, int whichSide, board* position);
 void init_sliders_attacks(int bishop);
 void init_leaper_attacks();
