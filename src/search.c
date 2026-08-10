@@ -809,7 +809,12 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     if (evaluation > alpha) {
         // PV node (move)
         alpha = evaluation;
-    }    
+    }
+
+    // is king in check
+    bool in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) :
+                                    getLS1BIndex(position->bitboards[k]),
+                                    position->side ^ 1, position);
 
     // create move list instance
     moves moveList[1];
@@ -817,7 +822,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     int move_scores[256];
 
     const bool should_do_evasions =
-        !pvNode && tt_move && tt_flag != hashFlagBeta && !isTactical(tt_move);
+        (!pvNode && tt_move && tt_flag != hashFlagBeta && !isTactical(tt_move)) || in_check;
 
     // generate moves
     if (should_do_evasions) {
