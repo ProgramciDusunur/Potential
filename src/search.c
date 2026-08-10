@@ -1465,6 +1465,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 return singularBeta;
             }
 
+            // Bad TT Move
+            else if (score > tt_score) {
+                tt_move = 0;
+            }
+
             // Negative Extensions
             else if (tt_score >= beta) {
                 extensions -= 2 + !pvNode;
