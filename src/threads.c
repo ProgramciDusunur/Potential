@@ -43,7 +43,7 @@ void free_threads(void) {
                 free(sh->pawn_corrhist[c]);
                 free(sh->minor_corrhist[c]);
                 free(sh->major_corrhist[c]);
-                free(sh->krp_corrhist[c]);
+
                 for (int c2 = 0; c2 < 2; c2++) {
                     free(sh->non_pawn_corrhist[c][c2]);
                 }
@@ -175,7 +175,7 @@ void init_threads(int requested_count) {
             sh->pawn_corrhist[c] = (int16_t *)calloc(corrhist_size, sizeof(int16_t));
             sh->minor_corrhist[c] = (int16_t *)calloc(corrhist_size, sizeof(int16_t));
             sh->major_corrhist[c] = (int16_t *)calloc(corrhist_size, sizeof(int16_t));
-            sh->krp_corrhist[c] = (int16_t *)calloc(corrhist_size, sizeof(int16_t));
+
             for (int c2 = 0; c2 < 2; c2++) {
                 sh->non_pawn_corrhist[c][c2] = (int16_t *)calloc(corrhist_size, sizeof(int16_t));
             }
