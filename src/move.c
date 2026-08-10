@@ -207,6 +207,7 @@ inline static void addPiece(board* position, int piece, int square) {
     nnue_add_feature(position, piece, square);
 }
 
+
 inline static void removePiece(board* position, int piece, int square) {
     assert(position->mailbox[square] == piece);    
     popBit(position->bitboards[piece], square);

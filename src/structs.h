@@ -20,7 +20,7 @@
 #define maxPly 256
 #define MAX_THREADS 512
 
-#define HIDDEN_SIZE 256
+#define HIDDEN_SIZE 512
 
 // Finny Table entries
 typedef struct {
