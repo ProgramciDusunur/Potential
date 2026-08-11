@@ -93,7 +93,7 @@ int nnue_evaluate_pos(board *pos) {
     int16_t *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
 
     int piece_count = countBits(pos->occupancies[both]);
-    int bucket = (piece_count - 2) / 4;
+    int bucket = (piece_count - 2) / 2;
     int offset = bucket * 2 * HIDDEN_SIZE;
 
     sum += forward_screlu(accum_stm, weights->l1w[bucket][0]);

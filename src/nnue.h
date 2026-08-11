@@ -10,7 +10,7 @@
 #define QB 64
 #define SCALE 315
 
-#define OUTPUT_BUCKETS 8
+#define OUTPUT_BUCKETS 16
 #define INPUT_BUCKETS 4
 
 struct Weights {
