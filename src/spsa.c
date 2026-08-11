@@ -233,9 +233,7 @@ extern TUNE_INT MAJOR_CORRHIST_MULT;
 extern TUNE_INT NON_PAWN_CORRHIST_WEIGHT_SCALE;
 extern TUNE_INT NON_PAWN_CORRHIST_GRAIN;
 extern TUNE_INT NON_PAWN_CORRHIST_MULT;
-extern TUNE_INT KRP_CORRHIST_WEIGHT_SCALE;
-extern TUNE_INT KRP_CORRHIST_GRAIN;
-extern TUNE_INT KRP_CORRHIST_MULT;
+
 extern TUNE_INT CONT_CORRHIST_WEIGHT_SCALE;
 extern TUNE_INT CONT_CORRHIST_GRAIN;
 extern TUNE_INT CONT_CORRHIST_MULT;
@@ -443,9 +441,7 @@ void spsa_init(void) {
     spsa_add_int("NON_PAWN_CORRHIST_GRAIN",          &NON_PAWN_CORRHIST_GRAIN,             295,     64,    512,  25.00, 0.002);
     spsa_add_int("NON_PAWN_CORRHIST_MULT",           &NON_PAWN_CORRHIST_MULT,             1110,    256,   4096, 100.00, 0.002);
     
-    spsa_add_int("KRP_CORRHIST_WEIGHT_SCALE",        &KRP_CORRHIST_WEIGHT_SCALE,           256,     64,    512,  25.00, 0.002);
-    spsa_add_int("KRP_CORRHIST_GRAIN",               &KRP_CORRHIST_GRAIN,                  281,     64,    512,  25.00, 0.002);
-    spsa_add_int("KRP_CORRHIST_MULT",                &KRP_CORRHIST_MULT,                  971,    256,   4096, 100.00, 0.002);
+
     
     spsa_add_int("CONT_CORRHIST_WEIGHT_SCALE",       &CONT_CORRHIST_WEIGHT_SCALE,          269,     64,    512,  25.00, 0.002);
     spsa_add_int("CONT_CORRHIST_GRAIN",              &CONT_CORRHIST_GRAIN,                 202,     64,    512,  25.00, 0.002);

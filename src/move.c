@@ -48,7 +48,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->majorKey = p->majorKey;
     cp->whiteNonPawnKey = p->whiteNonPawnKey;
     cp->blackNonPawnKey = p->blackNonPawnKey;
-    cp->krpKey = p->krpKey;
+
     memcpy(cp->mailbox, p->mailbox, sizeof(cp->mailbox));
     cp->side = p->side;
     cp->castle = p->castle;
@@ -71,7 +71,7 @@ void takeBack(board *p, struct copyposition *cp) {
     p->majorKey = cp->majorKey;
     p->whiteNonPawnKey = cp->whiteNonPawnKey;
     p->blackNonPawnKey = cp->blackNonPawnKey;
-    p->krpKey = cp->krpKey;
+
     memcpy(p->mailbox, cp->mailbox, sizeof(p->mailbox));
     p->side = cp->side;
     p->castle = cp->castle;
@@ -184,16 +184,14 @@ bool isMajor(int piece) {
     return piece == Q || piece == q || piece == R || piece == r;
 }
 
-bool isKRP(int piece) {
-    return piece == K || piece == k || piece == R || piece == r || piece == P || piece == p;
-}
+
 
 bool isValuable(int piece) {
     return piece == N || piece == n || piece == B || piece == b || piece == R || piece == r || piece == Q || piece == q;
 }
 
 inline static void toggleHashesForPiece(board* position, int piece, int square) {
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 6; i++) {
         position->zinfo.raw[i] ^= pieceKeys[piece][square].raw[i];
     }
 }
