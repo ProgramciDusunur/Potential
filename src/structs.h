@@ -271,7 +271,7 @@ typedef struct {
     int search_depth;                  // depth for this thread's search
     my_time *time;                     // pointer to shared time control
     int generation;
-    FinnyEntry finny_table[2][4][2];   // [stm][bucket][mirrored]
+    FinnyEntry finny_table[2][8][2];   // [stm][bucket][mirrored]
 } ThreadData;
 
 typedef struct {
