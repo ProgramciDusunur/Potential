@@ -201,8 +201,7 @@ inline static void addPiece(board* position, int piece, int square) {
     setBit(position->occupancies[pieceColor(piece)], square);
     setBit(position->occupancies[both], square);    
     position->mailbox[square] = piece;
-    toggleHashesForPiece(position, piece, square);    
-    nnue_add_feature(position, piece, square);
+    toggleHashesForPiece(position, piece, square);
 }
 
 
@@ -212,8 +211,7 @@ inline static void removePiece(board* position, int piece, int square) {
     popBit(position->occupancies[pieceColor(piece)], square);
     popBit(position->occupancies[both], square);    
     position->mailbox[square] = NO_PIECE;
-    toggleHashesForPiece(position, piece, square);
-    nnue_remove_feature(position, piece, square);
+    toggleHashesForPiece(position, piece, square);    
 }
 
 bool is_pseudo_legal(uint16_t move, board *pos) {
