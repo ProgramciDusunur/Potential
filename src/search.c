@@ -1053,7 +1053,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     // static evaluation difference to improve quiet move ordering 
     if (!rootNode && !ss->singular_move && counter_move_available && !in_check) {
-        int eval_diff = clamp(-(ss - 1)->staticEval + ss->staticEval, -128, 384);
+        int eval_diff = clamp(-(ss - 1)->staticEval + ss->staticEval, -128, 256);
         adjust_single_quiet_hist_entry(t, pos->side ^ 1, counter_move, eval_diff);
     }
 
