@@ -87,6 +87,29 @@ static inline void sub_weights(int16_t *restrict accum, const int16_t *restrict 
     }
 }
 
+/* FUSED UPDATES */
+
+// Instead of accessing memory multiple times, 
+// we perform all add and sub operations in a single pass
+
+static inline void add_sub_weights(int16_t *restrict accum, const int16_t *add, const int16_t *sub) {
+    for (int i = 0; i < HIDDEN_SIZE; ++i) {
+        accum[i] = accum[i] + add[i] - sub[i];
+    }
+}
+
+static inline void add_sub_sub_weights(int16_t *restrict accum, const int16_t *add, const int16_t *sub1, const int16_t *sub2) {
+    for (int i = 0; i < HIDDEN_SIZE; ++i) {
+        accum[i] = accum[i] + add[i] - sub1[i] - sub2[i];
+    }
+}
+
+static inline void add_add_sub_sub_weights(int16_t *restrict accum, const int16_t *add1, const int16_t *add2, const int16_t *sub1, const int16_t *sub2) {
+    for (int i = 0; i < HIDDEN_SIZE; ++i) {
+        accum[i] = accum[i] + add1[i] + add2[i] - sub1[i] - sub2[i];
+    }
+}
+
 int nnue_evaluate_pos(board *pos) {
     int32_t sum = 0;
     int16_t *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
