@@ -92,19 +92,19 @@ static inline void sub_weights(int16_t *restrict accum, const int16_t *restrict 
 // Instead of accessing memory multiple times, 
 // we perform all add and sub operations in a single pass
 
-static inline void add_sub_weights(int16_t *restrict accum, const int16_t *add, const int16_t *sub) {
+static inline void add_sub_weights(int16_t *restrict accum, const int16_t *restrict add, const int16_t *restrict sub) {
     for (int i = 0; i < HIDDEN_SIZE; ++i) {
         accum[i] = accum[i] + add[i] - sub[i];
     }
 }
 
-static inline void add_sub_sub_weights(int16_t *restrict accum, const int16_t *add, const int16_t *sub1, const int16_t *sub2) {
+static inline void add_sub_sub_weights(int16_t *restrict accum, const int16_t *restrict add, const int16_t *restrict sub1, const int16_t *restrict sub2) {
     for (int i = 0; i < HIDDEN_SIZE; ++i) {
         accum[i] = accum[i] + add[i] - sub1[i] - sub2[i];
     }
 }
 
-static inline void add_add_sub_sub_weights(int16_t *restrict accum, const int16_t *add1, const int16_t *add2, const int16_t *sub1, const int16_t *sub2) {
+static inline void add_add_sub_sub_weights(int16_t *restrict accum, const int16_t *restrict add1, const int16_t *restrict add2, const int16_t *restrict sub1, const int16_t *restrict sub2) {
     for (int i = 0; i < HIDDEN_SIZE; ++i) {
         accum[i] = accum[i] + add1[i] + add2[i] - sub1[i] - sub2[i];
     }
