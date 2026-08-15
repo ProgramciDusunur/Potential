@@ -14,7 +14,7 @@
 #define INPUT_BUCKETS 4
 
 struct Weights {
-    int16_t ftw[INPUT_BUCKETS][2][6][64][HIDDEN_SIZE];
+    int16_t ftw[INPUT_BUCKETS][12][64][HIDDEN_SIZE];
     int16_t ftb[HIDDEN_SIZE];
     int16_t l1w[OUTPUT_BUCKETS][2][HIDDEN_SIZE];
     int16_t l1b[OUTPUT_BUCKETS];
