@@ -664,11 +664,19 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
         position->fifty = 0;
 
         removePiece(position, capturedPiece, targetSquare);
+        if (!promote) {
+            nnue_update_add_sub_sub(position, piece, targetSquare, piece, sourceSquare, capturedPiece, targetSquare);
+        }
     }
 
     // move piece
     removePiece(position, piece, sourceSquare);
     addPiece(position, piece, targetSquare);
+
+    // handle quiet moves
+    if (!capture && !enpass && !promote && !castling) {
+        nnue_update_add_sub(position, piece, targetSquare, piece, sourceSquare);
+    }
 
     // handle enpassant captures
     if (enpass) {
@@ -677,8 +685,10 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
 
         if (position->side == white) {
             removePiece(position, p, targetSquare + 8);
+            nnue_update_add_sub_sub(position, piece, targetSquare, piece, sourceSquare, p, targetSquare + 8);
         } else {
             removePiece(position, P, targetSquare - 8);
+            nnue_update_add_sub_sub(position, piece, targetSquare, piece, sourceSquare, P, targetSquare - 8);
         }
     }
 
@@ -690,6 +700,12 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
             removePiece(position, p, targetSquare);
         }
         addPiece(position, promotedPiece, targetSquare);
+        
+        if (capture) {
+            nnue_update_add_sub_sub(position, promotedPiece, targetSquare, piece, sourceSquare, capturedPiece, targetSquare);
+        } else {
+            nnue_update_add_sub(position, promotedPiece, targetSquare, piece, sourceSquare);
+        }
     }
 
     // hash enpassant if available (remove enpassant square from hash key )
@@ -714,24 +730,28 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
             case (g1):
                 removePiece(position, R, h1);
                 addPiece(position, R, f1);
+                nnue_update_add_add_sub_sub(position, K, g1, R, f1, K, e1, R, h1);
                 break;
 
             // white castles queen side
             case (c1):
                 removePiece(position, R, a1);
                 addPiece(position, R, d1);
+                nnue_update_add_add_sub_sub(position, K, c1, R, d1, K, e1, R, a1);
                 break;
 
             // black castles king side
             case (g8):
                 removePiece(position, r, h8);
                 addPiece(position, r, f8);
+                nnue_update_add_add_sub_sub(position, k, g8, r, f8, k, e8, r, h8);
                 break;
 
             // black castles queen side
             case (c8):
                 removePiece(position, r, a8);
                 addPiece(position, r, d8);
+                nnue_update_add_add_sub_sub(position, k, c8, r, d8, k, e8, r, a8);
                 break;
         }
     }

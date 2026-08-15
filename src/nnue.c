@@ -110,6 +110,77 @@ static inline void add_add_sub_sub_weights(int16_t *restrict accum, const int16_
     }
 }
 
+static inline const int16_t* get_weights_white(int piece, int square, int king_sq) {
+    int piece_color = (piece >= 6) ? 1 : 0;
+    int piece_type  = piece % 6;
+    int sq = ((king_sq % 8) > 3) ? (square ^ 7) : square;
+    sq ^= 56;
+    int bucket = king_bucket(white, king_sq);
+    return weights->ftw[bucket][piece_color][piece_type][sq];
+}
+
+static inline const int16_t* get_weights_black(int piece, int square, int king_sq) {
+    int piece_color = (piece >= 6) ? 1 : 0;
+    int piece_type  = piece % 6;
+    int sq = ((king_sq % 8) > 3) ? (square ^ 7) : square;
+    int bucket = king_bucket(black, king_sq);
+    return weights->ftw[bucket][!piece_color][piece_type][sq];
+}
+
+void nnue_update_add_sub(board *pos, int add_piece, int add_sq, int sub_piece, int sub_sq) {    
+    int wk_add = (add_piece == K) ? add_sq : getLS1BIndex(pos->bitboards[K]);
+    int wk_sub = (sub_piece == K) ? sub_sq : getLS1BIndex(pos->bitboards[K]);
+    int bk_add = (add_piece == k) ? add_sq : getLS1BIndex(pos->bitboards[k]);
+    int bk_sub = (sub_piece == k) ? sub_sq : getLS1BIndex(pos->bitboards[k]);
+
+    add_sub_weights(pos->accum_white,
+        get_weights_white(add_piece, add_sq, wk_add),
+        get_weights_white(sub_piece, sub_sq, wk_sub));
+    add_sub_weights(pos->accum_black,
+        get_weights_black(add_piece, add_sq, bk_add),
+        get_weights_black(sub_piece, sub_sq, bk_sub));
+}
+
+void nnue_update_add_sub_sub(board *pos, int add_piece, int add_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq) {
+    int wk_add = (add_piece == K) ? add_sq : getLS1BIndex(pos->bitboards[K]);
+    int wk_sub1 = (sub1_piece == K) ? sub1_sq : getLS1BIndex(pos->bitboards[K]);
+    int wk_sub2 = (sub2_piece == K) ? sub2_sq : getLS1BIndex(pos->bitboards[K]);
+    int bk_add = (add_piece == k) ? add_sq : getLS1BIndex(pos->bitboards[k]);
+    int bk_sub1 = (sub1_piece == k) ? sub1_sq : getLS1BIndex(pos->bitboards[k]);
+    int bk_sub2 = (sub2_piece == k) ? sub2_sq : getLS1BIndex(pos->bitboards[k]);
+
+    add_sub_sub_weights(pos->accum_white,
+        get_weights_white(add_piece, add_sq, wk_add),
+        get_weights_white(sub1_piece, sub1_sq, wk_sub1),
+        get_weights_white(sub2_piece, sub2_sq, wk_sub2));
+    add_sub_sub_weights(pos->accum_black,
+        get_weights_black(add_piece, add_sq, bk_add),
+        get_weights_black(sub1_piece, sub1_sq, bk_sub1),
+        get_weights_black(sub2_piece, sub2_sq, bk_sub2));
+}
+
+void nnue_update_add_add_sub_sub(board *pos, int add1_piece, int add1_sq, int add2_piece, int add2_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq) {    
+    int wk_add1 = (add1_piece == K) ? add1_sq : getLS1BIndex(pos->bitboards[K]);
+    int wk_add2 = (add2_piece == K) ? add2_sq : getLS1BIndex(pos->bitboards[K]);
+    int wk_sub1 = (sub1_piece == K) ? sub1_sq : getLS1BIndex(pos->bitboards[K]);
+    int wk_sub2 = (sub2_piece == K) ? sub2_sq : getLS1BIndex(pos->bitboards[K]);
+    int bk_add1 = (add1_piece == k) ? add1_sq : getLS1BIndex(pos->bitboards[k]);
+    int bk_add2 = (add2_piece == k) ? add2_sq : getLS1BIndex(pos->bitboards[k]);
+    int bk_sub1 = (sub1_piece == k) ? sub1_sq : getLS1BIndex(pos->bitboards[k]);
+    int bk_sub2 = (sub2_piece == k) ? sub2_sq : getLS1BIndex(pos->bitboards[k]);
+
+    add_add_sub_sub_weights(pos->accum_white,
+        get_weights_white(add1_piece, add1_sq, wk_add1),
+        get_weights_white(add2_piece, add2_sq, wk_add2),
+        get_weights_white(sub1_piece, sub1_sq, wk_sub1),
+        get_weights_white(sub2_piece, sub2_sq, wk_sub2));
+    add_add_sub_sub_weights(pos->accum_black,
+        get_weights_black(add1_piece, add1_sq, bk_add1),
+        get_weights_black(add2_piece, add2_sq, bk_add2),
+        get_weights_black(sub1_piece, sub1_sq, bk_sub1),
+        get_weights_black(sub2_piece, sub2_sq, bk_sub2));
+}
+
 int nnue_evaluate_pos(board *pos) {
     int32_t sum = 0;
     int16_t *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
