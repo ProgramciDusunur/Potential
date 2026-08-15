@@ -76,14 +76,42 @@ static inline int32_t forward_screlu(const int16_t *accum, const int16_t *weight
 }
 
 static inline void add_weights(int16_t *restrict accum, const int16_t *restrict weights) {
-    for (int i = 0; i < HIDDEN_SIZE; ++i) {
-        accum[i] += weights[i];
+    for (size_t i = 0; i < HIDDEN_SIZE; i += ELEMENTS) {
+        int16_t a[ELEMENTS], w[ELEMENTS];
+        for (size_t j = 0; j < ELEMENTS; ++j) {
+            a[j] = accum[i + j];
+            w[j] = weights[i + j];
+        }
+        barrier();
+
+        int16_t c[ELEMENTS];
+        for (size_t j = 0; j < ELEMENTS; ++j) {
+            c[j] = a[j] + w[j];
+        }
+
+        for (size_t j = 0; j < ELEMENTS; ++j) {
+            accum[i + j] = c[j];
+        }
     }
 }
 
 static inline void sub_weights(int16_t *restrict accum, const int16_t *restrict weights) {
-    for (int i = 0; i < HIDDEN_SIZE; ++i) {
-        accum[i] -= weights[i];
+    for (size_t i = 0; i < HIDDEN_SIZE; i += ELEMENTS) {
+        int16_t a[ELEMENTS], w[ELEMENTS];
+        for (size_t j = 0; j < ELEMENTS; ++j) {
+            a[j] = accum[i + j];
+            w[j] = weights[i + j];
+        }
+        barrier();
+
+        int16_t c[ELEMENTS];
+        for (size_t j = 0; j < ELEMENTS; ++j) {
+            c[j] = a[j] - w[j];
+        }
+
+        for (size_t j = 0; j < ELEMENTS; ++j) {
+            accum[i + j] = c[j];
+        }
     }
 }
 
@@ -131,116 +159,71 @@ void test_nnue_indicies(board *pos) {
     printf("\n");
 }
 
-void nnue_add_feature(board *pos, int piece, int square) {
-    int piece_color = (piece >= 6) ? 1 : 0;
-    int piece_type  = piece % 6;
-    
-    int w_king_sq = (piece == K) ? square : getLS1BIndex(pos->bitboards[K]);
-    int b_king_sq = (piece == k) ? square : getLS1BIndex(pos->bitboards[k]);
-    
-    int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 7) : square;
-    int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 7) : square;
-    
-    int w_std_sq = w_sq ^ 56;
-    int b_std_sq = b_sq ^ 56;
-    
+void get_features(board *pos, int piece, int square, const int16_t **w_feat, const int16_t **b_feat) {
+    int w_king_sq = getLS1BIndex(pos->bitboards[K]);
+    if (piece == K) w_king_sq = square;
+
+    int b_king_sq = getLS1BIndex(pos->bitboards[k]);
+    if (piece == k) b_king_sq = square;
+
+    int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 0b000111) : square;
+    int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 0b000111) : square;
+
     int w_bucket = king_bucket(white, w_king_sq);
     int b_bucket = king_bucket(black, b_king_sq);
 
-    add_weights(pos->accum_white, weights->ftw[w_bucket][piece_color][piece_type][w_std_sq]);
-    add_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
+    *w_feat = weights->ftw[w_bucket][piece][w_sq ^ 0b111000];
+    *b_feat = weights->ftw[b_bucket][(piece+6)%12][b_sq];
+}
+
+void nnue_add_feature(board *pos, int piece, int square) {
+    const int16_t *w_feat, *b_feat;
+    get_features(pos, piece, square, &w_feat, &b_feat);
+    add_weights(pos->accum_white, w_feat);
+    add_weights(pos->accum_black, b_feat);
 }
 
 void nnue_remove_feature(board *pos, int piece, int square) {
-    int piece_color = (piece >= 6) ? 1 : 0;
-    int piece_type  = piece % 6;
-    
-    int w_king_sq = (piece == K) ? square : getLS1BIndex(pos->bitboards[K]);
-    int b_king_sq = (piece == k) ? square : getLS1BIndex(pos->bitboards[k]);
-    
-    int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 7) : square;
-    int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 7) : square;
-    
-    int w_std_sq = w_sq ^ 56;
-    int b_std_sq = b_sq ^ 56;
-    
-    int w_bucket = king_bucket(white, w_king_sq);
-    int b_bucket = king_bucket(black, b_king_sq);
-
-    sub_weights(pos->accum_white, weights->ftw[w_bucket][piece_color][piece_type][w_std_sq]);
-    sub_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
+    const int16_t *w_feat, *b_feat;
+    get_features(pos, piece, square, &w_feat, &b_feat);
+    sub_weights(pos->accum_white, w_feat);
+    sub_weights(pos->accum_black, b_feat);
 }
 
 void nnue_add_feature_white(board *pos, int piece, int square) {    
-    int piece_color = (piece >= 6) ? 1 : 0;
-    int piece_type  = piece % 6;
-    
-    int w_king_sq = getLS1BIndex(pos->bitboards[K]);
-    
-    int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 7) : square;
-    
-    int w_std_sq = w_sq ^ 56;
-    
-    int w_bucket = king_bucket(white, w_king_sq);    
-    
-    add_weights(pos->accum_white, weights->ftw[w_bucket][piece_color][piece_type][w_std_sq]);
-
+    const int16_t *w_feat, *b_feat;
+    get_features(pos, piece, square, &w_feat, &b_feat);
+    add_weights(pos->accum_white, w_feat);
 }
 
 void nnue_add_feature_black(board *pos, int piece, int square) {    
-    int piece_color = (piece >= 6) ? 1 : 0;
-    int piece_type  = piece % 6;
-    
-    int b_king_sq = getLS1BIndex(pos->bitboards[k]);
-    
-    int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 7) : square;
-    
-    int b_std_sq = b_sq ^ 56;
-    
-    int b_bucket = king_bucket(black, b_king_sq);    
-    
-    add_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
+    const int16_t *w_feat, *b_feat;
+    get_features(pos, piece, square, &w_feat, &b_feat);
+    add_weights(pos->accum_black, b_feat);
 }
 
 void nnue_sub_feature_white(board *pos, int piece, int square) {    
-    int piece_color = (piece >= 6) ? 1 : 0;
-    int piece_type  = piece % 6;
-    
-    int w_king_sq = getLS1BIndex(pos->bitboards[K]);
-    
-    int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 7) : square;
-    
-    int w_std_sq = w_sq ^ 56;
-    
-    int w_bucket = king_bucket(white, w_king_sq);    
-    
-    sub_weights(pos->accum_white, weights->ftw[w_bucket][piece_color][piece_type][w_std_sq]);
-
+    const int16_t *w_feat, *b_feat;
+    get_features(pos, piece, square, &w_feat, &b_feat);
+    sub_weights(pos->accum_white, w_feat);
 }
 
 void nnue_sub_feature_black(board *pos, int piece, int square) {    
-    int piece_color = (piece >= 6) ? 1 : 0;
-    int piece_type  = piece % 6;
-    
-    int b_king_sq = getLS1BIndex(pos->bitboards[k]);
-    
-    int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 7) : square;
-    
-    int b_std_sq = b_sq ^ 56;
-    
-    int b_bucket = king_bucket(black, b_king_sq);    
-    
-    sub_weights(pos->accum_black, weights->ftw[b_bucket][!piece_color][piece_type][b_sq]);
+    const int16_t *w_feat, *b_feat;
+    get_features(pos, piece, square, &w_feat, &b_feat);
+    sub_weights(pos->accum_black, b_feat);
 }
 
 void nnue_refresh_accumulator(board *pos) {
     memcpy(pos->accum_white, weights->ftb, HIDDEN_SIZE * sizeof(int16_t));
     memcpy(pos->accum_black, weights->ftb, HIDDEN_SIZE * sizeof(int16_t));
-    for (int square = 0; square < 64; square++) {
+    uint64_t occ = pos->occupancies[both];
+    while (occ) {
+        int square = getLS1BIndex(occ);
+        occ &= occ - 1;
+
         int piece = pos->mailbox[square];
-        if (piece < 12) {
-            nnue_add_feature(pos, piece, square);
-        }
+        nnue_add_feature(pos, piece, square);
     }
 }
 
