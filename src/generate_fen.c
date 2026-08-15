@@ -1,5 +1,6 @@
 #include "generate_fen.h"
 #include "threads.h"
+#include "evaluation.h"
 
 // Default FEN generation settings
 const int how_many_ply = 8;
@@ -73,6 +74,10 @@ FenString get_fen(board *pos) {
 
 int default_fen_generation(board *pos, int current_ply, FILE *out_file) {    
     if (current_ply == how_many_ply) {
+        // Filter positions with eval too far from 0
+        int eval = evaluate(pos);
+        if (abs(eval) > 400) return 0;
+
         if (out_file) {
             fprintf(out_file, "%s\n", get_fen(pos).str);
         } else {
