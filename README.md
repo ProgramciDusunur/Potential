@@ -6,12 +6,12 @@
 
 ## Strength
 
-| Version    | [CCRL 40/15][ccrl-4015] | [CCRL Blitz][ccrl-blitz] | [UBC][ubc] |
-|:----------:|:-----------------------:|:------------------------:|:----------:|
-| [Unlocked] |          ----           |           ----           |    ----    |
-|  [3.0.0]   |          3083           |           3056           |    ----    |
-|  [2.0.0]   |          2889           |           2923           |    2966    |
-|  [1.0.0]   |          2641           |           ----           |    2719    |
+| Version    | [CCRL 40/15][ccrl-4015] | [CCRL Blitz][ccrl-blitz] | [COPE Rapid][cope] | [COPE Bullet][cope] | [UBC][ubc] |
+|:----------:|:-----------------------:|:------------------------:|:------------------:|:-------------------:|:----------:|
+| [Unlocked] |          ----           |           ----           |        3389        |        3260         |    ----    |
+|  [3.0.0]   |          3083           |           3056           |        ----        |        ----         |    ----    |
+|  [2.0.0]   |          2889           |           2923           |        ----        |        ----         |    2966    |
+|  [1.0.0]   |          2641           |           ----           |        ----        |        ----         |    2719    |
 ---
 
 ## Discord
@@ -121,5 +121,6 @@ This project has been shaped and inspired by the valuable support and thoughtful
 [cegt-4020]: http://www.cegt.net/40_40%20Rating%20List/40_40%20All%20Versions/rangliste.html
 [mcerl]: https://www.chessengeria.eu/mcerl
 [ubc]: https://e4e6.com/
+[cope]: https://cope-chess.live/
 
 
