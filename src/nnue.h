@@ -11,7 +11,7 @@
 #define SCALE 315
 
 #define OUTPUT_BUCKETS 8
-#define INPUT_BUCKETS 4
+#define INPUT_BUCKETS 8
 
 struct Weights {
     int16_t ftw[INPUT_BUCKETS][12][64][HIDDEN_SIZE];

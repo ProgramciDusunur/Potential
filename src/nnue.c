@@ -15,14 +15,14 @@ INCBIN(Net, STR(EVALFILE));
 const struct Weights *const weights = (const struct Weights *) gNetData;
 
 const int king_bucket_layout[64] = {
-    3, 3, 3, 3, 3, 3, 3, 3, // Rank 8 (a8..h8 -> index 0..7)
-    3, 3, 3, 3, 3, 3, 3, 3, // Rank 7 
-    3, 3, 3, 3, 3, 3, 3, 3, // Rank 6 
-    3, 3, 3, 3, 3, 3, 3, 3, // Rank 5 
-    3, 3, 3, 3, 3, 3, 3, 3, // Rank 4 
-    3, 3, 3, 3, 3, 3, 3, 3, // Rank 3 
-    2, 2, 2, 2, 2, 2, 2, 2, // Rank 2 
-    0, 0, 1, 1, 1, 1, 0, 0  // Rank 1 (a1..h1 -> index 56..63)
+    7, 7, 7, 7, 7, 7, 7, 7, // Rank 8 (a8..h8 -> index 0..7)
+    7, 7, 7, 7, 7, 7, 7, 7, // Rank 7 
+    7, 7, 7, 7, 7, 7, 7, 7, // Rank 6 
+    7, 7, 7, 7, 7, 7, 7, 7, // Rank 5 
+    6, 6, 6, 6, 6, 6, 6, 6, // Rank 4 
+    6, 6, 6, 6, 6, 6, 6, 6, // Rank 3 
+    4, 4, 5, 5, 5, 5, 4, 4, // Rank 2 
+    0, 1, 2, 3, 3, 2, 1, 0  // Rank 1 (a1..h1 -> index 56..63)
 };
 
 int king_bucket(int perspective, int square) {
@@ -270,7 +270,7 @@ void nnue_update_finny(ThreadData *t, board *pos, int side) {
 void reset_finny_table(void) {
     for (int i = 0; i < thread_pool.thread_count; i++) {
         for (int side = 0; side < 2; side++) {
-            for (int bucket = 0; bucket < 4; bucket++) {
+            for (int bucket = 0; bucket < INPUT_BUCKETS; bucket++) {
                 for (int mirrored = 0; mirrored < 2; mirrored++) {
                     FinnyEntry *entry = &thread_pool.threads[i]->finny_table[side][bucket][mirrored];
                     memset(entry->bitboard, 0, sizeof(uint64_t) * 12);
