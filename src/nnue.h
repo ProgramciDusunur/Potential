@@ -34,4 +34,10 @@ void nnue_add_feature(board *pos, int piece, int square);
 void nnue_remove_feature(board *pos, int piece, int square);
 void nnue_refresh_accumulator(board *pos);
 
-#endif //POTENTIAL_NNUE_H
+
+void nnue_update_add_sub(board *pos, int add_piece, int add_sq, int sub_piece, int sub_sq);
+void nnue_update_add_sub_sub(board *pos, int add_piece, int add_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq);
+void nnue_update_add_add_sub_sub(board *pos, int add1_piece, int add1_sq, int add2_piece, int add2_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq);
+
+#endif
+ //POTENTIAL_NNUE_H

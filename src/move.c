@@ -201,8 +201,7 @@ inline static void addPiece(board* position, int piece, int square) {
     setBit(position->occupancies[pieceColor(piece)], square);
     setBit(position->occupancies[both], square);    
     position->mailbox[square] = piece;
-    toggleHashesForPiece(position, piece, square);    
-    nnue_add_feature(position, piece, square);
+    toggleHashesForPiece(position, piece, square);
 }
 
 
@@ -213,7 +212,6 @@ inline static void removePiece(board* position, int piece, int square) {
     popBit(position->occupancies[both], square);    
     position->mailbox[square] = NO_PIECE;
     toggleHashesForPiece(position, piece, square);
-    nnue_remove_feature(position, piece, square);
 }
 
 bool is_pseudo_legal(uint16_t move, board *pos) {
@@ -716,26 +714,44 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
             case (g1):
                 removePiece(position, R, h1);
                 addPiece(position, R, f1);
+                nnue_update_add_add_sub_sub(position, K, g1, R, f1, K, e1, R, h1);
                 break;
 
             // white castles queen side
             case (c1):
                 removePiece(position, R, a1);
                 addPiece(position, R, d1);
+                nnue_update_add_add_sub_sub(position, K, c1, R, d1, K, e1, R, a1);
                 break;
 
             // black castles king side
             case (g8):
                 removePiece(position, r, h8);
                 addPiece(position, r, f8);
+                nnue_update_add_add_sub_sub(position, k, g8, r, f8, k, e8, r, h8);
                 break;
 
             // black castles queen side
             case (c8):
                 removePiece(position, r, a8);
                 addPiece(position, r, d8);
+                nnue_update_add_add_sub_sub(position, k, c8, r, d8, k, e8, r, a8);
                 break;
         }
+    } else if (promote) {
+        if (capture) {
+            nnue_update_add_sub_sub(position, promotedPiece, targetSquare, piece, sourceSquare, capturedPiece, targetSquare);
+        } else {
+            nnue_update_add_sub(position, promotedPiece, targetSquare, piece, sourceSquare);
+        }
+    } else if (enpass) {
+        int ep_sq = position->side == white ? targetSquare + 8 : targetSquare - 8;
+        int ep_piece = position->side == white ? p : P;
+        nnue_update_add_sub_sub(position, piece, targetSquare, piece, sourceSquare, ep_piece, ep_sq);
+    } else if (capture) {
+        nnue_update_add_sub_sub(position, piece, targetSquare, piece, sourceSquare, capturedPiece, targetSquare);
+    } else {
+        nnue_update_add_sub(position, piece, targetSquare, piece, sourceSquare);
     }
 
     // hash castling
