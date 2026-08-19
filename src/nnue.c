@@ -115,7 +115,57 @@ static inline void sub_weights(int16_t *restrict accum, const int16_t *restrict 
     }
 }
 
+
+/* FUSED UPDATES */
+void get_features(board *pos, int piece, int square, const int16_t **w_feat, const int16_t **b_feat);
+
+static inline void add_sub_weights(int16_t *restrict accum, const int16_t *restrict add, const int16_t *restrict sub) {
+    for (int i = 0; i < HIDDEN_SIZE; ++i) {
+        accum[i] = accum[i] + add[i] - sub[i];
+    }
+}
+
+static inline void add_sub_sub_weights(int16_t *restrict accum, const int16_t *restrict add, const int16_t *restrict sub1, const int16_t *restrict sub2) {
+    for (int i = 0; i < HIDDEN_SIZE; ++i) {
+        accum[i] = accum[i] + add[i] - sub1[i] - sub2[i];
+    }
+}
+
+static inline void add_add_sub_sub_weights(int16_t *restrict accum, const int16_t *restrict add1, const int16_t *restrict add2, const int16_t *restrict sub1, const int16_t *restrict sub2) {
+    for (int i = 0; i < HIDDEN_SIZE; ++i) {
+        accum[i] = accum[i] + add1[i] + add2[i] - sub1[i] - sub2[i];
+    }
+}
+
+void nnue_update_add_sub(board *pos, int add_piece, int add_sq, int sub_piece, int sub_sq) {    
+    const int16_t *w_add, *b_add, *w_sub, *b_sub;
+    get_features(pos, add_piece, add_sq, &w_add, &b_add);
+    get_features(pos, sub_piece, sub_sq, &w_sub, &b_sub);
+    add_sub_weights(pos->accum_white, w_add, w_sub);
+    add_sub_weights(pos->accum_black, b_add, b_sub);
+}
+
+void nnue_update_add_sub_sub(board *pos, int add_piece, int add_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq) {
+    const int16_t *w_add, *b_add, *w_sub1, *b_sub1, *w_sub2, *b_sub2;
+    get_features(pos, add_piece, add_sq, &w_add, &b_add);
+    get_features(pos, sub1_piece, sub1_sq, &w_sub1, &b_sub1);
+    get_features(pos, sub2_piece, sub2_sq, &w_sub2, &b_sub2);
+    add_sub_sub_weights(pos->accum_white, w_add, w_sub1, w_sub2);
+    add_sub_sub_weights(pos->accum_black, b_add, b_sub1, b_sub2);
+}
+
+void nnue_update_add_add_sub_sub(board *pos, int add1_piece, int add1_sq, int add2_piece, int add2_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq) {    
+    const int16_t *w_add1, *b_add1, *w_add2, *b_add2, *w_sub1, *b_sub1, *w_sub2, *b_sub2;
+    get_features(pos, add1_piece, add1_sq, &w_add1, &b_add1);
+    get_features(pos, add2_piece, add2_sq, &w_add2, &b_add2);
+    get_features(pos, sub1_piece, sub1_sq, &w_sub1, &b_sub1);
+    get_features(pos, sub2_piece, sub2_sq, &w_sub2, &b_sub2);
+    add_add_sub_sub_weights(pos->accum_white, w_add1, w_add2, w_sub1, w_sub2);
+    add_add_sub_sub_weights(pos->accum_black, b_add1, b_add2, b_sub1, b_sub2);
+}
+
 int nnue_evaluate_pos(board *pos) {
+
     int32_t sum = 0;
     int16_t *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
     int16_t *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
