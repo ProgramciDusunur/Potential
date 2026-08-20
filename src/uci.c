@@ -26,6 +26,7 @@ extern uint64_t global_start_time;
 #define BENCH_DEPTH 13
 #define MAX_THREADS 512
 
+
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
