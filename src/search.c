@@ -1021,6 +1021,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     int static_eval = in_check ? noEval : adjust_eval_with_corrhist(t, raw_eval, ss);
 
+    if (!in_check && !ss->singular_move && !tt_hit) {
+        writeHashEntry(pos->hashKey, static_eval, raw_eval, 0, 0, hashFlagNone, tt_pv, pos, pos->fifty);
+    }
+
     bool improving = false;
     bool tt_capture = tt_move && getMoveCapture(tt_move);
 
