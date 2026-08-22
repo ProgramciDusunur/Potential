@@ -13,6 +13,10 @@
 #define VEC_BYTES 32
 #define EVENS idcs(0), idcs(8)
 #define ODDS idcs(1), idcs(9)
+#elif defined(__aarch64__)
+#define VEC_BYTES 16
+#define EVENS 0, 1, 2, 3
+#define ODDS 4, 5, 6, 7
 #else
 #define VEC_BYTES 16
 #define EVENS idcs(0)
