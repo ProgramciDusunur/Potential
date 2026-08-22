@@ -42,9 +42,11 @@ int king_bucket(int perspective, int square) {
 
 static inline void barrier(void) { __asm__ volatile(""); }
 
+[[gnu::always_inline]]
 static inline int32_t forward_screlu(const int16_t *accum, const int16_t *weights) {
     int32_t sum[ELEMENTS] = {0};
 
+    #pragma GCC unroll
     for (size_t i = 0; i < HIDDEN_SIZE; i += ELEMENTS) {
         int16_t a[ELEMENTS], w[ELEMENTS];
         for (size_t j = 0; j < ELEMENTS; ++j) {
