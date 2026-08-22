@@ -664,11 +664,19 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
         position->fifty = 0;
 
         removePiece(position, capturedPiece, targetSquare);
+        
+        if (!promote) {
+            nnue_update_add_sub_sub(position, piece, targetSquare, piece, sourceSquare, capturedPiece, targetSquare);
+        }
     }
 
     // move piece
     removePiece(position, piece, sourceSquare);
     addPiece(position, piece, targetSquare);
+    
+    if (!capture && !enpass && !promote && !castling) {
+        nnue_update_add_sub(position, piece, targetSquare, piece, sourceSquare);
+    }
 
     // handle enpassant captures
     if (enpass) {
@@ -680,6 +688,10 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
         } else {
             removePiece(position, P, targetSquare - 8);
         }
+        
+        int ep_sq = position->side == white ? targetSquare + 8 : targetSquare - 8;
+        int ep_piece = position->side == white ? p : P;
+        nnue_update_add_sub_sub(position, piece, targetSquare, piece, sourceSquare, ep_piece, ep_sq);
     }
 
     // handle pawn promotions
@@ -690,6 +702,12 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
             removePiece(position, p, targetSquare);
         }
         addPiece(position, promotedPiece, targetSquare);
+        
+        if (capture) {
+            nnue_update_add_sub_sub(position, promotedPiece, targetSquare, piece, sourceSquare, capturedPiece, targetSquare);
+        } else {
+            nnue_update_add_sub(position, promotedPiece, targetSquare, piece, sourceSquare);
+        }
     }
 
     // hash enpassant if available (remove enpassant square from hash key )
@@ -738,20 +756,6 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
                 nnue_update_add_add_sub_sub(position, k, c8, r, d8, k, e8, r, a8);
                 break;
         }
-    } else if (promote) {
-        if (capture) {
-            nnue_update_add_sub_sub(position, promotedPiece, targetSquare, piece, sourceSquare, capturedPiece, targetSquare);
-        } else {
-            nnue_update_add_sub(position, promotedPiece, targetSquare, piece, sourceSquare);
-        }
-    } else if (enpass) {
-        int ep_sq = position->side == white ? targetSquare + 8 : targetSquare - 8;
-        int ep_piece = position->side == white ? p : P;
-        nnue_update_add_sub_sub(position, piece, targetSquare, piece, sourceSquare, ep_piece, ep_sq);
-    } else if (capture) {
-        nnue_update_add_sub_sub(position, piece, targetSquare, piece, sourceSquare, capturedPiece, targetSquare);
-    } else {
-        nnue_update_add_sub(position, piece, targetSquare, piece, sourceSquare);
     }
 
     // hash castling
