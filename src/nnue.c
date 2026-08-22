@@ -43,52 +43,28 @@ int king_bucket(int perspective, int square) {
 static inline void barrier(void) { __asm__ volatile(""); }
 
 static inline int32_t forward_screlu(const int16_t *accum, const int16_t *weights) {
-    __m256i sum_vec0 = _mm256_setzero_si256();
-    __m256i sum_vec1 = _mm256_setzero_si256();
-    __m256i sum_vec2 = _mm256_setzero_si256();
-    __m256i sum_vec3 = _mm256_setzero_si256();
-    
+    __m256i sum0 = _mm256_setzero_si256();
+    __m256i sum1 = _mm256_setzero_si256();
     __m256i zero = _mm256_setzero_si256();
     __m256i max_val = _mm256_set1_epi16(255);
     
-    for (size_t i = 0; i < HIDDEN_SIZE; i += 64) {
+    for (size_t i = 0; i < HIDDEN_SIZE; i += 32) {
         __m256i a0 = _mm256_loadu_si256((const __m256i *)&accum[i]);
         __m256i a1 = _mm256_loadu_si256((const __m256i *)&accum[i + 16]);
-        __m256i a2 = _mm256_loadu_si256((const __m256i *)&accum[i + 32]);
-        __m256i a3 = _mm256_loadu_si256((const __m256i *)&accum[i + 48]);
 
         __m256i w0 = _mm256_loadu_si256((const __m256i *)&weights[i]);
         __m256i w1 = _mm256_loadu_si256((const __m256i *)&weights[i + 16]);
-        __m256i w2 = _mm256_loadu_si256((const __m256i *)&weights[i + 32]);
-        __m256i w3 = _mm256_loadu_si256((const __m256i *)&weights[i + 48]);
 
         __m256i c0 = _mm256_min_epi16(_mm256_max_epi16(a0, zero), max_val);
         __m256i c1 = _mm256_min_epi16(_mm256_max_epi16(a1, zero), max_val);
-        __m256i c2 = _mm256_min_epi16(_mm256_max_epi16(a2, zero), max_val);
-        __m256i c3 = _mm256_min_epi16(_mm256_max_epi16(a3, zero), max_val);
 
-        __m256i i0 = _mm256_mullo_epi16(c0, w0);
-        __m256i i1 = _mm256_mullo_epi16(c1, w1);
-        __m256i i2 = _mm256_mullo_epi16(c2, w2);
-        __m256i i3 = _mm256_mullo_epi16(c3, w3);
-
-        __m256i p0 = _mm256_madd_epi16(i0, c0);
-        __m256i p1 = _mm256_madd_epi16(i1, c1);
-        __m256i p2 = _mm256_madd_epi16(i2, c2);
-        __m256i p3 = _mm256_madd_epi16(i3, c3);
-
-        sum_vec0 = _mm256_add_epi32(sum_vec0, p0);
-        sum_vec1 = _mm256_add_epi32(sum_vec1, p1);
-        sum_vec2 = _mm256_add_epi32(sum_vec2, p2);
-        sum_vec3 = _mm256_add_epi32(sum_vec3, p3);
+        sum0 = _mm256_add_epi32(sum0, _mm256_madd_epi16(_mm256_mullo_epi16(c0, w0), c0));
+        sum1 = _mm256_add_epi32(sum1, _mm256_madd_epi16(_mm256_mullo_epi16(c1, w1), c1));
     }
     
-    sum_vec0 = _mm256_add_epi32(sum_vec0, sum_vec1);
-    sum_vec2 = _mm256_add_epi32(sum_vec2, sum_vec3);
-    sum_vec0 = _mm256_add_epi32(sum_vec0, sum_vec2);
-
+    sum0 = _mm256_add_epi32(sum0, sum1);
     int32_t res[8];
-    _mm256_storeu_si256((__m256i*)res, sum_vec0);
+    _mm256_storeu_si256((__m256i*)res, sum0);
     return res[0] + res[1] + res[2] + res[3] + res[4] + res[5] + res[6] + res[7];
 }
 
