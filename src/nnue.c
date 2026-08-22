@@ -43,36 +43,53 @@ int king_bucket(int perspective, int square) {
 static inline void barrier(void) { __asm__ volatile(""); }
 
 static inline int32_t forward_screlu(const int16_t *accum, const int16_t *weights) {
-    int32_t sum[ELEMENTS] = {0};
+    __m256i sum_vec0 = _mm256_setzero_si256();
+    __m256i sum_vec1 = _mm256_setzero_si256();
+    __m256i sum_vec2 = _mm256_setzero_si256();
+    __m256i sum_vec3 = _mm256_setzero_si256();
+    
+    __m256i zero = _mm256_setzero_si256();
+    __m256i max_val = _mm256_set1_epi16(255);
+    
+    for (size_t i = 0; i < HIDDEN_SIZE; i += 64) {
+        __m256i a0 = _mm256_loadu_si256((const __m256i *)&accum[i]);
+        __m256i a1 = _mm256_loadu_si256((const __m256i *)&accum[i + 16]);
+        __m256i a2 = _mm256_loadu_si256((const __m256i *)&accum[i + 32]);
+        __m256i a3 = _mm256_loadu_si256((const __m256i *)&accum[i + 48]);
 
-    for (size_t i = 0; i < HIDDEN_SIZE; i += ELEMENTS) {
-        int16_t a[ELEMENTS], w[ELEMENTS];
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            a[j] = accum[i + j];
-            w[j] = weights[i + j];
-        }
-        barrier();
+        __m256i w0 = _mm256_loadu_si256((const __m256i *)&weights[i]);
+        __m256i w1 = _mm256_loadu_si256((const __m256i *)&weights[i + 16]);
+        __m256i w2 = _mm256_loadu_si256((const __m256i *)&weights[i + 32]);
+        __m256i w3 = _mm256_loadu_si256((const __m256i *)&weights[i + 48]);
 
-        int16_t c[ELEMENTS];
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            int16_t v = a[j];
-            c[j] = v < 0 ? 0 : (v > 255 ? 255 : v);
-        }
+        __m256i c0 = _mm256_min_epi16(_mm256_max_epi16(a0, zero), max_val);
+        __m256i c1 = _mm256_min_epi16(_mm256_max_epi16(a1, zero), max_val);
+        __m256i c2 = _mm256_min_epi16(_mm256_max_epi16(a2, zero), max_val);
+        __m256i c3 = _mm256_min_epi16(_mm256_max_epi16(a3, zero), max_val);
 
-        int16_t intermediate[ELEMENTS];
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            intermediate[j] = (int16_t)(c[j] * w[j]);
-        }
+        __m256i i0 = _mm256_mullo_epi16(c0, w0);
+        __m256i i1 = _mm256_mullo_epi16(c1, w1);
+        __m256i i2 = _mm256_mullo_epi16(c2, w2);
+        __m256i i3 = _mm256_mullo_epi16(c3, w3);
 
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            sum[j] += intermediate[j] * c[j];
-        }
+        __m256i p0 = _mm256_madd_epi16(i0, c0);
+        __m256i p1 = _mm256_madd_epi16(i1, c1);
+        __m256i p2 = _mm256_madd_epi16(i2, c2);
+        __m256i p3 = _mm256_madd_epi16(i3, c3);
+
+        sum_vec0 = _mm256_add_epi32(sum_vec0, p0);
+        sum_vec1 = _mm256_add_epi32(sum_vec1, p1);
+        sum_vec2 = _mm256_add_epi32(sum_vec2, p2);
+        sum_vec3 = _mm256_add_epi32(sum_vec3, p3);
     }
+    
+    sum_vec0 = _mm256_add_epi32(sum_vec0, sum_vec1);
+    sum_vec2 = _mm256_add_epi32(sum_vec2, sum_vec3);
+    sum_vec0 = _mm256_add_epi32(sum_vec0, sum_vec2);
 
-    int32_t result = 0;
-    for (size_t j = 0; j < ELEMENTS; ++j) result += sum[j];
-
-    return result;
+    int32_t res[8];
+    _mm256_storeu_si256((__m256i*)res, sum_vec0);
+    return res[0] + res[1] + res[2] + res[3] + res[4] + res[5] + res[6] + res[7];
 }
 
 static inline void add_weights(int16_t *restrict accum, const int16_t *restrict weights) {
