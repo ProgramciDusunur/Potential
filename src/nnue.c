@@ -1,4 +1,5 @@
 #include "nnue.h"
+#include "simd.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -6,6 +7,7 @@
 
 #include "incbin.h"
 #include "structs.h"
+#include "utils.h"
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
@@ -29,118 +31,70 @@ int king_bucket(int perspective, int square) {
     return king_bucket_layout[square ^ 0b111000 * perspective];
 }
 
-
-#if defined(__AVX512F__)
-#define VEC_BYTES 64
-#elif defined(__AVX2__)
-#define VEC_BYTES 32
-#else
-#define VEC_BYTES 16
-#endif
-#define VEC_ELEMENTS (VEC_BYTES / sizeof(int16_t))
-#define ELEMENTS (VEC_ELEMENTS < HIDDEN_SIZE ? VEC_ELEMENTS : HIDDEN_SIZE)
-
-static inline void barrier(void) { __asm__ volatile(""); }
-
 [[gnu::always_inline]]
-static inline int32_t forward_screlu(const int16_t *accum, const int16_t *weights) {
-    int32_t sum[ELEMENTS] = {0};
+static inline int32_t forward_screlu(const v16u *accum, const v16u *weights) {
+    #define FORWARD_UNROLL 4
+    v32 sums[FORWARD_UNROLL] = {};
 
     #pragma GCC unroll
-    for (size_t i = 0; i < HIDDEN_SIZE; i += ELEMENTS) {
-        int16_t a[ELEMENTS], w[ELEMENTS];
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            a[j] = accum[i + j];
-            w[j] = weights[i + j];
-        }
-        barrier();
-
-        int16_t c[ELEMENTS];
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            int16_t v = a[j];
-            c[j] = v < 0 ? 0 : (v > 255 ? 255 : v);
-        }
-
-        int16_t intermediate[ELEMENTS];
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            intermediate[j] = (int16_t)(c[j] * w[j]);
-        }
-
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            sum[j] += intermediate[j] * c[j];
+    for (int i = 0; i < HIDDEN_VECS; i += FORWARD_UNROLL) {
+        #pragma GCC unroll
+        for (int j = 0; j < FORWARD_UNROLL; ++j) {
+            v16 a = accum[i + j];
+            v16 w = weights[i + j];
+            v16 c = crelu(a);
+            sums[j] += madd(c * w, c);
         }
     }
 
+    for (int i = 1; i < FORWARD_UNROLL; ++i) {
+        sums[0] += sums[i];
+    }
+
     int32_t result = 0;
-    for (size_t j = 0; j < ELEMENTS; ++j) result += sum[j];
+    for (size_t j = 0; j < VEC_ELEMENTS(int32_t); ++j) {
+        result += sums[0][j];
+    }
 
     return result;
 }
 
-static inline void add_weights(int16_t *restrict accum, const int16_t *restrict weights) {
-    for (size_t i = 0; i < HIDDEN_SIZE; i += ELEMENTS) {
-        int16_t a[ELEMENTS], w[ELEMENTS];
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            a[j] = accum[i + j];
-            w[j] = weights[i + j];
-        }
-        barrier();
-
-        int16_t c[ELEMENTS];
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            c[j] = a[j] + w[j];
-        }
-
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            accum[i + j] = c[j];
-        }
+static inline void add_weights(v16u *restrict accum, const v16u *restrict add) {
+    for (int i = 0; i < HIDDEN_VECS; ++i) {
+        accum[i] += add[i];
     }
 }
 
-static inline void sub_weights(int16_t *restrict accum, const int16_t *restrict weights) {
-    for (size_t i = 0; i < HIDDEN_SIZE; i += ELEMENTS) {
-        int16_t a[ELEMENTS], w[ELEMENTS];
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            a[j] = accum[i + j];
-            w[j] = weights[i + j];
-        }
-        barrier();
-
-        int16_t c[ELEMENTS];
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            c[j] = a[j] - w[j];
-        }
-
-        for (size_t j = 0; j < ELEMENTS; ++j) {
-            accum[i + j] = c[j];
-        }
+static inline void sub_weights(v16u *restrict accum, const v16u *restrict sub) {
+    for (int i = 0; i < HIDDEN_VECS; ++i) {
+        accum[i] -= sub[i];
     }
 }
 
 
 /* FUSED UPDATES */
-void get_features(board *pos, int piece, int square, const int16_t **w_feat, const int16_t **b_feat);
+void get_features(board *pos, int piece, int square, const v16u **w_feat, const v16u **b_feat);
 
-static inline void add_sub_weights(int16_t *restrict accum, const int16_t *restrict add, const int16_t *restrict sub) {
-    for (int i = 0; i < HIDDEN_SIZE; ++i) {
-        accum[i] = accum[i] + add[i] - sub[i];
+static inline void add_sub_weights(v16u *restrict accum, const v16u *restrict add, const v16u *restrict sub) {
+    for (int i = 0; i < HIDDEN_VECS; ++i) {
+        accum[i] += add[i] - sub[i];
     }
 }
 
-static inline void add_sub_sub_weights(int16_t *restrict accum, const int16_t *restrict add, const int16_t *restrict sub1, const int16_t *restrict sub2) {
-    for (int i = 0; i < HIDDEN_SIZE; ++i) {
-        accum[i] = accum[i] + add[i] - sub1[i] - sub2[i];
+static inline void add_sub_sub_weights(v16u *restrict accum, const v16u *restrict add, const v16u *restrict sub1, const v16u *restrict sub2) {
+    for (int i = 0; i < HIDDEN_VECS; ++i) {
+        accum[i] += add[i] - sub1[i] - sub2[i];
     }
 }
 
-static inline void add_add_sub_sub_weights(int16_t *restrict accum, const int16_t *restrict add1, const int16_t *restrict add2, const int16_t *restrict sub1, const int16_t *restrict sub2) {
-    for (int i = 0; i < HIDDEN_SIZE; ++i) {
-        accum[i] = accum[i] + add1[i] + add2[i] - sub1[i] - sub2[i];
+static inline void add_add_sub_sub_weights(v16u *restrict accum, const v16u *restrict add1, const v16u *restrict add2, const v16u *restrict sub1, const v16u *restrict sub2) {
+    for (int i = 0; i < HIDDEN_VECS; ++i) {
+        accum[i] += add1[i] + add2[i] - sub1[i] - sub2[i];
     }
 }
 
 void nnue_update_add_sub(board *pos, int add_piece, int add_sq, int sub_piece, int sub_sq) {    
-    const int16_t *w_add, *b_add, *w_sub, *b_sub;
+    const v16u *w_add, *b_add, *w_sub, *b_sub;
     get_features(pos, add_piece, add_sq, &w_add, &b_add);
     get_features(pos, sub_piece, sub_sq, &w_sub, &b_sub);
     add_sub_weights(pos->accum_white, w_add, w_sub);
@@ -148,7 +102,7 @@ void nnue_update_add_sub(board *pos, int add_piece, int add_sq, int sub_piece, i
 }
 
 void nnue_update_add_sub_sub(board *pos, int add_piece, int add_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq) {
-    const int16_t *w_add, *b_add, *w_sub1, *b_sub1, *w_sub2, *b_sub2;
+    const v16u *w_add, *b_add, *w_sub1, *b_sub1, *w_sub2, *b_sub2;
     get_features(pos, add_piece, add_sq, &w_add, &b_add);
     get_features(pos, sub1_piece, sub1_sq, &w_sub1, &b_sub1);
     get_features(pos, sub2_piece, sub2_sq, &w_sub2, &b_sub2);
@@ -157,7 +111,7 @@ void nnue_update_add_sub_sub(board *pos, int add_piece, int add_sq, int sub1_pie
 }
 
 void nnue_update_add_add_sub_sub(board *pos, int add1_piece, int add1_sq, int add2_piece, int add2_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq) {    
-    const int16_t *w_add1, *b_add1, *w_add2, *b_add2, *w_sub1, *b_sub1, *w_sub2, *b_sub2;
+    const v16u *w_add1, *b_add1, *w_add2, *b_add2, *w_sub1, *b_sub1, *w_sub2, *b_sub2;
     get_features(pos, add1_piece, add1_sq, &w_add1, &b_add1);
     get_features(pos, add2_piece, add2_sq, &w_add2, &b_add2);
     get_features(pos, sub1_piece, sub1_sq, &w_sub1, &b_sub1);
@@ -169,12 +123,11 @@ void nnue_update_add_add_sub_sub(board *pos, int add1_piece, int add1_sq, int ad
 int nnue_evaluate_pos(board *pos) {
 
     int32_t sum = 0;
-    int16_t *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
-    int16_t *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
+    v16u *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
+    v16u *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
 
     int piece_count = countBits(pos->occupancies[both]);
     int bucket = (piece_count - 2) / 4;
-    int offset = bucket * 2 * HIDDEN_SIZE;
 
     sum += forward_screlu(accum_stm, weights->l1w[bucket][0]);
     sum += forward_screlu(accum_nstm, weights->l1w[bucket][1]);
@@ -211,7 +164,7 @@ void test_nnue_indicies(board *pos) {
     printf("\n");
 }
 
-void get_features(board *pos, int piece, int square, const int16_t **w_feat, const int16_t **b_feat) {
+void get_features(board *pos, int piece, int square, const v16u **w_feat, const v16u **b_feat) {
     int w_king_sq = getLS1BIndex(pos->bitboards[K]);
     if (piece == K) w_king_sq = square;
 
@@ -229,39 +182,39 @@ void get_features(board *pos, int piece, int square, const int16_t **w_feat, con
 }
 
 void nnue_add_feature(board *pos, int piece, int square) {
-    const int16_t *w_feat, *b_feat;
+    const v16u *w_feat, *b_feat;
     get_features(pos, piece, square, &w_feat, &b_feat);
     add_weights(pos->accum_white, w_feat);
     add_weights(pos->accum_black, b_feat);
 }
 
 void nnue_remove_feature(board *pos, int piece, int square) {
-    const int16_t *w_feat, *b_feat;
+    const v16u *w_feat, *b_feat;
     get_features(pos, piece, square, &w_feat, &b_feat);
     sub_weights(pos->accum_white, w_feat);
     sub_weights(pos->accum_black, b_feat);
 }
 
 void nnue_add_feature_white(board *pos, int piece, int square) {    
-    const int16_t *w_feat, *b_feat;
+    const v16u *w_feat, *b_feat;
     get_features(pos, piece, square, &w_feat, &b_feat);
     add_weights(pos->accum_white, w_feat);
 }
 
 void nnue_add_feature_black(board *pos, int piece, int square) {    
-    const int16_t *w_feat, *b_feat;
+    const v16u *w_feat, *b_feat;
     get_features(pos, piece, square, &w_feat, &b_feat);
     add_weights(pos->accum_black, b_feat);
 }
 
 void nnue_sub_feature_white(board *pos, int piece, int square) {    
-    const int16_t *w_feat, *b_feat;
+    const v16u *w_feat, *b_feat;
     get_features(pos, piece, square, &w_feat, &b_feat);
     sub_weights(pos->accum_white, w_feat);
 }
 
 void nnue_sub_feature_black(board *pos, int piece, int square) {    
-    const int16_t *w_feat, *b_feat;
+    const v16u *w_feat, *b_feat;
     get_features(pos, piece, square, &w_feat, &b_feat);
     sub_weights(pos->accum_black, b_feat);
 }
