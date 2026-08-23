@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <pthread.h>
 
+#include "simd.h"
+
 #ifndef U64
 #define U64 unsigned long long
 #endif
@@ -21,6 +23,7 @@
 #define MAX_THREADS 512
 
 #define HIDDEN_SIZE 1024
+#define HIDDEN_VECS (HIDDEN_SIZE / (int)VEC_ELEMENTS(int16_t))
 
 // Finny Table entries
 typedef struct {
@@ -93,8 +96,8 @@ typedef struct {
 
     int gamePhase;
 
-    int16_t accum_white[HIDDEN_SIZE];
-    int16_t accum_black[HIDDEN_SIZE];
+    v16u accum_white[HIDDEN_VECS];
+    v16u accum_black[HIDDEN_VECS];
 } board;
 
 struct copyposition {
