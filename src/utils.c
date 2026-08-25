@@ -212,3 +212,7 @@ uint32_t next_power_of_2(uint32_t x) {
     x |= x >> 16;
     return x + 1;
 }
+
+int ilog2(int n) {
+    return 31 - __builtin_clz(n);
+}

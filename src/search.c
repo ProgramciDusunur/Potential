@@ -1099,6 +1099,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         /* search moves with reduced depth to find beta cutoffs
            depth - R where R is a reduction limit */
+        (ss + 1)->laterality = 0;
         score = -negamax(-beta, -beta + 1, depth - R, t, time, ss + 1, !predicted_cut_node);
 
         // decrement ply
@@ -1523,6 +1524,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         // increment moves seen
         moves_seen++;
 
+        int lat_inc = 0;
+        if (moves_seen > 0) {
+            lat_inc = myMAX(ilog2(moves_seen) - 1, 0);
+        }
+        (ss + 1)->laterality = ss->laterality + lat_inc;
+
         if (notTactical) {
             (ss + 1)->move = currentMove;
             (ss + 1)->piece = copyPosition.mailbox[getMoveSource(currentMove)];
@@ -1542,6 +1549,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         int lmrReduction = getLmrReduction(depth, moves_seen, notTactical) * 1024;
 
         /* All Moves */
+        if (!pvNode) {
+            lmrReduction -= 96 - 32 * (ss + 1)->laterality;
+        }
 
         // Reduce More
         if (predicted_cut_node) {
@@ -1865,6 +1875,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
             (ss + i)->staticEval = noEval;
             (ss + i)->piece = 0;
             (ss + i)->move = 0;
+            (ss + i)->laterality = 0;
         }
 
         t->pos.seldepth = 0;

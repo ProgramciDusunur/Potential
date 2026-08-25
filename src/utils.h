@@ -35,5 +35,6 @@ char* get_move_string(uint16_t move);
 int clamp(const int d, const int min, const int max);
 void print_info(ThreadData *t, int depth, int score, int totalTime, int bound);
 uint32_t next_power_of_2(uint32_t x);
+int ilog2(int n);
 
 #endif //POTENTIAL_UTILS_H
