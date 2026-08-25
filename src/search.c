@@ -1584,6 +1584,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 lmrReduction += QUIET_NON_PV_LMR_SCALAR;
             }
 
+            if (!pvNode && moves_seen <= 3) {
+                lmrReduction -= 384;
+            }
+
             // Futility LMR
             lmrReduction += (static_eval + FUTILITY_LMR_BASE + FUTILITY_LMR_MULT * depth <= alpha && !in_check) * FUTILITY_LMR_SCALAR;
 
