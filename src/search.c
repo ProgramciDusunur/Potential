@@ -756,6 +756,17 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
 
     if (alpha < 0 && has_game_cycle(position, position->ply)) {        
         alpha = 0;
+        int in_check = isSquareAttacked((position->side == white) ? getLS1BIndex(position->bitboards[K]) : getLS1BIndex(position->bitboards[k]), position->side ^ 1, position);
+        if (!in_check) {
+            int raw_eval = evaluate(position);
+            int cuckoo_static_eval = adjust_eval_with_corrhist(t, raw_eval, ss);
+            int corrhistBonus = clamp(0 - cuckoo_static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
+            update_pawn_correction_hist(t, 1, corrhistBonus);
+            update_minor_correction_hist(t, 1, corrhistBonus);
+            update_major_correction_hist(t, 1, corrhistBonus);
+            update_non_pawn_corrhist(t, 1, corrhistBonus);
+            update_continuation_corrhist(t, 1, corrhistBonus, ss);
+        }
         if (alpha >= beta) {
             return alpha;
         }
@@ -971,13 +982,17 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     bool tt_hit = false;
     uint8_t tt_depth = 0;
     uint8_t tt_flag = hashFlagExact;
-    bool tt_pv = pvNode;    
+    bool tt_pv = pvNode;
 
-    // Check for fifty-move rule
-    if (pos->fifty >= 100) {
-        int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
+
+    // is king in check
+    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
+    
+
+    // Check for fifty-move rule
+    if (pos->fifty >= 100) {    
         if (!in_check) {
             // return draw by fifty-move rule
             return get_draw_score(t);
@@ -991,6 +1006,16 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         if (alpha < 0 && has_game_cycle(pos, pos->ply)) {
             alpha = 0;
+            if (!in_check) {
+                int raw_eval = evaluate(pos);
+                int cuckoo_static_eval = adjust_eval_with_corrhist(t, raw_eval, ss);
+                int corrhistBonus = clamp(0 - cuckoo_static_eval, -CORRHIST_LIMIT, CORRHIST_LIMIT);
+                update_pawn_correction_hist(t, depth, corrhistBonus);
+                update_minor_correction_hist(t, depth, corrhistBonus);
+                update_major_correction_hist(t, depth, corrhistBonus);
+                update_non_pawn_corrhist(t, depth, corrhistBonus);
+                update_continuation_corrhist(t, depth, corrhistBonus, ss);
+            }
             if (alpha >= beta) {
                 return alpha;
             }
@@ -1022,11 +1047,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     if (depth <= 0)
         // run quiescence search
         return quiescence(alpha, beta, t, time, ss);        
-
-    // is king in check
-    int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
-                                    getLS1BIndex(pos->bitboards[k]),
-                                    pos->side ^ 1, pos);
     
 
     // get static evaluation score
