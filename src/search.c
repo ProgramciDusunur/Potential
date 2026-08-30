@@ -847,9 +847,10 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
     }
 
     int futilityValue = bestScore + 100;
+    int previous_move_target_square = getMoveTarget((ss - 1)->move);
 
-    // legal moves counter
-    //int legal_moves = 0;    
+    // moves seen counter
+    int moves_seen = 0;    
     
     struct copyposition copyPosition;
     // preserve board state once before move loop
@@ -861,10 +862,17 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         uint16_t move = moveList->moves[count];
 
         if (bestScore > -mateFound) {
+            // QS Late Move Pruning
+            if (getMoveTarget(move) != previous_move_target_square && moves_seen >= 3) {
+                continue;
+            }
+
+            // QS SEE Pruning
             if (!SEE(position, move, QS_SEE_THRESHOLD)) {
                 continue;
             }
 
+            // QS Futility Pruning
             if (getMoveCapture(move) && futilityValue <= alpha && !SEE(position, move, QS_FP_SEE_THRESHOLD)) {
                 bestScore = myMAX(bestScore, futilityValue);
                 continue;
@@ -881,7 +889,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         prefetch_tt_early(position, move);
         legal_make_move(move, position, t);
 
-        //legal_moves++;
+        moves_seen++;
 
         // increment nodes count
         inc_rlx(t->search_i.nodes_searched);
