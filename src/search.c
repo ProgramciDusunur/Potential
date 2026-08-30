@@ -1190,7 +1190,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 adjust_single_quiet_hist_entry(t, pos->side, nmp_ref_move, refutation_bonus);
             }
         }
-    }    
+    }
 
     // razoring
     const int razoring_margin = RAZORING_MARGIN * depth;
