@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include "utils.h"
 #include "see.h"
+#include "cuckoo.h"
 
 extern TUNE_INT LMR_FULL_DEPTH_MOVES;
 extern TUNE_INT LMR_REDUCTION_LIMIT;

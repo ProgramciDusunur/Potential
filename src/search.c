@@ -754,6 +754,13 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         time->stopped = 1;
     }
 
+    if (alpha < 0 && has_game_cycle(position, position->ply)) {        
+        alpha = 0;
+        if (alpha >= beta) {
+            return alpha;
+        }
+    }
+
     if (position->ply > maxPly - 1) {
         // evaluate position
         return evaluate(position);
@@ -982,6 +989,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             return get_draw_score(t);
         }        
 
+        if (alpha < 0 && has_game_cycle(pos, pos->ply)) {
+            alpha = 0;
+            if (alpha >= beta) {
+                return alpha;
+            }
+        }
 
         // Mate distance pruning
         alpha = myMAX(alpha, -mateValue + (int)pos->ply);

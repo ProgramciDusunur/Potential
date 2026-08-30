@@ -15,6 +15,7 @@
 #include "generate_fen.h"
 #include "spsa.h"
 #include "nnue.h"
+#include "cuckoo.h"
 
 
 
@@ -38,7 +39,8 @@ void init_all(void) {
     init_helper_bb();
     init_king_anti_diag_mask();
     // init SPSA tuning parameters (no-op in normal builds)
-    spsa_init();    
+    spsa_init();
+    cuckoo_init();
 }
 
 
