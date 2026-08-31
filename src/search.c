@@ -989,7 +989,6 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
-    
 
     // Check for fifty-move rule
     if (pos->fifty >= 100) {    
