@@ -25,7 +25,7 @@ CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
 
 NET_TAG  := 2048hl-chonker
-NET      := potential-2048hl-chonker-v2.bin
+NET      := potential-2048hl-chonker-v3.bin
 NET_URL  := https://github.com/ProgramciDusunur/Potential-nets/releases/download/$(NET_TAG)/$(NET)
 EVALFILE ?= $(NET)
 
