@@ -989,7 +989,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int in_check = isSquareAttacked((pos->side == white) ? getLS1BIndex(pos->bitboards[K]) :
                                     getLS1BIndex(pos->bitboards[k]),
                                     pos->side ^ 1, pos);
-    
+    ss->in_check = in_check;
 
     // Check for fifty-move rule
     if (pos->fifty >= 100) {    
@@ -1079,6 +1079,16 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         ttAdjustedEval = tt_score;
     }
+
+    uint16_t counter_move = (ss - 1)->move;
+    bool counter_move_available = counter_move ? !isTactical(counter_move) : false;
+
+    // static evaluation difference to improve quiet move ordering 
+    if (!rootNode && !ss->singular_move && counter_move_available && !in_check) {
+        int eval_diff = clamp(-(ss - 1)->staticEval + ss->staticEval, -64, 192);
+        adjust_single_quiet_hist_entry(t, pos->side ^ 1, counter_move, eval_diff);
+    }
+
 
     improving |= ss->staticEval >= beta + IMPROVING_FAIL_HIGH_MARGIN;
 
