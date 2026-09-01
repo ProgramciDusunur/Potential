@@ -236,7 +236,7 @@ void update_pinned(board *pos) {
                 pos->pinned[pos->side] |= ray;
             }
         }
-        popBit(potential_pinners_orth, pinner_square);
+        popLSB(potential_pinners_orth);
     }
     
     U64 potential_pinners_diag = (pos->bitboards[pos->side == white ? b : B] | pos->bitboards[pos->side == white ? q : Q]) &
@@ -251,7 +251,7 @@ void update_pinned(board *pos) {
                 pos->pinned[pos->side] |= ray;
             }
         }
-        popBit(potential_pinners_diag, pinner_square);
+        popLSB(potential_pinners_diag);
     }
 }
 

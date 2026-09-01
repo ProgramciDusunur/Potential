@@ -436,7 +436,7 @@ void get_threats(int side, board* pos) {
         int queenSquare = getLS1BIndex(queenBB);
         pos->pieceThreats.queenThreats |= getQueenAttacks(queenSquare, occupancies);
         pos->pieceThreats.stmThreats[!pos->side] |= pos->pieceThreats.queenThreats;
-        popBit(queenBB, queenSquare);
+        popLSB(queenBB);
     }
     
     // Calculate King attacks
@@ -480,7 +480,7 @@ U64 get_threats_bb(int side, board* pos) {
     while (queenBB) {
         int queenSquare = getLS1BIndex(queenBB);
         threats |= getQueenAttacks(queenSquare, pos->occupancies[both]);        
-        popBit(queenBB, queenSquare);
+        popLSB(queenBB);
     }
     
     // Calculate King attacks
@@ -549,7 +549,7 @@ Score get_psqt_score(const board* position) {
         while (bb) {
             int sq = getLS1BIndex(bb);
             score += packed_table[piece][sq];
-            popBit(bb, sq);
+            popLSB(bb);
         }
     }
     return score;   

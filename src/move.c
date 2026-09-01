@@ -585,7 +585,7 @@ inline static void splatPawnMoves(moves *moveList, U64 sourceBitboard, int shift
 
         addMove(moveList, encodeMove(sourceSquare, targetSquare, mf));
 
-        popBit(sourceBitboard, sourceSquare);
+        popLSB(sourceBitboard);
     }
 }
 
@@ -609,7 +609,7 @@ inline static void splatPawnPromoMoves(moves *moveList, U64 sourceBitboard, int 
         addMove(moveList, encodeMove(sourceSquare, targetSquare, capture ? mf_cap_promo_b : mf_promo_b));
         addMove(moveList, encodeMove(sourceSquare, targetSquare, capture ? mf_cap_promo_n : mf_promo_n));
 
-        popBit(sourceBitboard, sourceSquare);
+        popLSB(sourceBitboard);
     }
 }
 
@@ -619,7 +619,7 @@ inline static void splatEnpassant(moves *moveList, U64 sourceBitboard, int enpas
 
         addMove(moveList, encodeMove(sourceSquare, enpassantSquare, mf_enpassant));
 
-        popBit(sourceBitboard, sourceSquare);
+        popLSB(sourceBitboard);
     }
 }
 
@@ -629,7 +629,7 @@ inline static void splatNormalMoves(moves *moveList, int sourceSquare, U64 targe
 
         addMove(moveList, encodeMove(sourceSquare, targetSquare, mf));
 
-        popBit(targetBitboard, targetSquare);
+        popLSB(targetBitboard);
     }
 }
 
@@ -922,7 +922,7 @@ void legal_move_generator(moves *moveList, board* pos) {
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Bishop moves
@@ -936,7 +936,7 @@ void legal_move_generator(moves *moveList, board* pos) {
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Rook moves
@@ -950,7 +950,7 @@ void legal_move_generator(moves *moveList, board* pos) {
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Queen moves
@@ -964,7 +964,7 @@ void legal_move_generator(moves *moveList, board* pos) {
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
      // King moves
@@ -978,7 +978,7 @@ void legal_move_generator(moves *moveList, board* pos) {
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     /* PINNED PIECE MOVEMENTS */
@@ -994,7 +994,7 @@ void legal_move_generator(moves *moveList, board* pos) {
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Pinned Rook Moves
@@ -1008,7 +1008,7 @@ void legal_move_generator(moves *moveList, board* pos) {
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Pinned Queen Moves
@@ -1022,7 +1022,7 @@ void legal_move_generator(moves *moveList, board* pos) {
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
 
@@ -1243,7 +1243,7 @@ void legal_noisy_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Bishop moves
@@ -1255,7 +1255,7 @@ void legal_noisy_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Rook moves
@@ -1267,7 +1267,7 @@ void legal_noisy_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Queen moves
@@ -1279,7 +1279,7 @@ void legal_noisy_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
      // King moves
@@ -1291,7 +1291,7 @@ void legal_noisy_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     /* PINNED PIECE MOVEMENTS */
@@ -1306,7 +1306,7 @@ void legal_noisy_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Pinned Rook Moves
@@ -1319,7 +1319,7 @@ void legal_noisy_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Pinned Queen Moves
@@ -1332,7 +1332,7 @@ void legal_noisy_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & enemy, mf_capture);
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
 
@@ -1483,7 +1483,7 @@ void legal_quiet_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);        
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Bishop moves
@@ -1496,7 +1496,7 @@ void legal_quiet_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);        
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Rook moves
@@ -1509,7 +1509,7 @@ void legal_quiet_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);        
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Queen moves
@@ -1522,7 +1522,7 @@ void legal_quiet_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);        
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
      // King moves
@@ -1535,7 +1535,7 @@ void legal_quiet_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);        
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     /* PINNED PIECE MOVEMENTS */
@@ -1550,7 +1550,7 @@ void legal_quiet_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);        
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Pinned Rook Moves
@@ -1563,7 +1563,7 @@ void legal_quiet_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);        
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
     // Pinned Queen Moves
@@ -1576,7 +1576,7 @@ void legal_quiet_generator(moves *moveList, board* pos) {
 
         splatNormalMoves(moveList, sourceSquare, targetBitboard & empty, mf_normal);        
 
-        popBit(bitboard, sourceSquare);
+        popLSB(bitboard);
     }
 
 

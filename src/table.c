@@ -53,7 +53,7 @@ U64 generateHashKey(board* position) {
             finalKey ^= pieceKeys[piece][square].hashKey;
 
             // pop LS1B
-            popBit(bitboard, square);
+            popLSB(bitboard);
         }
     }
 
@@ -82,7 +82,7 @@ U64 generatePawnKey(board* position) {
         int square = getLS1BIndex(bitboard);
 
         final_key ^= pieceKeys[P][square].hashKey;
-        popBit(bitboard, square);
+        popLSB(bitboard);
     }
 
     bitboard = position->bitboards[p];
@@ -91,7 +91,7 @@ U64 generatePawnKey(board* position) {
         int square = getLS1BIndex(bitboard);
 
         final_key ^= pieceKeys[p][square].hashKey;
-        popBit(bitboard, square);
+        popLSB(bitboard);
     }
     return final_key;
 
@@ -112,7 +112,7 @@ U64 generateMinorKey(board *position) {
             int square = getLS1BIndex(bitboard);
 
             final_key ^= pieceKeys[piece][square].hashKey;
-            popBit(bitboard, square);
+            popLSB(bitboard);
         }
     }
 
@@ -134,7 +134,7 @@ U64 generateMajorKey(board *position) {
             int square = getLS1BIndex(bitboard);
 
             final_key ^= pieceKeys[piece][square].hashKey;
-            popBit(bitboard, square);
+            popLSB(bitboard);
         }
     }
 
@@ -156,7 +156,7 @@ U64 generate_white_np_hash_key(board *position) {
             int square = getLS1BIndex(bitboard);
 
             final_key ^= pieceKeys[piece][square].hashKey;
-            popBit(bitboard, square);
+            popLSB(bitboard);
         }
     }
 
@@ -179,7 +179,7 @@ U64 generate_black_np_hash_key(board *position) {
             int square = getLS1BIndex(bitboard);
 
             final_key ^= pieceKeys[piece][square].hashKey;
-            popBit(bitboard, square);
+            popLSB(bitboard);
         }
     }
 

@@ -11,7 +11,8 @@
 
 #define U64 unsigned long long
 
-#define popBit(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
+#define popBit(bitboard, square) ((bitboard) ^= (1ULL << (square)))
+#define popLSB(bitboard) ((bitboard) &= (bitboard) - 1)
 #define setBit(bitboard, square) bitboard |= (1ULL << square)
 #define getBit(bitboard, square) bitboard & (1ULL << square)
 
