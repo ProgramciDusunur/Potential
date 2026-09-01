@@ -12,6 +12,7 @@
 
 #define OUTPUT_BUCKETS 8
 #define INPUT_BUCKETS 4
+#define THREAT_INPUTS 60144
 
 struct Weights {
     v16u ftw[INPUT_BUCKETS][12][64][HIDDEN_VECS];
@@ -29,6 +30,7 @@ void reset_finny_table(void);
 bool nnue_load(const char* file_path);
 int nnue_evaluate_pos(board *pos);
 void test_nnue_indicies(board *pos);
+void test_threat_indices(board *pos);
 
 void nnue_add_feature(board *pos, int piece, int square);
 void nnue_remove_feature(board *pos, int piece, int square);

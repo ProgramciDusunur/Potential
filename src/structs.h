@@ -22,7 +22,7 @@
 #define maxPly 256
 #define MAX_THREADS 512
 
-#define HIDDEN_SIZE 1024
+#define HIDDEN_SIZE 32
 #define HIDDEN_VECS (HIDDEN_SIZE / (int)VEC_ELEMENTS(int16_t))
 
 // Finny Table entries

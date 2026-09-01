@@ -138,30 +138,51 @@ int nnue_evaluate_pos(board *pos) {
     return final_eval;
 }
 
+
+
 void test_nnue_indicies(board *pos) {
-    printf("White indices:");
+    int w_ksq = __builtin_ctzll(pos->bitboards[5]) ^ 56;
+    int b_ksq = __builtin_ctzll(pos->bitboards[11]) ^ 56;
+    
+    int w_mirror_mask = ((w_ksq % 8) > 3) ? 7 : 0;
+    int b_mirror_mask = ((b_ksq % 8) > 3) ? 7 : 0;
+
+    printf("White psq indices:");
     for (int square = 0; square < 64; square++) {
         int piece = pos->mailbox[square];
         if (piece < 12) {
             int piece_color = (piece >= 6) ? 1 : 0;
             int piece_type  = piece % 6;
+                        
             int std_sq = square ^ 56;
-            int w_idx = (piece_color * 384) + (piece_type * 64) + std_sq;
+                        
+            int mapped_sq_w = std_sq ^ w_mirror_mask;
+            
+            int w_idx = (piece_color * 384) + (piece_type * 64) + mapped_sq_w;
             printf(" %d", w_idx);
         }
     }
-    printf("\nBlack indices:");
+    
+    printf("\nBlack psq indices:");
     for (int square = 0; square < 64; square++) {
         int piece = pos->mailbox[square];
         if (piece < 12) {
             int piece_color = (piece >= 6) ? 1 : 0;
             int piece_type  = piece % 6;
+                        
             int std_sq = square ^ 56;
-            int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + (std_sq ^ 56);
+                        
+            int mapped_sq_b = std_sq ^ 56 ^ b_mirror_mask;
+            
+            int b_idx = ((1 - piece_color) * 384) + (piece_type * 64) + mapped_sq_b;
             printf(" %d", b_idx);
         }
     }
-    printf("\n");
+    printf("\n"); 
+}
+
+void test_threat_indices(board *pos) {
+    
 }
 
 void get_features(board *pos, int piece, int square, const v16u **w_feat, const v16u **b_feat) {
