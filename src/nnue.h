@@ -16,6 +16,7 @@
 
 struct Weights {
     v16u ftw[INPUT_BUCKETS][12][64][HIDDEN_VECS];
+    int8_t ft_threat_weights[THREAT_INPUTS][HIDDEN_VECS];
     int16_t ftb[HIDDEN_SIZE];
     v16u l1w[OUTPUT_BUCKETS][2][HIDDEN_VECS];
     int16_t l1b[OUTPUT_BUCKETS];

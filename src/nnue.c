@@ -182,7 +182,24 @@ void test_nnue_indicies(board *pos) {
 }
 
 void test_threat_indices(board *pos) {
-    
+    U64 white_pawns = pos->bitboards[P];
+
+    while (white_pawns) {
+        int square = getLS1BIndex(white_pawns);
+        popBit(white_pawns, square);
+
+        square = square ^ 56;
+        printf("White pawn at square %d\n", square);
+
+        if (square % 8 != 0) {
+            int target_square = square - 9;
+            target_square = target_square ^ 56;
+            int target_piece = pos->mailbox[target_square];
+
+            //printf("Target piece at square %d: %d\n", target_square, target_piece);
+
+        }
+    }
 }
 
 void get_features(board *pos, int piece, int square, const v16u **w_feat, const v16u **b_feat) {
