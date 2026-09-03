@@ -1668,6 +1668,16 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 new_depth += doDeeper;
                 new_depth -= historyReduction;
                 score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !predicted_cut_node);
+
+                // Post LMR Quiet History Update
+                if (notTactical && (score <= alpha || score >= beta)) {
+
+                    int quiet_hist_bonus = score <= alpha ? 
+                    -(QUIET_HIST_MALUS_BASE + QUIET_HIST_MALUS_DEPTH * depth):
+                    QUIET_HIST_BONUS_BASE + QUIET_HIST_BONUS_DEPTH * depth;
+
+                    adjust_single_quiet_hist_entry(t, pos->side, currentMove, quiet_hist_bonus);
+                }
             }
         }
         else if (!pvNode || moves_seen > 1) {
