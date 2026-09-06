@@ -16,6 +16,7 @@
 #include "spsa.h"
 #include "nnue.h"
 #include "cuckoo.h"
+#include "threat_geo.h"
 
 
 
@@ -41,6 +42,7 @@ void init_all(void) {
     // init SPSA tuning parameters (no-op in normal builds)
     spsa_init();
     cuckoo_init();
+    init_threat_geometry();
 }
 
 
@@ -49,20 +51,20 @@ int main(int argc, char* argv[]) {
     init_threads(1);
 
     init_all();
-    int debug = 1;
+    int debug = 0;
     if (debug) {
         board position;
         parseFEN(startPosition, &position);                
 
-        //test_nnue_indicies(&position);
-        test_threat_indices(&position);
-
         board position2;
         parseFEN(kiwipete, &position2);
+
+        test_threat_indices(&position2);
+
         int startpos_eval = nnue_evaluate_pos(&position);
         int kiwipete_eval = nnue_evaluate_pos(&position2);
-        //printf("NNUE evaluation of startpos: %d\n", startpos_eval);
-        //printf("NNUE evaluation of kiwipete: %d\n", kiwipete_eval);
+        printf("NNUE evaluation of startpos: %d\n", startpos_eval);
+        printf("NNUE evaluation of kiwipete: %d\n", kiwipete_eval);
         
     } else {
         board *position = (board *)malloc(sizeof(board));

@@ -24,8 +24,8 @@ endif
 CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
 
-NET_TAG  := ti-beans
-NET      := threans.bin
+NET_TAG  := 384hl-ti
+NET      := potential-384hl-ti.bin
 NET_URL  := https://github.com/ProgramciDusunur/Potential-nets/releases/download/$(NET_TAG)/$(NET)
 EVALFILE ?= $(NET)
 

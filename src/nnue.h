@@ -5,6 +5,7 @@
 #include "structs.h"
 #include "board_constants.h"
 #include "threads.h"
+#include "threats.h"
 
 #define QA 255
 #define QB 64
@@ -12,11 +13,10 @@
 
 #define OUTPUT_BUCKETS 8
 #define INPUT_BUCKETS 4
-#define THREAT_INPUTS 60144
 
 struct Weights {
     v16u ftw[INPUT_BUCKETS][12][64][HIDDEN_VECS];
-    int8_t ft_threat_weights[THREAT_INPUTS][HIDDEN_VECS];
+    v16u ft_threat_weights[THREAT_INPUTS][HIDDEN_VECS];
     int16_t ftb[HIDDEN_SIZE];
     v16u l1w[OUTPUT_BUCKETS][2][HIDDEN_VECS];
     int16_t l1b[OUTPUT_BUCKETS];
@@ -32,6 +32,7 @@ bool nnue_load(const char* file_path);
 int nnue_evaluate_pos(board *pos);
 void test_nnue_indicies(board *pos);
 void test_threat_indices(board *pos);
+void add_threat_inputs(board *pos, v16u *acc, int perspective);
 
 void nnue_add_feature(board *pos, int piece, int square);
 void nnue_remove_feature(board *pos, int piece, int square);

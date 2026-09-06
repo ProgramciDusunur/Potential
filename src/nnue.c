@@ -8,6 +8,8 @@
 #include "incbin.h"
 #include "structs.h"
 #include "utils.h"
+#include "threats.h"
+#include "threat_geo.h"
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
@@ -128,6 +130,7 @@ int nnue_evaluate_pos(board *pos) {
 
     int piece_count = countBits(pos->occupancies[both]);
     int bucket = (piece_count - 2) / 4;
+    if (bucket > 7) bucket = 7;
 
     sum += forward_screlu(accum_stm, weights->l1w[bucket][0]);
     sum += forward_screlu(accum_nstm, weights->l1w[bucket][1]);
@@ -181,25 +184,185 @@ void test_nnue_indicies(board *pos) {
     printf("\n"); 
 }
 
-void test_threat_indices(board *pos) {
-    U64 white_pawns = pos->bitboards[P];
+void add_threat_inputs(board *pos, v16u *acc, int perspective) {
+    int king_sq = getLS1BIndex(pos->bitboards[perspective == 0 ? K : k]);
+    int flip_mask = (king_sq % 8 > 3) ? 7 : 0;
+    if (perspective == 1) flip_mask ^= 56;
 
-    while (white_pawns) {
-        int square = getLS1BIndex(white_pawns);
-        popBit(white_pawns, square);
+    for (int piece = P; piece <= q; piece++) {
+        if (piece == K || piece == k) continue;
 
-        square = square ^ 56;
-        printf("White pawn at square %d\n", square);
+        U64 pieces = pos->bitboards[piece];
+        while (pieces) {
+            int sq = getLS1BIndex(pieces);
+            popBit(pieces, sq);
 
-        if (square % 8 != 0) {
-            int target_square = square - 9;
-            target_square = target_square ^ 56;
-            int target_piece = pos->mailbox[target_square];
+            U64 attacks = 0;
+            switch(piece) {
+                case P: attacks = getPawnAttacks(0, sq); break;
+                case p: attacks = getPawnAttacks(1, sq); break;
+                case N: case n: attacks = getKnightAttacks(sq); break;
+                case B: case b: attacks = getBishopAttacks(sq, pos->occupancies[both]); break;
+                case R: case r: attacks = getRookAttacks(sq, pos->occupancies[both]); break;
+                case Q: case q: attacks = getQueenAttacks(sq, pos->occupancies[both]); break;
+            }
+            attacks &= pos->occupancies[both];
 
-            //printf("Target piece at square %d: %d\n", target_square, target_piece);
+            while (attacks) {
+                int target_sq = getLS1BIndex(attacks);
+                popBit(attacks, target_sq);
 
+                int target_piece = pos->mailbox[target_sq];
+                if (target_piece == 12) continue;
+
+                int is_enemy = (perspective == 0) ? (piece >= 6) : (piece < 6);
+                int base_piece = piece % 6;
+                int offset = is_enemy ? BLACK_TI_SIZE : 0;
+                int relative_target = (perspective == 0) ? target_piece : (target_piece + 6) % 12;
+
+                int target_id = -1;
+                switch(base_piece) {
+                    case 0: target_id = get_white_pawn_target_id(relative_target); break;
+                    case 1: target_id = get_white_knight_target_id(relative_target); break;
+                    case 2: target_id = get_white_bishop_target_id(relative_target); break;
+                    case 3: target_id = get_white_rook_target_id(relative_target); break;
+                    case 4: target_id = get_white_queen_target_id(relative_target); break;
+                }
+
+                if (target_id != -1) {
+                    int mapped_sq = sq ^ flip_mask;
+                    int mapped_target = target_sq ^ flip_mask;
+                    
+                    int is_cross_color = (relative_target >= 6);
+                    if (is_cross_color && ((relative_target % 6) == base_piece) && ((mapped_target ^ 56) > (mapped_sq ^ 56))) continue;
+
+                    int geo = -1;
+                    int type_offset = 0;
+                    switch(base_piece) {
+                        case 0: geo = pawn_geo[mapped_sq][mapped_target];   type_offset = TI_OFFSET_WHITE_PAWN; break;
+                        case 1: geo = knight_geo[mapped_sq][mapped_target]; type_offset = TI_OFFSET_WHITE_KNIGHT; break;
+                        case 2: geo = bishop_geo[mapped_sq][mapped_target]; type_offset = TI_OFFSET_WHITE_BISHOP; break;
+                        case 3: geo = rook_geo[mapped_sq][mapped_target];   type_offset = TI_OFFSET_WHITE_ROOK; break;
+                        case 4: geo = queen_geo[mapped_sq][mapped_target];  type_offset = TI_OFFSET_WHITE_QUEEN; break;
+                    }
+
+                    if (geo != -1) {
+                        int max_geo = 0;
+                        switch(base_piece) {
+                            case 0: max_geo = 84; break;
+                            case 1: max_geo = 336; break;
+                            case 2: max_geo = 560; break;
+                            case 3: max_geo = 896; break;
+                            case 4: max_geo = 1456; break;
+                        }
+                        int feature_index = offset + type_offset + (target_id * max_geo) + geo;
+                        add_weights(acc, weights->ft_threat_weights[feature_index]);
+                    }
+                }
+            }
         }
     }
+}
+
+void sort_features(int *arr, int count) {
+    for (int i = 1; i < count; i++) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+void test_threat_indices(board *pos) {
+    int w_threat_list[256], b_threat_list[256];
+    int w_threat_count = 0, b_threat_count = 0;
+
+    for (int perspective = 0; perspective <= 1; perspective++) {
+        int king_sq = getLS1BIndex(pos->bitboards[perspective == 0 ? K : k]);
+        int flip_mask = (king_sq % 8 > 3) ? 7 : 0;
+        if (perspective == 1) flip_mask ^= 56;
+
+        for (int piece = P; piece <= q; piece++) {
+            if (piece == K || piece == k) continue;
+
+            U64 pieces = pos->bitboards[piece];
+            while (pieces) {
+                int sq = getLS1BIndex(pieces);
+                popBit(pieces, sq);
+
+                U64 attacks = 0;
+                switch(piece) {
+                    case P: attacks = getPawnAttacks(0, sq); break;
+                    case p: attacks = getPawnAttacks(1, sq); break;
+                    case N: case n: attacks = getKnightAttacks(sq); break;
+                    case B: case b: attacks = getBishopAttacks(sq, pos->occupancies[both]); break;
+                    case R: case r: attacks = getRookAttacks(sq, pos->occupancies[both]); break;
+                    case Q: case q: attacks = getQueenAttacks(sq, pos->occupancies[both]); break;
+                }
+                attacks &= pos->occupancies[both];
+
+                while (attacks) {
+                    int target_sq = getLS1BIndex(attacks);
+                    popBit(attacks, target_sq);
+
+                    int target_piece = pos->mailbox[target_sq];
+                    if (target_piece == 12) continue;
+
+                    int is_enemy = (perspective == 0) ? (piece >= 6) : (piece < 6);
+                    int base_piece = piece % 6;
+                    int offset = is_enemy ? BLACK_TI_SIZE : 0;
+                    int relative_target = (perspective == 0) ? target_piece : (target_piece + 6) % 12;
+
+                    int target_id = -1;
+                    switch(base_piece) {
+                        case 0: target_id = get_white_pawn_target_id(relative_target); break;
+                        case 1: target_id = get_white_knight_target_id(relative_target); break;
+                        case 2: target_id = get_white_bishop_target_id(relative_target); break;
+                        case 3: target_id = get_white_rook_target_id(relative_target); break;
+                        case 4: target_id = get_white_queen_target_id(relative_target); break;
+                    }
+
+                    if (target_id != -1) {
+                        int mapped_sq = sq ^ flip_mask;
+                        int mapped_target = target_sq ^ flip_mask;
+                        
+                        int is_cross_color = (relative_target >= 6);
+                        if (is_cross_color && ((relative_target % 6) == base_piece) && ((mapped_target ^ 56) > (mapped_sq ^ 56))) continue;
+
+                        int geo = -1;
+                        int max_geo = 0;
+                        int type_offset = 0;
+                        switch(base_piece) {
+                            case 0: geo = pawn_geo[mapped_sq][mapped_target];   max_geo = 84;   type_offset = TI_OFFSET_WHITE_PAWN; break;
+                            case 1: geo = knight_geo[mapped_sq][mapped_target]; max_geo = 336;  type_offset = TI_OFFSET_WHITE_KNIGHT; break;
+                            case 2: geo = bishop_geo[mapped_sq][mapped_target]; max_geo = 560;  type_offset = TI_OFFSET_WHITE_BISHOP; break;
+                            case 3: geo = rook_geo[mapped_sq][mapped_target];   max_geo = 896;  type_offset = TI_OFFSET_WHITE_ROOK; break;
+                            case 4: geo = queen_geo[mapped_sq][mapped_target];  max_geo = 1456; type_offset = TI_OFFSET_WHITE_QUEEN; break;
+                        }
+
+                        if (geo != -1) {
+                            int feature_index = offset + type_offset + (target_id * max_geo) + geo;
+                            if (perspective == 0) w_threat_list[w_threat_count++] = feature_index;
+                            else b_threat_list[b_threat_count++] = feature_index;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    sort_features(w_threat_list, w_threat_count);
+    sort_features(b_threat_list, b_threat_count);
+
+    printf("\nwhite threat features:");
+    for(int i=0; i<w_threat_count; i++) printf(" %d", w_threat_list[i]);
+
+    printf("\n\nblack threat features:");
+    for(int i=0; i<b_threat_count; i++) printf(" %d", b_threat_list[i]);
+    printf("\n\n");
 }
 
 void get_features(board *pos, int piece, int square, const v16u **w_feat, const v16u **b_feat) {
@@ -268,6 +431,9 @@ void nnue_refresh_accumulator(board *pos) {
         int piece = pos->mailbox[square];
         nnue_add_feature(pos, piece, square);
     }
+    
+    add_threat_inputs(pos, (v16u*)pos->accum_white, 0);
+    add_threat_inputs(pos, (v16u*)pos->accum_black, 1);
 }
 
 void nnue_update_finny(ThreadData *t, board *pos, int side) {
