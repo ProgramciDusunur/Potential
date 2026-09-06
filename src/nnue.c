@@ -169,9 +169,8 @@ void add_all_threat_inputs(const board *pos, v16u *acc_white, v16u *acc_black) {
                 if (w_target_id != -1) {
                     int w_mapped_sq = sq ^ w_flip_mask;
                     int w_mapped_target = target_sq ^ w_flip_mask;
-                    int is_cross_color = (w_rel_target >= 6);
 
-                    if (!(is_cross_color && ((w_rel_target % 6) == base_piece) && ((w_mapped_target ^ 56) > (w_mapped_sq ^ 56)))) {
+                    if (!(base_piece > 0 && ((w_rel_target % 6) == base_piece) && ((w_mapped_target ^ 56) > (w_mapped_sq ^ 56)))) {
                         int geo = geo_tab[w_mapped_sq][w_mapped_target];
                         if (geo != -1) {
                             int offset = (piece >= 6) ? BLACK_TI_SIZE : 0;
@@ -186,9 +185,8 @@ void add_all_threat_inputs(const board *pos, v16u *acc_white, v16u *acc_black) {
                 if (b_target_id != -1) {
                     int b_mapped_sq = sq ^ b_flip_mask;
                     int b_mapped_target = target_sq ^ b_flip_mask;
-                    int is_cross_color = (b_rel_target >= 6);
 
-                    if (!(is_cross_color && ((b_rel_target % 6) == base_piece) && ((b_mapped_target ^ 56) > (b_mapped_sq ^ 56)))) {
+                    if (!(base_piece > 0 && ((b_rel_target % 6) == base_piece) && ((b_mapped_target ^ 56) > (b_mapped_sq ^ 56)))) {
                         int geo = geo_tab[b_mapped_sq][b_mapped_target];
                         if (geo != -1) {
                             int offset = (piece < 6) ? BLACK_TI_SIZE : 0;
@@ -320,8 +318,7 @@ void add_threat_inputs(board *pos, v16u *acc, int perspective) {
                     int mapped_sq = sq ^ flip_mask;
                     int mapped_target = target_sq ^ flip_mask;
                     
-                    int is_cross_color = (relative_target >= 6);
-                    if (is_cross_color && ((relative_target % 6) == base_piece) && ((mapped_target ^ 56) > (mapped_sq ^ 56))) continue;
+                    if (base_piece > 0 && ((relative_target % 6) == base_piece) && ((mapped_target ^ 56) > (mapped_sq ^ 56))) continue;
 
                     int geo = -1;
                     int type_offset = 0;
@@ -416,8 +413,7 @@ void test_threat_indices(board *pos) {
                         int mapped_sq = sq ^ flip_mask;
                         int mapped_target = target_sq ^ flip_mask;
                         
-                        int is_cross_color = (relative_target >= 6);
-                        if (is_cross_color && ((relative_target % 6) == base_piece) && ((mapped_target ^ 56) > (mapped_sq ^ 56))) continue;
+                        if (base_piece > 0 && ((relative_target % 6) == base_piece) && ((mapped_target ^ 56) > (mapped_sq ^ 56))) continue;
 
                         int geo = -1;
                         int max_geo = 0;
