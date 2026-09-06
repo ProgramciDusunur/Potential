@@ -1061,7 +1061,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int corrplexity_value = abs(raw_eval - static_eval);
     int correction_value = get_correction_value(t, ss);    
 
-    ss->staticEval = static_eval;    
+    ss->staticEval = static_eval;
+    (ss + 1)->prior_nmp_fail_high = 0;
 
     improving = !in_check && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
 
@@ -1096,7 +1097,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     // Null Move Pruning
     if (!ss->singular_move && depth >= NMP_DEPTH && !in_check && !rootNode &&
-            ttAdjustedEval >= beta + NMP_EVAL_BETA_MARGIN &&
+            ttAdjustedEval + 25 * ss->prior_nmp_fail_high >= beta + NMP_EVAL_BETA_MARGIN &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos) &&
         !(tt_flag == hashFlagBeta && tt_move && getMoveCapture(tt_move) && isValuable(pos->mailbox[getMoveTarget(tt_move)]))) {
@@ -1157,6 +1158,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if (pos->nmpPly || depth < 15) {
                 ss->move = 0;
                 ss->piece = 0;
+                ++ss->prior_nmp_fail_high;
                 return score;
             }
 
@@ -1173,6 +1175,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if (verificationScore >= beta) {
                 ss->move = 0;
                 ss->piece = 0;
+                ++ss->prior_nmp_fail_high;
                 return score;
             }
         }
