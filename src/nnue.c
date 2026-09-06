@@ -122,18 +122,105 @@ void nnue_update_add_add_sub_sub(board *pos, int add1_piece, int add1_sq, int ad
     add_add_sub_sub_weights(pos->accum_black, b_add1, b_add2, b_sub1, b_sub2);
 }
 
-int nnue_evaluate_pos(board *pos) {
+void add_all_threat_inputs(const board *pos, v16u *acc_white, v16u *acc_black) {
+    int w_ksq = getLS1BIndex(pos->bitboards[K]);
+    int b_ksq = getLS1BIndex(pos->bitboards[k]);
 
+    int w_flip_mask = ((w_ksq % 8) > 3) ? 7 : 0;
+    int b_flip_mask = (((b_ksq % 8) > 3) ? 7 : 0) ^ 56;
+
+    U64 occ = pos->occupancies[both];
+
+    for (int piece = P; piece <= q; piece++) {
+        if (piece == K || piece == k) continue;
+
+        U64 pieces = pos->bitboards[piece];
+        if (!pieces) continue;
+
+        int base_piece = piece % 6;
+        int max_geo = ti_max_geo[base_piece];
+        int type_offset = ti_type_offset[base_piece];
+        const int (*const geo_tab)[64] = ti_geo[base_piece];
+
+        while (pieces) {
+            int sq = getLS1BIndex(pieces);
+            popBit(pieces, sq);
+
+            U64 attacks = 0;
+            switch(piece) {
+                case P: attacks = getPawnAttacks(0, sq); break;
+                case p: attacks = getPawnAttacks(1, sq); break;
+                case N: case n: attacks = getKnightAttacks(sq); break;
+                case B: case b: attacks = getBishopAttacks(sq, occ); break;
+                case R: case r: attacks = getRookAttacks(sq, occ); break;
+                case Q: case q: attacks = getQueenAttacks(sq, occ); break;
+            }
+            attacks &= occ;
+
+            while (attacks) {
+                int target_sq = getLS1BIndex(attacks);
+                popBit(attacks, target_sq);
+
+                int target_piece = pos->mailbox[target_sq];
+                if (target_piece >= 12) continue;
+
+                int w_rel_target = target_piece;
+                int w_target_id = ti_target_ids[base_piece][w_rel_target];
+                if (w_target_id != -1) {
+                    int w_mapped_sq = sq ^ w_flip_mask;
+                    int w_mapped_target = target_sq ^ w_flip_mask;
+                    int is_cross_color = (w_rel_target >= 6);
+
+                    if (!(is_cross_color && ((w_rel_target % 6) == base_piece) && ((w_mapped_target ^ 56) > (w_mapped_sq ^ 56)))) {
+                        int geo = geo_tab[w_mapped_sq][w_mapped_target];
+                        if (geo != -1) {
+                            int offset = (piece >= 6) ? BLACK_TI_SIZE : 0;
+                            int feat = offset + type_offset + (w_target_id * max_geo) + geo;
+                            add_weights(acc_white, weights->ft_threat_weights[feat]);
+                        }
+                    }
+                }
+
+                int b_rel_target = (target_piece + 6) % 12;
+                int b_target_id = ti_target_ids[base_piece][b_rel_target];
+                if (b_target_id != -1) {
+                    int b_mapped_sq = sq ^ b_flip_mask;
+                    int b_mapped_target = target_sq ^ b_flip_mask;
+                    int is_cross_color = (b_rel_target >= 6);
+
+                    if (!(is_cross_color && ((b_rel_target % 6) == base_piece) && ((b_mapped_target ^ 56) > (b_mapped_sq ^ 56)))) {
+                        int geo = geo_tab[b_mapped_sq][b_mapped_target];
+                        if (geo != -1) {
+                            int offset = (piece < 6) ? BLACK_TI_SIZE : 0;
+                            int feat = offset + type_offset + (b_target_id * max_geo) + geo;
+                            add_weights(acc_black, weights->ft_threat_weights[feat]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+int nnue_evaluate_pos(board *pos) {
     int32_t sum = 0;
-    v16u *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
-    v16u *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
+
+    v16 temp_white[HIDDEN_VECS];
+    v16 temp_black[HIDDEN_VECS];
+    memcpy(temp_white, pos->accum_white, sizeof(temp_white));
+    memcpy(temp_black, pos->accum_black, sizeof(temp_black));
+
+    add_all_threat_inputs(pos, (v16u*)temp_white, (v16u*)temp_black);
+
+    v16 *accum_stm  = (pos->side == white) ? temp_white : temp_black;
+    v16 *accum_nstm = (pos->side == white) ? temp_black : temp_white;
 
     int piece_count = countBits(pos->occupancies[both]);
     int bucket = (piece_count - 2) / 4;
     if (bucket > 7) bucket = 7;
 
-    sum += forward_screlu(accum_stm, weights->l1w[bucket][0]);
-    sum += forward_screlu(accum_nstm, weights->l1w[bucket][1]);
+    sum += forward_screlu((v16u*)accum_stm, weights->l1w[bucket][0]);
+    sum += forward_screlu((v16u*)accum_nstm, weights->l1w[bucket][1]);
 
     int32_t out = (sum / QA) + weights->l1b[bucket];
     int final_eval = (int)((out * SCALE) / (QA * QB));
@@ -431,9 +518,6 @@ void nnue_refresh_accumulator(board *pos) {
         int piece = pos->mailbox[square];
         nnue_add_feature(pos, piece, square);
     }
-    
-    add_threat_inputs(pos, (v16u*)pos->accum_white, 0);
-    add_threat_inputs(pos, (v16u*)pos->accum_black, 1);
 }
 
 void nnue_update_finny(ThreadData *t, board *pos, int side) {

@@ -33,6 +33,7 @@ int nnue_evaluate_pos(board *pos);
 void test_nnue_indicies(board *pos);
 void test_threat_indices(board *pos);
 void add_threat_inputs(board *pos, v16u *acc, int perspective);
+void add_all_threat_inputs(const board *pos, v16u *acc_white, v16u *acc_black);
 
 void nnue_add_feature(board *pos, int piece, int square);
 void nnue_remove_feature(board *pos, int piece, int square);

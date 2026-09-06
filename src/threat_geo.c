@@ -9,6 +9,33 @@ int bishop_geo[64][64];
 int rook_geo[64][64];
 int queen_geo[64][64];
 
+const int8_t ti_target_ids[5][12] = {
+    // Pawn
+    { 0,  1, -1,  2, -1, -1,   3,  4, -1,  5, -1, -1},
+    // Knight
+    { 0,  1,  2,  3,  4, -1,   5,  6,  7,  8,  9, -1},
+    // Bishop
+    { 0,  1,  2,  3, -1, -1,   4,  5,  6,  7, -1, -1},
+    // Rook
+    { 0,  1,  2,  3, -1, -1,   4,  5,  6,  7, -1, -1},
+    // Queen
+    { 0,  1,  2,  3,  4, -1,   5,  6,  7,  8,  9, -1}
+};
+
+const int ti_max_geo[5] = { 84, 336, 560, 896, 1456 };
+
+const int ti_type_offset[5] = {
+    TI_OFFSET_WHITE_PAWN,
+    TI_OFFSET_WHITE_KNIGHT,
+    TI_OFFSET_WHITE_BISHOP,
+    TI_OFFSET_WHITE_ROOK,
+    TI_OFFSET_WHITE_QUEEN
+};
+
+const int (*const ti_geo[5])[64] = {
+    pawn_geo, knight_geo, bishop_geo, rook_geo, queen_geo
+};
+
 
 
 void init_pawn_geo() {
