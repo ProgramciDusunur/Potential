@@ -104,6 +104,7 @@
   TUNE_INT TT_PV_LMR_IMPROVING_SCALAR = 268;  
   TUNE_INT LMR_DEPTH_HIST_MULT = 1966;
   TUNE_INT LMR_DEPTH_HIST_DIVISOR = 16859499;
+  TUNE_INT CUTOFF_LMR_SCALAR = 1024;
 
   /*╔═══════════════════════╗
     ║     Move Ordering     ║
@@ -1062,7 +1063,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     int correction_value = get_correction_value(t, ss);    
 
     ss->staticEval = static_eval;    
-
+    (ss + 2)->cutoff_count = 0;
     improving = !in_check && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
 
     // Internal Iterative Reductions
@@ -1593,6 +1594,10 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction += GOOD_EVAL_LMR_SCALAR;
         }
 
+        if ((ss + 1)->cutoff_count > 2) {
+            lmrReduction += CUTOFF_LMR_SCALAR;
+        }
+
         // ╔══════════════════════════════╗
         // ║              /\              ║
         // ║             /  \             ║
@@ -1739,6 +1744,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
                 // fail-hard beta cutoff
                 if (score >= beta) {
+                    ss->cutoff_count++;
                     if (notTactical) {
                         int quiet_history_score = 
                         t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
@@ -1896,6 +1902,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         for (int i = 0; i < maxPly; ++i) {
             (ss + i)->singular_move = 0;
             (ss + i)->staticEval = noEval;
+            (ss + i)->cutoff_count = 0;
             (ss + i)->piece = 0;
             (ss + i)->move = 0;
         }
