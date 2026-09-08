@@ -31,10 +31,26 @@ int king_bucket(int perspective, int square) {
     return king_bucket_layout[square ^ 0b111000 * perspective];
 }
 
-[[gnu::always_inline]]
-static inline int32_t forward_screlu(const v16u *accum, const v16u *weights) {
-    int32_t result = 0;
+// Feature Weights (Layer 0) -> Layer 1 quantization clamp
+static inline uint8_t screlu_255(int32_t value) {
+    value = clamp(value, 0, Q0);
+
+    int32_t result = value * value;    
+    result /= Q0;
+
     return result;
+}
+
+// Layer 1 -> Layer 2 quantization clamp
+static inline int32_t screlu_64(int32_t value) {
+    value = clamp(value, 0, Q2);
+    int32_t result = value * value;
+    
+    return result;
+}
+
+static inline int32_t crelu(int64_t value) {
+    return (value < 0) ? 0 : (int32_t)value;
 }
 
 static inline void add_weights(v16u *restrict accum, const v16u *restrict add) {

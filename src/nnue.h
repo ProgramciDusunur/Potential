@@ -7,6 +7,7 @@
 #include "threads.h"
 
 /* Quantization Constants */
+
 // L0 -> L1 quantization
 #define Q0 255
 // L1 -> L2 quantization
