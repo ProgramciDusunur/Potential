@@ -5,6 +5,7 @@
 #include "table.h"
 #include "timeman.h"
 #include <pthread.h>
+#include "zobrist_bch.h"
 
 extern ThreadPool thread_pool;
 
@@ -445,7 +446,7 @@ void init_random_keys(void) {
     for (int piece = P; piece <= k; piece++) {
         // loop over board squares
         for (int square = 0; square < 64; square++) {
-            U64 key = get_random_uint64_number();
+            U64 key = BCH_PIECE_KEYS[piece][square];
             pieceKeys[piece][square].hashKey = key;
             pieceKeys[piece][square].pawnKey = (piece == P || piece == p) ? key : 0;
             pieceKeys[piece][square].minorKey = (isMinor(piece)) ? key : 0;
@@ -457,20 +458,20 @@ void init_random_keys(void) {
     }
     // loop over board squares
     for (int square = 0; square < 64; square++) {
-        // init random enpassant keys
-        enpassantKeys[square] = get_random_uint64_number();
+        // init enpassant keys using BCH keys
+        enpassantKeys[square] = BCH_ENPASSANT_KEYS[square];
     }
     // loop over castling keys
     for (int index = 0; index < 16; index++) {
         // init castling keys
-        castleKeys[index] = get_random_uint64_number();
+        castleKeys[index] = BCH_CASTLE_KEYS[index];
     }
-    // init random side key
-    sideKey = get_random_uint64_number();
+    // init side key
+    sideKey = BCH_SIDE_KEY;
 
     for (int i = 0; i <= 100 / 10; i++) {
         if (i * 10 <= 50) {
-            FMR[i] = get_random_uint64_number();
+            FMR[i] = BCH_FIFTYMOVE_KEYS[i];
         } else {
             FMR[i] = 0ULL;
         }
