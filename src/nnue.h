@@ -6,9 +6,13 @@
 #include "board_constants.h"
 #include "threads.h"
 
-#define QA 255
-#define QB 64
-#define SCALE 315
+/* Quantization Constants */
+// L0 -> L1 quantization
+#define Q0 255
+// L1 -> L2 quantization
+#define Q1 128
+// L2 -> L3 quantization
+#define Q2 64
 
 // Hidden Layer 1 Size
 #define L1 64
@@ -20,6 +24,8 @@
 
 #define OUTPUT_BUCKETS 1
 #define INPUT_BUCKETS 1
+
+#define SCALE 315
 
 struct Weights {
     int16_t ftw[INPUT_BUCKETS][12][64][L1];           // (feature weights)
