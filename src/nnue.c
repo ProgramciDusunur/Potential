@@ -33,29 +33,7 @@ int king_bucket(int perspective, int square) {
 
 [[gnu::always_inline]]
 static inline int32_t forward_screlu(const v16u *accum, const v16u *weights) {
-    #define FORWARD_UNROLL 4
-    v32 sums[FORWARD_UNROLL] = {};
-
-    #pragma GCC unroll
-    for (int i = 0; i < HIDDEN_VECS; i += FORWARD_UNROLL) {
-        #pragma GCC unroll
-        for (int j = 0; j < FORWARD_UNROLL; ++j) {
-            v16 a = accum[i + j];
-            v16 w = weights[i + j];
-            v16 c = crelu(a);
-            sums[j] += madd(c * w, c);
-        }
-    }
-
-    for (int i = 1; i < FORWARD_UNROLL; ++i) {
-        sums[0] += sums[i];
-    }
-
     int32_t result = 0;
-    for (size_t j = 0; j < VEC_ELEMENTS(int32_t); ++j) {
-        result += sums[0][j];
-    }
-
     return result;
 }
 
@@ -73,7 +51,6 @@ static inline void sub_weights(v16u *restrict accum, const v16u *restrict sub) {
 
 
 /* FUSED UPDATES */
-void get_features(board *pos, int piece, int square, const v16u **w_feat, const v16u **b_feat);
 
 static inline void add_sub_weights(v16u *restrict accum, const v16u *restrict add, const v16u *restrict sub) {
     for (int i = 0; i < HIDDEN_VECS; ++i) {
@@ -120,22 +97,45 @@ void nnue_update_add_add_sub_sub(board *pos, int add1_piece, int add1_sq, int ad
     add_add_sub_sub_weights(pos->accum_black, b_add1, b_add2, b_sub1, b_sub2);
 }
 
+void print_features() {
+    printf("feature layer bias:");
+
+    for (int i = 0; i < 8; i++) {
+        printf(" %d", weights->ftb[i]);
+    }
+
+    printf("\n");
+
+    printf("l1 bias:");
+    for (int i = 0; i < 8; i++) {
+        printf(" %d", weights->l1b[i]);
+    }    
+
+    printf("\n");
+
+    printf("l3 bias: %d\n", weights->l3b[0]);
+        
+    fflush(stdout);
+}
+
 int nnue_evaluate_pos(board *pos) {
 
-    int32_t sum = 0;
+    /*int32_t sum = 0;
     v16u *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
     v16u *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
 
-    int piece_count = countBits(pos->occupancies[both]);
-    int bucket = (piece_count - 2) / 4;
+    //int piece_count = countBits(pos->occupancies[both]);
+    int bucket = 0;
 
-    sum += forward_screlu(accum_stm, weights->l1w[bucket][0]);
-    sum += forward_screlu(accum_nstm, weights->l1w[bucket][1]);
+    //sum += forward_screlu(accum_stm, weights->l1w[bucket][0]);
+    //sum += forward_screlu(accum_nstm, weights->l1w[bucket][1]);
 
     int32_t out = (sum / QA) + weights->l1b[bucket];
-    int final_eval = (int)((out * SCALE) / (QA * QB));
+    int final_eval = (int)((out * SCALE) / (QA * QB));*/
 
-    return final_eval;
+    print_features();
+
+    return 0;
 }
 
 void test_nnue_indicies(board *pos) {
@@ -174,11 +174,11 @@ void get_features(board *pos, int piece, int square, const v16u **w_feat, const 
     int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 0b000111) : square;
     int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 0b000111) : square;
 
-    int w_bucket = king_bucket(white, w_king_sq);
-    int b_bucket = king_bucket(black, b_king_sq);
+    int w_bucket = 0;
+    int b_bucket = 0;
 
-    *w_feat = weights->ftw[w_bucket][piece][w_sq ^ 0b111000];
-    *b_feat = weights->ftw[b_bucket][(piece+6)%12][b_sq];
+    *w_feat = (const v16u *) weights->ftw[0][piece][square ^ 56];
+    *b_feat = (const v16u *) weights->ftw[0][(piece+6)%12][square];
 }
 
 void nnue_add_feature(board *pos, int piece, int square) {
