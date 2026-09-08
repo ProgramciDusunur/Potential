@@ -1097,7 +1097,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     // Null Move Pruning
     if (!ss->singular_move && depth >= NMP_DEPTH && !in_check && !rootNode &&
-            ttAdjustedEval + 25 * ss->prior_nmp_fail_high >= beta + NMP_EVAL_BETA_MARGIN &&
+            ttAdjustedEval + 50 * ss->prior_nmp_fail_high >= beta + NMP_EVAL_BETA_MARGIN &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos) &&
         !(tt_flag == hashFlagBeta && tt_move && getMoveCapture(tt_move) && isValuable(pos->mailbox[getMoveTarget(tt_move)]))) {
