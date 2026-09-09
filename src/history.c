@@ -274,7 +274,7 @@ int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss) {
 
     const int mateFound = mateValue - maxPly;
     
-    rawEval += adjust / 384;
+    rawEval += adjust / 512;
     
     if (rawEval >= mateFound) return mateFound - 1;
     if (rawEval <= -mateFound) return -mateFound + 1;
