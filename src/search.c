@@ -1065,6 +1065,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
     improving = !in_check && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
 
+    uint16_t prior_reduction = (ss - 1)->lmr_reduction;
+    (ss - 1)->lmr_reduction = 0;
+
+    // Hindsight reduction
+    if (prior_reduction >= 2 && depth >= 2 && ss->staticEval + (ss - 1)->staticEval > 200) {
+        depth--;
+    }
+
     // Internal Iterative Reductions
     if ((pvNode || predicted_cut_node) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
         depth--;
@@ -1658,7 +1666,9 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         if(moves_searched >= LMR_FULL_DEPTH_MOVES &&
            depth >= LMR_REDUCTION_LIMIT) {
 
+            ss->lmr_reduction = reduced_depth;
             score = -negamax(-alpha - 1, -alpha, reduced_depth, t, time, ss + 1, true);
+            ss->lmr_reduction = 0;
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
