@@ -26,7 +26,7 @@
 #define OUTPUT_BUCKETS 8
 #define INPUT_BUCKETS 4
 
-#define SCALE 400
+#define SCALE 315
 
 struct Weights {
     int16_t ftw[INPUT_BUCKETS][12][64][L1];           // (feature weights)
