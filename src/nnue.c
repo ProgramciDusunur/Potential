@@ -282,8 +282,100 @@ static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, u
 #endif
 }
 
+__attribute__((aligned(64))) static int8_t l1w_tiled[OUTPUT_BUCKETS][2 * L1 / 4][L2 * 4];
+static bool l1w_tiled_init = false;
+
+void init_nnue(void) {
+    if (l1w_tiled_init) return;
+    for (int b = 0; b < OUTPUT_BUCKETS; b++) {
+        for (int t = 0; t < 2 * L1 / 4; t++) {
+            for (int j = 0; j < L2; j++) {
+                for (int k = 0; k < 4; k++) {
+                    l1w_tiled[b][t][j * 4 + k] = weights->l1w[t * 4 + k][b * L2 + j];
+                }
+            }
+        }
+    }
+    l1w_tiled_init = true;
+}
+
+#if defined(USE_AVX512)
+static inline __m512i dpbusd_512(__m512i acc, __m512i a, __m512i b) {
+#if defined(__AVX512VNNI__)
+    return _mm512_dpbusd_epi32(acc, a, b);
+#else
+    __m512i prod16 = _mm512_maddubs_epi16(a, b);
+    __m512i sum32 = _mm512_madd_epi16(prod16, _mm512_set1_epi16(1));
+    return _mm512_add_epi32(acc, sum32);
+#endif
+}
+#endif
+
 // L1 -> L2
 static inline void propagate_l1_to_l2(const uint8_t *input, int out_bucket, int32_t *output) {
+#if defined(USE_AVX512)
+    const uint32_t *in32 = (const uint32_t *)input;
+    __m512i acc = _mm512_setzero_si512();
+
+    for (int t = 0; t < 2 * L1 / 4; t++) {
+        uint32_t in_val = in32[t];
+        if (!in_val) continue;
+
+        __m512i in_vec = _mm512_set1_epi32(in_val);
+        __m512i w = _mm512_loadu_si512((const __m512i *)l1w_tiled[out_bucket][t]);
+        acc = dpbusd_512(acc, in_vec, w);
+    }
+
+    int l1_offset = out_bucket * L2;
+    __m512i bias = _mm512_loadu_si512((const __m512i *)&weights->l1b[l1_offset]);
+    acc = _mm512_add_epi32(_mm512_srai_epi32(acc, 1), bias);
+
+    __m512i c = _mm512_max_epi32(_mm512_min_epi32(acc, _mm512_set1_epi32(16384)), _mm512_setzero_si512());
+    __m512i act = _mm512_srli_epi32(_mm512_mullo_epi32(c, c), 16);
+    _mm512_storeu_si512((__m512i *)output, act);
+#elif defined(USE_AVX2)
+    const uint32_t *in32 = (const uint32_t *)input;
+    __m256i acc0 = _mm256_setzero_si256();
+    __m256i acc1 = _mm256_setzero_si256();
+    const __m256i ones = _mm256_set1_epi16(1);
+
+    for (int t = 0; t < 2 * L1 / 4; t++) {
+        uint32_t in_val = in32[t];
+        if (!in_val) continue;
+
+        __m256i in_vec = _mm256_set1_epi32(in_val);
+        const int8_t *w_ptr = &l1w_tiled[out_bucket][t][0];
+        __m256i w0 = _mm256_loadu_si256((const __m256i *)w_ptr);
+        __m256i w1 = _mm256_loadu_si256((const __m256i *)(w_ptr + 32));
+
+#if defined(__AVX_VNNI__)
+        acc0 = _mm256_dpbusd_epi32(acc0, in_vec, w0);
+        acc1 = _mm256_dpbusd_epi32(acc1, in_vec, w1);
+#else
+        acc0 = _mm256_add_epi32(acc0, _mm256_madd_epi16(_mm256_maddubs_epi16(in_vec, w0), ones));
+        acc1 = _mm256_add_epi32(acc1, _mm256_madd_epi16(_mm256_maddubs_epi16(in_vec, w1), ones));
+#endif
+    }
+
+    int l1_offset = out_bucket * L2;
+    __m256i bias0 = _mm256_loadu_si256((const __m256i *)&weights->l1b[l1_offset]);
+    __m256i bias1 = _mm256_loadu_si256((const __m256i *)&weights->l1b[l1_offset + 8]);
+
+    acc0 = _mm256_add_epi32(_mm256_srai_epi32(acc0, 1), bias0);
+    acc1 = _mm256_add_epi32(_mm256_srai_epi32(acc1, 1), bias1);
+
+    const __m256i zero256 = _mm256_setzero_si256();
+    const __m256i k16384_256 = _mm256_set1_epi32(16384);
+
+    __m256i c0 = _mm256_max_epi32(_mm256_min_epi32(acc0, k16384_256), zero256);
+    __m256i c1 = _mm256_max_epi32(_mm256_min_epi32(acc1, k16384_256), zero256);
+
+    __m256i act0 = _mm256_srli_epi32(_mm256_mullo_epi32(c0, c0), 16);
+    __m256i act1 = _mm256_srli_epi32(_mm256_mullo_epi32(c1, c1), 16);
+
+    _mm256_storeu_si256((__m256i *)output, act0);
+    _mm256_storeu_si256((__m256i *)(output + 8), act1);
+#else
     int32_t sums[L2] = {0};
     int l1_offset = out_bucket * L2;
 
@@ -301,6 +393,7 @@ static inline void propagate_l1_to_l2(const uint8_t *input, int out_bucket, int3
         int32_t sum = (sums[j] >> 1) + weights->l1b[l1_offset + j];
         output[j] = screlu_l1(sum);
     }
+#endif
 }
 
 // L2 -> L3

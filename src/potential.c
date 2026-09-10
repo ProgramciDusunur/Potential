@@ -41,6 +41,7 @@ void init_all(void) {
     // init SPSA tuning parameters (no-op in normal builds)
     spsa_init();
     cuckoo_init();
+    init_nnue();
 }
 
 
