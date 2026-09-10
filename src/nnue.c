@@ -34,23 +34,18 @@ int king_bucket(int perspective, int square) {
 // Feature Weights (Layer 0) -> Layer 1 quantization clamp
 static inline uint8_t screlu_255(int32_t value) {
     value = clamp(value, 0, Q0);
-
-    int32_t result = value * value;    
-    result /= Q0;
-
-    return result;
+    return (uint8_t)((value * value) >> 8);
 }
 
 // Layer 1 -> Layer 2 quantization clamp
-static inline int32_t screlu_64(int32_t value) {
-    value = clamp(value, 0, Q2);
-    int32_t result = value * value;
-    
-    return result;
+static inline int32_t screlu_l1(int64_t value) {
+    int64_t clamped = clamp(value, 0, 16384);
+    return (int32_t)((clamped * clamped) >> 16);
 }
 
-static inline int32_t crelu(int64_t value) {
-    return (value < 0) ? 0 : (int32_t)value;
+// Layer 2 -> Layer 3 quantization clamp
+static inline int32_t crelu_l3(int64_t value) {
+    return (int32_t)clamp(value, 0, 262144);
 }
 
 static inline void add_weights(v16u *restrict accum, const v16u *restrict add) {
@@ -103,7 +98,7 @@ void nnue_update_add_sub_sub(board *pos, int add_piece, int add_sq, int sub1_pie
     add_sub_sub_weights(pos->accum_black, b_add, b_sub1, b_sub2);
 }
 
-void nnue_update_add_add_sub_sub(board *pos, int add1_piece, int add1_sq, int add2_piece, int add2_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq) {    
+void nnue_update_add_add_sub_sub(board *pos, int add1_piece, int add1_sq, int add2_piece, int add2_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq) {
     const v16u *w_add1, *b_add1, *w_add2, *b_add2, *w_sub1, *b_sub1, *w_sub2, *b_sub2;
     get_features(pos, add1_piece, add1_sq, &w_add1, &b_add1);
     get_features(pos, add2_piece, add2_sq, &w_add2, &b_add2);
@@ -134,26 +129,6 @@ void print_features() {
     fflush(stdout);
 }
 
-int nnue_evaluate_pos(board *pos) {
-
-    /*int32_t sum = 0;
-    v16u *accum_stm  = (pos->side == white) ? pos->accum_white : pos->accum_black;
-    v16u *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
-
-    //int piece_count = countBits(pos->occupancies[both]);
-    int bucket = 0;
-
-    //sum += forward_screlu(accum_stm, weights->l1w[bucket][0]);
-    //sum += forward_screlu(accum_nstm, weights->l1w[bucket][1]);
-
-    int32_t out = (sum / QA) + weights->l1b[bucket];
-    int final_eval = (int)((out * SCALE) / (QA * QB));*/
-
-    print_features();
-
-    return 0;
-}
-
 void test_nnue_indicies(board *pos) {
     printf("White indices:");
     for (int square = 0; square < 64; square++) {
@@ -182,19 +157,22 @@ void test_nnue_indicies(board *pos) {
 
 void get_features(board *pos, int piece, int square, const v16u **w_feat, const v16u **b_feat) {
     int w_king_sq = getLS1BIndex(pos->bitboards[K]);
-    if (piece == K) w_king_sq = square;
-
     int b_king_sq = getLS1BIndex(pos->bitboards[k]);
-    if (piece == k) b_king_sq = square;
 
-    int w_sq = ((w_king_sq % 8) > 3) ? (square ^ 0b000111) : square;
-    int b_sq = ((b_king_sq % 8) > 3) ? (square ^ 0b000111) : square;
+    int w_bucket = king_bucket(white, w_king_sq);
+    int w_mirrored = (w_king_sq % 8) > 3;
 
-    int w_bucket = 0;
-    int b_bucket = 0;
+    int b_bucket = king_bucket(black, b_king_sq);
+    int b_mirrored = (b_king_sq % 8) > 3;
 
-    *w_feat = (const v16u *) weights->ftw[0][piece][square ^ 56];
-    *b_feat = (const v16u *) weights->ftw[0][(piece+6)%12][square];
+    int w_sq = square ^ 56;
+    if (w_mirrored) w_sq ^= 7;
+
+    int b_sq = square;
+    if (b_mirrored) b_sq ^= 7;
+
+    *w_feat = (const v16u *) weights->ftw[w_bucket][piece][w_sq];
+    *b_feat = (const v16u *) weights->ftw[b_bucket][(piece + 6) % 12][b_sq];
 }
 
 void nnue_add_feature(board *pos, int piece, int square) {
@@ -246,6 +224,85 @@ void nnue_refresh_accumulator(board *pos) {
         int piece = pos->mailbox[square];
         nnue_add_feature(pos, piece, square);
     }
+}
+
+int nnue_evaluate_pos(board *pos) {
+    int w_king_sq = getLS1BIndex(pos->bitboards[K]);
+    int b_king_sq = getLS1BIndex(pos->bitboards[k]);
+
+    int w_bucket = king_bucket(white, w_king_sq);
+    int b_bucket = king_bucket(black, b_king_sq);
+
+    v16u *accum_stm = (pos->side == white) ? pos->accum_white : pos->accum_black;
+    v16u *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
+
+    int16_t *stm_ptr = (int16_t *)accum_stm;
+    int16_t *nstm_ptr = (int16_t *)accum_nstm;
+
+    int piece_count = __builtin_popcountll(pos->occupancies[both]);
+    int out_bucket = (piece_count - 2) / 4;
+    if (out_bucket < 0) out_bucket = 0;
+    if (out_bucket > OUTPUT_BUCKETS - 1) out_bucket = OUTPUT_BUCKETS - 1;
+
+    // Stage 1: L0 -> L1
+    uint8_t l1_input[2 * L1];
+    for (int i = 0; i < L1; i++) {
+        l1_input[i] = screlu_255(stm_ptr[i]);
+        l1_input[i + L1] = screlu_255(nstm_ptr[i]);
+    }
+
+    // Stage 2: L1 -> L2
+    int32_t l2_sums[L2] = {0};
+    int l1_offset = out_bucket * L2;
+
+    for (int i = 0; i < 2 * L1; i++) {
+        uint8_t in_val = l1_input[i];
+        if (!in_val) continue;
+
+        const int8_t *w_row = &weights->l1w[i][l1_offset];
+        for (int j = 0; j < L2; j++) {
+            l2_sums[j] += (int32_t)in_val * w_row[j];
+        }
+    }
+
+    int32_t l2_act[L2];
+    for (int j = 0; j < L2; j++) {
+        int32_t sum = (l2_sums[j] >> 1) + weights->l1b[l1_offset + j];
+        l2_act[j] = screlu_l1(sum);
+    }
+
+    // Stage 3: L2 -> L3
+    int64_t l3_sums[L3];
+    int l3_offset = out_bucket * L3;
+    for (int i = 0; i < L3; i++) {
+        l3_sums[i] = weights->l2b[l3_offset + i];
+    }
+
+    for (int j = 0; j < L2; j++) {
+        int32_t act = l2_act[j];
+        if (!act) continue;
+
+        const int32_t *w_row = &weights->l2w[j][l3_offset];
+        for (int i = 0; i < L3; i++) {
+            l3_sums[i] += (int64_t)act * w_row[i];
+        }
+    }
+
+    int32_t l3_act[L3];
+    for (int i = 0; i < L3; i++) {
+        l3_act[i] = crelu_l3(l3_sums[i]);
+    }
+
+    // Stage 4: L3 ->
+    int64_t out_sum = weights->l3b[out_bucket];
+    for (int i = 0; i < L3; i++) {
+        int32_t act = l3_act[i];
+        if (!act) continue;
+        out_sum += (int64_t)act * weights->l3w[i][out_bucket];
+    }
+
+    int final_eval = (int)((out_sum * SCALE) / 16777216);
+    return final_eval;
 }
 
 void nnue_update_finny(ThreadData *t, board *pos, int side) {

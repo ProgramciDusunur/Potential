@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     init_threads(1);
 
     init_all();
-    int debug = 1;
+    int debug = 0;
     if (debug) {
         board position;
         parseFEN(startPosition, &position);                
@@ -60,9 +60,9 @@ int main(int argc, char* argv[]) {
         parseFEN(kiwipete, &position2);
         
         int startpos_eval = nnue_evaluate_pos(&position);
-        /*int kiwipete_eval = nnue_evaluate_pos(&position2);
+        int kiwipete_eval = nnue_evaluate_pos(&position2);
         printf("NNUE evaluation of startpos: %d\n", startpos_eval);
-        printf("NNUE evaluation of kiwipete: %d\n", kiwipete_eval);*/
+        printf("NNUE evaluation of kiwipete: %d\n", kiwipete_eval);
         
     } else {
         board *position = (board *)malloc(sizeof(board));
