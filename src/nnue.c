@@ -1,4 +1,5 @@
 #include "nnue.h"
+#include "nnz.h"
 #include "simd.h"
 #include <assert.h>
 #include <stdio.h>
@@ -296,6 +297,7 @@ void init_nnue(void) {
             }
         }
     }
+    init_nnz();
     nnue_initialized = true;
 }
 
@@ -309,22 +311,45 @@ static inline __m512i dpbusd_512(__m512i acc, __m512i a, __m512i b) {
     return _mm512_add_epi32(acc, sum32);
 #endif
 }
-#endif
 
-// L1 -> L2
-static inline void propagate_l1_to_l2(const uint8_t *input, int out_bucket, int32_t *output) {
-#if defined(USE_AVX512)
+static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_tiles, int nnz_count, int out_bucket, int32_t *output) {
     const uint32_t *in32 = (const uint32_t *)input;
-    __m512i acc = _mm512_setzero_si512();
+    __m512i acc0 = _mm512_setzero_si512();
+    __m512i acc1 = _mm512_setzero_si512();
+    __m512i acc2 = _mm512_setzero_si512();
+    __m512i acc3 = _mm512_setzero_si512();
 
-    for (int t = 0; t < 2 * L1 / 4; t++) {
-        uint32_t in_val = in32[t];
-        if (!in_val) continue;
+    int i = 0;
+    for (; i + 4 <= nnz_count; i += 4) {
+        uint16_t t0 = nnz_tiles[i + 0];
+        uint16_t t1 = nnz_tiles[i + 1];
+        uint16_t t2 = nnz_tiles[i + 2];
+        uint16_t t3 = nnz_tiles[i + 3];
 
-        __m512i in_vec = _mm512_set1_epi32(in_val);
-        __m512i w = _mm512_loadu_si512((const __m512i *)l1w_tiled[out_bucket][t]);
-        acc = dpbusd_512(acc, in_vec, w);
+        __m512i in_vec0 = _mm512_set1_epi32(in32[t0]);
+        __m512i in_vec1 = _mm512_set1_epi32(in32[t1]);
+        __m512i in_vec2 = _mm512_set1_epi32(in32[t2]);
+        __m512i in_vec3 = _mm512_set1_epi32(in32[t3]);
+
+        __m512i w0 = _mm512_loadu_si512((const __m512i *)l1w_tiled[out_bucket][t0]);
+        __m512i w1 = _mm512_loadu_si512((const __m512i *)l1w_tiled[out_bucket][t1]);
+        __m512i w2 = _mm512_loadu_si512((const __m512i *)l1w_tiled[out_bucket][t2]);
+        __m512i w3 = _mm512_loadu_si512((const __m512i *)l1w_tiled[out_bucket][t3]);
+
+        acc0 = dpbusd_512(acc0, in_vec0, w0);
+        acc1 = dpbusd_512(acc1, in_vec1, w1);
+        acc2 = dpbusd_512(acc2, in_vec2, w2);
+        acc3 = dpbusd_512(acc3, in_vec3, w3);
     }
+
+    for (; i < nnz_count; i++) {
+        uint16_t t = nnz_tiles[i];
+        __m512i in_vec = _mm512_set1_epi32(in32[t]);
+        __m512i w = _mm512_loadu_si512((const __m512i *)l1w_tiled[out_bucket][t]);
+        acc0 = dpbusd_512(acc0, in_vec, w);
+    }
+
+    __m512i acc = _mm512_add_epi32(_mm512_add_epi32(acc0, acc1), _mm512_add_epi32(acc2, acc3));
 
     int l1_offset = out_bucket * L2;
     __m512i bias = _mm512_loadu_si512((const __m512i *)&weights->l1b[l1_offset]);
@@ -333,29 +358,79 @@ static inline void propagate_l1_to_l2(const uint8_t *input, int out_bucket, int3
     __m512i c = _mm512_max_epi32(_mm512_min_epi32(acc, _mm512_set1_epi32(16384)), _mm512_setzero_si512());
     __m512i act = _mm512_srli_epi32(_mm512_mullo_epi32(c, c), 16);
     _mm512_storeu_si512((__m512i *)output, act);
+}
 #elif defined(USE_AVX2)
+static inline __m256i dpbusd_256(__m256i acc, __m256i a, __m256i b) {
+#if defined(__AVX_VNNI__)
+    return _mm256_dpbusd_epi32(acc, a, b);
+#else
+    __m256i prod16 = _mm256_maddubs_epi16(a, b);
+    __m256i sum32 = _mm256_madd_epi16(prod16, _mm256_set1_epi16(1));
+    return _mm256_add_epi32(acc, sum32);
+#endif
+}
+
+static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_tiles, int nnz_count, int out_bucket, int32_t *output) {
     const uint32_t *in32 = (const uint32_t *)input;
-    __m256i acc0 = _mm256_setzero_si256();
-    __m256i acc1 = _mm256_setzero_si256();
-    const __m256i ones = _mm256_set1_epi16(1);
+    __m256i acc0_0 = _mm256_setzero_si256();
+    __m256i acc0_1 = _mm256_setzero_si256();
+    __m256i acc0_2 = _mm256_setzero_si256();
+    __m256i acc0_3 = _mm256_setzero_si256();
+    __m256i acc1_0 = _mm256_setzero_si256();
+    __m256i acc1_1 = _mm256_setzero_si256();
+    __m256i acc1_2 = _mm256_setzero_si256();
+    __m256i acc1_3 = _mm256_setzero_si256();
 
-    for (int t = 0; t < 2 * L1 / 4; t++) {
-        uint32_t in_val = in32[t];
-        if (!in_val) continue;
+    int i = 0;
+    for (; i + 4 <= nnz_count; i += 4) {
+        uint16_t t0 = nnz_tiles[i + 0];
+        uint16_t t1 = nnz_tiles[i + 1];
+        uint16_t t2 = nnz_tiles[i + 2];
+        uint16_t t3 = nnz_tiles[i + 3];
 
-        __m256i in_vec = _mm256_set1_epi32(in_val);
+        __m256i in_vec0 = _mm256_set1_epi32(in32[t0]);
+        __m256i in_vec1 = _mm256_set1_epi32(in32[t1]);
+        __m256i in_vec2 = _mm256_set1_epi32(in32[t2]);
+        __m256i in_vec3 = _mm256_set1_epi32(in32[t3]);
+
+        const int8_t *w_ptr0 = &l1w_tiled[out_bucket][t0][0];
+        const int8_t *w_ptr1 = &l1w_tiled[out_bucket][t1][0];
+        const int8_t *w_ptr2 = &l1w_tiled[out_bucket][t2][0];
+        const int8_t *w_ptr3 = &l1w_tiled[out_bucket][t3][0];
+
+        __m256i w0_0 = _mm256_loadu_si256((const __m256i *)w_ptr0);
+        __m256i w1_0 = _mm256_loadu_si256((const __m256i *)(w_ptr0 + 32));
+        __m256i w0_1 = _mm256_loadu_si256((const __m256i *)w_ptr1);
+        __m256i w1_1 = _mm256_loadu_si256((const __m256i *)(w_ptr1 + 32));
+        __m256i w0_2 = _mm256_loadu_si256((const __m256i *)w_ptr2);
+        __m256i w1_2 = _mm256_loadu_si256((const __m256i *)(w_ptr2 + 32));
+        __m256i w0_3 = _mm256_loadu_si256((const __m256i *)w_ptr3);
+        __m256i w1_3 = _mm256_loadu_si256((const __m256i *)(w_ptr3 + 32));
+
+        acc0_0 = dpbusd_256(acc0_0, in_vec0, w0_0);
+        acc0_1 = dpbusd_256(acc0_1, in_vec1, w0_1);
+        acc0_2 = dpbusd_256(acc0_2, in_vec2, w0_2);
+        acc0_3 = dpbusd_256(acc0_3, in_vec3, w0_3);
+
+        acc1_0 = dpbusd_256(acc1_0, in_vec0, w1_0);
+        acc1_1 = dpbusd_256(acc1_1, in_vec1, w1_1);
+        acc1_2 = dpbusd_256(acc1_2, in_vec2, w1_2);
+        acc1_3 = dpbusd_256(acc1_3, in_vec3, w1_3);
+    }
+
+    for (; i < nnz_count; i++) {
+        uint16_t t = nnz_tiles[i];
+        __m256i in_vec = _mm256_set1_epi32(in32[t]);
         const int8_t *w_ptr = &l1w_tiled[out_bucket][t][0];
         __m256i w0 = _mm256_loadu_si256((const __m256i *)w_ptr);
         __m256i w1 = _mm256_loadu_si256((const __m256i *)(w_ptr + 32));
 
-#if defined(__AVX_VNNI__)
-        acc0 = _mm256_dpbusd_epi32(acc0, in_vec, w0);
-        acc1 = _mm256_dpbusd_epi32(acc1, in_vec, w1);
-#else
-        acc0 = _mm256_add_epi32(acc0, _mm256_madd_epi16(_mm256_maddubs_epi16(in_vec, w0), ones));
-        acc1 = _mm256_add_epi32(acc1, _mm256_madd_epi16(_mm256_maddubs_epi16(in_vec, w1), ones));
-#endif
+        acc0_0 = dpbusd_256(acc0_0, in_vec, w0);
+        acc1_0 = dpbusd_256(acc1_0, in_vec, w1);
     }
+
+    __m256i acc0 = _mm256_add_epi32(_mm256_add_epi32(acc0_0, acc0_1), _mm256_add_epi32(acc0_2, acc0_3));
+    __m256i acc1 = _mm256_add_epi32(_mm256_add_epi32(acc1_0, acc1_1), _mm256_add_epi32(acc1_2, acc1_3));
 
     int l1_offset = out_bucket * L2;
     __m256i bias0 = _mm256_loadu_si256((const __m256i *)&weights->l1b[l1_offset]);
@@ -375,17 +450,23 @@ static inline void propagate_l1_to_l2(const uint8_t *input, int out_bucket, int3
 
     _mm256_storeu_si256((__m256i *)output, act0);
     _mm256_storeu_si256((__m256i *)(output + 8), act1);
+}
 #else
+static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_tiles, int nnz_count, int out_bucket, int32_t *output) {
     int32_t sums[L2] = {0};
     int l1_offset = out_bucket * L2;
 
-    for (int i = 0; i < 2 * L1; i++) {
-        uint8_t in_val = input[i];
-        if (!in_val) continue;
+    for (int idx = 0; idx < nnz_count; idx++) {
+        int t = nnz_tiles[idx];
+        for (int k = 0; k < 4; k++) {
+            int i = t * 4 + k;
+            uint8_t in_val = input[i];
+            if (!in_val) continue;
 
-        const int8_t *w_row = &weights->l1w[i][l1_offset];
-        for (int j = 0; j < L2; j++) {
-            sums[j] += (int32_t)in_val * w_row[j];
+            const int8_t *w_row = &weights->l1w[i][l1_offset];
+            for (int j = 0; j < L2; j++) {
+                sums[j] += (int32_t)in_val * w_row[j];
+            }
         }
     }
 
@@ -393,8 +474,8 @@ static inline void propagate_l1_to_l2(const uint8_t *input, int out_bucket, int3
         int32_t sum = (sums[j] >> 1) + weights->l1b[l1_offset + j];
         output[j] = screlu_l1(sum);
     }
-#endif
 }
+#endif
 
 // L2 -> L3
 static inline void propagate_l2_to_l3(const int32_t *input, int out_bucket, int32_t *output) {
@@ -506,14 +587,16 @@ int nnue_evaluate_pos(board *pos) {
     int piece_count = __builtin_popcountll(pos->occupancies[both]);
     int out_bucket = (piece_count - 2) / 4;
     if (out_bucket < 0) out_bucket = 0;
-    if (out_bucket > OUTPUT_BUCKETS - 1) out_bucket = OUTPUT_BUCKETS - 1;
+    if (out_bucket > OUTPUT_BUCKETS - 1) out_bucket = OUTPUT_BUCKETS - 1;    
 
     __attribute__((aligned(64))) uint8_t l1_out[2 * L1];
+    uint16_t nnz_tiles[528];
     int32_t l2_out[L2];
     int32_t l3_out[L3];
 
     propagate_l0_to_l1((const int16_t *)accum_stm, (const int16_t *)accum_nstm, l1_out);
-    propagate_l1_to_l2(l1_out, out_bucket, l2_out);
+    int nnz_count = find_nonzero_indices(l1_out, nnz_tiles);
+    propagate_l1_to_l2(l1_out, nnz_tiles, nnz_count, out_bucket, l2_out);
     propagate_l2_to_l3(l2_out, out_bucket, l3_out);
     return propagate_l3_to_out(l3_out, out_bucket);
 }
