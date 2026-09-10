@@ -4,6 +4,10 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#if !defined(USE_AVX512)
+#error "AVX-512 is required to build this branch (l0-packus)."
+#endif
+
 
 #include "uci.h"
 #include "magic.h"

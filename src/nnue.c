@@ -231,21 +231,30 @@ static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, u
 #if defined(USE_AVX512)
     const __m512i zero = _mm512_setzero_si512();
     const __m512i k255 = _mm512_set1_epi16(255);
+    const __m512i perm_idx = _mm512_setr_epi64(0, 2, 4, 6, 1, 3, 5, 7);
 
-    for (int i = 0; i < L1; i += 32) {
-        __m512i v = _mm512_loadu_si512((const __m512i *)&stm[i]);
-        __m512i c = _mm512_max_epi16(_mm512_min_epi16(v, k255), zero);
-        __m512i prod = _mm512_mullo_epi16(c, c);
-        __m512i res = _mm512_srli_epi16(prod, 8);
-        _mm256_storeu_si256((__m256i *)&output[i], _mm512_cvtepi16_epi8(res));
+    for (int i = 0; i < L1; i += 64) {
+        __m512i v0 = _mm512_loadu_si512((const __m512i *)&stm[i]);
+        __m512i v1 = _mm512_loadu_si512((const __m512i *)&stm[i + 32]);
+        __m512i c0 = _mm512_max_epi16(_mm512_min_epi16(v0, k255), zero);
+        __m512i c1 = _mm512_max_epi16(_mm512_min_epi16(v1, k255), zero);
+        __m512i res0 = _mm512_srli_epi16(_mm512_mullo_epi16(c0, c0), 8);
+        __m512i res1 = _mm512_srli_epi16(_mm512_mullo_epi16(c1, c1), 8);
+        __m512i pack = _mm512_packus_epi16(res0, res1);
+        __m512i perm = _mm512_permutexvar_epi64(perm_idx, pack);
+        _mm512_storeu_si512((__m512i *)&output[i], perm);
     }
 
-    for (int i = 0; i < L1; i += 32) {
-        __m512i v = _mm512_loadu_si512((const __m512i *)&nstm[i]);
-        __m512i c = _mm512_max_epi16(_mm512_min_epi16(v, k255), zero);
-        __m512i prod = _mm512_mullo_epi16(c, c);
-        __m512i res = _mm512_srli_epi16(prod, 8);
-        _mm256_storeu_si256((__m256i *)&output[i + L1], _mm512_cvtepi16_epi8(res));
+    for (int i = 0; i < L1; i += 64) {
+        __m512i v0 = _mm512_loadu_si512((const __m512i *)&nstm[i]);
+        __m512i v1 = _mm512_loadu_si512((const __m512i *)&nstm[i + 32]);
+        __m512i c0 = _mm512_max_epi16(_mm512_min_epi16(v0, k255), zero);
+        __m512i c1 = _mm512_max_epi16(_mm512_min_epi16(v1, k255), zero);
+        __m512i res0 = _mm512_srli_epi16(_mm512_mullo_epi16(c0, c0), 8);
+        __m512i res1 = _mm512_srli_epi16(_mm512_mullo_epi16(c1, c1), 8);
+        __m512i pack = _mm512_packus_epi16(res0, res1);
+        __m512i perm = _mm512_permutexvar_epi64(perm_idx, pack);
+        _mm512_storeu_si512((__m512i *)&output[i + L1], perm);
     }
 #elif defined(USE_AVX2)
     const __m256i zero = _mm256_setzero_si256();
