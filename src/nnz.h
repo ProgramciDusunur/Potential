@@ -79,5 +79,4 @@ static inline int find_nonzero_indices(const uint8_t *ft, uint16_t *indices) {
 
 #endif
 
-
 #endif // POTENTIAL_NNZ_H
