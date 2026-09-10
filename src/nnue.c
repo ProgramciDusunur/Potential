@@ -283,10 +283,10 @@ static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, u
 }
 
 __attribute__((aligned(64))) static int8_t l1w_tiled[OUTPUT_BUCKETS][2 * L1 / 4][L2 * 4];
-static bool l1w_tiled_init = false;
+static bool nnue_initialized = false;
 
 void init_nnue(void) {
-    if (l1w_tiled_init) return;
+    if (nnue_initialized) return;
     for (int b = 0; b < OUTPUT_BUCKETS; b++) {
         for (int t = 0; t < 2 * L1 / 4; t++) {
             for (int j = 0; j < L2; j++) {
@@ -296,7 +296,7 @@ void init_nnue(void) {
             }
         }
     }
-    l1w_tiled_init = true;
+    nnue_initialized = true;
 }
 
 #if defined(USE_AVX512)
@@ -398,6 +398,71 @@ static inline void propagate_l1_to_l2(const uint8_t *input, int out_bucket, int3
 
 // L2 -> L3
 static inline void propagate_l2_to_l3(const int32_t *input, int out_bucket, int32_t *output) {
+#if defined(USE_AVX512)
+    int l3_offset = out_bucket * L3;
+    __m512i sum0 = _mm512_loadu_si512((const __m512i *)&weights->l2b[l3_offset]);
+    __m512i sum1 = _mm512_loadu_si512((const __m512i *)&weights->l2b[l3_offset + 16]);
+
+    for (int j = 0; j < L2; j++) {
+        int32_t act = input[j];
+        if (!act) continue;
+
+        __m512i act_vec = _mm512_set1_epi32(act);
+        const int32_t *w_row = &weights->l2w[j][l3_offset];
+
+        __m512i w0 = _mm512_loadu_si512((const __m512i *)&w_row[0]);
+        __m512i w1 = _mm512_loadu_si512((const __m512i *)&w_row[16]);
+
+        sum0 = _mm512_add_epi32(sum0, _mm512_mullo_epi32(act_vec, w0));
+        sum1 = _mm512_add_epi32(sum1, _mm512_mullo_epi32(act_vec, w1));
+    }
+
+    const __m512i zero = _mm512_setzero_si512();
+    const __m512i k262144 = _mm512_set1_epi32(262144);
+
+    sum0 = _mm512_max_epi32(_mm512_min_epi32(sum0, k262144), zero);
+    sum1 = _mm512_max_epi32(_mm512_min_epi32(sum1, k262144), zero);
+
+    _mm512_storeu_si512((__m512i *)&output[0], sum0);
+    _mm512_storeu_si512((__m512i *)&output[16], sum1);
+#elif defined(USE_AVX2)
+    int l3_offset = out_bucket * L3;
+    __m256i sum0 = _mm256_loadu_si256((const __m256i *)&weights->l2b[l3_offset + 0]);
+    __m256i sum1 = _mm256_loadu_si256((const __m256i *)&weights->l2b[l3_offset + 8]);
+    __m256i sum2 = _mm256_loadu_si256((const __m256i *)&weights->l2b[l3_offset + 16]);
+    __m256i sum3 = _mm256_loadu_si256((const __m256i *)&weights->l2b[l3_offset + 24]);
+
+    for (int j = 0; j < L2; j++) {
+        int32_t act = input[j];
+        if (!act) continue;
+
+        __m256i act_vec = _mm256_set1_epi32(act);
+        const int32_t *w_row = &weights->l2w[j][l3_offset];
+
+        __m256i w0 = _mm256_loadu_si256((const __m256i *)&w_row[0]);
+        __m256i w1 = _mm256_loadu_si256((const __m256i *)&w_row[8]);
+        __m256i w2 = _mm256_loadu_si256((const __m256i *)&w_row[16]);
+        __m256i w3 = _mm256_loadu_si256((const __m256i *)&w_row[24]);
+
+        sum0 = _mm256_add_epi32(sum0, _mm256_mullo_epi32(act_vec, w0));
+        sum1 = _mm256_add_epi32(sum1, _mm256_mullo_epi32(act_vec, w1));
+        sum2 = _mm256_add_epi32(sum2, _mm256_mullo_epi32(act_vec, w2));
+        sum3 = _mm256_add_epi32(sum3, _mm256_mullo_epi32(act_vec, w3));
+    }
+
+    const __m256i zero = _mm256_setzero_si256();
+    const __m256i k262144 = _mm256_set1_epi32(262144);
+
+    sum0 = _mm256_max_epi32(_mm256_min_epi32(sum0, k262144), zero);
+    sum1 = _mm256_max_epi32(_mm256_min_epi32(sum1, k262144), zero);
+    sum2 = _mm256_max_epi32(_mm256_min_epi32(sum2, k262144), zero);
+    sum3 = _mm256_max_epi32(_mm256_min_epi32(sum3, k262144), zero);
+
+    _mm256_storeu_si256((__m256i *)&output[0], sum0);
+    _mm256_storeu_si256((__m256i *)&output[8], sum1);
+    _mm256_storeu_si256((__m256i *)&output[16], sum2);
+    _mm256_storeu_si256((__m256i *)&output[24], sum3);
+#else
     int64_t sums[L3];
     int l3_offset = out_bucket * L3;
 
@@ -418,6 +483,7 @@ static inline void propagate_l2_to_l3(const int32_t *input, int out_bucket, int3
     for (int i = 0; i < L3; i++) {
         output[i] = crelu_l3(sums[i]);
     }
+#endif
 }
 
 // L3 -> Output
