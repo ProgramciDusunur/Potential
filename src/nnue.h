@@ -41,6 +41,7 @@ struct Weights {
 
 int king_bucket(int perspective, int square);
 void get_features(board *pos, int piece, int square, const v16u **w_feat, const v16u **b_feat);
+void init_nnue(void);
 
 void reset_finny_table(void);
 void nnue_update_finny(ThreadData *t, board *pos, int side);
