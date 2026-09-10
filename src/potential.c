@@ -41,10 +41,11 @@ void init_all(void) {
     // init SPSA tuning parameters (no-op in normal builds)
     spsa_init();
     cuckoo_init();
+    init_nnue();
 }
 
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {    
     // init main thread
     init_threads(1);
 
@@ -54,10 +55,11 @@ int main(int argc, char* argv[]) {
         board position;
         parseFEN(startPosition, &position);                
 
-        test_nnue_indicies(&position);
+        //test_nnue_indicies(&position);
 
         board position2;
         parseFEN(kiwipete, &position2);
+        
         int startpos_eval = nnue_evaluate_pos(&position);
         int kiwipete_eval = nnue_evaluate_pos(&position2);
         printf("NNUE evaluation of startpos: %d\n", startpos_eval);
