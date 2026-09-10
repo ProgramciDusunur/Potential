@@ -23,6 +23,10 @@
 #define ODDS idcs(1)
 #endif
 
+#if defined(USE_SIMD)
+#include <immintrin.h>
+#endif
+
 #define VEC_ELEMENTS(T) (VEC_BYTES / (int)sizeof(T))
 
 // vector of i16
