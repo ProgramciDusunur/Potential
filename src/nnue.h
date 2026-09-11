@@ -25,6 +25,7 @@
 
 #define OUTPUT_BUCKETS 8
 #define INPUT_BUCKETS 4
+#define DUAL_ACTIVATION 2
 
 #define SCALE 400
 
