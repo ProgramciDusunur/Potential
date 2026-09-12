@@ -188,10 +188,6 @@
   /*╔══════════╗
     ║ Razoring ║
     ╚══════════╝*/
-  TUNE_INT RAZORING_DEPTH = 3;
-  TUNE_INT RAZORING_FULL_MARGIN = 202;    
-  TUNE_INT RAZORING_VERIFY_MARGIN = 124;
-  
   extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_0;
   extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_1;
   extern TUNE_DOUBLE TM_BEST_MOVE_SCALE_2;
@@ -208,11 +204,7 @@
   extern TUNE_DOUBLE TM_NODE_FRACTION_BASE;
   extern TUNE_DOUBLE TM_NODE_MULTIPLIER;
   extern TUNE_DOUBLE TM_NODE_MIN_MULTIPLIER;
-  TUNE_INT RAZORING_TRIM = 1;
-  TUNE_INT RAZORING_FULL_D = 2;
-  TUNE_INT RAZORING_VERIFY_D = 3;
-  TUNE_INT RAZORING_MARGIN = 115;
-  
+  TUNE_INT RAZORING_ALPHA_REDUCTION = 300;
   
   /*╔═════════════════════╗
     ║ Singular Extensions ║
@@ -1193,30 +1185,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     }
 
     // razoring
-    const int razoring_margin = RAZORING_MARGIN * depth;
-    if (!ss->singular_move && !pvNode && !in_check && depth <= RAZORING_DEPTH && ttAdjustedEval + razoring_margin <= alpha && tt_flag != hashFlagAlpha) {
-        
-        const bool allow_full_razor = depth == 1 ||
-            (depth <= RAZORING_FULL_D && ttAdjustedEval + razoring_margin + RAZORING_FULL_MARGIN <= alpha);
-
-        if (allow_full_razor) {
-            return quiescence(alpha, beta, t, time, ss);
-        }
-
-        const int capped_alpha = myMAX(alpha - razoring_margin, -mateValue);
-        const int razor_alpha = capped_alpha;
-        const int razor_beta = razor_alpha + 1;
-        int razor_score = quiescence(razor_alpha, razor_beta, t, time, ss);
-
-        // We proved a fail low.
-        if (razor_score <= razor_alpha) {                       
-            return razor_score;
-        }
-
-        if (razor_score >= razor_beta + RAZORING_VERIFY_MARGIN && depth <= RAZORING_VERIFY_D) {                    
-            depth -= myMIN(RAZORING_TRIM, depth - 1);
-        }
-    }
+    if (!ss->singular_move && !pvNode && !in_check && ttAdjustedEval <= alpha - RAZORING_ALPHA_REDUCTION * depth * depth && tt_flag != hashFlagAlpha)
+        return quiescence(alpha, beta, t, time, ss);
 
     // moves seen counter
     int moves_seen = 0;
