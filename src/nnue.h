@@ -6,6 +6,14 @@
 #include "board_constants.h"
 #include "threads.h"
 
+
+#define OUTPUT_BUCKETS 8
+#define INPUT_BUCKETS 4
+#define DUAL_ACTIVATION 2
+
+#define SCALE 400
+
+
 /* Quantization Constants */
 
 // L0 -> L1 quantization
@@ -22,19 +30,12 @@
 // Hidden Layer 3 Size
 #define L3 32
 
-
-#define OUTPUT_BUCKETS 8
-#define INPUT_BUCKETS 4
-#define DUAL_ACTIVATION 2
-
-#define SCALE 400
-
 struct Weights {
     int16_t ftw[INPUT_BUCKETS][12][64][L1];           // (feature weights)
     int16_t ftb[L1];                                  // (feature bias)
     int8_t  l1w[2 * L1][OUTPUT_BUCKETS * L2];         // (layer 1 weights)
     int32_t l1b[OUTPUT_BUCKETS * L2];                 // (layer 1 bias)
-    int32_t l2w[L2][OUTPUT_BUCKETS * L3];             // (layer 2 weights)
+    int32_t l2w[L2 * DUAL_ACTIVATION][OUTPUT_BUCKETS * L3]; // (layer 2 weights)
     int32_t l2b[OUTPUT_BUCKETS * L3];                 // (layer 2 bias)
     int32_t l3w[L3][OUTPUT_BUCKETS];                  // (layer 3 weights)
     int32_t l3b[OUTPUT_BUCKETS];                      // (layer 3 bias)

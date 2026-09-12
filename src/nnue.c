@@ -301,157 +301,6 @@ void init_nnue(void) {
     nnue_initialized = true;
 }
 
-#if defined(USE_AVX512)
-static inline __m512i dpbusd_512(__m512i acc, __m512i a, __m512i b) {
-#if defined(__AVX512VNNI__)
-    return _mm512_dpbusd_epi32(acc, a, b);
-#else
-    __m512i prod16 = _mm512_maddubs_epi16(a, b);
-    __m512i sum32 = _mm512_madd_epi16(prod16, _mm512_set1_epi16(1));
-    return _mm512_add_epi32(acc, sum32);
-#endif
-}
-
-static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_tiles, int nnz_count, int out_bucket, int32_t *output) {
-    const uint32_t *in32 = (const uint32_t *)input;
-    __m512i acc0 = _mm512_setzero_si512();
-    __m512i acc1 = _mm512_setzero_si512();
-    __m512i acc2 = _mm512_setzero_si512();
-    __m512i acc3 = _mm512_setzero_si512();
-
-    int i = 0;
-    for (; i + 4 <= nnz_count; i += 4) {
-        uint16_t t0 = nnz_tiles[i + 0];
-        uint16_t t1 = nnz_tiles[i + 1];
-        uint16_t t2 = nnz_tiles[i + 2];
-        uint16_t t3 = nnz_tiles[i + 3];
-
-        __m512i in_vec0 = _mm512_set1_epi32(in32[t0]);
-        __m512i in_vec1 = _mm512_set1_epi32(in32[t1]);
-        __m512i in_vec2 = _mm512_set1_epi32(in32[t2]);
-        __m512i in_vec3 = _mm512_set1_epi32(in32[t3]);
-
-        __m512i w0 = _mm512_loadu_si512((const __m512i *)l1w_tiled[out_bucket][t0]);
-        __m512i w1 = _mm512_loadu_si512((const __m512i *)l1w_tiled[out_bucket][t1]);
-        __m512i w2 = _mm512_loadu_si512((const __m512i *)l1w_tiled[out_bucket][t2]);
-        __m512i w3 = _mm512_loadu_si512((const __m512i *)l1w_tiled[out_bucket][t3]);
-
-        acc0 = dpbusd_512(acc0, in_vec0, w0);
-        acc1 = dpbusd_512(acc1, in_vec1, w1);
-        acc2 = dpbusd_512(acc2, in_vec2, w2);
-        acc3 = dpbusd_512(acc3, in_vec3, w3);
-    }
-
-    for (; i < nnz_count; i++) {
-        uint16_t t = nnz_tiles[i];
-        __m512i in_vec = _mm512_set1_epi32(in32[t]);
-        __m512i w = _mm512_loadu_si512((const __m512i *)l1w_tiled[out_bucket][t]);
-        acc0 = dpbusd_512(acc0, in_vec, w);
-    }
-
-    __m512i acc = _mm512_add_epi32(_mm512_add_epi32(acc0, acc1), _mm512_add_epi32(acc2, acc3));
-
-    int l1_offset = out_bucket * L2;
-    __m512i bias = _mm512_loadu_si512((const __m512i *)&weights->l1b[l1_offset]);
-    acc = _mm512_add_epi32(_mm512_srai_epi32(acc, 1), bias);
-
-    __m512i c = _mm512_max_epi32(_mm512_min_epi32(acc, _mm512_set1_epi32(16384)), _mm512_setzero_si512());
-    __m512i act = _mm512_srli_epi32(_mm512_mullo_epi32(c, c), 16);
-    _mm512_storeu_si512((__m512i *)output, act);
-}
-#elif defined(USE_AVX2)
-static inline __m256i dpbusd_256(__m256i acc, __m256i a, __m256i b) {
-#if defined(__AVX_VNNI__)
-    return _mm256_dpbusd_epi32(acc, a, b);
-#else
-    __m256i prod16 = _mm256_maddubs_epi16(a, b);
-    __m256i sum32 = _mm256_madd_epi16(prod16, _mm256_set1_epi16(1));
-    return _mm256_add_epi32(acc, sum32);
-#endif
-}
-
-static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_tiles, int nnz_count, int out_bucket, int32_t *output) {
-    const uint32_t *in32 = (const uint32_t *)input;
-    __m256i acc0_0 = _mm256_setzero_si256();
-    __m256i acc0_1 = _mm256_setzero_si256();
-    __m256i acc0_2 = _mm256_setzero_si256();
-    __m256i acc0_3 = _mm256_setzero_si256();
-    __m256i acc1_0 = _mm256_setzero_si256();
-    __m256i acc1_1 = _mm256_setzero_si256();
-    __m256i acc1_2 = _mm256_setzero_si256();
-    __m256i acc1_3 = _mm256_setzero_si256();
-
-    int i = 0;
-    for (; i + 4 <= nnz_count; i += 4) {
-        uint16_t t0 = nnz_tiles[i + 0];
-        uint16_t t1 = nnz_tiles[i + 1];
-        uint16_t t2 = nnz_tiles[i + 2];
-        uint16_t t3 = nnz_tiles[i + 3];
-
-        __m256i in_vec0 = _mm256_set1_epi32(in32[t0]);
-        __m256i in_vec1 = _mm256_set1_epi32(in32[t1]);
-        __m256i in_vec2 = _mm256_set1_epi32(in32[t2]);
-        __m256i in_vec3 = _mm256_set1_epi32(in32[t3]);
-
-        const int8_t *w_ptr0 = &l1w_tiled[out_bucket][t0][0];
-        const int8_t *w_ptr1 = &l1w_tiled[out_bucket][t1][0];
-        const int8_t *w_ptr2 = &l1w_tiled[out_bucket][t2][0];
-        const int8_t *w_ptr3 = &l1w_tiled[out_bucket][t3][0];
-
-        __m256i w0_0 = _mm256_loadu_si256((const __m256i *)w_ptr0);
-        __m256i w1_0 = _mm256_loadu_si256((const __m256i *)(w_ptr0 + 32));
-        __m256i w0_1 = _mm256_loadu_si256((const __m256i *)w_ptr1);
-        __m256i w1_1 = _mm256_loadu_si256((const __m256i *)(w_ptr1 + 32));
-        __m256i w0_2 = _mm256_loadu_si256((const __m256i *)w_ptr2);
-        __m256i w1_2 = _mm256_loadu_si256((const __m256i *)(w_ptr2 + 32));
-        __m256i w0_3 = _mm256_loadu_si256((const __m256i *)w_ptr3);
-        __m256i w1_3 = _mm256_loadu_si256((const __m256i *)(w_ptr3 + 32));
-
-        acc0_0 = dpbusd_256(acc0_0, in_vec0, w0_0);
-        acc0_1 = dpbusd_256(acc0_1, in_vec1, w0_1);
-        acc0_2 = dpbusd_256(acc0_2, in_vec2, w0_2);
-        acc0_3 = dpbusd_256(acc0_3, in_vec3, w0_3);
-
-        acc1_0 = dpbusd_256(acc1_0, in_vec0, w1_0);
-        acc1_1 = dpbusd_256(acc1_1, in_vec1, w1_1);
-        acc1_2 = dpbusd_256(acc1_2, in_vec2, w1_2);
-        acc1_3 = dpbusd_256(acc1_3, in_vec3, w1_3);
-    }
-
-    for (; i < nnz_count; i++) {
-        uint16_t t = nnz_tiles[i];
-        __m256i in_vec = _mm256_set1_epi32(in32[t]);
-        const int8_t *w_ptr = &l1w_tiled[out_bucket][t][0];
-        __m256i w0 = _mm256_loadu_si256((const __m256i *)w_ptr);
-        __m256i w1 = _mm256_loadu_si256((const __m256i *)(w_ptr + 32));
-
-        acc0_0 = dpbusd_256(acc0_0, in_vec, w0);
-        acc1_0 = dpbusd_256(acc1_0, in_vec, w1);
-    }
-
-    __m256i acc0 = _mm256_add_epi32(_mm256_add_epi32(acc0_0, acc0_1), _mm256_add_epi32(acc0_2, acc0_3));
-    __m256i acc1 = _mm256_add_epi32(_mm256_add_epi32(acc1_0, acc1_1), _mm256_add_epi32(acc1_2, acc1_3));
-
-    int l1_offset = out_bucket * L2;
-    __m256i bias0 = _mm256_loadu_si256((const __m256i *)&weights->l1b[l1_offset]);
-    __m256i bias1 = _mm256_loadu_si256((const __m256i *)&weights->l1b[l1_offset + 8]);
-
-    acc0 = _mm256_add_epi32(_mm256_srai_epi32(acc0, 1), bias0);
-    acc1 = _mm256_add_epi32(_mm256_srai_epi32(acc1, 1), bias1);
-
-    const __m256i zero256 = _mm256_setzero_si256();
-    const __m256i k16384_256 = _mm256_set1_epi32(16384);
-
-    __m256i c0 = _mm256_max_epi32(_mm256_min_epi32(acc0, k16384_256), zero256);
-    __m256i c1 = _mm256_max_epi32(_mm256_min_epi32(acc1, k16384_256), zero256);
-
-    __m256i act0 = _mm256_srli_epi32(_mm256_mullo_epi32(c0, c0), 16);
-    __m256i act1 = _mm256_srli_epi32(_mm256_mullo_epi32(c1, c1), 16);
-
-    _mm256_storeu_si256((__m256i *)output, act0);
-    _mm256_storeu_si256((__m256i *)(output + 8), act1);
-}
-#else
 static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_tiles, int nnz_count, int out_bucket, int32_t *output) {
     int32_t sums[L2] = {0};
     int l1_offset = out_bucket * L2;
@@ -470,80 +319,25 @@ static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_
         }
     }
 
-    for (int j = 0; j < L2; j++) {
+       for (int j = 0; j < L2; j++) {
         int32_t sum = (sums[j] >> 1) + weights->l1b[l1_offset + j];
-        output[j] = screlu_l1(sum);
+
+        
+        int32_t clamped_sum = clamp(sum, -16384, 16384);        
+
+        
+        int32_t linear = clamped_sum;
+        if (linear < 0) linear = 0;
+        output[j] = linear >> 2;
+
+        int32_t squared = clamped_sum * clamped_sum;
+        output[j + L2] = squared >> 16;
     }
 }
-#endif
+
 
 // L2 -> L3
 static inline void propagate_l2_to_l3(const int32_t *input, int out_bucket, int32_t *output) {
-#if defined(USE_AVX512)
-    int l3_offset = out_bucket * L3;
-    __m512i sum0 = _mm512_loadu_si512((const __m512i *)&weights->l2b[l3_offset]);
-    __m512i sum1 = _mm512_loadu_si512((const __m512i *)&weights->l2b[l3_offset + 16]);
-
-    for (int j = 0; j < L2; j++) {
-        int32_t act = input[j];
-        if (!act) continue;
-
-        __m512i act_vec = _mm512_set1_epi32(act);
-        const int32_t *w_row = &weights->l2w[j][l3_offset];
-
-        __m512i w0 = _mm512_loadu_si512((const __m512i *)&w_row[0]);
-        __m512i w1 = _mm512_loadu_si512((const __m512i *)&w_row[16]);
-
-        sum0 = _mm512_add_epi32(sum0, _mm512_mullo_epi32(act_vec, w0));
-        sum1 = _mm512_add_epi32(sum1, _mm512_mullo_epi32(act_vec, w1));
-    }
-
-    const __m512i zero = _mm512_setzero_si512();
-    const __m512i k262144 = _mm512_set1_epi32(262144);
-
-    sum0 = _mm512_max_epi32(_mm512_min_epi32(sum0, k262144), zero);
-    sum1 = _mm512_max_epi32(_mm512_min_epi32(sum1, k262144), zero);
-
-    _mm512_storeu_si512((__m512i *)&output[0], sum0);
-    _mm512_storeu_si512((__m512i *)&output[16], sum1);
-#elif defined(USE_AVX2)
-    int l3_offset = out_bucket * L3;
-    __m256i sum0 = _mm256_loadu_si256((const __m256i *)&weights->l2b[l3_offset + 0]);
-    __m256i sum1 = _mm256_loadu_si256((const __m256i *)&weights->l2b[l3_offset + 8]);
-    __m256i sum2 = _mm256_loadu_si256((const __m256i *)&weights->l2b[l3_offset + 16]);
-    __m256i sum3 = _mm256_loadu_si256((const __m256i *)&weights->l2b[l3_offset + 24]);
-
-    for (int j = 0; j < L2; j++) {
-        int32_t act = input[j];
-        if (!act) continue;
-
-        __m256i act_vec = _mm256_set1_epi32(act);
-        const int32_t *w_row = &weights->l2w[j][l3_offset];
-
-        __m256i w0 = _mm256_loadu_si256((const __m256i *)&w_row[0]);
-        __m256i w1 = _mm256_loadu_si256((const __m256i *)&w_row[8]);
-        __m256i w2 = _mm256_loadu_si256((const __m256i *)&w_row[16]);
-        __m256i w3 = _mm256_loadu_si256((const __m256i *)&w_row[24]);
-
-        sum0 = _mm256_add_epi32(sum0, _mm256_mullo_epi32(act_vec, w0));
-        sum1 = _mm256_add_epi32(sum1, _mm256_mullo_epi32(act_vec, w1));
-        sum2 = _mm256_add_epi32(sum2, _mm256_mullo_epi32(act_vec, w2));
-        sum3 = _mm256_add_epi32(sum3, _mm256_mullo_epi32(act_vec, w3));
-    }
-
-    const __m256i zero = _mm256_setzero_si256();
-    const __m256i k262144 = _mm256_set1_epi32(262144);
-
-    sum0 = _mm256_max_epi32(_mm256_min_epi32(sum0, k262144), zero);
-    sum1 = _mm256_max_epi32(_mm256_min_epi32(sum1, k262144), zero);
-    sum2 = _mm256_max_epi32(_mm256_min_epi32(sum2, k262144), zero);
-    sum3 = _mm256_max_epi32(_mm256_min_epi32(sum3, k262144), zero);
-
-    _mm256_storeu_si256((__m256i *)&output[0], sum0);
-    _mm256_storeu_si256((__m256i *)&output[8], sum1);
-    _mm256_storeu_si256((__m256i *)&output[16], sum2);
-    _mm256_storeu_si256((__m256i *)&output[24], sum3);
-#else
     int64_t sums[L3];
     int l3_offset = out_bucket * L3;
 
@@ -551,7 +345,7 @@ static inline void propagate_l2_to_l3(const int32_t *input, int out_bucket, int3
         sums[i] = weights->l2b[l3_offset + i];
     }
 
-    for (int j = 0; j < L2; j++) {
+    for (int j = 0; j < L2 * DUAL_ACTIVATION; j++) {
         int32_t act = input[j];
         if (!act) continue;
 
@@ -564,7 +358,6 @@ static inline void propagate_l2_to_l3(const int32_t *input, int out_bucket, int3
     for (int i = 0; i < L3; i++) {
         output[i] = crelu_l3(sums[i]);
     }
-#endif
 }
 
 // L3 -> Output
@@ -591,7 +384,7 @@ int nnue_evaluate_pos(board *pos) {
 
     __attribute__((aligned(64))) uint8_t l1_out[2 * L1];
     uint16_t nnz_tiles[528];
-    int32_t l2_out[L2];
+    int32_t l2_out[L2 * DUAL_ACTIVATION];
     int32_t l3_out[L3];
 
     propagate_l0_to_l1((const int16_t *)accum_stm, (const int16_t *)accum_nstm, l1_out);
