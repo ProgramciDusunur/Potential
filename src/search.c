@@ -1424,8 +1424,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 doubleMargin -= correction_adj;
                 doubleMargin += isCapture * 75;
                 doubleMargin += isPromotion * 0; 
-                doubleMargin += tactical * 40;
-                doubleMargin -= ss->singular_ply * 25;*/
+                doubleMargin += tactical * 40;*/
 
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN;
                 if (!pvNode && singularScore <= singularBeta - doubleMargin) {
