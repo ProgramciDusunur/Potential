@@ -375,8 +375,18 @@ static inline __m256i dpbusd_256(__m256i acc, __m256i a, __m256i b) {
 #if defined(__AVX_VNNI__)
     return _mm256_dpbusd_epi32(acc, a, b);
 #else
-    __m256i prod16 = _mm256_maddubs_epi16(a, b);
-    __m256i sum32 = _mm256_madd_epi16(prod16, _mm256_set1_epi16(1));
+    __m256i zero = _mm256_setzero_si256();
+    __m256i a_lo = _mm256_unpacklo_epi8(a, zero);
+    __m256i a_hi = _mm256_unpackhi_epi8(a, zero);
+    
+    __m256i b_sign = _mm256_cmpgt_epi8(zero, b);
+    __m256i b_lo = _mm256_unpacklo_epi8(b, b_sign);
+    __m256i b_hi = _mm256_unpackhi_epi8(b, b_sign);
+    
+    __m256i prod_lo = _mm256_madd_epi16(a_lo, b_lo);
+    __m256i prod_hi = _mm256_madd_epi16(a_hi, b_hi);
+    
+    __m256i sum32 = _mm256_hadd_epi32(prod_lo, prod_hi);
     return _mm256_add_epi32(acc, sum32);
 #endif
 }
