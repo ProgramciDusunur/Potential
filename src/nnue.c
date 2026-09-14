@@ -13,6 +13,9 @@
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
+#undef USE_AVX512
+#undef USE_AVX2
+
 INCBIN(Net, STR(EVALFILE));
 
 const struct Weights *const weights = (const struct Weights *) gNetData;
@@ -472,7 +475,17 @@ static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_
 
     for (int j = 0; j < L2; j++) {
         int32_t sum = (sums[j] >> 1) + weights->l1b[l1_offset + j];
-        output[j] = screlu_l1(sum);
+        
+        // 1. CReLU (Linear, Clamped to 1.0)
+        int64_t c = clamp(sum, 0, 16384);
+        output[j] = (int32_t)(c >> 2); // Q1=128 scale output requires /4 for CReLU
+        
+        // 2. SCReLU (Quadratic)
+        output[L2 + j] = (int32_t)((c * c) >> 16); 
+        
+        // 3. Asymmetric Clamp (-0.5 leak)
+        int64_t a = clamp(sum, -8192, 0);
+        output[2 * L2 + j] = (int32_t)(a / 4); 
     }
 }
 #endif
@@ -551,7 +564,7 @@ static inline void propagate_l2_to_l3(const int32_t *input, int out_bucket, int3
         sums[i] = weights->l2b[l3_offset + i];
     }
 
-    for (int j = 0; j < L2; j++) {
+    for (int j = 0; j < L2_ACT; j++) {
         int32_t act = input[j];
         if (!act) continue;
 
@@ -591,7 +604,7 @@ int nnue_evaluate_pos(board *pos) {
 
     __attribute__((aligned(64))) uint8_t l1_out[2 * L1];
     uint16_t nnz_tiles[528];
-    int32_t l2_out[L2];
+    int32_t l2_out[L2_ACT];
     int32_t l3_out[L3];
 
     propagate_l0_to_l1((const int16_t *)accum_stm, (const int16_t *)accum_nstm, l1_out);

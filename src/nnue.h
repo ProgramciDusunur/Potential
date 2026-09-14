@@ -19,6 +19,8 @@
 #define L1 1024
 // Hidden Layer 2 Size
 #define L2 16
+// Post-Activation L2 Size (Triple Act)
+#define L2_ACT (3 * L2)
 // Hidden Layer 3 Size
 #define L3 32
 
@@ -33,7 +35,7 @@ struct Weights {
     int16_t ftb[L1];                                  // (feature bias)
     int8_t  l1w[2 * L1][OUTPUT_BUCKETS * L2];         // (layer 1 weights)
     int32_t l1b[OUTPUT_BUCKETS * L2];                 // (layer 1 bias)
-    int32_t l2w[L2][OUTPUT_BUCKETS * L3];             // (layer 2 weights)
+    int32_t l2w[L2_ACT][OUTPUT_BUCKETS * L3];         // (layer 2 weights)
     int32_t l2b[OUTPUT_BUCKETS * L3];                 // (layer 2 bias)
     int32_t l3w[L3][OUTPUT_BUCKETS];                  // (layer 3 weights)
     int32_t l3b[OUTPUT_BUCKETS];                      // (layer 3 bias)
