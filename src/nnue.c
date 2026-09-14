@@ -13,9 +13,6 @@
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
-#undef USE_AVX512
-#undef USE_AVX2
-
 INCBIN(Net, STR(EVALFILE));
 
 const struct Weights *const weights = (const struct Weights *) gNetData;
@@ -359,8 +356,19 @@ static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_
     acc = _mm512_add_epi32(_mm512_srai_epi32(acc, 1), bias);
 
     __m512i c = _mm512_max_epi32(_mm512_min_epi32(acc, _mm512_set1_epi32(16384)), _mm512_setzero_si512());
-    __m512i act = _mm512_srli_epi32(_mm512_mullo_epi32(c, c), 16);
-    _mm512_storeu_si512((__m512i *)output, act);
+    
+    // 1. CReLU
+    __m512i act1 = _mm512_srai_epi32(c, 2);
+    _mm512_storeu_si512((__m512i *)output, act1);
+    
+    // 2. SCReLU
+    __m512i act2 = _mm512_srli_epi32(_mm512_mullo_epi32(c, c), 16);
+    _mm512_storeu_si512((__m512i *)(output + L2), act2);
+    
+    // 3. Asymmetric Clamp
+    __m512i a = _mm512_max_epi32(_mm512_min_epi32(acc, _mm512_setzero_si512()), _mm512_set1_epi32(-8192));
+    __m512i act3 = _mm512_srai_epi32(_mm512_add_epi32(a, _mm512_set1_epi32(3)), 2);
+    _mm512_storeu_si512((__m512i *)(output + 2 * L2), act3);
 }
 #elif defined(USE_AVX2)
 static inline __m256i dpbusd_256(__m256i acc, __m256i a, __m256i b) {
@@ -448,11 +456,27 @@ static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_
     __m256i c0 = _mm256_max_epi32(_mm256_min_epi32(acc0, k16384_256), zero256);
     __m256i c1 = _mm256_max_epi32(_mm256_min_epi32(acc1, k16384_256), zero256);
 
-    __m256i act0 = _mm256_srli_epi32(_mm256_mullo_epi32(c0, c0), 16);
-    __m256i act1 = _mm256_srli_epi32(_mm256_mullo_epi32(c1, c1), 16);
+    // 1. CReLU
+    __m256i crelu0 = _mm256_srai_epi32(c0, 2);
+    __m256i crelu1 = _mm256_srai_epi32(c1, 2);
+    _mm256_storeu_si256((__m256i *)output, crelu0);
+    _mm256_storeu_si256((__m256i *)(output + 8), crelu1);
 
-    _mm256_storeu_si256((__m256i *)output, act0);
-    _mm256_storeu_si256((__m256i *)(output + 8), act1);
+    // 2. SCReLU
+    __m256i screlu0 = _mm256_srli_epi32(_mm256_mullo_epi32(c0, c0), 16);
+    __m256i screlu1 = _mm256_srli_epi32(_mm256_mullo_epi32(c1, c1), 16);
+    _mm256_storeu_si256((__m256i *)(output + L2), screlu0);
+    _mm256_storeu_si256((__m256i *)(output + L2 + 8), screlu1);
+
+    // 3. Asymmetric Clamp
+    const __m256i m8192_256 = _mm256_set1_epi32(-8192);
+    const __m256i three256 = _mm256_set1_epi32(3);
+    __m256i a0 = _mm256_max_epi32(_mm256_min_epi32(acc0, zero256), m8192_256);
+    __m256i a1 = _mm256_max_epi32(_mm256_min_epi32(acc1, zero256), m8192_256);
+    __m256i asym0 = _mm256_srai_epi32(_mm256_add_epi32(a0, three256), 2);
+    __m256i asym1 = _mm256_srai_epi32(_mm256_add_epi32(a1, three256), 2);
+    _mm256_storeu_si256((__m256i *)(output + 2 * L2), asym0);
+    _mm256_storeu_si256((__m256i *)(output + 2 * L2 + 8), asym1);
 }
 #else
 static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_tiles, int nnz_count, int out_bucket, int32_t *output) {
@@ -497,7 +521,7 @@ static inline void propagate_l2_to_l3(const int32_t *input, int out_bucket, int3
     __m512i sum0 = _mm512_loadu_si512((const __m512i *)&weights->l2b[l3_offset]);
     __m512i sum1 = _mm512_loadu_si512((const __m512i *)&weights->l2b[l3_offset + 16]);
 
-    for (int j = 0; j < L2; j++) {
+    for (int j = 0; j < L2_ACT; j++) {
         int32_t act = input[j];
         if (!act) continue;
 
@@ -526,7 +550,7 @@ static inline void propagate_l2_to_l3(const int32_t *input, int out_bucket, int3
     __m256i sum2 = _mm256_loadu_si256((const __m256i *)&weights->l2b[l3_offset + 16]);
     __m256i sum3 = _mm256_loadu_si256((const __m256i *)&weights->l2b[l3_offset + 24]);
 
-    for (int j = 0; j < L2; j++) {
+    for (int j = 0; j < L2_ACT; j++) {
         int32_t act = input[j];
         if (!act) continue;
 
