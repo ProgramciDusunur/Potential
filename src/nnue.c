@@ -371,25 +371,30 @@ static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_
     _mm512_storeu_si512((__m512i *)(output + 2 * L2), act3);
 }
 #elif defined(USE_AVX2)
-static inline __m256i dpbusd_256(__m256i acc, __m256i a, __m256i b) {
+static inline void dpbusd_256_dual(__m256i in_vec, __m256i w0, __m256i w1, __m256i *acc0, __m256i *acc1) {
 #if defined(__AVX_VNNI__)
-    return _mm256_dpbusd_epi32(acc, a, b);
+    *acc0 = _mm256_dpbusd_epi32(*acc0, in_vec, w0);
+    *acc1 = _mm256_dpbusd_epi32(*acc1, in_vec, w1);
 #else
     const __m256i mask_7f = _mm256_set1_epi8(0x7F);
     const __m256i mask_01 = _mm256_set1_epi8(0x01);
     const __m256i ones = _mm256_set1_epi16(1);
 
-    __m256i a_half = _mm256_and_si256(_mm256_srli_epi16(a, 1), mask_7f);
-    __m256i a_rem  = _mm256_and_si256(a, mask_01);
+    __m256i in_half = _mm256_and_si256(_mm256_srli_epi16(in_vec, 1), mask_7f);
+    __m256i in_rem  = _mm256_and_si256(in_vec, mask_01);
 
-    __m256i p_half = _mm256_maddubs_epi16(a_half, b);
-    __m256i p_rem  = _mm256_maddubs_epi16(a_rem, b);
+    __m256i p_half0 = _mm256_maddubs_epi16(in_half, w0);
+    __m256i p_rem0  = _mm256_maddubs_epi16(in_rem, w0);
+    __m256i p_half1 = _mm256_maddubs_epi16(in_half, w1);
+    __m256i p_rem1  = _mm256_maddubs_epi16(in_rem, w1);
 
-    __m256i s_half = _mm256_madd_epi16(p_half, ones);
-    __m256i s_rem  = _mm256_madd_epi16(p_rem, ones);
+    __m256i s_half0 = _mm256_madd_epi16(p_half0, ones);
+    __m256i s_rem0  = _mm256_madd_epi16(p_rem0, ones);
+    __m256i s_half1 = _mm256_madd_epi16(p_half1, ones);
+    __m256i s_rem1  = _mm256_madd_epi16(p_rem1, ones);
 
-    __m256i sum32 = _mm256_add_epi32(_mm256_slli_epi32(s_half, 1), s_rem);
-    return _mm256_add_epi32(acc, sum32);
+    *acc0 = _mm256_add_epi32(*acc0, _mm256_add_epi32(_mm256_slli_epi32(s_half0, 1), s_rem0));
+    *acc1 = _mm256_add_epi32(*acc1, _mm256_add_epi32(_mm256_slli_epi32(s_half1, 1), s_rem1));
 #endif
 }
 
@@ -430,15 +435,10 @@ static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_
         __m256i w0_3 = _mm256_loadu_si256((const __m256i *)w_ptr3);
         __m256i w1_3 = _mm256_loadu_si256((const __m256i *)(w_ptr3 + 32));
 
-        acc0_0 = dpbusd_256(acc0_0, in_vec0, w0_0);
-        acc0_1 = dpbusd_256(acc0_1, in_vec1, w0_1);
-        acc0_2 = dpbusd_256(acc0_2, in_vec2, w0_2);
-        acc0_3 = dpbusd_256(acc0_3, in_vec3, w0_3);
-
-        acc1_0 = dpbusd_256(acc1_0, in_vec0, w1_0);
-        acc1_1 = dpbusd_256(acc1_1, in_vec1, w1_1);
-        acc1_2 = dpbusd_256(acc1_2, in_vec2, w1_2);
-        acc1_3 = dpbusd_256(acc1_3, in_vec3, w1_3);
+        dpbusd_256_dual(in_vec0, w0_0, w1_0, &acc0_0, &acc1_0);
+        dpbusd_256_dual(in_vec1, w0_1, w1_1, &acc0_1, &acc1_1);
+        dpbusd_256_dual(in_vec2, w0_2, w1_2, &acc0_2, &acc1_2);
+        dpbusd_256_dual(in_vec3, w0_3, w1_3, &acc0_3, &acc1_3);
     }
 
     for (; i < nnz_count; i++) {
@@ -448,8 +448,7 @@ static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_
         __m256i w0 = _mm256_loadu_si256((const __m256i *)w_ptr);
         __m256i w1 = _mm256_loadu_si256((const __m256i *)(w_ptr + 32));
 
-        acc0_0 = dpbusd_256(acc0_0, in_vec, w0);
-        acc1_0 = dpbusd_256(acc1_0, in_vec, w1);
+        dpbusd_256_dual(in_vec, w0, w1, &acc0_0, &acc1_0);
     }
 
     __m256i acc0 = _mm256_add_epi32(_mm256_add_epi32(acc0_0, acc0_1), _mm256_add_epi32(acc0_2, acc0_3));
