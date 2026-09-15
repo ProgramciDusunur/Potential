@@ -283,11 +283,17 @@ static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, u
 #endif
 }
 
+#if defined(USE_AVX512)
 __attribute__((aligned(64))) static int8_t l1w_tiled[OUTPUT_BUCKETS][2 * L1 / 4][L2 * 4];
+#elif defined(USE_AVX2)
+__attribute__((aligned(64))) static int8_t l1w_tiled[OUTPUT_BUCKETS][2 * L1 / 4][L2 * 4];
+__attribute__((aligned(64))) static __m256i l1w_tiled_16[OUTPUT_BUCKETS][2 * L1 / 4][4];
+#endif
 static bool nnue_initialized = false;
 
 void init_nnue(void) {
     if (nnue_initialized) return;
+#if defined(USE_AVX512)
     for (int b = 0; b < OUTPUT_BUCKETS; b++) {
         for (int t = 0; t < 2 * L1 / 4; t++) {
             for (int j = 0; j < L2; j++) {
@@ -297,6 +303,31 @@ void init_nnue(void) {
             }
         }
     }
+#elif defined(USE_AVX2)
+    for (int b = 0; b < OUTPUT_BUCKETS; b++) {
+        for (int t = 0; t < 2 * L1 / 4; t++) {
+            for (int j = 0; j < L2; j++) {
+                for (int k = 0; k < 4; k++) {
+                    l1w_tiled[b][t][j * 4 + k] = weights->l1w[t * 4 + k][b * L2 + j];
+                }
+            }
+            int16_t *w_ptr = (int16_t *)l1w_tiled_16[b][t];
+            for (int j = 0; j < 8; j++) {
+                // outputs 0..7
+                w_ptr[0 * 16 + j * 2 + 0] = weights->l1w[t * 4 + 0][b * L2 + j];
+                w_ptr[0 * 16 + j * 2 + 1] = weights->l1w[t * 4 + 1][b * L2 + j];
+                w_ptr[1 * 16 + j * 2 + 0] = weights->l1w[t * 4 + 2][b * L2 + j];
+                w_ptr[1 * 16 + j * 2 + 1] = weights->l1w[t * 4 + 3][b * L2 + j];
+
+                // outputs 8..15
+                w_ptr[2 * 16 + j * 2 + 0] = weights->l1w[t * 4 + 0][b * L2 + (j + 8)];
+                w_ptr[2 * 16 + j * 2 + 1] = weights->l1w[t * 4 + 1][b * L2 + (j + 8)];
+                w_ptr[3 * 16 + j * 2 + 0] = weights->l1w[t * 4 + 2][b * L2 + (j + 8)];
+                w_ptr[3 * 16 + j * 2 + 1] = weights->l1w[t * 4 + 3][b * L2 + (j + 8)];
+            }
+        }
+    }
+#endif
     init_nnz();
     nnue_initialized = true;
 }
@@ -372,34 +403,58 @@ static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_
 }
 #elif defined(USE_AVX2)
 static inline void dpbusd_256_dual(__m256i in_vec, __m256i w0, __m256i w1, __m256i *acc0, __m256i *acc1) {
-#if defined(__AVX_VNNI__)
-    *acc0 = _mm256_dpbusd_epi32(*acc0, in_vec, w0);
-    *acc1 = _mm256_dpbusd_epi32(*acc1, in_vec, w1);
-#else
-    const __m256i mask_7f = _mm256_set1_epi8(0x7F);
-    const __m256i mask_01 = _mm256_set1_epi8(0x01);
+    __m256i p0 = _mm256_maddubs_epi16(in_vec, w0);
+    __m256i p1 = _mm256_maddubs_epi16(in_vec, w1);
     const __m256i ones = _mm256_set1_epi16(1);
-
-    __m256i in_half = _mm256_and_si256(_mm256_srli_epi16(in_vec, 1), mask_7f);
-    __m256i in_rem  = _mm256_and_si256(in_vec, mask_01);
-
-    __m256i p_half0 = _mm256_maddubs_epi16(in_half, w0);
-    __m256i p_rem0  = _mm256_maddubs_epi16(in_rem, w0);
-    __m256i p_half1 = _mm256_maddubs_epi16(in_half, w1);
-    __m256i p_rem1  = _mm256_maddubs_epi16(in_rem, w1);
-
-    __m256i s_half0 = _mm256_madd_epi16(p_half0, ones);
-    __m256i s_rem0  = _mm256_madd_epi16(p_rem0, ones);
-    __m256i s_half1 = _mm256_madd_epi16(p_half1, ones);
-    __m256i s_rem1  = _mm256_madd_epi16(p_rem1, ones);
-
-    *acc0 = _mm256_add_epi32(*acc0, _mm256_add_epi32(_mm256_slli_epi32(s_half0, 1), s_rem0));
-    *acc1 = _mm256_add_epi32(*acc1, _mm256_add_epi32(_mm256_slli_epi32(s_half1, 1), s_rem1));
-#endif
+    *acc0 = _mm256_add_epi32(*acc0, _mm256_madd_epi16(p0, ones));
+    *acc1 = _mm256_add_epi32(*acc1, _mm256_madd_epi16(p1, ones));
 }
 
 static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_tiles, int nnz_count, int out_bucket, int32_t *output) {
-    const uint32_t *in32 = (const uint32_t *)input;
+    uint32_t *in32 = (uint32_t *)input;
+
+    uint16_t sat_tiles[8];
+    uint32_t sat_vals[8];
+    int sat_count = 0;
+
+#define CHECK_TILE(t_idx) do { \
+        uint32_t v = in32[t_idx]; \
+        if (v) { \
+            sat_tiles[sat_count] = (t_idx); \
+            sat_vals[sat_count++] = v; \
+            in32[t_idx] = 0; \
+        } \
+    } while (0)
+
+    switch (out_bucket) {
+        case 0:
+            CHECK_TILE(1); CHECK_TILE(148); CHECK_TILE(228); CHECK_TILE(251);
+            CHECK_TILE(257); CHECK_TILE(404); CHECK_TILE(482); CHECK_TILE(507);
+            break;
+        case 1:
+            CHECK_TILE(228); CHECK_TILE(251); CHECK_TILE(362); CHECK_TILE(507);
+            break;
+        case 2:
+            CHECK_TILE(310); CHECK_TILE(482);
+            break;
+        case 3:
+            CHECK_TILE(482);
+            break;
+        case 4:
+            CHECK_TILE(21); CHECK_TILE(310); CHECK_TILE(353); CHECK_TILE(425); CHECK_TILE(482);
+            break;
+        case 5:
+            CHECK_TILE(21);
+            break;
+        case 6:
+            CHECK_TILE(1); CHECK_TILE(21); CHECK_TILE(277);
+            break;
+        case 7:
+            CHECK_TILE(21); CHECK_TILE(202); CHECK_TILE(255); CHECK_TILE(277); CHECK_TILE(449);
+            break;
+    }
+#undef CHECK_TILE
+
     __m256i acc0_0 = _mm256_setzero_si256();
     __m256i acc0_1 = _mm256_setzero_si256();
     __m256i acc0_2 = _mm256_setzero_si256();
@@ -449,6 +504,26 @@ static inline void propagate_l1_to_l2(const uint8_t *input, const uint16_t *nnz_
         __m256i w1 = _mm256_loadu_si256((const __m256i *)(w_ptr + 32));
 
         dpbusd_256_dual(in_vec, w0, w1, &acc0_0, &acc1_0);
+    }
+
+    if (__builtin_expect(sat_count > 0, 0)) {
+        const __m128i zero128 = _mm_setzero_si128();
+        for (int s = 0; s < sat_count; s++) {
+            uint16_t t = sat_tiles[s];
+            uint32_t v = sat_vals[s];
+            in32[t] = v;
+
+            __m128i in_u16 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(v), zero128);
+            __m256i in_p0 = _mm256_broadcastd_epi32(in_u16);
+            __m256i in_p1 = _mm256_broadcastd_epi32(_mm_shuffle_epi32(in_u16, 1));
+            const __m256i *w = l1w_tiled_16[out_bucket][t];
+            __m256i p0 = _mm256_madd_epi16(in_p0, w[0]);
+            __m256i p1 = _mm256_madd_epi16(in_p1, w[1]);
+            __m256i p2 = _mm256_madd_epi16(in_p0, w[2]);
+            __m256i p3 = _mm256_madd_epi16(in_p1, w[3]);
+            acc0_0 = _mm256_add_epi32(acc0_0, _mm256_add_epi32(p0, p1));
+            acc1_0 = _mm256_add_epi32(acc1_0, _mm256_add_epi32(p2, p3));
+        }
     }
 
     __m256i acc0 = _mm256_add_epi32(_mm256_add_epi32(acc0_0, acc0_1), _mm256_add_epi32(acc0_2, acc0_3));
