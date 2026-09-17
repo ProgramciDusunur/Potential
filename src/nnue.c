@@ -1,6 +1,4 @@
 #include "nnue.h"
-#undef USE_AVX512
-#undef USE_AVX2
 #include "nnz.h"
 #include "simd.h"
 #include <assert.h>
@@ -229,6 +227,8 @@ void nnue_refresh_accumulator(board *pos) {
     }
 }
 
+__attribute__((aligned(64))) static const int16_t zero_hmc[L1] = {0};
+
 // L0 -> L1
 static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, const int16_t *hmc, uint8_t *output) {
 #if defined(USE_AVX512)
@@ -236,7 +236,8 @@ static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, c
     const __m512i k255 = _mm512_set1_epi16(255);
 
     for (int i = 0; i < L1; i += 32) {
-        __m512i v = _mm512_loadu_si512((const __m512i *)&stm[i]);
+        __m512i h = _mm512_loadu_si512((const __m512i *)&hmc[i]);
+        __m512i v = _mm512_add_epi16(_mm512_loadu_si512((const __m512i *)&stm[i]), h);
         __m512i c = _mm512_max_epi16(_mm512_min_epi16(v, k255), zero);
         __m512i prod = _mm512_mullo_epi16(c, c);
         __m512i res = _mm512_srli_epi16(prod, 8);
@@ -244,7 +245,8 @@ static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, c
     }
 
     for (int i = 0; i < L1; i += 32) {
-        __m512i v = _mm512_loadu_si512((const __m512i *)&nstm[i]);
+        __m512i h = _mm512_loadu_si512((const __m512i *)&hmc[i]);
+        __m512i v = _mm512_add_epi16(_mm512_loadu_si512((const __m512i *)&nstm[i]), h);
         __m512i c = _mm512_max_epi16(_mm512_min_epi16(v, k255), zero);
         __m512i prod = _mm512_mullo_epi16(c, c);
         __m512i res = _mm512_srli_epi16(prod, 8);
@@ -255,8 +257,10 @@ static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, c
     const __m256i k255 = _mm256_set1_epi16(255);
 
     for (int i = 0; i < L1; i += 32) {
-        __m256i v0 = _mm256_loadu_si256((const __m256i *)&stm[i]);
-        __m256i v1 = _mm256_loadu_si256((const __m256i *)&stm[i + 16]);
+        __m256i h0 = _mm256_loadu_si256((const __m256i *)&hmc[i]);
+        __m256i h1 = _mm256_loadu_si256((const __m256i *)&hmc[i + 16]);
+        __m256i v0 = _mm256_add_epi16(_mm256_loadu_si256((const __m256i *)&stm[i]), h0);
+        __m256i v1 = _mm256_add_epi16(_mm256_loadu_si256((const __m256i *)&stm[i + 16]), h1);
         __m256i c0 = _mm256_max_epi16(_mm256_min_epi16(v0, k255), zero);
         __m256i c1 = _mm256_max_epi16(_mm256_min_epi16(v1, k255), zero);
         __m256i res0 = _mm256_srli_epi16(_mm256_mullo_epi16(c0, c0), 8);
@@ -267,8 +271,10 @@ static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, c
     }
 
     for (int i = 0; i < L1; i += 32) {
-        __m256i v0 = _mm256_loadu_si256((const __m256i *)&nstm[i]);
-        __m256i v1 = _mm256_loadu_si256((const __m256i *)&nstm[i + 16]);
+        __m256i h0 = _mm256_loadu_si256((const __m256i *)&hmc[i]);
+        __m256i h1 = _mm256_loadu_si256((const __m256i *)&hmc[i + 16]);
+        __m256i v0 = _mm256_add_epi16(_mm256_loadu_si256((const __m256i *)&nstm[i]), h0);
+        __m256i v1 = _mm256_add_epi16(_mm256_loadu_si256((const __m256i *)&nstm[i + 16]), h1);
         __m256i c0 = _mm256_max_epi16(_mm256_min_epi16(v0, k255), zero);
         __m256i c1 = _mm256_max_epi16(_mm256_min_epi16(v1, k255), zero);
         __m256i res0 = _mm256_srli_epi16(_mm256_mullo_epi16(c0, c0), 8);
@@ -278,16 +284,9 @@ static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, c
         _mm256_storeu_si256((__m256i *)&output[i + L1], perm);
     }
 #else
-    if (hmc) {
-        for (int i = 0; i < L1; i++) {
-            output[i] = screlu_255(stm[i] + hmc[i]);
-            output[i + L1] = screlu_255(nstm[i] + hmc[i]);
-        }
-    } else {
-        for (int i = 0; i < L1; i++) {
-            output[i] = screlu_255(stm[i]);
-            output[i + L1] = screlu_255(nstm[i]);
-        }
+    for (int i = 0; i < L1; i++) {
+        output[i] = screlu_255(stm[i] + hmc[i]);
+        output[i + L1] = screlu_255(nstm[i] + hmc[i]);
     }
 #endif
 }
@@ -603,12 +602,8 @@ int nnue_evaluate_pos(board *pos) {
     int32_t l2_out[L2];
     int32_t l3_out[L3];
 
-    const int16_t *hmc = NULL;
-    if (pos->fifty >= 14) {
-        int hmc_b = (pos->fifty - 14) / 8;
-        if (hmc_b > HMC_BUCKETS - 1) hmc_b = HMC_BUCKETS - 1;
-        hmc = weights->hmc[hmc_b];
-    }
+    int hmc_b = clamp((pos->fifty - 14) / 8, 0, HMC_BUCKETS - 1);
+    const int16_t *hmc = (pos->fifty >= 14) ? weights->hmc[hmc_b] : zero_hmc;
 
     propagate_l0_to_l1((const int16_t *)accum_stm, (const int16_t *)accum_nstm, hmc, l1_out);
     int nnz_count = find_nonzero_indices(l1_out, nnz_tiles);
