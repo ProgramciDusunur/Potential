@@ -1,4 +1,6 @@
 #include "nnue.h"
+#undef USE_AVX512
+#undef USE_AVX2
 #include "nnz.h"
 #include "simd.h"
 #include <assert.h>
@@ -228,7 +230,7 @@ void nnue_refresh_accumulator(board *pos) {
 }
 
 // L0 -> L1
-static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, uint8_t *output) {
+static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, const int16_t *hmc, uint8_t *output) {
 #if defined(USE_AVX512)
     const __m512i zero = _mm512_setzero_si512();
     const __m512i k255 = _mm512_set1_epi16(255);
@@ -276,9 +278,16 @@ static inline void propagate_l0_to_l1(const int16_t *stm, const int16_t *nstm, u
         _mm256_storeu_si256((__m256i *)&output[i + L1], perm);
     }
 #else
-    for (int i = 0; i < L1; i++) {
-        output[i] = screlu_255(stm[i]);
-        output[i + L1] = screlu_255(nstm[i]);
+    if (hmc) {
+        for (int i = 0; i < L1; i++) {
+            output[i] = screlu_255(stm[i] + hmc[i]);
+            output[i + L1] = screlu_255(nstm[i] + hmc[i]);
+        }
+    } else {
+        for (int i = 0; i < L1; i++) {
+            output[i] = screlu_255(stm[i]);
+            output[i + L1] = screlu_255(nstm[i]);
+        }
     }
 #endif
 }
@@ -594,7 +603,14 @@ int nnue_evaluate_pos(board *pos) {
     int32_t l2_out[L2];
     int32_t l3_out[L3];
 
-    propagate_l0_to_l1((const int16_t *)accum_stm, (const int16_t *)accum_nstm, l1_out);
+    const int16_t *hmc = NULL;
+    if (pos->fifty >= 14) {
+        int hmc_b = (pos->fifty - 14) / 8;
+        if (hmc_b > HMC_BUCKETS - 1) hmc_b = HMC_BUCKETS - 1;
+        hmc = weights->hmc[hmc_b];
+    }
+
+    propagate_l0_to_l1((const int16_t *)accum_stm, (const int16_t *)accum_nstm, hmc, l1_out);
     int nnz_count = find_nonzero_indices(l1_out, nnz_tiles);
     propagate_l1_to_l2(l1_out, nnz_tiles, nnz_count, out_bucket, l2_out);
     propagate_l2_to_l3(l2_out, out_bucket, l3_out);

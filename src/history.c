@@ -255,7 +255,7 @@ void update_continuation_corrhist(ThreadData *t, const int depth, const int diff
 }
 
 int adjust_eval_with_corrhist(ThreadData *t, int rawEval, SearchStack *ss) {       
-    rawEval = (rawEval * (300 - t->pos.fifty)) / 300;
+    // rawEval = (rawEval * (300 - t->pos.fifty)) / 300;
     
     const int side = t->pos.side;
     const int mask = t->shared_history->corrhist_mask;

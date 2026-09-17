@@ -25,12 +25,14 @@
 
 #define OUTPUT_BUCKETS 8
 #define INPUT_BUCKETS 4
+#define HMC_BUCKETS 11
 
 #define SCALE 400
 
 struct Weights {
     int16_t ftw[INPUT_BUCKETS][12][64][L1];           // (feature weights)
     int16_t ftb[L1];                                  // (feature bias)
+    int16_t hmc[HMC_BUCKETS][L1];                     // (half-move clock weights)
     int8_t  l1w[2 * L1][OUTPUT_BUCKETS * L2];         // (layer 1 weights)
     int32_t l1b[OUTPUT_BUCKETS * L2];                 // (layer 1 bias)
     int32_t l2w[L2][OUTPUT_BUCKETS * L3];             // (layer 2 weights)
