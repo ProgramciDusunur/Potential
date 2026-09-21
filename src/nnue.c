@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "bit_manipulation.h"
+#include "move.h"
 
 #include "incbin.h"
 #include "structs.h"
@@ -580,25 +581,142 @@ static inline int propagate_l3_to_out(const int32_t *input, int out_bucket) {
     return (int)((out_sum * SCALE) / 16777216);
 }
 
-int nnue_evaluate_pos(board *pos) {
-    v16u *accum_stm = (pos->side == white) ? pos->accum_white : pos->accum_black;
-    v16u *accum_nstm = (pos->side == white) ? pos->accum_black : pos->accum_white;
+void add_all_threat_inputs(const board *pos, v16u *acc_white, v16u *acc_black) {
+    int w_ksq = getLS1BIndex(pos->bitboards[K]);
+    int b_ksq = getLS1BIndex(pos->bitboards[k]);
 
-    int piece_count = __builtin_popcountll(pos->occupancies[both]);
+    int w_flip_mask = ((w_ksq % 8) > 3) ? 7 : 0;
+    int b_flip_mask = (((b_ksq % 8) > 3) ? 7 : 0) ^ 56;
+
+    U64 occ = pos->occupancies[both];
+
+    for (int piece = P; piece <= q; piece++) {
+        if (piece == K || piece == k) continue;
+
+        U64 pieces = pos->bitboards[piece];
+        if (!pieces) continue;
+
+        int base_piece = piece % 6;
+        int max_geo = ti_max_geo[base_piece];
+        int type_offset = ti_type_offset[base_piece];
+        const int (*const geo_tab)[64] = ti_geo[base_piece];
+
+        while (pieces) {
+            int sq = getLS1BIndex(pieces);
+            popBit(pieces, sq);
+
+            U64 attacks = 0;
+            switch(piece) {
+                case P: attacks = getPawnAttacks(0, sq); break;
+                case p: attacks = getPawnAttacks(1, sq); break;
+                case N: case n: attacks = getKnightAttacks(sq); break;
+                case B: case b: attacks = getBishopAttacks(sq, occ); break;
+                case R: case r: attacks = getRookAttacks(sq, occ); break;
+                case Q: case q: attacks = getQueenAttacks(sq, occ); break;
+            }
+            attacks &= occ;
+
+            while (attacks) {
+                int target_sq = getLS1BIndex(attacks);
+                popBit(attacks, target_sq);
+
+                int target_piece = pos->mailbox[target_sq];
+                if (target_piece >= 12) continue;
+
+                int w_rel_target = target_piece;
+                int w_target_id = ti_target_ids[base_piece][w_rel_target];
+                if (w_target_id != -1) {
+                    int w_mapped_sq = sq ^ w_flip_mask;
+                    int w_mapped_target = target_sq ^ w_flip_mask;
+
+                    if (!(base_piece > 0 && ((w_rel_target % 6) == base_piece) && ((w_mapped_target ^ 56) > (w_mapped_sq ^ 56)))) {
+                        int geo = geo_tab[w_mapped_sq][w_mapped_target];
+                        if (geo != -1) {
+                            int offset = (piece >= 6) ? BLACK_TI_SIZE : 0;
+                            int feat = offset + type_offset + (w_target_id * max_geo) + geo;
+                            add_weights(acc_white, (const v16u *)weights->ft_threat_weights[feat]);
+                        }
+                    }
+                }
+
+                int b_rel_target = (target_piece + 6) % 12;
+                int b_target_id = ti_target_ids[base_piece][b_rel_target];
+                if (b_target_id != -1) {
+                    int b_mapped_sq = sq ^ b_flip_mask;
+                    int b_mapped_target = target_sq ^ b_flip_mask;
+
+                    if (!(base_piece > 0 && ((b_rel_target % 6) == base_piece) && ((b_mapped_target ^ 56) > (b_mapped_sq ^ 56)))) {
+                        int geo = geo_tab[b_mapped_sq][b_mapped_target];
+                        if (geo != -1) {
+                            int offset = (piece < 6) ? BLACK_TI_SIZE : 0;
+                            int feat = offset + type_offset + (b_target_id * max_geo) + geo;
+                            add_weights(acc_black, (const v16u *)weights->ft_threat_weights[feat]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+int nnue_evaluate_pos(board *pos) {
+    int16_t temp_white[L1] __attribute__((aligned(64)));
+    int16_t temp_black[L1] __attribute__((aligned(64)));
+    memcpy(temp_white, pos->accum_white, sizeof(temp_white));
+    memcpy(temp_black, pos->accum_black, sizeof(temp_black));
+
+    add_all_threat_inputs(pos, (v16u*)temp_white, (v16u*)temp_black);
+
+    const int16_t *accum_stm  = (pos->side == white) ? temp_white : temp_black;
+    const int16_t *accum_nstm = (pos->side == white) ? temp_black : temp_white;
+
+    int piece_count = countBits(pos->occupancies[both]);
     int out_bucket = (piece_count - 2) / 4;
     if (out_bucket < 0) out_bucket = 0;
-    if (out_bucket > OUTPUT_BUCKETS - 1) out_bucket = OUTPUT_BUCKETS - 1;    
+    if (out_bucket > OUTPUT_BUCKETS - 1) out_bucket = OUTPUT_BUCKETS - 1;
 
-    __attribute__((aligned(64))) uint8_t l1_out[2 * L1];
-    uint16_t nnz_tiles[528];
+    uint8_t l1_out[2 * L1];
+    for (int i = 0; i < L1; i++) {
+        l1_out[i] = screlu_255(accum_stm[i]);
+        l1_out[i + L1] = screlu_255(accum_nstm[i]);
+    }
+
     int32_t l2_out[L2];
-    int32_t l3_out[L3];
+    int l1_offset = out_bucket * L2;
+    for (int j = 0; j < L2; j++) {
+        int32_t sum = 0;
+        for (int i = 0; i < 2 * L1; i++) {
+            uint8_t in_val = l1_out[i];
+            if (in_val) {
+                sum += (int32_t)in_val * weights->l1w[i][l1_offset + j];
+            }
+        }
+        sum = (sum >> 1) + weights->l1b[l1_offset + j];
+        l2_out[j] = screlu_l1(sum);
+    }
 
-    propagate_l0_to_l1((const int16_t *)accum_stm, (const int16_t *)accum_nstm, l1_out);
-    int nnz_count = find_nonzero_indices(l1_out, nnz_tiles);
-    propagate_l1_to_l2(l1_out, nnz_tiles, nnz_count, out_bucket, l2_out);
-    propagate_l2_to_l3(l2_out, out_bucket, l3_out);
-    return propagate_l3_to_out(l3_out, out_bucket);
+    int32_t l3_out[L3];
+    int l3_offset = out_bucket * L3;
+    for (int i = 0; i < L3; i++) {
+        int64_t sum = weights->l2b[l3_offset + i];
+        for (int j = 0; j < L2; j++) {
+            int32_t act = l2_out[j];
+            if (act) {
+                sum += (int64_t)act * weights->l2w[j][l3_offset + i];
+            }
+        }
+        l3_out[i] = crelu_l3(sum);
+    }
+
+    int64_t out_sum = weights->l3b[out_bucket];
+    for (int i = 0; i < L3; i++) {
+        int32_t act = l3_out[i];
+        if (act) {
+            out_sum += (int64_t)act * weights->l3w[i][out_bucket];
+        }
+    }
+
+    return (int)((out_sum * SCALE) / 16777216);
 }
 
 void nnue_update_finny(ThreadData *t, board *pos, int side) {

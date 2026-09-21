@@ -23,7 +23,7 @@ extern _Atomic uint64_t games_played_count;
 extern uint64_t global_start_time;
 
 #define VERSION "4.28.15"
-#define BENCH_DEPTH 11
+#define BENCH_DEPTH 7
 #define MAX_THREADS 512
 
 #define STR_HELPER(x) #x
