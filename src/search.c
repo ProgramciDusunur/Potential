@@ -735,11 +735,11 @@ int get_tt_cutoff_score(int tt_score, int beta) {
 int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *ss) {
     board *position = &t->pos;
 
-    if (t->id == 0 || time->is_datagen) {
+    if (t->id == 0) {
         if (time->isNodeLimit) {
             check_node_limit(time, t);
         }
-        if ((load_rlx(t->search_i.nodes_searched) & 2047) == 0 && !time->is_datagen) {
+        if ((load_rlx(t->search_i.nodes_searched) & 2047) == 0) {
             communicate(time, position);
         }
     } else if (load_rlx(thread_pool.stop)) {
