@@ -186,7 +186,7 @@ ifeq ($(build), debug)
 	endif
 endif
 
-SOURCES := $(filter-out tuner.c,$(wildcard *.c))
+SOURCES := $(wildcard *.c)
 OBJECTS := $(patsubst %.c,$(OBJDIR)/%.o,$(SOURCES))
 DEPENDS := $(patsubst %.c,$(OBJDIR)/%.d,$(SOURCES))
 
@@ -197,7 +197,7 @@ default: pgo
 build_core: $(EVALFILE) $(TARGET)
 
 clean:
-	@rm -rf $(OBJDIR) *.o *.d $(TARGET) tuner$(SUFFIX) *.gcda
+	@rm -rf $(OBJDIR) *.o *.d $(TARGET) *.gcda
 
 $(TARGET): $(OBJECTS)
 	$(CLANG_CC) $(CFLAGS) $(NATIVE) -MMD -MP -o $(EXE) $(OBJECTS) $(FLAGS) $(LDFLAGS)
@@ -216,9 +216,6 @@ $(NET):
 	@echo "Downloaded $(NET)."
 
 net: $(NET)
-
-tuner: tuner.c
-	$(CLANG_CC) -O3 -o tuner$(SUFFIX) tuner.c -lm
 
 pgo:
 ifeq ($(uname_S), Darwin)

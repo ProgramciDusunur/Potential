@@ -190,9 +190,6 @@ typedef struct my_time_tag {
 
     // variable to flag when the time is up
     int stopped;
-
-    // flag to indicate search is for datagen instead of engine
-    bool is_datagen;
 } my_time;
 
 typedef struct  {
@@ -294,15 +291,6 @@ typedef struct {
     bool threads_alive;
     int search_generation;
 } ThreadPool;
-
-/* DATAGEN */
-
-struct datagen_args {
-    int id;
-    uint64_t target;
-    int nodes;
-    int book;
-};
 
 typedef struct {
     uint8_t CURRENT_STAGE;
