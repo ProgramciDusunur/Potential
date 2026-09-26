@@ -17,6 +17,8 @@
 #include "nnue.h"
 #include "cuckoo.h"
 
+#include "datagen.h"
+
 
 
 
@@ -45,7 +47,13 @@ void init_all(void) {
 }
 
 
-int main(int argc, char* argv[]) {    
+int main(int argc, char* argv[]) {
+    setbuf(stdout, NULL);
+
+    if (argc >= 2 && strcmp(argv[1], "datagen") == 0) {
+        return start_datagen();
+    }
+
     // init main thread
     init_threads(1);
 
@@ -57,13 +65,15 @@ int main(int argc, char* argv[]) {
 
         //test_nnue_indicies(&position);
 
-        board position2;
+        /*board position2;
         parseFEN(kiwipete, &position2);
         
         int startpos_eval = nnue_evaluate_pos(&position);
         int kiwipete_eval = nnue_evaluate_pos(&position2);
         printf("NNUE evaluation of startpos: %d\n", startpos_eval);
-        printf("NNUE evaluation of kiwipete: %d\n", kiwipete_eval);
+        printf("NNUE evaluation of kiwipete: %d\n", kiwipete_eval);*/
+
+
         
     } else {
         board *position = (board *)malloc(sizeof(board));
