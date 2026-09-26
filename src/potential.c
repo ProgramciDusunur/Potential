@@ -18,6 +18,8 @@
 #include "cuckoo.h"
 #include "threats.h"
 
+#include "datagen.h"
+
 
 
 
@@ -49,7 +51,13 @@ void init_all(void) {
 }
 
 
-int main(int argc, char* argv[]) {    
+int main(int argc, char* argv[]) {
+    setbuf(stdout, NULL);
+
+    if (argc >= 2 && strcmp(argv[1], "datagen") == 0) {
+        return start_datagen();
+    }
+
     // init main thread
     init_threads(1);
 
