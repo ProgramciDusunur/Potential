@@ -1307,6 +1307,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     //int captureMoves = 0;
 
     const int originalAlpha = alpha;
+    int alpha_raises = 0;
 
     struct copyposition copyPosition;
     // preserve board state once before move loop
@@ -1580,6 +1581,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             lmrReduction += IMPROVING_LMR_SCALAR;
         }
 
+        lmrReduction += alpha_raises * 512;
+
         if (notTactical) {
             // Reduce More
             if (!pvNode && quietMoves >= 4) {
@@ -1698,6 +1701,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             if (score > alpha) {
                 // store best move (for TT or anything)
                 bestMove = currentMove;
+
+                alpha_raises++;
 
                 // PV node (move)
                 alpha = score;
