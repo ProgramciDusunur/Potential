@@ -590,7 +590,7 @@ int nnue_evaluate_pos(board *pos) {
     if (out_bucket > OUTPUT_BUCKETS - 1) out_bucket = OUTPUT_BUCKETS - 1;    
 
     __attribute__((aligned(64))) uint8_t l1_out[2 * L1];
-    uint16_t nnz_tiles[528];
+    uint16_t nnz_tiles[NNZ_BUFFER_SIZE];
     int32_t l2_out[L2];
     int32_t l3_out[L3];
 

@@ -4,9 +4,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "simd.h"
+#include "nnue.h"
 
-#define NNZ_MAX_TILES 512
-#define NNZ_BUFFER_SIZE 528
+#define NNZ_MAX_TILES (2 * L1 / 4)
+#define NNZ_BUFFER_SIZE (NNZ_MAX_TILES + 32)
 
 extern uint16_t NONZERO_INDICES[256][8];
 

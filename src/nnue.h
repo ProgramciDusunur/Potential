@@ -16,7 +16,7 @@
 #define Q2 64
 
 // Hidden Layer 1 Size
-#define L1 1024
+#define L1 2048
 // Hidden Layer 2 Size
 #define L2 16
 // Hidden Layer 3 Size
