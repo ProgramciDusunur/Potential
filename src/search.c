@@ -1772,6 +1772,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             }
         }
     }
+    
 
     // we don't have any moves to make in the current postion
     if (moves_seen == 0) {
