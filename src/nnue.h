@@ -5,6 +5,8 @@
 #include "structs.h"
 #include "board_constants.h"
 #include "threads.h"
+#include "threats.h"
+#include "threat_geo.h"
 
 /* Quantization Constants */
 
@@ -16,7 +18,7 @@
 #define Q2 64
 
 // Hidden Layer 1 Size
-#define L1 1024
+#define L1 384
 // Hidden Layer 2 Size
 #define L2 16
 // Hidden Layer 3 Size
@@ -30,6 +32,7 @@
 
 struct Weights {
     int16_t ftw[INPUT_BUCKETS][12][64][L1];           // (feature weights)
+    int16_t ft_threat_weights[THREAT_INPUTS][L1];     // (threat weights)
     int16_t ftb[L1];                                  // (feature bias)
     int8_t  l1w[2 * L1][OUTPUT_BUCKETS * L2];         // (layer 1 weights)
     int32_t l1b[OUTPUT_BUCKETS * L2];                 // (layer 1 bias)
@@ -49,6 +52,7 @@ void reset_finny_table(void);
 
 int nnue_evaluate_pos(board *pos);
 void test_nnue_indicies(board *pos);
+void add_all_threat_inputs(const board *pos, v16u *acc_white, v16u *acc_black);
 
 void nnue_add_feature(board *pos, int piece, int square);
 void nnue_remove_feature(board *pos, int piece, int square);
