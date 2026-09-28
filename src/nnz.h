@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include "simd.h"
 
-#define NNZ_MAX_TILES 512
-#define NNZ_BUFFER_SIZE 528
+#define NNZ_MAX_TILES 192
+#define NNZ_BUFFER_SIZE 208
 
 extern uint16_t NONZERO_INDICES[256][8];
 
