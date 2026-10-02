@@ -1240,10 +1240,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 int probcut_value = -quiescence(-probcut_beta, -probcut_beta + 1, t, time, ss + 1);
 
                 if (probcut_value >= probcut_beta) {
-                    int adjusted_probcut_depth = probcut_depth * 1024;
-
-                    // Capture History based reduction
-                    adjusted_probcut_depth += (move_history * PROBCUT_NOISY_HIST_MULT) / PROBCUT_NOISY_HIST_DIVISOR * PROBCUT_REDUCTION_MULTIPLIER;
+                    int adjusted_probcut_depth = probcut_depth * 1024;                    
 
                     adjusted_probcut_depth -= PROBCUT_CUTNODE_SCALAR * predicted_cut_node;
 
