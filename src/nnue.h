@@ -52,7 +52,7 @@ void reset_finny_table(void);
 
 int nnue_evaluate_pos(board *pos);
 void test_nnue_indicies(board *pos);
-void add_all_threat_inputs(const board *pos, v16u *acc_white, v16u *acc_black);
+void add_all_threat_inputs(const board *pos, const v16u *src_white, const v16u *src_black, v16u *dst_white, v16u *dst_black);
 
 void nnue_add_feature(board *pos, int piece, int square);
 void nnue_remove_feature(board *pos, int piece, int square);

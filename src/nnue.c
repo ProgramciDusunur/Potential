@@ -14,6 +14,8 @@
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
+#define TILE_VECS 12
+
 INCBIN(Net, STR(EVALFILE));
 
 const struct Weights *const weights = (const struct Weights *) gNetData;
@@ -581,7 +583,28 @@ static inline int propagate_l3_to_out(const int32_t *input, int out_bucket) {
     return (int)((out_sum * SCALE) / 16777216);
 }
 
-void add_all_threat_inputs(const board *pos, v16u *acc_white, v16u *acc_black) {
+static inline void accumulate_threats(const v16u *src, v16u *dst, const int *feats, int count) {
+    for (int tile = 0; tile < HIDDEN_VECS; tile += TILE_VECS) {
+        v16 regs[TILE_VECS];
+
+        for (int k = 0; k < TILE_VECS; k++)
+            regs[k] = src[tile + k]; 
+
+        for (int f = 0; f < count; f++) {
+            const v16u *w = (const v16u *)weights->ft_threat_weights[feats[f]];
+            for (int k = 0; k < TILE_VECS; k++)
+                regs[k] += w[tile + k];
+        }
+
+        for (int k = 0; k < TILE_VECS; k++)
+            dst[tile + k] = regs[k]; 
+    }
+}
+
+void add_all_threat_inputs(const board *pos, const v16u *src_white, const v16u *src_black, v16u *dst_white, v16u *dst_black) {
+    int w_feats[256], b_feats[256];
+    int w_count = 0, b_count = 0;
+
     int w_ksq = getLS1BIndex(pos->bitboards[K]);
     int b_ksq = getLS1BIndex(pos->bitboards[k]);
 
@@ -634,7 +657,7 @@ void add_all_threat_inputs(const board *pos, v16u *acc_white, v16u *acc_black) {
                         if (geo != -1) {
                             int offset = (piece >= 6) ? BLACK_TI_SIZE : 0;
                             int feat = offset + type_offset + (w_target_id * max_geo) + geo;
-                            add_weights(acc_white, (const v16u *)weights->ft_threat_weights[feat]);
+                            w_feats[w_count++] = feat;  
                         }
                     }
                 }
@@ -650,22 +673,22 @@ void add_all_threat_inputs(const board *pos, v16u *acc_white, v16u *acc_black) {
                         if (geo != -1) {
                             int offset = (piece < 6) ? BLACK_TI_SIZE : 0;
                             int feat = offset + type_offset + (b_target_id * max_geo) + geo;
-                            add_weights(acc_black, (const v16u *)weights->ft_threat_weights[feat]);
+                            b_feats[b_count++] = feat;
                         }
                     }
-                }
+                }                         
             }
         }
     }
+    accumulate_threats(src_white, dst_white, w_feats, w_count);
+    accumulate_threats(src_black, dst_black, b_feats, b_count);
 }
 
 int nnue_evaluate_pos(board *pos) {
     int16_t temp_white[L1] __attribute__((aligned(64)));
     int16_t temp_black[L1] __attribute__((aligned(64)));
-    memcpy(temp_white, pos->accum_white, sizeof(temp_white));
-    memcpy(temp_black, pos->accum_black, sizeof(temp_black));
 
-    add_all_threat_inputs(pos, (v16u*)temp_white, (v16u*)temp_black);
+    add_all_threat_inputs(pos, (const v16u*)pos->accum_white, (const v16u*)pos->accum_black, (v16u*)temp_white, (v16u*)temp_black);
 
     const int16_t *accum_stm  = (pos->side == white) ? temp_white : temp_black;
     const int16_t *accum_nstm = (pos->side == white) ? temp_black : temp_white;
