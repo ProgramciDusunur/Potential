@@ -18,7 +18,7 @@
 #endif
 
 #define VERSION "4.29.15"
-#define BENCH_DEPTH 7
+#define BENCH_DEPTH 10
 #define MAX_THREADS 512
 
 #define STR_HELPER(x) #x
