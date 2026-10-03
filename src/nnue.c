@@ -675,48 +675,16 @@ int nnue_evaluate_pos(board *pos) {
     if (out_bucket < 0) out_bucket = 0;
     if (out_bucket > OUTPUT_BUCKETS - 1) out_bucket = OUTPUT_BUCKETS - 1;
 
-    uint8_t l1_out[2 * L1];
-    for (int i = 0; i < L1; i++) {
-        l1_out[i] = screlu_255(accum_stm[i]);
-        l1_out[i + L1] = screlu_255(accum_nstm[i]);
-    }
-
+   __attribute__((aligned(64))) uint8_t l1_out[2 * L1];
+    uint16_t nnz_tiles[528];
     int32_t l2_out[L2];
-    int l1_offset = out_bucket * L2;
-    for (int j = 0; j < L2; j++) {
-        int32_t sum = 0;
-        for (int i = 0; i < 2 * L1; i++) {
-            uint8_t in_val = l1_out[i];
-            if (in_val) {
-                sum += (int32_t)in_val * weights->l1w[i][l1_offset + j];
-            }
-        }
-        sum = (sum >> 1) + weights->l1b[l1_offset + j];
-        l2_out[j] = screlu_l1(sum);
-    }
-
     int32_t l3_out[L3];
-    int l3_offset = out_bucket * L3;
-    for (int i = 0; i < L3; i++) {
-        int64_t sum = weights->l2b[l3_offset + i];
-        for (int j = 0; j < L2; j++) {
-            int32_t act = l2_out[j];
-            if (act) {
-                sum += (int64_t)act * weights->l2w[j][l3_offset + i];
-            }
-        }
-        l3_out[i] = crelu_l3(sum);
-    }
 
-    int64_t out_sum = weights->l3b[out_bucket];
-    for (int i = 0; i < L3; i++) {
-        int32_t act = l3_out[i];
-        if (act) {
-            out_sum += (int64_t)act * weights->l3w[i][out_bucket];
-        }
-    }
-
-    return (int)((out_sum * SCALE) / 16777216);
+    propagate_l0_to_l1((const int16_t *)accum_stm, (const int16_t *)accum_nstm, l1_out);
+    int nnz_count = find_nonzero_indices(l1_out, nnz_tiles);
+    propagate_l1_to_l2(l1_out, nnz_tiles, nnz_count, out_bucket, l2_out);
+    propagate_l2_to_l3(l2_out, out_bucket, l3_out);
+    return propagate_l3_to_out(l3_out, out_bucket);
 }
 
 void nnue_update_finny(ThreadData *t, board *pos, int side) {
