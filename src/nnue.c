@@ -601,6 +601,72 @@ static inline void accumulate_threats(const v16u *src, v16u *dst, const int *fea
     }
 }
 
+static inline __attribute__((always_inline)) void process_piece_threats(
+    int piece, const board *pos, U64 occ, int w_flip_mask, int b_flip_mask,
+    int *w_feats, int *w_count, int *b_feats, int *b_count) {
+    U64 pieces = pos->bitboards[piece];
+    if (!pieces) return;
+
+    int base_piece = piece % 6;
+    int max_geo = ti_max_geo[base_piece];
+    int type_offset = ti_type_offset[base_piece];
+    const int (*const geo_tab)[64] = ti_geo[base_piece];
+    
+    int w_offset = (piece >= 6) ? BLACK_TI_SIZE : 0;
+    int b_offset = (piece < 6) ? BLACK_TI_SIZE : 0;
+    int w_base_feat = w_offset + type_offset;
+    int b_base_feat = b_offset + type_offset;
+
+    while (pieces) {
+        int sq = getLS1BIndex(pieces);
+        popBit(pieces, sq);
+        
+        int w_mapped_sq = sq ^ w_flip_mask;
+        int b_mapped_sq = sq ^ b_flip_mask;
+        
+        U64 attacks = 0;
+        if (piece == P) attacks = getPawnAttacks(0, sq);
+        else if (piece == p) attacks = getPawnAttacks(1, sq);
+        else if (piece == N || piece == n) attacks = getKnightAttacks(sq);
+        else if (piece == B || piece == b) attacks = getBishopAttacks(sq, occ);
+        else if (piece == R || piece == r) attacks = getRookAttacks(sq, occ);
+        else if (piece == Q || piece == q) attacks = getQueenAttacks(sq, occ);
+        
+        attacks &= occ;
+        
+        while (attacks) {
+            int target_sq = getLS1BIndex(attacks);
+            popBit(attacks, target_sq);
+            int target_piece = pos->mailbox[target_sq];
+            if (target_piece >= 12) continue;
+            
+            int w_rel_target = target_piece;
+            int w_target_id = ti_target_ids[base_piece][w_rel_target];
+            if (w_target_id != -1) {
+                int w_mapped_target = target_sq ^ w_flip_mask;
+                if (!(base_piece > 0 && ((w_rel_target % 6) == base_piece) && ((w_mapped_target ^ 56) > (w_mapped_sq ^ 56)))) {
+                    int geo = geo_tab[w_mapped_sq][w_mapped_target];
+                    if (geo != -1) {
+                        w_feats[(*w_count)++] = w_base_feat + (w_target_id * max_geo) + geo;
+                    }
+                }
+            }
+            
+            int b_rel_target = (target_piece + 6) % 12;
+            int b_target_id = ti_target_ids[base_piece][b_rel_target];
+            if (b_target_id != -1) {
+                int b_mapped_target = target_sq ^ b_flip_mask;
+                if (!(base_piece > 0 && ((b_rel_target % 6) == base_piece) && ((b_mapped_target ^ 56) > (b_mapped_sq ^ 56)))) {
+                    int geo = geo_tab[b_mapped_sq][b_mapped_target];
+                    if (geo != -1) {
+                        b_feats[(*b_count)++] = b_base_feat + (b_target_id * max_geo) + geo;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void add_all_threat_inputs(const board *pos, const v16u *src_white, const v16u *src_black, v16u *dst_white, v16u *dst_black) {
     int w_feats[256], b_feats[256];
     int w_count = 0, b_count = 0;
@@ -613,76 +679,27 @@ void add_all_threat_inputs(const board *pos, const v16u *src_white, const v16u *
 
     U64 occ = pos->occupancies[both];
 
-    for (int piece = P; piece <= q; piece++) {
-        if (piece == K || piece == k) continue;
+    process_piece_threats(P, pos, occ, w_flip_mask, b_flip_mask, w_feats, &w_count, b_feats, &b_count);
+    process_piece_threats(N, pos, occ, w_flip_mask, b_flip_mask, w_feats, &w_count, b_feats, &b_count);
+    process_piece_threats(B, pos, occ, w_flip_mask, b_flip_mask, w_feats, &w_count, b_feats, &b_count);
+    process_piece_threats(R, pos, occ, w_flip_mask, b_flip_mask, w_feats, &w_count, b_feats, &b_count);
+    process_piece_threats(Q, pos, occ, w_flip_mask, b_flip_mask, w_feats, &w_count, b_feats, &b_count);
 
-        U64 pieces = pos->bitboards[piece];
-        if (!pieces) continue;
+    process_piece_threats(p, pos, occ, w_flip_mask, b_flip_mask, w_feats, &w_count, b_feats, &b_count);
+    process_piece_threats(n, pos, occ, w_flip_mask, b_flip_mask, w_feats, &w_count, b_feats, &b_count);
+    process_piece_threats(b, pos, occ, w_flip_mask, b_flip_mask, w_feats, &w_count, b_feats, &b_count);
+    process_piece_threats(r, pos, occ, w_flip_mask, b_flip_mask, w_feats, &w_count, b_feats, &b_count);
+    process_piece_threats(q, pos, occ, w_flip_mask, b_flip_mask, w_feats, &w_count, b_feats, &b_count);
 
-        int base_piece = piece % 6;
-        int max_geo = ti_max_geo[base_piece];
-        int type_offset = ti_type_offset[base_piece];
-        const int (*const geo_tab)[64] = ti_geo[base_piece];
-
-        while (pieces) {
-            int sq = getLS1BIndex(pieces);
-            popBit(pieces, sq);
-
-            U64 attacks = 0;
-            switch(piece) {
-                case P: attacks = getPawnAttacks(0, sq); break;
-                case p: attacks = getPawnAttacks(1, sq); break;
-                case N: case n: attacks = getKnightAttacks(sq); break;
-                case B: case b: attacks = getBishopAttacks(sq, occ); break;
-                case R: case r: attacks = getRookAttacks(sq, occ); break;
-                case Q: case q: attacks = getQueenAttacks(sq, occ); break;
-            }
-            attacks &= occ;
-
-            while (attacks) {
-                int target_sq = getLS1BIndex(attacks);
-                popBit(attacks, target_sq);
-
-                int target_piece = pos->mailbox[target_sq];
-                if (target_piece >= 12) continue;
-
-                int w_rel_target = target_piece;
-                int w_target_id = ti_target_ids[base_piece][w_rel_target];
-                if (w_target_id != -1) {
-                    int w_mapped_sq = sq ^ w_flip_mask;
-                    int w_mapped_target = target_sq ^ w_flip_mask;
-
-                    if (!(base_piece > 0 && ((w_rel_target % 6) == base_piece) && ((w_mapped_target ^ 56) > (w_mapped_sq ^ 56)))) {
-                        int geo = geo_tab[w_mapped_sq][w_mapped_target];
-                        if (geo != -1) {
-                            int offset = (piece >= 6) ? BLACK_TI_SIZE : 0;
-                            int feat = offset + type_offset + (w_target_id * max_geo) + geo;
-                            w_feats[w_count++] = feat;  
-                        }
-                    }
-                }
-
-                int b_rel_target = (target_piece + 6) % 12;
-                int b_target_id = ti_target_ids[base_piece][b_rel_target];
-                if (b_target_id != -1) {
-                    int b_mapped_sq = sq ^ b_flip_mask;
-                    int b_mapped_target = target_sq ^ b_flip_mask;
-
-                    if (!(base_piece > 0 && ((b_rel_target % 6) == base_piece) && ((b_mapped_target ^ 56) > (b_mapped_sq ^ 56)))) {
-                        int geo = geo_tab[b_mapped_sq][b_mapped_target];
-                        if (geo != -1) {
-                            int offset = (piece < 6) ? BLACK_TI_SIZE : 0;
-                            int feat = offset + type_offset + (b_target_id * max_geo) + geo;
-                            b_feats[b_count++] = feat;
-                        }
-                    }
-                }                         
-            }
-        }
-    }
     accumulate_threats(src_white, dst_white, w_feats, w_count);
     accumulate_threats(src_black, dst_black, b_feats, b_count);
 }
+
+
+
+
+
+
 
 int nnue_evaluate_pos(board *pos) {
     int16_t temp_white[L1] __attribute__((aligned(64)));
