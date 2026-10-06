@@ -120,6 +120,20 @@ int start_datagen() {
             break; 
         }
     }
+    
+    fprintf(in, "uci\n");
+    // Motora "hazır mısın?" diye soruyoruz
+    
+    
+    //fprintf(engine, "ucinewgame\n");
+    /*fprintf(in, "position startpos\n");
+    fprintf(in, "setoption name Hash value 1\n");
+    fprintf(in, "go nodes 5000\n");*/
+    fflush(in);
+    
+
+    // Motor cevabı basana kadar dinle:
+    
 
 // DÖNGÜ BİTTİ: İşçiyi temizce kapatma vakti
 printf("Test bitti, isci kapatiliyor...\n");
