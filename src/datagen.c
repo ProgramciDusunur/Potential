@@ -91,30 +91,36 @@ int start_datagen() {
     FILE *in  = _fdopen(fd_in,  "w");
     FILE *out = _fdopen(fd_out, "r");
     setvbuf(in, NULL, _IONBF, 0); // Tamponlamayı kapat (yazdığın anında gitsin)
-    
-    fprintf(in, "uci\n");
-    // Motora "hazır mısın?" diye soruyoruz
-    fprintf(in, "isready\n");
-    
-    //fprintf(engine, "ucinewgame\n");
-    fprintf(in, "position startpos\n");
-    fprintf(in, "setoption name Hash value 1\n");
-    fprintf(in, "go nodes 5000\n"); // \n eklendi!
-    fflush(in);
 
     char line[1024];
     char bestmove[16] = "";
 
-    // Motor cevabı basana kadar dinle:
-    while (fgets(line, sizeof(line), out)) {
-        // İstersen motorun düşündüğü satırları da görebilirsin:
-        printf("%s", line);
+    // datagen cycle
+    while (true) {
+        fprintf(in, "isready\n");        
 
-        if (strncmp(line, "bestmove", 8) == 0) {
-            sscanf(line, "bestmove %s", bestmove);
-            break; 
-        }
+        while (fgets(line, sizeof(line), out)) {
+            // İstersen motorun düşündüğü satırları da görebilirsin:
+            printf("%s", line);
+
+            break;
+        }        
+        fflush(in);
     }
+    
+    fprintf(in, "uci\n");
+    // Motora "hazır mısın?" diye soruyoruz
+    
+    
+    //fprintf(engine, "ucinewgame\n");
+    /*fprintf(in, "position startpos\n");
+    fprintf(in, "setoption name Hash value 1\n");
+    fprintf(in, "go nodes 5000\n");*/
+    fflush(in);
+    
+
+    // Motor cevabı basana kadar dinle:
+    
 
     printf("\n>>> Worker'dan gelen en iyi hamle: %s <<<\n", bestmove);
 
