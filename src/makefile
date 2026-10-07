@@ -25,7 +25,7 @@ CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
 
 NET_TAG  := multilayer-fine-tune
-NET      := potential-1024hl-multilayer-5-fine-tune-300sb.bin
+NET      := potential-1024hl-multilayer-5-fine-tune-linearWDL-150sb.bin
 NET_URL  := https://github.com/ProgramciDusunur/Potential-nets/releases/download/$(NET_TAG)/$(NET)
 EVALFILE ?= $(NET)
 
