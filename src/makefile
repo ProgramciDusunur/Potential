@@ -25,7 +25,7 @@ CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
 
 NET_TAG  := threat-inputs-3
-NET      := potential-384hl-ti-ml-3.bin
+NET      := potential-384hl-ti-ml-4.bin
 NET_URL  := https://github.com/ProgramciDusunur/Potential-nets/releases/download/$(NET_TAG)/$(NET)
 EVALFILE ?= $(NET)
 
