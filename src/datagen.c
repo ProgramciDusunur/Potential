@@ -120,6 +120,14 @@ int start_datagen() {
             break; 
         }
     }
+
+// DÖNGÜ BİTTİ: İşçiyi temizce kapatma vakti
+printf("Test bitti, isci kapatiliyor...\n");
+fprintf(in, "quit\n");
+fflush(in);
+
+// (Burada pclose(in) veya Windows CloseHandle() fonksiyonlarıyla
+// boruları kapatıp programı tamamen sonlandırabilirsin).
     
     fprintf(in, "uci\n");
     // Motora "hazır mısın?" diye soruyoruz
