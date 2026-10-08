@@ -94,19 +94,40 @@ int start_datagen() {
 
     char line[1024];
     char bestmove[16] = "";
+    int fisi_cek = 0;
 
     // datagen cycle
     while (true) {
-        fprintf(in, "isready\n");        
-
+        fprintf(in, "position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\n");
+        fprintf(in, "go nodes 5000\n");
+        fflush(in);        
         while (fgets(line, sizeof(line), out)) {
-            // İstersen motorun düşündüğü satırları da görebilirsin:
             printf("%s", line);
-
-            break;
-        }        
-        fflush(in);
+            
+            if (strncmp(line, "bestmove", 8) == 0) {
+                char hamle_str[10] = {0};
+                if (sscanf(line, "bestmove %s", hamle_str) == 1) {
+                    printf(">>> Worker'dan gelen en iyi hamle: %s <<<\n", hamle_str);
+                }
+                
+                fisi_cek++;
+                break;
+            }
+        }
+        
+        
+        if (fisi_cek == 2) {
+            break; 
+        }
     }
+
+// DÖNGÜ BİTTİ: İşçiyi temizce kapatma vakti
+printf("Test bitti, isci kapatiliyor...\n");
+fprintf(in, "quit\n");
+fflush(in);
+
+// (Burada pclose(in) veya Windows CloseHandle() fonksiyonlarıyla
+// boruları kapatıp programı tamamen sonlandırabilirsin).
     
     fprintf(in, "uci\n");
     // Motora "hazır mısın?" diye soruyoruz

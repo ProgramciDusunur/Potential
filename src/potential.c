@@ -48,7 +48,7 @@ void init_all(void) {
 
 
 int main(int argc, char* argv[]) {
-    setbuf(stdout, NULL);
+    setvbuf(stdout, NULL, _IONBF, 0);
 
     if (argc >= 2 && strcmp(argv[1], "datagen") == 0) {
         return start_datagen();
