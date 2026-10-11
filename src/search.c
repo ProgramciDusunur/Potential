@@ -135,7 +135,7 @@
   ╚═════════════╝*/
   TUNE_INT PROBCUT_BETA_MARGIN = 182;
   TUNE_INT PROBCUT_DEPTH = 5;
-  TUNE_INT PROBCUT_DEPTH_SUBTRACTOR = 4;
+  TUNE_INT PROBCUT_DEPTH_SUBTRACTOR = 2;
   TUNE_INT PROBCUT_IMPROVING_MARGIN = 35;
   TUNE_INT PROBCUT_SEE_NOISY_THRESHOLD = 114;
   TUNE_INT PROBCUT_NOISY_HIST_MULT = 90;
@@ -144,7 +144,7 @@
   TUNE_INT PROBCUT_CUTNODE_SCALAR = 926;
   TUNE_INT PROBCUT_FP_BASE = 181;
   TUNE_INT PROBCUT_FP_MULT = 95;
-
+  TUNE_INT PROBCUT_IMPROVING_DEPTH_SUBTRACTOR = 4;
 
 /*╔═══════════════════╗
   ║   Small Probcut   ║
@@ -1196,7 +1196,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
-            int probcut_depth = depth - PROBCUT_DEPTH_SUBTRACTOR;
+            int probcut_depth = depth - (improving ? PROBCUT_IMPROVING_DEPTH_SUBTRACTOR : PROBCUT_DEPTH_SUBTRACTOR);
 
             legal_noisy_generator(capture_promos, pos);
 
