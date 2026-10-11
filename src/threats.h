@@ -1,4 +1,5 @@
 #include "board_constants.h"
+#include "move.h"
 
 // Threat Input Features
 #define WHITE_TI_SIZE_PAWN   504

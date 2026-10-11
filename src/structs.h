@@ -27,7 +27,7 @@
 
 // Finny Table entries
 typedef struct {
-    int16_t  accum[HIDDEN_SIZE];   // the last computed accumulator for this bucket
+    int16_t  accum[HIDDEN_SIZE];   // the last computed accumulator for this bucket    
     uint64_t bitboard[12];         // the last known piece positions for this bucket    
 } FinnyEntry;
 
@@ -98,6 +98,9 @@ typedef struct {
 
     v16u accum_white[HIDDEN_VECS];
     v16u accum_black[HIDDEN_VECS];
+
+    int16_t threat_accum_white[HIDDEN_SIZE];
+    int16_t threat_accum_black[HIDDEN_SIZE];
 } board;
 
 struct copyposition {
@@ -128,6 +131,9 @@ struct copyposition {
 
     int16_t accum_white[HIDDEN_SIZE];
     int16_t accum_black[HIDDEN_SIZE];
+
+    int16_t threat_accum_white[HIDDEN_SIZE];
+    int16_t threat_accum_black[HIDDEN_SIZE];
 };
 
 // transposition table data structure

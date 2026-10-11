@@ -58,8 +58,14 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->pinned[0] = p->pinned[0];
     cp->pinned[1] = p->pinned[1];
     cp->pieceThreats = p->pieceThreats;
+
+    // NNUE PSQT accumulators
     memcpy(cp->accum_white, p->accum_white, sizeof(cp->accum_white));
     memcpy(cp->accum_black, p->accum_black, sizeof(cp->accum_black));
+
+    // NNUE threat accumulators
+    memcpy(cp->threat_accum_white, p->threat_accum_white, sizeof(cp->threat_accum_white));
+    memcpy(cp->threat_accum_black, p->threat_accum_black, sizeof(cp->threat_accum_black));
 }
 
 void takeBack(board *p, struct copyposition *cp) {
@@ -81,8 +87,14 @@ void takeBack(board *p, struct copyposition *cp) {
     p->pinned[0] = cp->pinned[0];
     p->pinned[1] = cp->pinned[1];
     p->pieceThreats = cp->pieceThreats;
+
+    // NNUE PSQT accumulators
     memcpy(p->accum_white, cp->accum_white, sizeof(p->accum_white));
     memcpy(p->accum_black, cp->accum_black, sizeof(p->accum_black));
+
+    // NNUE threat accumulators
+    memcpy(p->threat_accum_white, cp->threat_accum_white, sizeof(p->threat_accum_white));
+    memcpy(p->threat_accum_black, cp->threat_accum_black, sizeof(p->threat_accum_black));
 }
 
 // add move to the move list
