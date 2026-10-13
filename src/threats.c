@@ -93,13 +93,12 @@ U64 get_threat_feature_index(int8_t piece, int8_t target_piece) {
     // Every color and piece type has their own offset in the feature matrix
     int16_t color_offset = (piece >= 6) ? BLACK_TI_SIZE : 0;
     int16_t type_offset = ti_type_offset[piece % 6];
-    int w_target_id = ti_target_ids[base_piece][w_rel_target];
-    int8_t target_id = 0;
+    /*int w_target_id = ti_target_ids[base_piece][w_rel_target];
+    int8_t target_id = 0;*/
 
     U64 feature_index = color_offset + type_offset;
 }
 
-// TODO: this is can be done as pre-computed table (my guess xd)
 U64 get_piece_attacks(int piece, int square, U64 occ) {
     switch(piece) {
         case P: return getPawnAttacks(0, square);
@@ -112,7 +111,24 @@ U64 get_piece_attacks(int piece, int square, U64 occ) {
     }
 }
 
-void remove_piece_threats(int8_t piece, int8_ t square, U64 occ) {
+U64 outgoing_threats(uint8_t piece, uint8_t square, const board *pos) {
+    // Kings are not included in the threat input features, so we return 0 for them.
+    if (piece == K || piece == k) return 0ULL;     
+
+    U64 outgoing_threats = get_piece_attacks(piece, square, pos->occupancies[both]);
+
+    U64 kings = pos->bitboards[K] | pos->bitboards[k];
+
+    kings = ~kings;
+
+    outgoing_threats &= kings;
+
+    outgoing_threats &= pos->occupancies[both];
+    
+    return outgoing_threats;
+}
+
+void remove_piece_threats(int8_t piece, int8_t square, U64 occ) {
     U64 attacks = get_piece_attacks(piece, square, occ);
     
     

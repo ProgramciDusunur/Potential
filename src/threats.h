@@ -1,5 +1,6 @@
 #include "board_constants.h"
 #include "move.h"
+#include <stdint.h>
 
 // Threat Input Features
 #define WHITE_TI_SIZE_PAWN   504
@@ -29,3 +30,6 @@ int8_t get_white_knight_target_id(uint8_t target_piece);
 int8_t get_white_bishop_target_id(uint8_t target_piece);
 int8_t get_white_rook_target_id(uint8_t target_piece);
 int8_t get_white_queen_target_id(uint8_t target_piece);
+
+
+U64 outgoing_threats(uint8_t piece, int square, U64 occ, board *pos);

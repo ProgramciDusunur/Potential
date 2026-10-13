@@ -51,20 +51,12 @@ int main(int argc, char* argv[]) {
     init_threads(1);
 
     init_all();
-    int debug = 0;
+    int debug = 1;
     if (debug) {
         board position;
-        parseFEN(startPosition, &position);                
+        parseFEN("8/1k2K3/8/2N5/4n3/3b4/8/8 w - - 0 1", &position);
 
-        //test_nnue_indicies(&position);
-
-        board position2;
-        parseFEN(kiwipete, &position2);
-        
-        int startpos_eval = nnue_evaluate_pos(&position);
-        int kiwipete_eval = nnue_evaluate_pos(&position2);
-        printf("NNUE evaluation of startpos: %d\n", startpos_eval);
-        printf("NNUE evaluation of kiwipete: %d\n", kiwipete_eval);
+        outgoing_threats(N, c5, position.occupancies[both], &position);
         
     } else {
         board *position = (board *)malloc(sizeof(board));
