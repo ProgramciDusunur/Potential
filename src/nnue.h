@@ -7,6 +7,7 @@
 #include "threads.h"
 #include "threats.h"
 #include "threat_geo.h"
+#include "pawn_pawn.h"
 
 /* Quantization Constants */
 
@@ -34,6 +35,7 @@ struct Weights {
     int16_t ftw[INPUT_BUCKETS][12][64][L1];           // (feature weights)
     int16_t ft_threat_weights[THREAT_INPUTS][L1];     // (threat weights)
     int16_t ftb[L1];                                  // (feature bias)
+    int16_t ft_pp_weights[PAWN_PAWN_INPUTS][L1];      // (pawn-pawn weights)
     int8_t  l1w[2 * L1][OUTPUT_BUCKETS * L2];         // (layer 1 weights)
     int32_t l1b[OUTPUT_BUCKETS * L2];                 // (layer 1 bias)
     int32_t l2w[L2][OUTPUT_BUCKETS * L3];             // (layer 2 weights)

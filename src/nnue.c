@@ -291,6 +291,7 @@ static bool nnue_initialized = false;
 
 void init_nnue(void) {
     if (nnue_initialized) return;
+    init_pawn_pawn_masks();
     for (int b = 0; b < OUTPUT_BUCKETS; b++) {
         for (int t = 0; t < 2 * L1 / 4; t++) {
             for (int j = 0; j < L2; j++) {
@@ -601,6 +602,24 @@ static inline void accumulate_threats(const v16u *src, v16u *dst, const int *fea
     }
 }
 
+static inline void accumulate_pawn_pawn(v16u *accum, const int *feats, int count) {
+    for (int tile = 0; tile < HIDDEN_VECS; tile += TILE_VECS) {
+        v16 regs[TILE_VECS];
+
+        for (int k = 0; k < TILE_VECS; k++)
+            regs[k] = accum[tile + k];
+
+        for (int f = 0; f < count; f++) {
+            const v16u *w = (const v16u *)weights->ft_pp_weights[feats[f]];
+            for (int k = 0; k < TILE_VECS; k++)
+                regs[k] += w[tile + k];
+        }
+
+        for (int k = 0; k < TILE_VECS; k++)
+            accum[tile + k] = regs[k];
+    }
+}
+
 void add_all_threat_inputs(const board *pos, const v16u *src_white, const v16u *src_black, v16u *dst_white, v16u *dst_black) {
     int w_feats[256], b_feats[256];
     int w_count = 0, b_count = 0;
@@ -689,6 +708,12 @@ int nnue_evaluate_pos(board *pos) {
     int16_t temp_black[L1] __attribute__((aligned(64)));
 
     add_all_threat_inputs(pos, (const v16u*)pos->accum_white, (const v16u*)pos->accum_black, (v16u*)temp_white, (v16u*)temp_black);
+
+    int w_pp_feats[MAX_ACTIVE_PAWN_PAIRS], b_pp_feats[MAX_ACTIVE_PAWN_PAIRS];
+    int w_pp_count = 0, b_pp_count = 0;
+    get_all_pawn_pawn_features(pos, w_pp_feats, &w_pp_count, b_pp_feats, &b_pp_count);
+    accumulate_pawn_pawn((v16u*)temp_white, w_pp_feats, w_pp_count);
+    accumulate_pawn_pawn((v16u*)temp_black, b_pp_feats, b_pp_count);
 
     const int16_t *accum_stm  = (pos->side == white) ? temp_white : temp_black;
     const int16_t *accum_nstm = (pos->side == white) ? temp_black : temp_white;

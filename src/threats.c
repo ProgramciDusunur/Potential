@@ -1,18 +1,11 @@
 #include "threats.h"
 
 int8_t get_white_pawn_target_id(uint8_t target_piece) {
-    // Friendly Pieces
-    if (target_piece == P) return 0;
-    if (target_piece == N) return 1;
-    if (target_piece == R) return 2;
-
-    // Enemy Pieces
-    if (target_piece == p) return 3;
-    if (target_piece == n) return 4;
-    if (target_piece == r) return 5;
-
-    // Invalid target (Bishop, Queen, King, or empty square)
-    return -1; 
+    if (target_piece == N) return 0;
+    if (target_piece == R) return 1;
+    if (target_piece == n) return 2;
+    if (target_piece == r) return 3;
+    return -1;
 }
 
 int8_t get_white_knight_target_id(uint8_t target_piece) {
