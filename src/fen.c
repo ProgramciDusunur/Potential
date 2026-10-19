@@ -123,6 +123,8 @@ void parseFEN(char *fen, board* position) {
     init_threats(position);
     update_pinned(position);
     reset_finny_table();
+    position->ply = 0;
+    position->threat_ply = 0;
     nnue_refresh_accumulator(position);
     nnue_refresh_threat_accumulator(position);
 }

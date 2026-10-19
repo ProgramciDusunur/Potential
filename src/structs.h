@@ -99,6 +99,7 @@ typedef struct {
     v16u accum_white[HIDDEN_VECS];
     v16u accum_black[HIDDEN_VECS];
 
+    int threat_ply;
     v16u threat_accum_white[maxPly][HIDDEN_VECS];
     v16u threat_accum_black[maxPly][HIDDEN_VECS];
 } board;
@@ -131,6 +132,8 @@ struct copyposition {
 
     int16_t accum_white[HIDDEN_SIZE];
     int16_t accum_black[HIDDEN_SIZE];
+
+    int threat_ply;
 };
 
 // transposition table data structure

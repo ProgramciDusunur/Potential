@@ -1847,6 +1847,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     int totalTime = 0;
     t->pos.rootDepth = 0;
     t->pos.ply = 0;
+    t->pos.threat_ply = 0;
 
     int previousBestMove = 0;
     uint8_t bestMoveStability = 0;
