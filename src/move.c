@@ -9,6 +9,7 @@
 #include "move.h"
 #include "fen.h"
 #include "nnue.h"
+#include "threats.h"
 
 #if __AVX512VBMI2__
 #include <immintrin.h>
@@ -63,9 +64,7 @@ void copyBoard(board *p, struct copyposition *cp) {
     memcpy(cp->accum_white, p->accum_white, sizeof(cp->accum_white));
     memcpy(cp->accum_black, p->accum_black, sizeof(cp->accum_black));
 
-    // NNUE threat accumulators
-    memcpy(cp->threat_accum_white, p->threat_accum_white, sizeof(cp->threat_accum_white));
-    memcpy(cp->threat_accum_black, p->threat_accum_black, sizeof(cp->threat_accum_black));
+    cp->threat_ply = p->threat_ply;
 }
 
 void takeBack(board *p, struct copyposition *cp) {
@@ -92,9 +91,7 @@ void takeBack(board *p, struct copyposition *cp) {
     memcpy(p->accum_white, cp->accum_white, sizeof(p->accum_white));
     memcpy(p->accum_black, cp->accum_black, sizeof(p->accum_black));
 
-    // NNUE threat accumulators
-    memcpy(p->threat_accum_white, cp->threat_accum_white, sizeof(p->threat_accum_white));
-    memcpy(p->threat_accum_black, cp->threat_accum_black, sizeof(p->threat_accum_black));
+    p->threat_ply = cp->threat_ply;
 }
 
 // add move to the move list
@@ -660,6 +657,18 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
     int castling = getMoveCastling(move);
     int piece = position->mailbox[sourceSquare];
     int capturedPiece = position->mailbox[targetSquare];
+
+    bool is_full_refresh = (piece == K || piece == k || castling || enpass);
+    U64 discoveryMask = (1ULL << sourceSquare) | (1ULL << targetSquare);
+
+    int prev_threat_ply = position->threat_ply;
+    position->threat_ply++;
+    int cur_threat_ply = position->threat_ply;
+
+    ThreatUpdates threat_updates;
+    if (!is_full_refresh) {
+        init_threat_updates(&threat_updates);
+    }
    
     // increment fifty move rule counter
     position->fifty++;
@@ -668,40 +677,38 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
         position->fifty = 0; // reset fifty move rule counter
     }
 
-    // handling capture moves
-    if (capture && !enpass) {
-        assert(capturedPiece != NO_PIECE);
+    // stage 1: remove piece from source square
+    if (!is_full_refresh) {
+        update_piece_threats_buffer(&threat_updates, position, piece, sourceSquare,
+                                    false, true, discoveryMask, -1);
+    }
+    removePiece(position, piece, sourceSquare);
 
-        // reset fifty move rule counter
+    // stage 2: remove captured piece
+    if (enpass) {
+        position->fifty = 0;
+        int ep_sq = position->side == white ? targetSquare + 8 : targetSquare - 8;
+        int ep_victim = position->side == white ? p : P;
+        removePiece(position, ep_victim, ep_sq);
+    } else if (capture) {
+        assert(capturedPiece != NO_PIECE);
         position->fifty = 0;
 
+        if (!is_full_refresh) {
+            update_piece_threats_buffer(&threat_updates, position, capturedPiece, targetSquare,
+                                        false, false, 0ULL, sourceSquare);
+        }
         removePiece(position, capturedPiece, targetSquare);
     }
 
-    // move piece
-    removePiece(position, piece, sourceSquare);
-    addPiece(position, piece, targetSquare);
+    // stage 3: place piece on target square
+    int placed_piece = promote ? promotedPiece : piece;
+    addPiece(position, placed_piece, targetSquare);
 
-    // handle enpassant captures
-    if (enpass) {
-        // reset fifty move rule counter
-        position->fifty = 0;
-
-        if (position->side == white) {
-            removePiece(position, p, targetSquare + 8);
-        } else {
-            removePiece(position, P, targetSquare - 8);
-        }
-    }
-
-    // handle pawn promotions
-    if (promote) {
-        if (position->side == white) {
-            removePiece(position, P, targetSquare);
-        } else {
-            removePiece(position, p, targetSquare);
-        }
-        addPiece(position, promotedPiece, targetSquare);
+    if (!is_full_refresh) {
+        bool block_rays = !capture;
+        update_piece_threats_buffer(&threat_updates, position, placed_piece, targetSquare,
+                                    true, block_rays, discoveryMask, -1);
     }
 
     // hash enpassant if available (remove enpassant square from hash key )
@@ -798,6 +805,13 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
             int king_side = piece == K ? white : black;
             nnue_update_finny(t, position, king_side);
         }
+    }
+
+    // Commit threat updates
+    if (is_full_refresh) {
+        nnue_refresh_threat_accumulator(position);
+    } else {
+        apply_threat_updates(position, prev_threat_ply, cur_threat_ply, &threat_updates);
     }
 }
 

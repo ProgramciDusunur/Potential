@@ -16,6 +16,7 @@
 #include "spsa.h"
 #include "nnue.h"
 #include "cuckoo.h"
+#include "threats.h"
 
 
 
@@ -42,6 +43,7 @@ void init_all(void) {
     spsa_init();
     cuckoo_init();
     init_threat_geometry();
+    init_threat_sliders();
     init_nnue();
 }
 
@@ -51,20 +53,11 @@ int main(int argc, char* argv[]) {
     init_threads(1);
 
     init_all();
-    int debug = 1;
-    if (debug) {
-        board position;
-        parseFEN("8/1k2K3/8/2N5/4n3/3b4/8/8 w - - 0 1", &position);
+    board *position = (board *)malloc(sizeof(board));
+    my_time *time_ctrl = (my_time *)malloc(sizeof(my_time));
 
-        outgoing_threats(N, c5, position.occupancies[both], &position);
-        
-    } else {
-        board *position = (board *)malloc(sizeof(board));
-        my_time *time_ctrl = (my_time *)malloc(sizeof(my_time));
-
-        uciProtocol(argc, argv, position, time_ctrl);
-        free(position);
-        free(time_ctrl);
-    }
+    uciProtocol(argc, argv, position, time_ctrl);
+    free(position);
+    free(time_ctrl);
     return 0;
 }

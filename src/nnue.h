@@ -54,9 +54,12 @@ int nnue_evaluate_pos(board *pos);
 void test_nnue_indicies(board *pos);
 void add_all_threat_inputs(const board *pos, const v16u *src_white, const v16u *src_black, v16u *dst_white, v16u *dst_black);
 
+extern const struct Weights *const weights;
+
 void nnue_add_feature(board *pos, int piece, int square);
 void nnue_remove_feature(board *pos, int piece, int square);
 void nnue_refresh_accumulator(board *pos);
+void nnue_refresh_threat_accumulator(board *pos);
 
 
 void nnue_update_add_sub(board *pos, int add_piece, int add_sq, int sub_piece, int sub_sq);

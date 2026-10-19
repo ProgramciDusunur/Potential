@@ -1845,9 +1845,13 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     int beta = infinity;
 
     int totalTime = 0;
-    // set root depth
     t->pos.rootDepth = 0;
     t->pos.ply = 0;
+    if (t->pos.threat_ply != 0) {
+        memcpy(t->pos.threat_accum_white[0], t->pos.threat_accum_white[t->pos.threat_ply], sizeof(v16u) * HIDDEN_VECS);
+        memcpy(t->pos.threat_accum_black[0], t->pos.threat_accum_black[t->pos.threat_ply], sizeof(v16u) * HIDDEN_VECS);
+        t->pos.threat_ply = 0;
+    }
 
     int previousBestMove = 0;
     uint8_t bestMoveStability = 0;
