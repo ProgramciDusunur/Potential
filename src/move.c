@@ -63,8 +63,6 @@ void copyBoard(board *p, struct copyposition *cp) {
     // NNUE PSQT accumulators
     memcpy(cp->accum_white, p->accum_white, sizeof(cp->accum_white));
     memcpy(cp->accum_black, p->accum_black, sizeof(cp->accum_black));
-
-    cp->threat_ply = p->threat_ply;
 }
 
 void takeBack(board *p, struct copyposition *cp) {
@@ -90,8 +88,6 @@ void takeBack(board *p, struct copyposition *cp) {
     // NNUE PSQT accumulators
     memcpy(p->accum_white, cp->accum_white, sizeof(p->accum_white));
     memcpy(p->accum_black, cp->accum_black, sizeof(p->accum_black));
-
-    p->threat_ply = cp->threat_ply;
 }
 
 // add move to the move list
@@ -661,9 +657,8 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
     bool is_full_refresh = (piece == K || piece == k || castling || enpass);
     U64 discoveryMask = (1ULL << sourceSquare) | (1ULL << targetSquare);
 
-    int prev_threat_ply = position->threat_ply;
-    position->threat_ply++;
-    int cur_threat_ply = position->threat_ply;
+    int cur_ply = position->ply < maxPly ? position->ply : maxPly - 1;
+    int prev_ply = cur_ply > 0 ? cur_ply - 1 : 0;
 
     ThreatUpdates threat_updates;
     if (!is_full_refresh) {
@@ -811,7 +806,7 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
     if (is_full_refresh) {
         nnue_refresh_threat_accumulator(position);
     } else {
-        apply_threat_updates(position, prev_threat_ply, cur_threat_ply, &threat_updates);
+        apply_threat_updates(position, prev_ply, cur_ply, &threat_updates);
     }
 }
 

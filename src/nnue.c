@@ -696,16 +696,18 @@ void add_all_threat_inputs(const board *pos, const v16u *src_white, const v16u *
 
 void nnue_refresh_threat_accumulator(board *pos) {
     static const v16u zero[HIDDEN_VECS] = {0};
+    int ply = pos->ply < maxPly ? pos->ply : maxPly - 1;
     add_all_threat_inputs(pos, zero, zero,
-                          (v16u *)pos->threat_accum_white[pos->threat_ply],
-                          (v16u *)pos->threat_accum_black[pos->threat_ply]);
+                          (v16u *)pos->threat_accum_white[ply],
+                          (v16u *)pos->threat_accum_black[ply]);
 }
 
 int nnue_evaluate_pos(board *pos) {
+    int ply = pos->ply < maxPly ? pos->ply : maxPly - 1;
     const int16_t *stm_h  = (const int16_t *)((pos->side == white) ? pos->accum_white : pos->accum_black);
-    const int16_t *stm_t  = (const int16_t *)((pos->side == white) ? pos->threat_accum_white[pos->threat_ply] : pos->threat_accum_black[pos->threat_ply]);
+    const int16_t *stm_t  = (const int16_t *)((pos->side == white) ? pos->threat_accum_white[ply] : pos->threat_accum_black[ply]);
     const int16_t *nstm_h = (const int16_t *)((pos->side == white) ? pos->accum_black : pos->accum_white);
-    const int16_t *nstm_t = (const int16_t *)((pos->side == white) ? pos->threat_accum_black[pos->threat_ply] : pos->threat_accum_white[pos->threat_ply]);
+    const int16_t *nstm_t = (const int16_t *)((pos->side == white) ? pos->threat_accum_black[ply] : pos->threat_accum_white[ply]);
 
     int piece_count = countBits(pos->occupancies[both]);
     int out_bucket = (piece_count - 2) / 4;
