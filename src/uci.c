@@ -17,8 +17,8 @@
 #include <sys/types.h>
 #endif
 
-#define VERSION "4.31.16"
-#define BENCH_DEPTH 11
+#define VERSION "4.30.15"
+#define BENCH_DEPTH 10
 #define MAX_THREADS 512
 
 #define STR_HELPER(x) #x
