@@ -167,6 +167,8 @@
   TUNE_INT QUIET_HISTORY_PRUNING_MARGIN = 1960;
   TUNE_INT FP_HIST_MULT = 516;
   TUNE_INT FP_HIST_DIVISOR = 13231;
+  TUNE_INT BNFP_HIST_MULT = 512;
+  TUNE_INT BNFP_HIST_DIVISOR = 1288;
   
   
   /*╔══════════════════════════════╗
@@ -1373,7 +1375,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
             else {
                 int sdepth = myMAX(0, depth - 4);
                 int noisy_futility_margin = static_eval + BNFP_MARGIN * depth +
-                    (BNFP_QUAD_MULT * sdepth * sdepth) / BNFP_QUAD_DIVISOR;
+                    (BNFP_QUAD_MULT * sdepth * sdepth) / BNFP_QUAD_DIVISOR +
+                     (moveHistory * BNFP_HIST_MULT) / BNFP_HIST_DIVISOR;
 
                 if (!in_check && depth <= 8 && mp.CURRENT_STAGE == STAGE_BAD_NOISY && noisy_futility_margin <= alpha) {
                     if (!is_decisive(bestScore) && bestScore < noisy_futility_margin) {
