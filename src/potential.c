@@ -53,11 +53,42 @@ int main(int argc, char* argv[]) {
     init_threads(1);
 
     init_all();
-    board *position = (board *)malloc(sizeof(board));
-    my_time *time_ctrl = (my_time *)malloc(sizeof(my_time));
 
-    uciProtocol(argc, argv, position, time_ctrl);
-    free(position);
-    free(time_ctrl);
+    int debug = 1;
+    if (debug) {
+        char *file_name = "C:\\Users\\erena\\Desktop\\viriformat-training\\combined-multilayer-60m-games.vf_sanitised";
+        FILE *f = fopen(file_name, "rb");
+
+        if (f == NULL) {
+            printf("Error opening file: %s\n", file_name);
+            return 1;
+        } else {
+            char buffer[1024];
+            int line_number = 0;
+            while (fread(buffer, sizeof(buffer), 1, f) == 1) {
+                size_t bytes_read = ftell(f) - (ftell(f) % sizeof(buffer)) / sizeof(buffer) * sizeof(buffer);
+                for (size_t i = 0; i < bytes_read; i++) {
+                    printf("%02X ", (unsigned char)buffer[i]);
+                }
+                printf("\n");
+                line_number++;
+                if (line_number == 3) {
+                    break;
+                }
+            }
+
+            fclose(f);
+        }
+    } 
+    else {
+        board *position = (board *)malloc(sizeof(board));
+        my_time *time_ctrl = (my_time *)malloc(sizeof(my_time));
+
+        uciProtocol(argc, argv, position, time_ctrl);
+        free(position);
+        free(time_ctrl);
+    }
+
+    
     return 0;
 }
