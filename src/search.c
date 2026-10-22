@@ -51,7 +51,6 @@
   /*╔═══════════════════════╗
     ║ Null Move Pruning     ║
     ╚═══════════════════════╝*/
-  TUNE_INT NMP_DEPTH = 3;  
   TUNE_INT NMP_BASE_REDUCTION = 5060;
   TUNE_INT NMP_DEPTH_MULTIPLIER = 268;
   TUNE_INT NMP_REDUCTION_DEPTH_MULT = 8804;
@@ -1087,7 +1086,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         return (ttAdjustedEval + beta) / 2;
 
     // Null Move Pruning
-    if (!ss->singular_move && depth >= NMP_DEPTH && !in_check && !rootNode &&
+    if (!ss->singular_move && !in_check && !rootNode &&
             ttAdjustedEval >= beta + NMP_EVAL_BETA_MARGIN &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos) &&
