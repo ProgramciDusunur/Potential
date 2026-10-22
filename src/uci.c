@@ -188,7 +188,6 @@ void parse_position(char *command, board* position) {
 }
 
 
-
 void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time) {
 
     // reset time control
