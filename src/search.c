@@ -1157,7 +1157,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 return score;
             }
                 
-            pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
+            pos->nmpPly = pos->ply + (depth - R) * 2 / 3;
             int verificationScore = -negamax(beta - 1, beta, depth - R, t, time, ss, false);
             pos->nmpPly = 0;
 
