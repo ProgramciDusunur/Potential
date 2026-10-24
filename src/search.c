@@ -113,6 +113,7 @@
   TUNE_INT CONTHIST_4_WEIGHT = 1062;
   TUNE_INT CONTHIST_6_WEIGHT = 1024;
   TUNE_INT CONTHIST_8_WEIGHT = 1024;
+  TUNE_INT CONTHIST_10_WEIGHT = 1024;
   TUNE_INT PAWN_HIST_WEIGHT = 1145;
   TUNE_INT MAIN_HIST_DIVISOR = 1157;
   TUNE_INT CONTHIST_1_DIVISOR = 1228;
@@ -120,6 +121,7 @@
   TUNE_INT CONTHIST_4_DIVISOR = 1154;
   TUNE_INT CONTHIST_6_DIVISOR = 1280;
   TUNE_INT CONTHIST_8_DIVISOR = 1280;
+  TUNE_INT CONTHIST_10_DIVISOR = 1280;
   TUNE_INT PAWN_HIST_DIVISOR = 1066;
   
   
@@ -473,6 +475,8 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         quiet_score += (getContinuationHistoryScore(t, 6, move, ss) * CONTHIST_6_WEIGHT) / CONTHIST_6_DIVISOR;
         // 8 ply continuation history
         quiet_score += (getContinuationHistoryScore(t, 8, move, ss) * CONTHIST_8_WEIGHT) / CONTHIST_8_DIVISOR;
+        // 10 ply continuation history
+        quiet_score += (getContinuationHistoryScore(t, 10, move, ss) * CONTHIST_10_WEIGHT) / CONTHIST_10_DIVISOR;
         // pawn history
         quiet_score += (t->shared_history->pawnHistory[t->pos.pawnKey & t->shared_history->pawn_history_mask][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] * PAWN_HIST_WEIGHT) / PAWN_HIST_DIVISOR;
         // NMP refutation move

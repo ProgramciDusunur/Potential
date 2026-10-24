@@ -125,7 +125,8 @@ int getAllCHScore(ThreadData *t, uint16_t move, int quiet_hist_score, SearchStac
            getContinuationHistoryScore(t, 2, move, ss) +
            getContinuationHistoryScore(t, 4, move, ss) +
            getContinuationHistoryScore(t, 6, move, ss) +
-           getContinuationHistoryScore(t, 8, move, ss);
+           getContinuationHistoryScore(t, 8, move, ss) +
+           getContinuationHistoryScore(t, 10, move, ss);
 }
 
 int getContinuationHistoryScore(ThreadData *t, int offSet, uint16_t move, SearchStack *ss) {
@@ -150,6 +151,7 @@ void updateAllCH(ThreadData *t, uint16_t move, int bonus, int quiet_hist_score, 
     updateSingleCHScore(t, move, 4, bonus, quiet_hist_score, ss);
     updateSingleCHScore(t, move, 6, bonus, quiet_hist_score, ss);
     updateSingleCHScore(t, move, 8, bonus, quiet_hist_score, ss);
+    updateSingleCHScore(t, move, 10, bonus, quiet_hist_score, ss);
 }
 
 void updateContinuationHistory(ThreadData *t, uint16_t bestMove, int bonus, int malus, moves *badQuiets, int quiet_hist_score, SearchStack *ss) {
