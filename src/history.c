@@ -54,6 +54,12 @@ void adjust_single_quiet_hist_entry(ThreadData *t, int side, uint16_t move, int 
     t->search_d.quietHistory[side][from][to][threatSource][threatTarget] += bonus;
 }
 
+void adjust_single_pawn_hist_entry(ThreadData *t, int piece, uint16_t move, int bonus) {
+    int to = getMoveTarget(move);
+    int mask = t->shared_history->pawn_history_mask;
+    t->shared_history->pawnHistory[t->pos.pawnKey & mask][piece][to] += bonus;
+}
+
 void updateQuietMoveHistory(ThreadData *t, uint16_t bestMove, int side, int bonus, int malus, moves *badQuiets) {
     int from = getMoveSource(bestMove);
     int to = getMoveTarget(bestMove);
