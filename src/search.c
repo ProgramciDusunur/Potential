@@ -168,6 +168,7 @@
   TUNE_INT BNFP_QUAD_MULT = 50779;
   TUNE_INT BNFP_QUAD_DIVISOR = 1012;
   TUNE_INT QUIET_HISTORY_PRUNING_MARGIN = 1960;
+  TUNE_INT CONTINUATION_HISTORY_PRUNING_MARGIN = 2048;
   TUNE_INT FP_HIST_MULT = 516;
   TUNE_INT FP_HIST_DIVISOR = 13231;
   
@@ -1339,6 +1340,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         int pawnHistoryValue = 0;
         int moveHistory = 0;
+        int conthist_score = 0;
 
         if (notTactical) {
             moveHistory = t->search_d.quietHistory[pos->side][source_square][target_square]
@@ -1347,6 +1349,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                           getContinuationHistoryScore(t, 4, currentMove, ss);
             
             pawnHistoryValue = t->shared_history->pawnHistory[pos->pawnKey & t->shared_history->pawn_history_mask][piece][target_square];
+            conthist_score = getContinuationHistoryScore(t, 2, currentMove, ss);
         } else {
             moveHistory = t->search_d.captureHistory[piece][target_square][pos->mailbox[target_square]];
         }        
@@ -1369,6 +1372,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 if (moves_seen >= lmpThreshold) {
                     continue;
                 }
+                
                 int sdepth = myMAX(0, lmrDepth - 5);
                 int futility_margin = 
                     static_eval + 
@@ -1382,8 +1386,14 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 if (lmrDepth <= FP_DEPTH && !in_check && futility_margin <= alpha) {
                     continue;
                 }
+
                 // Quiet History Pruning
                 if (lmrDepth <= 4 && !in_check && moveHistory < lmrDepth * lmrDepth * -QUIET_HISTORY_PRUNING_MARGIN) {
+                    break;
+                }
+
+                // Continuation History Pruning
+                if (depth <= 4 && !in_check && conthist_score < depth * depth * -CONTINUATION_HISTORY_PRUNING_MARGIN) {
                     break;
                 }
             } 
