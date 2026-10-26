@@ -1280,7 +1280,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // Small Probcut
     if (!ss->singular_move && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
         tt_score >= small_probcut_beta && abs(tt_score) < mateValue && abs(beta) < mateValue) {
-            return small_probcut_beta;            
+            return small_probcut_beta;
     }
 
     bool enemy_has_no_threats = !has_enemy_any_threat(pos);    
@@ -1333,12 +1333,23 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         bool notTactical = !tactical;
         bool gives_check = move_gives_check(currentMove, pos, &check_info);
 
-        int pawnHistoryValue = notTactical ? t->shared_history->pawnHistory[pos->pawnKey & t->shared_history->pawn_history_mask][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
+        int source_square = getMoveSource(currentMove);
+        int target_square = getMoveTarget(currentMove);
+        int piece = pos->mailbox[source_square];
 
-        int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(t, 1, currentMove, ss) + getContinuationHistoryScore(t, 4, currentMove, ss): 
-                t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+        int pawnHistoryValue = 0;
+        int moveHistory = 0;
+
+        if (notTactical) {
+            moveHistory = t->search_d.quietHistory[pos->side][source_square][target_square]
+                          [is_square_threatened(pos, source_square)][is_square_threatened(pos, target_square)] +
+                          getContinuationHistoryScore(t, 1, currentMove, ss) + 
+                          getContinuationHistoryScore(t, 4, currentMove, ss);
+            
+            pawnHistoryValue = t->shared_history->pawnHistory[pos->pawnKey & t->shared_history->pawn_history_mask][piece][target_square];
+        } else {
+            moveHistory = t->search_d.captureHistory[piece][target_square][pos->mailbox[target_square]];
+        }        
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, moves_seen, notTactical) + ((moveHistory * LMR_DEPTH_HIST_MULT) / LMR_DEPTH_HIST_DIVISOR * notTactical));
 
