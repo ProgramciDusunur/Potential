@@ -74,7 +74,8 @@
   TUNE_DOUBLE LMR_TABLE_QUIET_MULT = 133.3398697526084;
   TUNE_INT LMR_FULL_DEPTH_MOVES = 2;
   TUNE_INT LMR_REDUCTION_LIMIT = 3;
-  TUNE_INT DEEPER_LMR_MARGIN = 35;  
+  TUNE_INT DEEPER_LMR_MARGIN = 35;
+  TUNE_INT EVEN_DEEPER_LMR_MARGIN = 200;
   TUNE_INT QUIET_HISTORY_LMR_MULT = 1312;
   TUNE_INT QUIET_HISTORY_LMR_DIVISOR = 7417720;
   TUNE_INT QUIET_HISTORY_LMR_MINIMUM_SCALAR = 3412;
@@ -1649,10 +1650,12 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
             if (score > alpha && lmrReduction != 0) {
                 bool doDeeper = score > bestScore + DEEPER_LMR_MARGIN;
+                bool evenDeeper = score > bestScore + EVEN_DEEPER_LMR_MARGIN;
                 bool historyReduction = notTactical ? (moveHistory * HISTORY_RED_MULT) / HISTORY_RED_DIVISOR : 0;
                 bool doShallower = score < bestScore + new_depth;
                 new_depth -= doShallower;
                 new_depth += doDeeper;
+                new_depth += evenDeeper;
                 new_depth -= historyReduction;
                 score = -negamax(-alpha - 1, -alpha, new_depth, t, time, ss + 1, !predicted_cut_node);
             }
