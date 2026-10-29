@@ -72,6 +72,11 @@ void init_threat_sliders(void) {
     }
 }
 
+U64 closest_occupied(U64 occupied) {
+    U64 o = occupied | 0x8181818181818181ULL;
+    return (o ^ (o - 0x0303030303030303ULL)) & occupied;
+}
+
 void update_piece_threats_buffer(ThreatUpdates *u, board *pos, int piece, int sq,
                                  bool is_add, bool discovery, U64 discoveryMask,
                                  int blocked_sq) {

@@ -44,6 +44,7 @@ static inline void init_threat_updates(ThreatUpdates *u) {
     u->num_black_subs = 0;
 }
 
+U64 closest_occupied(U64 occupied);
 int get_threat_feature(int side, int attacker, int target, int from_sq, int to_sq, int ksq);
 
 void record_threat_pair(ThreatUpdates *u, int attacker, int target, int from_sq, int to_sq,
