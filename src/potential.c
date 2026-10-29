@@ -45,6 +45,7 @@ void init_all(void) {
     init_threat_geometry();
     init_threat_sliders();
     init_nnue();
+    
 }
 
 
