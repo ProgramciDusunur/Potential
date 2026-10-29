@@ -1894,7 +1894,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
 
         int startTime = getTimeMiliSecond();        
 
-        int window = ASP_WINDOW_BASE / ASP_WINDOW_DIVISOR;
+        int window = ASP_WINDOW_BASE / ASP_WINDOW_DIVISOR + t->id % 8;
         int aspirationWindowDepth = current_depth;
 
         // Save the PV from the previous iteration for use in bound info
