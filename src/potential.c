@@ -35,7 +35,7 @@ void init_all(void) {
     // init Late Move Reduction Table
     init_lmr_table();
     // init tranposition table
-    init_hash_table(64);
+    init_hash_table(1);
     init_tables();
     init_helper_bb();
     init_king_anti_diag_mask();
