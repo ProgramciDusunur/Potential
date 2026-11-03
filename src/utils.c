@@ -173,7 +173,7 @@ bool is_decisive(int score) {
   return abs(score) > mateValue;
 }
 
-void print_info(ThreadData *t, int depth, int score, int totalTime, int bound) {
+void print_search_info(ThreadData *t, int depth, int score, int totalTime, int bound) {
     uint64_t nodes = total_nodes();
     unsigned long long nps = (totalTime > 0) ? (nodes * 1000) / totalTime : 0;
 
@@ -202,6 +202,8 @@ void print_info(ThreadData *t, int depth, int score, int totalTime, int bound) {
     }
     printf("\n");
 }
+
+//void print_uci_info
 
 uint32_t next_power_of_2(uint32_t x) {
     x--;

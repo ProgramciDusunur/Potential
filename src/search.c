@@ -1953,7 +1953,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                 if (t->id == 0 && !benchmark && !time->stopped && !uci_minimal) {
                     int endTime = getTimeMiliSecond();
                     int elapsed = totalTime + (endTime - startTime);
-                    if (time->time > 8000 || time->time == -1) print_info(t, current_depth, score, elapsed, 2);
+                    if (time->time > 8000 || time->time == -1) print_search_info(t, current_depth, score, elapsed, 2);
                 }
                 alpha = myMAX(-infinity, alpha - window);
                 aspirationWindowDepth = current_depth;
@@ -1969,7 +1969,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
                 if (t->id == 0 && !benchmark && !time->stopped && !uci_minimal) {
                     int endTime = getTimeMiliSecond();
                     int elapsed = totalTime + (endTime - startTime);
-                    if (time->time > 8000 || time->time == -1) print_info(t, current_depth, score, elapsed, 1);
+                    if (time->time > 8000 || time->time == -1) print_search_info(t, current_depth, score, elapsed, 1);
                 }
                 int exceed = score - beta;
 
@@ -2024,7 +2024,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         totalTime += endTime - startTime;
 
         if (t->id == 0 && t->pos.pvLength[0] && !benchmark && !time->stopped && !uci_minimal) {
-            print_info(t, current_depth, score, totalTime, 0);
+            print_search_info(t, current_depth, score, totalTime, 0);
         }
 
     }
@@ -2033,13 +2033,14 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         ThreadData *bt = thread_pool.threads[best_thread];
 
         if (best_thread != 0 || uci_minimal) {            
-            print_info(bt, myMAX(1, bt->search_i.depthCompleted), bt->search_i.score, totalTime, 0);
+            print_search_info(bt, myMAX(1, bt->search_i.depthCompleted), bt->search_i.score, totalTime, 0);
         }
 
         // best move from the best thread
         printf("bestmove ");
         printMove(bt->pos.pvTable[0][0]);
         printf("\n");
+        flush(stdout);
     }
     return score;
 }
