@@ -2040,7 +2040,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
         printf("bestmove ");
         printMove(bt->pos.pvTable[0][0]);
         printf("\n");
-        flush(stdout);
+        fflush(stdout);
     }
     return score;
 }
