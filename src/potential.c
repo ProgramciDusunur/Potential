@@ -63,20 +63,25 @@ int main(int argc, char* argv[]) {
             printf("Error opening file: %s\n", file_name);
             return 1;
         } else {
-            char buffer[1024];
+            uint32_t BUFFER_SIZE = 4 * 1024 * 1024; // 16 MB
+            uint32_t *buffer = (uint32_t *)malloc(BUFFER_SIZE * sizeof(uint32_t));
             int line_number = 0;
-            while (fread(buffer, sizeof(buffer), 1, f) == 1) {
-                size_t bytes_read = ftell(f) - (ftell(f) % sizeof(buffer)) / sizeof(buffer) * sizeof(buffer);
-                for (size_t i = 0; i < bytes_read; i++) {
-                    printf("%02X ", (unsigned char)buffer[i]);
+            size_t number_of_items_read;
+            while ((number_of_items_read = fread(buffer, sizeof(uint32_t), BUFFER_SIZE, f)) > 0) {
+                for (size_t i = 0; i < number_of_items_read; i++) {
+                    printf("buffer[%zu] = %02X %02X %02X %02X\n", i,
+                    (buffer[i] & 0xFF),
+                    ((buffer[i] >> 8) & 0xFF),
+                    ((buffer[i] >> 16) & 0xFF),
+                    ((buffer[i] >> 24) & 0xFF));
+                    if (i == 7) {
+                        break;
+                    }
                 }
-                printf("\n");
-                line_number++;
-                if (line_number == 3) {
-                    break;
-                }
+                
             }
 
+            free(buffer);
             fclose(f);
         }
     } 
