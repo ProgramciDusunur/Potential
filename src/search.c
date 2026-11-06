@@ -1353,6 +1353,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, moves_seen, notTactical) + ((moveHistory * LMR_DEPTH_HIST_MULT) / LMR_DEPTH_HIST_DIVISOR * notTactical));
 
+        // increase reduction for tt pv nodes
+        if (tt_pv) {
+            lmrDepth -= 1;
+        }
+
         bool isNotMated = bestScore > -mateFound;
 
         if (!rootNode && isNotMated && !gives_check) {
