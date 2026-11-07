@@ -918,7 +918,11 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
                 break;
             }
         }
-    }    
+    }
+
+    if (!is_decisive(bestScore)) {
+        bestScore = (bestScore + beta) / 2;
+    }
 
     uint8_t hashFlag = hashFlagNone;
     if (alpha >= beta) {
