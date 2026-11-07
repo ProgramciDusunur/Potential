@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 
     int debug = 1;
     if (debug) {
-        char *file_name = "C:\\Users\\erena\\Desktop\\viriformat-training\\combined-multilayer-60m-games.vf_sanitised";
+        char *file_name = "C:\\Users\\erena\\Desktop\\viriformat-training\\combined-multilayer-60m-ti-15m-games.vf";
         FILE *f = fopen(file_name, "rb");
 
         if (f == NULL) {
