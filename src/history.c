@@ -121,11 +121,13 @@ void updateCaptureHistoryMalus(ThreadData *t, int bonus, moves *noisyMoves, uint
 }
 
 int getAllCHScore(ThreadData *t, uint16_t move, int quiet_hist_score, SearchStack *ss) {
-    return (getContinuationHistoryScore(t, 1, move, ss) + quiet_hist_score) / 2 +
-           getContinuationHistoryScore(t, 2, move, ss) +
-           getContinuationHistoryScore(t, 4, move, ss) +
-           getContinuationHistoryScore(t, 6, move, ss) +
-           getContinuationHistoryScore(t, 8, move, ss);
+    int one_ply_score   = ((getContinuationHistoryScore(t, 1, move, ss) * 1024 / 1024) + quiet_hist_score) / 2;
+    int two_ply_score   = (getContinuationHistoryScore(t, 2, move, ss) * 922) / 1024;
+    int four_ply_score  = (getContinuationHistoryScore(t, 4, move, ss) * 829) / 1024;
+    int six_ply_score   = (getContinuationHistoryScore(t, 6, move, ss) * 746) / 1024;
+    int eight_ply_score = (getContinuationHistoryScore(t, 8, move, ss) * 672) / 1024;
+
+    return one_ply_score + two_ply_score + four_ply_score + six_ply_score + eight_ply_score;
 }
 
 int getContinuationHistoryScore(ThreadData *t, int offSet, uint16_t move, SearchStack *ss) {
