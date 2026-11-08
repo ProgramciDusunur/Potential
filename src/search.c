@@ -1445,7 +1445,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 doubleMargin += tactical * 40;*/
 
                 int doubleMargin = DOUBLE_EXTENSION_MARGIN;
-                if (!pvNode && singularScore <= singularBeta - doubleMargin) {
+                doubleMargin += pvNode * 100;
+                if (singularScore <= singularBeta - doubleMargin) {
                     extensions++;
                 }                
 
