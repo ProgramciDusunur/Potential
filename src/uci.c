@@ -248,23 +248,21 @@ void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time) {
 
 
 
-    // if move time is not available
-    if (time->movetime != -1) {
-        // set time equal to move time
-        time->time = time->movetime;
-
-        // set moves to go to 1
-        time->movestogo = 1;
-    }
-
     // init start time
     time->starttime = getTimeMiliSecond();
 
     // init search depth
     //depth = depth;
 
-    // if time control is available
-    if (time->time != -1) {
+    // if move time is available
+    if (time->movetime != -1) {
+        time->timeset = 1;
+        time->time = myMAX(1, time->movetime - myMIN(time->movetime / 2, move_overhead));
+        time->maxTime = time->time;
+        time->baseSoft = time->time;
+        time->hardLimit = time->starttime + time->time;
+        time->softLimit = time->starttime + time->time;
+    } else if (time->time != -1) {
         // flag we're playing with time control
         time->timeset = 1;
 
