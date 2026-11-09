@@ -24,8 +24,8 @@ endif
 CFLAGS += -DCOMMIT_SHA=$(COMMIT_SHA)
 NAME        := Potential
 
-NET_TAG  := pawn-pawn-inputs
-NET      := potential-384hl-tipp.bin
+NET_TAG  := pp-2
+NET      := potential-384hl-pp-ti-2.bin
 NET_URL  := https://github.com/ProgramciDusunur/Potential-nets/releases/download/$(NET_TAG)/$(NET)
 EVALFILE ?= $(NET)
 

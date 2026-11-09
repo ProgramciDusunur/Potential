@@ -51,7 +51,6 @@
   /*╔═══════════════════════╗
     ║ Null Move Pruning     ║
     ╚═══════════════════════╝*/
-  TUNE_INT NMP_DEPTH = 3;  
   TUNE_INT NMP_BASE_REDUCTION = 5060;
   TUNE_INT NMP_DEPTH_MULTIPLIER = 268;
   TUNE_INT NMP_REDUCTION_DEPTH_MULT = 8804;
@@ -112,11 +111,15 @@
   TUNE_INT CONTHIST_1_WEIGHT = 944;
   TUNE_INT CONTHIST_2_WEIGHT = 999;
   TUNE_INT CONTHIST_4_WEIGHT = 1062;
+  TUNE_INT CONTHIST_6_WEIGHT = 1024;
+  TUNE_INT CONTHIST_8_WEIGHT = 1024;
   TUNE_INT PAWN_HIST_WEIGHT = 1145;
   TUNE_INT MAIN_HIST_DIVISOR = 1157;
   TUNE_INT CONTHIST_1_DIVISOR = 1228;
   TUNE_INT CONTHIST_2_DIVISOR = 884;
   TUNE_INT CONTHIST_4_DIVISOR = 1154;
+  TUNE_INT CONTHIST_6_DIVISOR = 1280;
+  TUNE_INT CONTHIST_8_DIVISOR = 1280;
   TUNE_INT PAWN_HIST_DIVISOR = 1066;
   
   
@@ -135,7 +138,7 @@
   ╚═════════════╝*/
   TUNE_INT PROBCUT_BETA_MARGIN = 182;
   TUNE_INT PROBCUT_DEPTH = 5;
-  TUNE_INT PROBCUT_DEPTH_SUBTRACTOR = 4;
+  TUNE_INT PROBCUT_DEPTH_SUBTRACTOR = 2;
   TUNE_INT PROBCUT_IMPROVING_MARGIN = 35;
   TUNE_INT PROBCUT_SEE_NOISY_THRESHOLD = 114;
   TUNE_INT PROBCUT_NOISY_HIST_MULT = 90;
@@ -144,7 +147,7 @@
   TUNE_INT PROBCUT_CUTNODE_SCALAR = 926;
   TUNE_INT PROBCUT_FP_BASE = 181;
   TUNE_INT PROBCUT_FP_MULT = 95;
-
+  TUNE_INT PROBCUT_IMPROVING_DEPTH_SUBTRACTOR = 4;
 
 /*╔═══════════════════╗
   ║   Small Probcut   ║
@@ -466,6 +469,10 @@ int scoreMove(uint16_t move, ThreadData *t, SearchStack *ss) {
         quiet_score += (getContinuationHistoryScore(t, 2, move, ss) * CONTHIST_2_WEIGHT) / CONTHIST_2_DIVISOR;
         // 4 ply continuation history
         quiet_score += (getContinuationHistoryScore(t, 4, move, ss) * CONTHIST_4_WEIGHT) / CONTHIST_4_DIVISOR;
+        // 6 ply continuation history
+        quiet_score += (getContinuationHistoryScore(t, 6, move, ss) * CONTHIST_6_WEIGHT) / CONTHIST_6_DIVISOR;
+        // 8 ply continuation history
+        quiet_score += (getContinuationHistoryScore(t, 8, move, ss) * CONTHIST_8_WEIGHT) / CONTHIST_8_DIVISOR;
         // pawn history
         quiet_score += (t->shared_history->pawnHistory[t->pos.pawnKey & t->shared_history->pawn_history_mask][t->pos.mailbox[getMoveSource(move)]][getMoveTarget(move)] * PAWN_HIST_WEIGHT) / PAWN_HIST_DIVISOR;
         // NMP refutation move
@@ -1087,7 +1094,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         return (ttAdjustedEval + beta) / 2;
 
     // Null Move Pruning
-    if (!ss->singular_move && depth >= NMP_DEPTH && !in_check && !rootNode &&
+    if (!ss->singular_move && !in_check && !rootNode &&
             ttAdjustedEval >= beta + NMP_EVAL_BETA_MARGIN &&
             pos->ply >= pos->nmpPly &&
             !justPawns(pos) &&
@@ -1158,7 +1165,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                 return score;
             }
                 
-            pos->nmpPly = pos->ply + (depth - R) * 2 / 2;
+            pos->nmpPly = pos->ply + (depth - R) * 2 / 3;
             int verificationScore = -negamax(beta - 1, beta, depth - R, t, time, ss, false);
             pos->nmpPly = 0;
 
@@ -1196,7 +1203,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         (!tt_hit || tt_depth + 3 < depth || tt_score >= probcut_beta)) {
             moves capture_promos[1];
             capture_promos->count = 0;
-            int probcut_depth = depth - PROBCUT_DEPTH_SUBTRACTOR;
+            int probcut_depth = depth - (improving ? PROBCUT_IMPROVING_DEPTH_SUBTRACTOR : PROBCUT_DEPTH_SUBTRACTOR);
 
             legal_noisy_generator(capture_promos, pos);
 
@@ -1273,7 +1280,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     // Small Probcut
     if (!ss->singular_move && !pvNode && tt_flag == hashFlagAlpha && tt_depth >= depth - SPROBCUT_TT_DEPTH_SUBTRACTOR &&
         tt_score >= small_probcut_beta && abs(tt_score) < mateValue && abs(beta) < mateValue) {
-            return small_probcut_beta;            
+            return small_probcut_beta;
     }
 
     bool enemy_has_no_threats = !has_enemy_any_threat(pos);    
@@ -1326,12 +1333,23 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         bool notTactical = !tactical;
         bool gives_check = move_gives_check(currentMove, pos, &check_info);
 
-        int pawnHistoryValue = notTactical ? t->shared_history->pawnHistory[pos->pawnKey & t->shared_history->pawn_history_mask][pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)] : 0;
+        int source_square = getMoveSource(currentMove);
+        int target_square = getMoveTarget(currentMove);
+        int piece = pos->mailbox[source_square];
 
-        int moveHistory = notTactical ? t->search_d.quietHistory[pos->side][getMoveSource(currentMove)][getMoveTarget(currentMove)]
-                                        [is_square_threatened(pos, getMoveSource(currentMove))][is_square_threatened(pos, getMoveTarget(currentMove))] +
-                getContinuationHistoryScore(t, 1, currentMove, ss) + getContinuationHistoryScore(t, 4, currentMove, ss): 
-                t->search_d.captureHistory[pos->mailbox[getMoveSource(currentMove)]][getMoveTarget(currentMove)][pos->mailbox[getMoveTarget(currentMove)]];
+        int pawnHistoryValue = 0;
+        int moveHistory = 0;
+
+        if (notTactical) {
+            moveHistory = t->search_d.quietHistory[pos->side][source_square][target_square]
+                          [is_square_threatened(pos, source_square)][is_square_threatened(pos, target_square)] +
+                          getContinuationHistoryScore(t, 1, currentMove, ss) + 
+                          getContinuationHistoryScore(t, 4, currentMove, ss);
+            
+            pawnHistoryValue = t->shared_history->pawnHistory[pos->pawnKey & t->shared_history->pawn_history_mask][piece][target_square];
+        } else {
+            moveHistory = t->search_d.captureHistory[piece][target_square][pos->mailbox[target_square]];
+        }        
 
         int lmrDepth = myMAX(0, depth - getLmrReduction(depth, moves_seen, notTactical) + ((moveHistory * LMR_DEPTH_HIST_MULT) / LMR_DEPTH_HIST_DIVISOR * notTactical));
 
@@ -1845,9 +1863,8 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     int beta = infinity;
 
     int totalTime = 0;
-    // set root depth
     t->pos.rootDepth = 0;
-    t->pos.ply = 0;
+    t->pos.ply = 0;    
 
     int previousBestMove = 0;
     uint8_t bestMoveStability = 0;
