@@ -8,7 +8,7 @@ void initTimeControl(my_time* time) {
     // init timing
     time->quit = 0;
     time->isNodeLimit = false;
-    time->movestogo = 20;
+    time->movestogo = 0;
     time->movetime = -1;
     time->time = -1;
     time->inc = 0;

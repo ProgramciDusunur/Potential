@@ -5,7 +5,9 @@
 // ═══════════════════════════════════════════════════════════
 //  Time management parameters (defined in uci.c)
 // ═══════════════════════════════════════════════════════════
-extern TUNE_DOUBLE DEF_TIME_MULTIPLIER;
+extern TUNE_DOUBLE TM_FRACTION_MAX;
+extern TUNE_DOUBLE TM_FRACTION_DECAY;
+extern TUNE_DOUBLE TM_FRACTION_RATE;
 extern TUNE_DOUBLE DEF_INC_MULTIPLIER;
 extern TUNE_DOUBLE MAX_TIME_MULTIPLIER;
 extern TUNE_DOUBLE HARD_LIMIT_MULTIPLIER;
@@ -475,7 +477,9 @@ void spsa_init(void) {
     spsa_add_int("SE_CORRECTION_MULT",          &SE_CORRECTION_MULT,         984,   256,   4096, 100.00, 0.002);
     spsa_add_int("SE_CORRECTION_DIVISOR",       &SE_CORRECTION_DIVISOR,   2867339, 500000, 10000000, 100000.0, 0.002);
     // ── Time Management ──
-    spsa_add_double("DEF_TIME_MULTIPLIER",      &DEF_TIME_MULTIPLIER,          0.04960322314255747,  0.020,  0.120,  0.005, 0.002);
+    spsa_add_double("TM_FRACTION_MAX",          &TM_FRACTION_MAX,              0.0416,  0.020,  0.080,  0.005, 0.002);
+    spsa_add_double("TM_FRACTION_DECAY",        &TM_FRACTION_DECAY,            0.0344,  0.010,  0.060,  0.005, 0.002);
+    spsa_add_double("TM_FRACTION_RATE",         &TM_FRACTION_RATE,             0.0386,  0.010,  0.090,  0.005, 0.002);
     spsa_add_double("DEF_INC_MULTIPLIER",       &DEF_INC_MULTIPLIER,           0.836566109235868,  0.400,  1.500,  0.050, 0.002);
     spsa_add_double("MAX_TIME_MULTIPLIER",      &MAX_TIME_MULTIPLIER,          0.7109858702294981,  0.300,  1.500,  0.050, 0.002);
     spsa_add_double("HARD_LIMIT_MULTIPLIER",    &HARD_LIMIT_MULTIPLIER,        2.8920865451608098,  1.500,  5.000,  0.150, 0.002);

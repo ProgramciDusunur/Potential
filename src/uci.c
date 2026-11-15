@@ -8,6 +8,8 @@
 #include "perft.h"
 #include "timeman.h"
 #include "nnue.h"
+#include "utils.h"
+#include <math.h>
 #include <stdatomic.h>
 #include <pthread.h>
 #ifdef _WIN32
@@ -17,7 +19,7 @@
 #include <sys/types.h>
 #endif
 
-#define VERSION "4.31.19"
+#define VERSION "4.32.19"
 #define BENCH_DEPTH 10
 #define MAX_THREADS 512
 
@@ -32,7 +34,9 @@ int thread_count = 1;
 int move_overhead = 50;
 bool uci_minimal = false;
 
-TUNE_DOUBLE DEF_TIME_MULTIPLIER = 0.056007720906188156;
+TUNE_DOUBLE TM_FRACTION_MAX = 0.0416;
+TUNE_DOUBLE TM_FRACTION_DECAY = 0.0344;
+TUNE_DOUBLE TM_FRACTION_RATE = 0.0386;
 TUNE_DOUBLE DEF_INC_MULTIPLIER = 0.8315915134408788;
 TUNE_DOUBLE MAX_TIME_MULTIPLIER = 0.6320417463561735;
 TUNE_DOUBLE HARD_LIMIT_MULTIPLIER = 2.796871543746034;
@@ -276,7 +280,9 @@ void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time) {
         if (time->movestogo > 0) {
             baseTime = (time->time / time->movestogo) + time->inc;
         } else {
-            baseTime = time->time * DEF_TIME_MULTIPLIER + time->inc * DEF_INC_MULTIPLIER;
+            double decay = exp(-TM_FRACTION_RATE * root_pos->full_moves);
+            double fraction = TM_FRACTION_MAX - TM_FRACTION_DECAY * decay;
+            baseTime = time->time * my_max_double(fraction, 0.0) + time->inc * DEF_INC_MULTIPLIER;
         }
 
         time->maxTime = myMAX(1, time->time * MAX_TIME_MULTIPLIER);
