@@ -34,9 +34,9 @@ int thread_count = 1;
 int move_overhead = 50;
 bool uci_minimal = false;
 
-TUNE_DOUBLE TM_FRACTION_MAX = 0.0416;
-TUNE_DOUBLE TM_FRACTION_DECAY = 0.0344;
-TUNE_DOUBLE TM_FRACTION_RATE = 0.0386;
+TUNE_DOUBLE TM_FRACTION_MAX = 0.065;
+TUNE_DOUBLE TM_FRACTION_DECAY = 0.035;
+TUNE_DOUBLE TM_FRACTION_RATE = 0.040;
 TUNE_DOUBLE DEF_INC_MULTIPLIER = 0.8315915134408788;
 TUNE_DOUBLE MAX_TIME_MULTIPLIER = 0.6320417463561735;
 TUNE_DOUBLE HARD_LIMIT_MULTIPLIER = 2.796871543746034;
@@ -282,7 +282,7 @@ void goCommand(char *command, ThreadData *t, board* root_pos, my_time* time) {
         } else {
             double decay = exp(-TM_FRACTION_RATE * root_pos->full_moves);
             double fraction = TM_FRACTION_MAX - TM_FRACTION_DECAY * decay;
-            baseTime = time->time * my_max_double(fraction, 0.0) + time->inc * DEF_INC_MULTIPLIER;
+            baseTime = time->time * my_max_double(fraction, 0.0) + time->inc;
         }
 
         time->maxTime = myMAX(1, time->time * MAX_TIME_MULTIPLIER);
