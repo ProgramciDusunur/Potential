@@ -47,7 +47,7 @@ void get_features(board *pos, int piece, int square, const v16u **w_feat, const 
 void init_nnue(void);
 
 void reset_finny_table(void);
-void nnue_update_finny(ThreadData *t, board *pos, int side);
+void nnue_update_finny(ThreadData *t, board *pos, int side, int ply);
 void reset_finny_table(void);
 
 int nnue_evaluate_pos(board *pos);
@@ -56,15 +56,15 @@ void add_all_threat_inputs(const board *pos, const v16u *src_white, const v16u *
 
 extern const struct Weights *const weights;
 
-void nnue_add_feature(board *pos, int piece, int square);
-void nnue_remove_feature(board *pos, int piece, int square);
+void nnue_add_feature(board *pos, int ply, int piece, int square);
+void nnue_remove_feature(board *pos, int ply, int piece, int square);
 void nnue_refresh_accumulator(board *pos);
 void nnue_refresh_threat_accumulator(board *pos);
 
 
-void nnue_update_add_sub(board *pos, int add_piece, int add_sq, int sub_piece, int sub_sq);
-void nnue_update_add_sub_sub(board *pos, int add_piece, int add_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq);
-void nnue_update_add_add_sub_sub(board *pos, int add1_piece, int add1_sq, int add2_piece, int add2_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq);
+void nnue_update_add_sub(board *pos, int prev_ply, int cur_ply, int add_piece, int add_sq, int sub_piece, int sub_sq);
+void nnue_update_add_sub_sub(board *pos, int prev_ply, int cur_ply, int add_piece, int add_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq);
+void nnue_update_add_add_sub_sub(board *pos, int prev_ply, int cur_ply, int add1_piece, int add1_sq, int add2_piece, int add2_sq, int sub1_piece, int sub1_sq, int sub2_piece, int sub2_sq);
 
 #endif
  //POTENTIAL_NNUE_H
