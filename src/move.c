@@ -60,10 +60,6 @@ void copyBoard(board *p, struct copyposition *cp) {
     cp->pinned[1] = p->pinned[1];
     cp->pieceThreats = p->pieceThreats;
 
-    // NNUE PSQT accumulators
-    memcpy(cp->accum_white, p->accum_white, sizeof(cp->accum_white));
-    memcpy(cp->accum_black, p->accum_black, sizeof(cp->accum_black));
-
     cp->threat_ply = p->threat_ply;
 }
 
@@ -86,10 +82,6 @@ void takeBack(board *p, struct copyposition *cp) {
     p->pinned[0] = cp->pinned[0];
     p->pinned[1] = cp->pinned[1];
     p->pieceThreats = cp->pieceThreats;
-
-    // NNUE PSQT accumulators
-    memcpy(p->accum_white, cp->accum_white, sizeof(p->accum_white));
-    memcpy(p->accum_black, cp->accum_black, sizeof(p->accum_black));
 
     p->threat_ply = cp->threat_ply;
 }
@@ -740,44 +732,44 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
             case (g1):
                 removePiece(position, R, h1);
                 addPiece(position, R, f1);
-                nnue_update_add_add_sub_sub(position, K, g1, R, f1, K, e1, R, h1);
+                nnue_update_add_add_sub_sub(position, prev_threat_ply, cur_threat_ply, K, g1, R, f1, K, e1, R, h1);
                 break;
 
             // white castles queen side
             case (c1):
                 removePiece(position, R, a1);
                 addPiece(position, R, d1);
-                nnue_update_add_add_sub_sub(position, K, c1, R, d1, K, e1, R, a1);
+                nnue_update_add_add_sub_sub(position, prev_threat_ply, cur_threat_ply, K, c1, R, d1, K, e1, R, a1);
                 break;
 
             // black castles king side
             case (g8):
                 removePiece(position, r, h8);
                 addPiece(position, r, f8);
-                nnue_update_add_add_sub_sub(position, k, g8, r, f8, k, e8, r, h8);
+                nnue_update_add_add_sub_sub(position, prev_threat_ply, cur_threat_ply, k, g8, r, f8, k, e8, r, h8);
                 break;
 
             // black castles queen side
             case (c8):
                 removePiece(position, r, a8);
                 addPiece(position, r, d8);
-                nnue_update_add_add_sub_sub(position, k, c8, r, d8, k, e8, r, a8);
+                nnue_update_add_add_sub_sub(position, prev_threat_ply, cur_threat_ply, k, c8, r, d8, k, e8, r, a8);
                 break;
         }
     } else if (promote) {
         if (capture) {
-            nnue_update_add_sub_sub(position, promotedPiece, targetSquare, piece, sourceSquare, capturedPiece, targetSquare);
+            nnue_update_add_sub_sub(position, prev_threat_ply, cur_threat_ply, promotedPiece, targetSquare, piece, sourceSquare, capturedPiece, targetSquare);
         } else {
-            nnue_update_add_sub(position, promotedPiece, targetSquare, piece, sourceSquare);
+            nnue_update_add_sub(position, prev_threat_ply, cur_threat_ply, promotedPiece, targetSquare, piece, sourceSquare);
         }
     } else if (enpass) {
         int ep_sq = position->side == white ? targetSquare + 8 : targetSquare - 8;
         int ep_piece = position->side == white ? p : P;
-        nnue_update_add_sub_sub(position, piece, targetSquare, piece, sourceSquare, ep_piece, ep_sq);
+        nnue_update_add_sub_sub(position, prev_threat_ply, cur_threat_ply, piece, targetSquare, piece, sourceSquare, ep_piece, ep_sq);
     } else if (capture) {
-        nnue_update_add_sub_sub(position, piece, targetSquare, piece, sourceSquare, capturedPiece, targetSquare);
+        nnue_update_add_sub_sub(position, prev_threat_ply, cur_threat_ply, piece, targetSquare, piece, sourceSquare, capturedPiece, targetSquare);
     } else {
-        nnue_update_add_sub(position, piece, targetSquare, piece, sourceSquare);
+        nnue_update_add_sub(position, prev_threat_ply, cur_threat_ply, piece, targetSquare, piece, sourceSquare);
     }
 
     // hash castling
@@ -810,7 +802,7 @@ void legal_make_move(uint16_t move, board* position, ThreadData *t) {
         
         if (from_bucket != to_bucket || from_mirror != to_mirror) {            
             int king_side = piece == K ? white : black;
-            nnue_update_finny(t, position, king_side);
+            nnue_update_finny(t, position, king_side, cur_threat_ply);
         }
     }
 
