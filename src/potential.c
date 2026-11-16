@@ -48,7 +48,6 @@ void init_all(void) {
     
 }
 
-
 int main(int argc, char* argv[]) {    
     // init main thread
     init_threads(1);
