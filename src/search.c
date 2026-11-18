@@ -713,6 +713,9 @@ uint8_t isMaterialDraw(board *pos) {
 }
 
 void scaleTime(my_time* time, uint8_t bestMoveStability, uint8_t evalStability, uint16_t move, double complexity, ThreadData *t) {
+    if (time->movetime != -1) {
+        return;
+    }
     double bestMoveScale[5] = {TM_BEST_MOVE_SCALE_0, TM_BEST_MOVE_SCALE_1, TM_BEST_MOVE_SCALE_2, TM_BEST_MOVE_SCALE_3, TM_BEST_MOVE_SCALE_4};
     double evalScale[5] = {TM_EVAL_SCALE_0, TM_EVAL_SCALE_1, TM_EVAL_SCALE_2, TM_EVAL_SCALE_3, TM_EVAL_SCALE_4};
     double complexityScale = my_max_double(TM_COMPLEXITY_BASE + clamp_double(complexity, 0.0, 200.0) / TM_COMPLEXITY_DIVISOR, 1.0);
