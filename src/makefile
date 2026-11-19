@@ -78,15 +78,18 @@ ifeq ($(CLANG_PATH),)
     CLANG_PATH := $(CLANG_CC)
 endif
 CLANG_DIR     := $(dir $(CLANG_PATH))
-CLANG_VERSION := $(shell $(CLANG_CC) -dumpversion 2>/dev/null | cut -d. -f1)
+CLANG_VERSION := $(shell echo "__clang_major__" | $(CLANG_CC) -E -P -x c - 2>/dev/null | grep -E '^[0-9]+$$' | tail -n 1)
+ifeq ($(CLANG_VERSION),)
+    CLANG_VERSION := $(shell $(CLANG_CC) -dumpversion 2>/dev/null | cut -d. -f1)
+endif
 
 LLVM_PROFDATA ?= $(shell \
     if [ -n "$(CLANG_VERSION)" ] && [ -x "$(CLANG_DIR)llvm-profdata-$(CLANG_VERSION)" ]; then \
         echo "$(CLANG_DIR)llvm-profdata-$(CLANG_VERSION)"; \
     elif [ -x "$(CLANG_DIR)llvm-profdata" ]; then \
         echo "$(CLANG_DIR)llvm-profdata"; \
-    elif [ -n "$(CLANG_VERSION)" ] && command -v "llvm-profdata-$(CLANG_VERSION)" >/dev/null 2>&1; then \
-        command -v "llvm-profdata-$(CLANG_VERSION)"; \
+    elif [ -n "$(CLANG_VERSION)" ] && command -v llvm-profdata-$(CLANG_VERSION) >/dev/null 2>&1; then \
+        command -v llvm-profdata-$(CLANG_VERSION); \
     elif command -v llvm-profdata >/dev/null 2>&1; then \
         command -v llvm-profdata; \
     elif [ "$(uname_S)" = "Darwin" ] && command -v xcrun >/dev/null 2>&1; then \
