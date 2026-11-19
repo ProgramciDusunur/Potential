@@ -48,7 +48,6 @@ void init_nnue(void);
 
 void reset_finny_table(void);
 void nnue_update_finny(ThreadData *t, board *pos, int side, int ply);
-void reset_finny_table(void);
 
 int nnue_evaluate_pos(board *pos);
 void test_nnue_indicies(board *pos);

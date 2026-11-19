@@ -771,7 +771,7 @@ int quiescence(int alpha, int beta, ThreadData *t, my_time* time, SearchStack *s
         }
     }
 
-    if (position->ply > maxPly - 1) {
+    if (position->ply >= maxPly - 1) {
         // evaluate position
         return evaluate(position);
     }
@@ -951,7 +951,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         time->stopped = 1;
     }
 
-    if (pos->ply > maxPly - 1) {
+    if (pos->ply >= maxPly - 1) {
         // evaluate position
         return evaluate(pos);
     }
@@ -1865,7 +1865,7 @@ int searchPosition(int depth, bool benchmark, ThreadData *t, my_time* time) {
     int totalTime = 0;
     t->pos.rootDepth = 0;
     t->pos.ply = 0;
-    t->pos.threat_ply = 0;
+    t->pos.accum_ply = 0;
 
     int previousBestMove = 0;
     uint8_t bestMoveStability = 0;
