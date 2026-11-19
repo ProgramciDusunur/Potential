@@ -175,6 +175,15 @@ void parse_position(char *command, board* position) {
             // make move on the chess board
             legal_make_move(move, position, thread_pool.threads[0]);
 
+            // Keep root position at index 0
+            if (position->accum_ply != 0) {
+                memcpy(position->accum_white[0], position->accum_white[position->accum_ply], sizeof(position->accum_white[0]));
+                memcpy(position->accum_black[0], position->accum_black[position->accum_ply], sizeof(position->accum_black[0]));
+                memcpy(position->threat_accum_white[0], position->threat_accum_white[position->accum_ply], sizeof(position->threat_accum_white[0]));
+                memcpy(position->threat_accum_black[0], position->threat_accum_black[position->accum_ply], sizeof(position->threat_accum_black[0]));
+                position->accum_ply = 0;
+            }
+
             // move current character mointer to the end of current move
             while (*current_char && *current_char != ' ') current_char++;
 

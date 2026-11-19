@@ -218,7 +218,7 @@ void nnue_sub_feature_black(board *pos, int ply, int piece, int square) {
 }
 
 void nnue_refresh_accumulator(board *pos) {
-    int ply = pos->threat_ply < maxPly ? pos->threat_ply : maxPly - 1;
+    int ply = pos->accum_ply < (maxPly + 1) ? pos->accum_ply : (maxPly + 1);
     memcpy(pos->accum_white[ply], weights->ftb, HIDDEN_SIZE * sizeof(int16_t));
     memcpy(pos->accum_black[ply], weights->ftb, HIDDEN_SIZE * sizeof(int16_t));
     uint64_t occ = pos->occupancies[both];
@@ -697,14 +697,14 @@ void add_all_threat_inputs(const board *pos, const v16u *src_white, const v16u *
 
 void nnue_refresh_threat_accumulator(board *pos) {
     static const v16u zero[HIDDEN_VECS] = {0};
-    int ply = pos->threat_ply < maxPly ? pos->threat_ply : maxPly - 1;
+    int ply = pos->accum_ply < (maxPly + 1) ? pos->accum_ply : (maxPly + 1);
     add_all_threat_inputs(pos, zero, zero,
                           (v16u *)pos->threat_accum_white[ply],
                           (v16u *)pos->threat_accum_black[ply]);
 }
 
 int nnue_evaluate_pos(board *pos) {
-    int ply = pos->threat_ply < maxPly ? pos->threat_ply : maxPly - 1;
+    int ply = pos->accum_ply < (maxPly + 1) ? pos->accum_ply : (maxPly + 1);
     const int16_t *stm_h  = (const int16_t *)((pos->side == white) ? pos->accum_white[ply] : pos->accum_black[ply]);
     const int16_t *stm_t  = (const int16_t *)((pos->side == white) ? pos->threat_accum_white[ply] : pos->threat_accum_black[ply]);
     const int16_t *nstm_h = (const int16_t *)((pos->side == white) ? pos->accum_black[ply] : pos->accum_white[ply]);

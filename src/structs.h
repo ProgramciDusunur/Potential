@@ -96,12 +96,12 @@ typedef struct {
 
     int gamePhase;
 
-    v16u accum_white[maxPly][HIDDEN_VECS];
-    v16u accum_black[maxPly][HIDDEN_VECS];
+    v16u accum_white[maxPly + 2][HIDDEN_VECS];
+    v16u accum_black[maxPly + 2][HIDDEN_VECS];
 
-    int threat_ply;
-    v16u threat_accum_white[maxPly][HIDDEN_VECS];
-    v16u threat_accum_black[maxPly][HIDDEN_VECS];
+    int accum_ply;
+    v16u threat_accum_white[maxPly + 2][HIDDEN_VECS];
+    v16u threat_accum_black[maxPly + 2][HIDDEN_VECS];
 } board;
 
 struct copyposition {
@@ -130,7 +130,7 @@ struct copyposition {
     U64 pinned[2];
     threats pieceThreats;
 
-    int threat_ply;
+    int accum_ply;
 };
 
 // transposition table data structure
