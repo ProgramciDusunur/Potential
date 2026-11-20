@@ -32,25 +32,19 @@ EVALFILE ?= $(NET)
 CFLAGS      += -DEVALFILE=$(EVALFILE)
 OBJDIR      := .tmp
 
-ifneq ($(wildcard C:/msys64/mingw64/bin/clang.exe),)
-    CLANG_CC = C:/msys64/mingw64/bin/clang.exe
-else
-    CLANG_CC = clang
-endif
-
-COMPILER_DIR := $(dir $(CLANG_CC))
-ifeq ($(COMPILER_DIR),./)
-    LLVM_PROFDATA := llvm-profdata
-else
-    LLVM_PROFDATA := $(COMPILER_DIR)llvm-profdata
-endif
-
 CFLAGS += -funroll-loops -O3 -flto -fno-exceptions -DIS_64BIT -DNDEBUG
-LDFLAGS += -fuse-ld=lld
 
 ifeq ($(OS), Windows_NT)
-    MKDIR   := mkdir
+    uname_S  := Windows
+    SUFFIX   := .exe
+    MKDIR    := mkdir
+    CFLAGS  += -static
+    LDFLAGS += -Wl,--stack,16777216
+    FLAGS    = -lpthread
 else
+    FLAGS    = -pthread -lm
+    SUFFIX  :=
+    uname_S := $(shell uname -s 2>/dev/null || echo unknown)
 ifeq ($(COMP), MINGW)
     MKDIR   := mkdir
 else
@@ -58,22 +52,51 @@ else
 endif
 endif
 
-ifeq ($(OS), Windows_NT)
-    uname_S  := Windows
-    SUFFIX   := .exe
-    CFLAGS  += -static
-    LDFLAGS += -Wl,--stack,16777216
-    FLAGS    = -lpthread
-else
-    FLAGS    = -pthread -lm
-    SUFFIX  :=
-    uname_S := $(shell uname -s)
-endif
-
 ifeq ($(uname_S), Darwin)
 	NATIVE = -mcpu=apple-a14
 	FLAGS  =
 endif
+
+ifneq ($(uname_S), Darwin)
+    LDFLAGS += -fuse-ld=lld
+endif
+
+ifneq ($(wildcard C:/msys64/mingw64/bin/clang.exe),)
+    DEFAULT_CC := C:/msys64/mingw64/bin/clang.exe
+else
+    DEFAULT_CC := clang
+endif
+
+ifeq ($(origin CC),default)
+    CLANG_CC ?= $(DEFAULT_CC)
+else
+    CLANG_CC ?= $(CC)
+endif
+
+CLANG_PATH    := $(shell command -v $(CLANG_CC) 2>/dev/null)
+ifeq ($(CLANG_PATH),)
+    CLANG_PATH := $(CLANG_CC)
+endif
+CLANG_DIR     := $(dir $(CLANG_PATH))
+CLANG_VERSION := $(shell echo "__clang_major__" | $(CLANG_CC) -E -P -x c - 2>/dev/null | grep -E '^[0-9]+$$' | tail -n 1)
+ifeq ($(CLANG_VERSION),)
+    CLANG_VERSION := $(shell $(CLANG_CC) -dumpversion 2>/dev/null | cut -d. -f1)
+endif
+
+LLVM_PROFDATA ?= $(shell \
+    if [ -n "$(CLANG_VERSION)" ] && [ -x "$(CLANG_DIR)llvm-profdata-$(CLANG_VERSION)" ]; then \
+        echo "$(CLANG_DIR)llvm-profdata-$(CLANG_VERSION)"; \
+    elif [ -x "$(CLANG_DIR)llvm-profdata" ]; then \
+        echo "$(CLANG_DIR)llvm-profdata"; \
+    elif [ -n "$(CLANG_VERSION)" ] && command -v llvm-profdata-$(CLANG_VERSION) >/dev/null 2>&1; then \
+        command -v llvm-profdata-$(CLANG_VERSION); \
+    elif command -v llvm-profdata >/dev/null 2>&1; then \
+        command -v llvm-profdata; \
+    elif [ "$(uname_S)" = "Darwin" ] && command -v xcrun >/dev/null 2>&1; then \
+        echo "xcrun llvm-profdata"; \
+    else \
+        echo llvm-profdata; \
+    fi)
 
 ARCH_DETECTED =
 PROPERTIES = $(shell echo | $(CLANG_CC) $(NATIVE) -E -dM -)
@@ -218,15 +241,6 @@ $(NET):
 net: $(NET)
 
 pgo:
-ifeq ($(uname_S), Darwin)
-	@$(MAKE) clean
-	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-generate"
-	LLVM_PROFILE_FILE="$(OBJDIR)/default.profraw" ./$(EXE) bench
-	xcrun llvm-profdata merge -output=$(OBJDIR)/default.profdata $(OBJDIR)/default.profraw
-	@rm -f $(OBJECTS) $(EXE)
-	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-use=$(OBJDIR)/default.profdata"
-	@rm -f $(OBJDIR)/default.profraw $(OBJDIR)/default.profdata
-else
 	@$(MAKE) clean
 	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-generate"
 	LLVM_PROFILE_FILE="$(OBJDIR)/default.profraw" ./$(EXE) bench
@@ -234,7 +248,6 @@ else
 	@rm -f $(OBJECTS) $(EXE)
 	@$(MAKE) build_core CFLAGS="$(CFLAGS) -fprofile-instr-use=$(OBJDIR)/default.profdata"
 	@rm -f $(OBJDIR)/default.profraw $(OBJDIR)/default.profdata
-endif
 
 fast:
 	@$(MAKE) build_core

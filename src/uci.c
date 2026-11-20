@@ -17,7 +17,7 @@
 #include <sys/types.h>
 #endif
 
-#define VERSION "4.32.19"
+#define VERSION "4.32.20"
 #define BENCH_DEPTH 10
 #define MAX_THREADS 512
 
