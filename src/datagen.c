@@ -93,7 +93,6 @@ int start_datagen() {
     setvbuf(in, NULL, _IONBF, 0); // Tamponlamayı kapat (yazdığın anında gitsin)
 
     char line[1024];
-    char bestmove[16] = "";
     int fisi_cek = 0;
 
     // datagen cycle
@@ -121,31 +120,11 @@ int start_datagen() {
         }
     }
 
-// DÖNGÜ BİTTİ: İşçiyi temizce kapatma vakti
-printf("Test bitti, isci kapatiliyor...\n");
-fprintf(in, "quit\n");
-fflush(in);
-
-// (Burada pclose(in) veya Windows CloseHandle() fonksiyonlarıyla
-// boruları kapatıp programı tamamen sonlandırabilirsin).
-    
-    fprintf(in, "uci\n");
-    // Motora "hazır mısın?" diye soruyoruz
-    
-    
-    //fprintf(engine, "ucinewgame\n");
-    /*fprintf(in, "position startpos\n");
-    fprintf(in, "setoption name Hash value 1\n");
-    fprintf(in, "go nodes 5000\n");*/
-    fflush(in);
-    
-
-    // Motor cevabı basana kadar dinle:
-    
-
-    printf("\n>>> Worker'dan gelen en iyi hamle: %s <<<\n", bestmove);
-
+    // DÖNGÜ BİTTİ: İşçiyi temizce kapatma vakti
+    printf("Test bitti, isci kapatiliyor...\n");
     fprintf(in, "quit\n");
+    fflush(in);
+
     fclose(in);
     fclose(out);
     DeleteFileA(link);
