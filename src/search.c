@@ -1128,9 +1128,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
 
         init_threats(pos);
 
-        prefetch_corrhist(pos, t);
-
-        ss->move = 0;
+        prefetch_corrhist(pos, t);        
 
         int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) * NMP_REDUCTION_DEPTH_MULT / NMP_REDUCTION_DIVISOR;
 
