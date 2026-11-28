@@ -1040,7 +1040,7 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
                     return get_tt_cutoff_score(tt_score, beta);
             }
         }
-    }
+    }    
 
     // recursion escapre condition
     if (depth <= 0)
@@ -1063,6 +1063,11 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
     ss->staticEval = static_eval;    
 
     improving = !in_check && (ss - 2)->staticEval != noEval && ss->staticEval > (ss - 2)->staticEval;
+
+    // Static Null Move Pruning
+    if (!rootNode && (ss - 1)->move == 0 && (ss - 1)->staticEval - static_eval < -20) {
+        return beta;
+    }
 
     // Internal Iterative Reductions
     if ((pvNode || predicted_cut_node) && depth >= IIR_DEPTH && (!tt_move || tt_depth < depth - IIR_TT_DEPTH_SUBTRACTOR)) {
@@ -1124,6 +1129,8 @@ int negamax(int alpha, int beta, int depth, ThreadData *t, my_time* time, Search
         init_threats(pos);
 
         prefetch_corrhist(pos, t);
+
+        ss->move = 0;
 
         int R = (NMP_BASE_REDUCTION + depth * NMP_DEPTH_MULTIPLIER) * NMP_REDUCTION_DEPTH_MULT / NMP_REDUCTION_DIVISOR;
 
